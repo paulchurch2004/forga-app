@@ -50,6 +50,7 @@ export default function LoginScreen() {
 
     if (data.session) {
       useAuthStore.getState().setSession(data.session);
+      router.replace('/');
     }
   };
 

@@ -105,6 +105,9 @@ function RootLayoutInner() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
+      if (session) {
+        checkOnboardingStatus(session.user.id);
+      }
     });
 
     return () => subscription.unsubscribe();
