@@ -9,14 +9,11 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { colors } from '../src/theme/colors';
 import { fonts, fontSizes } from '../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../src/theme/spacing';
-
-const INSTALL_GUIDE_KEY = 'forga_install_guide_shown';
 
 type DeviceType = 'ios' | 'android' | 'desktop';
 
@@ -247,9 +244,6 @@ export default function InstallGuideScreen() {
     }
 
     setDevice(detected);
-
-    // Mark as shown
-    AsyncStorage.setItem(INSTALL_GUIDE_KEY, 'true').catch(() => {});
   }, []);
 
   const steps = getSteps(device);

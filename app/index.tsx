@@ -1,10 +1,6 @@
-import { useState, useEffect } from 'react';
 import { Redirect } from 'expo-router';
 import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuthStore } from '../src/store/authStore';
-
-const INSTALL_GUIDE_KEY = 'forga_install_guide_shown';
 
 function isStandalone(): boolean {
   if (Platform.OS !== 'web') return false;
@@ -24,29 +20,6 @@ function isMobileDevice(): boolean {
 export default function Index() {
   const session = useAuthStore((s) => s.session);
   const isOnboarded = useAuthStore((s) => s.isOnboarded);
-  const [guideCheck, setGuideCheck] = useState<'loading' | 'needed' | 'not_needed'>('loading');
-
-  useEffect(() => {
-    // Not on web, or not fully onboarded yet: no guide check needed
-    if (Platform.OS !== 'web' || !session || !isOnboarded) {
-      setGuideCheck('not_needed');
-      return;
-    }
-    // Already installed as PWA: skip guide
-    if (isStandalone()) {
-      setGuideCheck('not_needed');
-      return;
-    }
-    // Desktop: skip guide
-    if (!isMobileDevice()) {
-      setGuideCheck('not_needed');
-      return;
-    }
-    // Mobile browser: check if guide was already shown
-    AsyncStorage.getItem(INSTALL_GUIDE_KEY).then((val) => {
-      setGuideCheck(val ? 'not_needed' : 'needed');
-    });
-  }, [session, isOnboarded]);
 
   // ── No session ──
   if (!session) {
@@ -63,10 +36,8 @@ export default function Index() {
     return <Redirect href="/(onboarding)/step1-identity" />;
   }
 
-  // ── Onboarded: check install guide ──
-  if (guideCheck === 'loading') return null;
-
-  if (guideCheck === 'needed') {
+  // ── Mobile browser (not PWA): always show install guide ──
+  if (Platform.OS === 'web' && !isStandalone() && isMobileDevice()) {
     return <Redirect href="/install-guide" />;
   }
 
