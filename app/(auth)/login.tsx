@@ -50,6 +50,15 @@ export default function LoginScreen() {
 
     if (data.session) {
       useAuthStore.getState().setSession(data.session);
+
+      // Check onboarding status before navigating
+      const { data: userData } = await supabase
+        .from('users')
+        .select('objective')
+        .eq('id', data.session.user.id)
+        .single();
+
+      useAuthStore.getState().setOnboarded(!!userData?.objective);
       router.replace('/');
     }
   };
