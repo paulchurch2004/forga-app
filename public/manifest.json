@@ -1,0 +1,24 @@
+{
+  "name": "FORGA",
+  "short_name": "FORGA",
+  "description": "Ton coach nutrition intelligent. Suis tes macros, valide tes repas, progresse chaque jour.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0B14",
+  "theme_color": "#0B0B14",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/pwa-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/pwa-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
