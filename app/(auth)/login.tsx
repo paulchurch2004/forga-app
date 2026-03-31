@@ -22,9 +22,17 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const showError = (title: string, message: string) => {
+    if (Platform.OS === 'web') {
+      alert(`${title}: ${message}`);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
+
   const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('Erreur', 'Remplis tous les champs.');
+      showError('Erreur', 'Remplis tous les champs.');
       return;
     }
 
@@ -36,7 +44,7 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (error) {
-      Alert.alert('Erreur', error.message);
+      showError('Erreur', error.message);
       return;
     }
 
@@ -47,15 +55,15 @@ export default function LoginScreen() {
 
   const handleForgotPassword = async () => {
     if (!email) {
-      Alert.alert('Email requis', 'Entre ton email pour réinitialiser ton mot de passe.');
+      showError('Email requis', 'Entre ton email pour réinitialiser ton mot de passe.');
       return;
     }
 
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase());
     if (error) {
-      Alert.alert('Erreur', error.message);
+      showError('Erreur', error.message);
     } else {
-      Alert.alert('Email envoyé', 'Vérifie ta boîte mail pour réinitialiser ton mot de passe.');
+      showError('Email envoyé', 'Vérifie ta boîte mail pour réinitialiser ton mot de passe.');
     }
   };
 
