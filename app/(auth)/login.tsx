@@ -16,6 +16,7 @@ import { fontSizes } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
 import { supabase } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/store/authStore';
+import { loadProfileFromSupabase } from '../../src/services/profile';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -50,15 +51,7 @@ export default function LoginScreen() {
 
     if (data.session) {
       useAuthStore.getState().setSession(data.session);
-
-      // Check onboarding status before navigating
-      const { data: userData } = await supabase
-        .from('users')
-        .select('objective')
-        .eq('id', data.session.user.id)
-        .single();
-
-      useAuthStore.getState().setOnboarded(!!userData?.objective);
+      await loadProfileFromSupabase(data.session.user.id);
       router.replace('/');
     }
   };

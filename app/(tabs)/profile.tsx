@@ -230,7 +230,12 @@ export default function ProfileScreen() {
 
       {/* Infos */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Mon profil</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Mon profil</Text>
+          <Pressable onPress={() => router.push('/settings')}>
+            <Text style={styles.editLink}>Modifier</Text>
+          </Pressable>
+        </View>
         <ProfileRow label="Objectif" value={objectiveLabels[profile.objective]} />
         <ProfileRow label="Poids actuel" value={`${profile.currentWeight} kg`} />
         <ProfileRow label="Poids cible" value={`${profile.targetWeight} kg`} />
@@ -407,6 +412,18 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     fontWeight: '700',
     color: colors.success,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  editLink: {
+    fontFamily: 'DMSans',
+    fontSize: fontSizes.md,
+    fontWeight: '600',
+    color: colors.primary,
   },
   profileRow: {
     flexDirection: 'row',

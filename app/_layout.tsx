@@ -24,6 +24,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { colors } from '../src/theme/colors';
 import { isDemoMode, supabase } from '../src/services/supabase';
 import { useAuthStore } from '../src/store/authStore';
+import { loadProfileFromSupabase } from '../src/services/profile';
 import { initSentry, captureException } from '../src/services/sentry';
 import { View, Text, ActivityIndicator, ScrollView } from 'react-native';
 
@@ -98,15 +99,16 @@ function RootLayoutInner() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
-        checkOnboardingStatus(session.user.id);
+        loadProfileFromSupabase(session.user.id).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
-        checkOnboardingStatus(session.user.id);
+        loadProfileFromSupabase(session.user.id);
       }
     });
 
@@ -119,16 +121,6 @@ function RootLayoutInner() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded, fontError, isLoading]);
-
-  const checkOnboardingStatus = async (userId: string) => {
-    const { data } = await supabase
-      .from('users')
-      .select('objective')
-      .eq('id', userId)
-      .single();
-
-    setOnboarded(!!data?.objective);
-  };
 
   if (!fontsLoaded && !fontError) {
     return (
