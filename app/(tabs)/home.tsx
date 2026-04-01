@@ -22,6 +22,7 @@ import { CoachCard } from '../../src/components/home/CoachCard';
 import { getCoachMessage, type CoachInput } from '../../src/engine/coachEngine';
 import { colors, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
 import { useResponsive } from '../../src/hooks/useResponsive';
+import { FitnessVideoBanner } from '../../src/components/home/FitnessVideoBanner';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
@@ -139,6 +140,9 @@ export default function HomeScreen() {
         />
       }
     >
+      {/* Fitness Video Banner */}
+      <FitnessVideoBanner />
+
       {/* Greeting Header */}
       <View style={styles.header}>
         <View style={styles.greetingRow}>
