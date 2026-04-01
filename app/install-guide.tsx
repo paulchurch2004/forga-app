@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -6,10 +6,11 @@ import {
   Pressable,
   Platform,
   Image,
+  Animated as RNAnimated,
+  Easing,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path, Circle, Rect, Line } from 'react-native-svg';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { colors } from '../src/theme/colors';
 import { fonts, fontSizes } from '../src/theme/fonts';
@@ -18,7 +19,7 @@ import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../src/theme/spacing';
 type DeviceType = 'ios' | 'android' | 'desktop';
 
 function detectDevice(): DeviceType {
-  if (Platform.OS !== 'web') return 'ios'; // fallback, shouldn't happen
+  if (Platform.OS !== 'web') return 'ios';
   const ua = (typeof navigator !== 'undefined' && navigator.userAgent) || '';
   if (/iPad|iPhone|iPod/.test(ua)) return 'ios';
   if (/Android/.test(ua)) return 'android';
@@ -34,187 +35,437 @@ function isStandalone(): boolean {
   );
 }
 
-// ──────────── SVG ICONS ────────────
+// ──────────── TAP FINGER ANIMATION ────────────
 
-function ShareIcon() {
+function TapFinger({ x, y, delay = 0 }: { x: number; y: number; delay?: number }) {
+  const scale = useRef(new RNAnimated.Value(0)).current;
+  const opacity = useRef(new RNAnimated.Value(0)).current;
+  const ripple = useRef(new RNAnimated.Value(0)).current;
+  const rippleOpacity = useRef(new RNAnimated.Value(0)).current;
+
+  useEffect(() => {
+    const animate = () => {
+      scale.setValue(0);
+      opacity.setValue(0);
+      ripple.setValue(0.5);
+      rippleOpacity.setValue(0);
+
+      RNAnimated.sequence([
+        RNAnimated.delay(delay),
+        // Finger appears
+        RNAnimated.parallel([
+          RNAnimated.timing(scale, { toValue: 1, duration: 300, useNativeDriver: true }),
+          RNAnimated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+        ]),
+        // Small pause
+        RNAnimated.delay(200),
+        // Tap press
+        RNAnimated.timing(scale, { toValue: 0.8, duration: 100, useNativeDriver: true }),
+        // Tap release + ripple
+        RNAnimated.parallel([
+          RNAnimated.timing(scale, { toValue: 1, duration: 150, useNativeDriver: true }),
+          RNAnimated.timing(rippleOpacity, { toValue: 0.5, duration: 100, useNativeDriver: true }),
+          RNAnimated.timing(ripple, { toValue: 2.5, duration: 500, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+        ]),
+        // Ripple fades
+        RNAnimated.timing(rippleOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+        // Hold
+        RNAnimated.delay(300),
+        // Finger disappears
+        RNAnimated.parallel([
+          RNAnimated.timing(scale, { toValue: 0, duration: 200, useNativeDriver: true }),
+          RNAnimated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+        ]),
+      ]).start();
+    };
+
+    animate();
+    const interval = setInterval(animate, 4000);
+    return () => clearInterval(interval);
+  }, [delay]);
+
   return (
-    <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"
-        stroke={colors.primary}
-        strokeWidth={2}
-        strokeLinecap="round"
+    <View style={[tapStyles.container, { left: x - 20, top: y - 20 }]} pointerEvents="none">
+      {/* Ripple */}
+      <RNAnimated.View
+        style={[
+          tapStyles.ripple,
+          { transform: [{ scale: ripple }], opacity: rippleOpacity },
+        ]}
       />
-      <Path
-        d="M12 3v12M12 3l-4 4M12 3l4 4"
-        stroke={colors.primary}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
+      {/* Finger dot */}
+      <RNAnimated.View
+        style={[
+          tapStyles.finger,
+          { transform: [{ scale }], opacity },
+        ]}
       />
-    </Svg>
+    </View>
   );
 }
 
-function PlusIcon() {
+const tapStyles = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  finger: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
+  },
+  ripple: {
+    position: 'absolute',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+  },
+});
+
+// ──────────── PULSE RING ────────────
+
+function PulseRing({ x, y, size = 40 }: { x: number; y: number; size?: number }) {
+  const scale = useRef(new RNAnimated.Value(1)).current;
+  const opacity = useRef(new RNAnimated.Value(0.6)).current;
+
+  useEffect(() => {
+    RNAnimated.loop(
+      RNAnimated.sequence([
+        RNAnimated.parallel([
+          RNAnimated.timing(scale, { toValue: 1.8, duration: 800, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+          RNAnimated.timing(opacity, { toValue: 0, duration: 800, useNativeDriver: true }),
+        ]),
+        RNAnimated.parallel([
+          RNAnimated.timing(scale, { toValue: 1, duration: 0, useNativeDriver: true }),
+          RNAnimated.timing(opacity, { toValue: 0.6, duration: 0, useNativeDriver: true }),
+        ]),
+        RNAnimated.delay(400),
+      ]),
+    ).start();
+  }, []);
+
   return (
-    <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
-      <Rect
-        x={3}
-        y={3}
-        width={18}
-        height={18}
-        rx={4}
-        stroke={colors.primary}
-        strokeWidth={2}
-      />
-      <Line
-        x1={12}
-        y1={8}
-        x2={12}
-        y2={16}
-        stroke={colors.primary}
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
-      <Line
-        x1={8}
-        y1={12}
-        x2={16}
-        y2={12}
-        stroke={colors.primary}
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
-    </Svg>
+    <RNAnimated.View
+      pointerEvents="none"
+      style={[
+        {
+          position: 'absolute',
+          left: x - size / 2,
+          top: y - size / 2,
+          width: size,
+          height: size,
+          borderRadius: size / 2,
+          borderWidth: 2,
+          borderColor: colors.primary,
+          transform: [{ scale }],
+          opacity,
+        },
+      ]}
+    />
   );
 }
 
-function CheckIcon() {
+// ──────────── iOS SAFARI DEMO ────────────
+
+function IOSDemo() {
+  const [step, setStep] = useState(0);
+  const menuSlide = useRef(new RNAnimated.Value(200)).current;
+  const menuOpacity = useRef(new RNAnimated.Value(0)).current;
+  const iconScale = useRef(new RNAnimated.Value(0)).current;
+  const checkScale = useRef(new RNAnimated.Value(0)).current;
+
+  useEffect(() => {
+    const cycle = () => {
+      // Reset
+      menuSlide.setValue(200);
+      menuOpacity.setValue(0);
+      iconScale.setValue(0);
+      checkScale.setValue(0);
+      setStep(0);
+
+      // Step 1: Show safari bar with share button (already visible)
+      // After 2s, show menu sliding up (step 2)
+      const t1 = setTimeout(() => {
+        setStep(1);
+        RNAnimated.parallel([
+          RNAnimated.timing(menuSlide, { toValue: 0, duration: 400, easing: Easing.out(Easing.back(1)), useNativeDriver: true }),
+          RNAnimated.timing(menuOpacity, { toValue: 1, duration: 300, useNativeDriver: true }),
+        ]).start();
+      }, 2500);
+
+      // Step 3: Show home screen icon after 5s
+      const t2 = setTimeout(() => {
+        setStep(2);
+        RNAnimated.parallel([
+          RNAnimated.timing(menuSlide, { toValue: 200, duration: 300, useNativeDriver: true }),
+          RNAnimated.timing(menuOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+        ]).start();
+        RNAnimated.sequence([
+          RNAnimated.delay(300),
+          RNAnimated.spring(iconScale, { toValue: 1, friction: 4, tension: 100, useNativeDriver: true }),
+          RNAnimated.delay(200),
+          RNAnimated.spring(checkScale, { toValue: 1, friction: 5, tension: 100, useNativeDriver: true }),
+        ]).start();
+      }, 5500);
+
+      return [t1, t2];
+    };
+
+    const timers = cycle();
+    const interval = setInterval(() => {
+      cycle();
+    }, 8500);
+
+    return () => {
+      timers.forEach(clearTimeout);
+      clearInterval(interval);
+    };
+  }, []);
+
   return (
-    <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
-      <Circle cx={12} cy={12} r={10} stroke={colors.success} strokeWidth={2} />
-      <Path
-        d="M8 12l3 3 5-5"
-        stroke={colors.success}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </Svg>
-  );
-}
-
-function MenuDotsIcon() {
-  return (
-    <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
-      <Circle cx={12} cy={5} r={2} fill={colors.primary} />
-      <Circle cx={12} cy={12} r={2} fill={colors.primary} />
-      <Circle cx={12} cy={19} r={2} fill={colors.primary} />
-    </Svg>
-  );
-}
-
-function InstallDesktopIcon() {
-  return (
-    <Svg width={32} height={32} viewBox="0 0 24 24" fill="none">
-      <Path
-        d="M12 4v12M12 16l-4-4M12 16l4-4"
-        stroke={colors.primary}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <Path
-        d="M4 20h16"
-        stroke={colors.primary}
-        strokeWidth={2}
-        strokeLinecap="round"
-      />
-    </Svg>
-  );
-}
-
-// ──────────── STEP CARD ────────────
-
-interface StepData {
-  number: number;
-  icon: React.ReactNode;
-  text: string;
-}
-
-function StepCard({ step, index }: { step: StepData; index: number }) {
-  return (
-    <Animated.View
-      entering={FadeInDown.delay(300 + index * 150).duration(400)}
-      style={styles.stepCard}
-    >
-      <View style={styles.stepNumber}>
-        <Text style={styles.stepNumberText}>{step.number}</Text>
+    <View style={demoStyles.phone}>
+      {/* Status bar */}
+      <View style={demoStyles.statusBar}>
+        <Text style={demoStyles.statusTime}>9:41</Text>
+        <View style={demoStyles.statusIcons}>
+          <Text style={demoStyles.statusIcon}>||||</Text>
+          <Text style={demoStyles.statusIcon}>WiFi</Text>
+          <Text style={demoStyles.statusIcon}>100%</Text>
+        </View>
       </View>
-      <View style={styles.stepIconContainer}>{step.icon}</View>
-      <Text style={styles.stepText}>{step.text}</Text>
-    </Animated.View>
+
+      {/* Browser content area */}
+      <View style={demoStyles.browserContent}>
+        {/* URL bar */}
+        <View style={demoStyles.urlBar}>
+          <Text style={demoStyles.urlText}>forga-app.vercel.app</Text>
+        </View>
+
+        {/* Page content - FORGA logo */}
+        <View style={demoStyles.pageContent}>
+          <View style={demoStyles.forgaIconSmall}>
+            <Text style={demoStyles.forgaIconText}>F</Text>
+          </View>
+          <Text style={demoStyles.pageTitleText}>FORGA</Text>
+
+          {step === 2 && (
+            <View style={demoStyles.homeScreenPreview}>
+              <RNAnimated.View style={[demoStyles.appIcon, { transform: [{ scale: iconScale }] }]}>
+                <Text style={demoStyles.appIconText}>F</Text>
+              </RNAnimated.View>
+              <RNAnimated.View style={[demoStyles.checkBadge, { transform: [{ scale: checkScale }] }]}>
+                <Text style={demoStyles.checkText}>OK</Text>
+              </RNAnimated.View>
+              <Text style={demoStyles.installedText}>Installe !</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Share sheet menu overlay */}
+        {step >= 1 && step < 2 && (
+          <RNAnimated.View
+            style={[
+              demoStyles.shareSheet,
+              { transform: [{ translateY: menuSlide }], opacity: menuOpacity },
+            ]}
+          >
+            <View style={demoStyles.shareSheetHandle} />
+            <View style={demoStyles.menuRow}>
+              <Text style={demoStyles.menuIcon}>+</Text>
+              <Text style={demoStyles.menuText}>Copier</Text>
+            </View>
+            <View style={demoStyles.menuRow}>
+              <Text style={demoStyles.menuIcon}>@</Text>
+              <Text style={demoStyles.menuText}>Envoyer par mail</Text>
+            </View>
+            <View style={[demoStyles.menuRow, demoStyles.menuRowHighlight]}>
+              <Text style={[demoStyles.menuIcon, { color: colors.primary }]}>+</Text>
+              <Text style={[demoStyles.menuText, { color: colors.primary, fontWeight: '700' }]}>
+                Sur l'ecran d'accueil
+              </Text>
+            </View>
+            {step === 1 && <TapFinger x={130} y={95} delay={800} />}
+            {step === 1 && <PulseRing x={130} y={95} size={50} />}
+          </RNAnimated.View>
+        )}
+      </View>
+
+      {/* Safari bottom bar */}
+      <View style={demoStyles.safariBar}>
+        <Text style={demoStyles.safariBtn}>{'\u25C0'}</Text>
+        <Text style={demoStyles.safariBtn}>{'\u25B6'}</Text>
+        <View style={demoStyles.shareBtn}>
+          <Text style={demoStyles.shareBtnIcon}>{'\u2191'}</Text>
+        </View>
+        <Text style={demoStyles.safariBtn}>{'\u2261'}</Text>
+        <Text style={demoStyles.safariBtn}>{'\u2750'}</Text>
+      </View>
+
+      {/* Tap indicator for step 0 - on share button */}
+      {step === 0 && <TapFinger x={148} y={280} delay={500} />}
+      {step === 0 && <PulseRing x={148} y={280} />}
+
+      {/* Step indicator */}
+      <View style={demoStyles.stepDots}>
+        {[0, 1, 2].map((i) => (
+          <View key={i} style={[demoStyles.dot, step === i && demoStyles.dotActive]} />
+        ))}
+      </View>
+    </View>
   );
 }
 
-// ──────────── STEPS DATA ────────────
+// ──────────── ANDROID CHROME DEMO ────────────
 
-function getSteps(device: DeviceType): StepData[] {
-  if (device === 'ios') {
-    return [
-      {
-        number: 1,
-        icon: <ShareIcon />,
-        text: "Tape sur l'icone Partager en bas de Safari",
-      },
-      {
-        number: 2,
-        icon: <PlusIcon />,
-        text: "Fais defiler et tape\n\"Sur l'ecran d'accueil\"",
-      },
-      {
-        number: 3,
-        icon: <CheckIcon />,
-        text: "Tape \"Ajouter\" et c'est bon !",
-      },
-    ];
-  }
+function AndroidDemo() {
+  const [step, setStep] = useState(0);
+  const menuSlide = useRef(new RNAnimated.Value(-100)).current;
+  const menuOpacity = useRef(new RNAnimated.Value(0)).current;
+  const iconScale = useRef(new RNAnimated.Value(0)).current;
+  const checkScale = useRef(new RNAnimated.Value(0)).current;
 
-  if (device === 'android') {
-    return [
-      {
-        number: 1,
-        icon: <MenuDotsIcon />,
-        text: 'Tape sur les 3 points en haut a droite de Chrome',
-      },
-      {
-        number: 2,
-        icon: <PlusIcon />,
-        text: "Tape \"Ajouter a l'ecran d'accueil\"",
-      },
-      {
-        number: 3,
-        icon: <CheckIcon />,
-        text: "Confirme et c'est bon !",
-      },
-    ];
-  }
+  useEffect(() => {
+    const cycle = () => {
+      menuSlide.setValue(-100);
+      menuOpacity.setValue(0);
+      iconScale.setValue(0);
+      checkScale.setValue(0);
+      setStep(0);
 
-  // Desktop
-  return [
-    {
-      number: 1,
-      icon: <InstallDesktopIcon />,
-      text: "Clique sur l'icone d'installation dans la barre d'adresse",
-    },
-    {
-      number: 2,
-      icon: <CheckIcon />,
-      text: "Clique \"Installer\" et c'est bon !",
-    },
-  ];
+      const t1 = setTimeout(() => {
+        setStep(1);
+        RNAnimated.parallel([
+          RNAnimated.timing(menuSlide, { toValue: 0, duration: 300, easing: Easing.out(Easing.ease), useNativeDriver: true }),
+          RNAnimated.timing(menuOpacity, { toValue: 1, duration: 250, useNativeDriver: true }),
+        ]).start();
+      }, 2500);
+
+      const t2 = setTimeout(() => {
+        setStep(2);
+        RNAnimated.parallel([
+          RNAnimated.timing(menuSlide, { toValue: -100, duration: 200, useNativeDriver: true }),
+          RNAnimated.timing(menuOpacity, { toValue: 0, duration: 200, useNativeDriver: true }),
+        ]).start();
+        RNAnimated.sequence([
+          RNAnimated.delay(300),
+          RNAnimated.spring(iconScale, { toValue: 1, friction: 4, tension: 100, useNativeDriver: true }),
+          RNAnimated.delay(200),
+          RNAnimated.spring(checkScale, { toValue: 1, friction: 5, tension: 100, useNativeDriver: true }),
+        ]).start();
+      }, 5500);
+
+      return [t1, t2];
+    };
+
+    const timers = cycle();
+    const interval = setInterval(() => {
+      cycle();
+    }, 8500);
+
+    return () => {
+      timers.forEach(clearTimeout);
+      clearInterval(interval);
+    };
+  }, []);
+
+  return (
+    <View style={demoStyles.phone}>
+      {/* Chrome top bar */}
+      <View style={demoStyles.chromeBar}>
+        <View style={demoStyles.chromeUrlBar}>
+          <Text style={demoStyles.chromeUrl}>forga-app.vercel.app</Text>
+        </View>
+        <View style={demoStyles.chromeDotsBtn}>
+          <View style={demoStyles.chromeDot} />
+          <View style={demoStyles.chromeDot} />
+          <View style={demoStyles.chromeDot} />
+        </View>
+      </View>
+
+      {/* Browser content */}
+      <View style={demoStyles.browserContent}>
+        <View style={demoStyles.pageContent}>
+          <View style={demoStyles.forgaIconSmall}>
+            <Text style={demoStyles.forgaIconText}>F</Text>
+          </View>
+          <Text style={demoStyles.pageTitleText}>FORGA</Text>
+
+          {step === 2 && (
+            <View style={demoStyles.homeScreenPreview}>
+              <RNAnimated.View style={[demoStyles.appIcon, { transform: [{ scale: iconScale }] }]}>
+                <Text style={demoStyles.appIconText}>F</Text>
+              </RNAnimated.View>
+              <RNAnimated.View style={[demoStyles.checkBadge, { transform: [{ scale: checkScale }] }]}>
+                <Text style={demoStyles.checkText}>OK</Text>
+              </RNAnimated.View>
+              <Text style={demoStyles.installedText}>Installe !</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Chrome dropdown menu */}
+        {step >= 1 && step < 2 && (
+          <RNAnimated.View
+            style={[
+              demoStyles.chromeMenu,
+              { transform: [{ translateY: menuSlide }], opacity: menuOpacity },
+            ]}
+          >
+            <View style={demoStyles.menuRow}>
+              <Text style={demoStyles.menuText}>Nouvel onglet</Text>
+            </View>
+            <View style={demoStyles.menuRow}>
+              <Text style={demoStyles.menuText}>Partager...</Text>
+            </View>
+            <View style={[demoStyles.menuRow, demoStyles.menuRowHighlight]}>
+              <Text style={[demoStyles.menuText, { color: colors.primary, fontWeight: '700' }]}>
+                Ajouter a l'ecran d'accueil
+              </Text>
+            </View>
+            <View style={demoStyles.menuRow}>
+              <Text style={demoStyles.menuText}>Version ordinateur</Text>
+            </View>
+            {step === 1 && <TapFinger x={130} y={78} delay={800} />}
+            {step === 1 && <PulseRing x={130} y={78} size={50} />}
+          </RNAnimated.View>
+        )}
+      </View>
+
+      {/* Tap indicator for step 0 - on 3-dot menu */}
+      {step === 0 && <TapFinger x={262} y={22} delay={500} />}
+      {step === 0 && <PulseRing x={262} y={22} />}
+
+      {/* Step indicator */}
+      <View style={demoStyles.stepDots}>
+        {[0, 1, 2].map((i) => (
+          <View key={i} style={[demoStyles.dot, step === i && demoStyles.dotActive]} />
+        ))}
+      </View>
+    </View>
+  );
 }
+
+// ──────────── STEP TEXT LABELS ────────────
+
+const IOS_STEPS = [
+  "Tape sur l'icone Partager en bas de Safari",
+  "Fais defiler et tape \"Sur l'ecran d'accueil\"",
+  "Tape \"Ajouter\" et c'est bon !",
+];
+
+const ANDROID_STEPS = [
+  "Tape sur les 3 points en haut a droite",
+  "Tape \"Ajouter a l'ecran d'accueil\"",
+  "Confirme et c'est bon !",
+];
 
 // ──────────── MAIN SCREEN ────────────
 
@@ -223,87 +474,71 @@ export default function InstallGuideScreen() {
   const [device, setDevice] = useState<DeviceType>('ios');
 
   useEffect(() => {
-    // Skip on native
     if (Platform.OS !== 'web') {
       router.replace('/(tabs)/home');
       return;
     }
-
-    // Skip if already in standalone mode (PWA already installed)
     if (isStandalone()) {
       router.replace('/(tabs)/home');
       return;
     }
-
     const detected = detectDevice();
-
-    // Skip on desktop — guide is only useful on mobile
     if (detected === 'desktop') {
       router.replace('/(tabs)/home');
       return;
     }
-
     setDevice(detected);
   }, []);
 
-  const steps = getSteps(device);
-
-  const handleDone = () => {
-    router.replace('/(tabs)/home');
-  };
-
-  const deviceLabel =
-    device === 'ios'
-      ? 'Safari'
-      : device === 'android'
-        ? 'Chrome'
-        : 'ton navigateur';
+  const steps = device === 'ios' ? IOS_STEPS : ANDROID_STEPS;
 
   return (
     <View
       style={[
         styles.container,
-        { paddingTop: insets.top + spacing['3xl'], paddingBottom: insets.bottom + spacing.lg },
+        { paddingTop: insets.top + spacing.lg, paddingBottom: insets.bottom + spacing.lg },
       ]}
     >
       <View style={styles.content}>
-        {/* Logo */}
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.logoContainer}>
+        {/* Logo + Title */}
+        <Animated.View entering={FadeInDown.duration(400)} style={styles.headerSection}>
           <Image
             source={require('../assets/logo/logo_sans_fond.png')}
             style={styles.logo}
             resizeMode="contain"
           />
-        </Animated.View>
-
-        {/* Title */}
-        <Animated.View entering={FadeInDown.delay(100).duration(400)}>
           <Text style={styles.title}>Installe FORGA</Text>
           <Text style={styles.subtitle}>
-            Accede a FORGA en un tap depuis ton ecran d'accueil, comme une vraie app.
-            Ouvre {deviceLabel} et suis ces etapes :
+            Ajoute FORGA sur ton ecran d'accueil pour y acceder comme une vraie app.
           </Text>
         </Animated.View>
 
-        {/* Steps */}
-        <View style={styles.stepsContainer}>
-          {steps.map((step, index) => (
-            <StepCard key={step.number} step={step} index={index} />
+        {/* Animated phone demo */}
+        <Animated.View entering={FadeInDown.delay(200).duration(500)}>
+          {device === 'ios' ? <IOSDemo /> : <AndroidDemo />}
+        </Animated.View>
+
+        {/* Step text labels */}
+        <Animated.View entering={FadeInDown.delay(400).duration(400)} style={styles.stepsText}>
+          {steps.map((text, i) => (
+            <View key={i} style={styles.stepRow}>
+              <View style={styles.stepBullet}>
+                <Text style={styles.stepBulletText}>{i + 1}</Text>
+              </View>
+              <Text style={styles.stepLabel}>{text}</Text>
+            </View>
           ))}
-        </View>
+        </Animated.View>
 
         {/* Spacer */}
         <View style={{ flex: 1 }} />
 
         {/* Buttons */}
-        <Animated.View
-          entering={FadeInDown.delay(600).duration(400)}
-          style={styles.buttonsContainer}
-        >
-          <Pressable style={styles.doneButton} onPress={handleDone}>
+        <Animated.View entering={FadeInDown.delay(600).duration(400)} style={styles.buttonsContainer}>
+          <Pressable style={styles.doneButton} onPress={() => router.replace('/(tabs)/home')}>
             <Text style={styles.doneButtonText}>C'est fait !</Text>
           </Pressable>
-          <Pressable style={styles.skipButton} onPress={handleDone}>
+          <Pressable style={styles.skipButton} onPress={() => router.replace('/(tabs)/home')}>
             <Text style={styles.skipButtonText}>Plus tard</Text>
           </Pressable>
         </Animated.View>
@@ -312,7 +547,268 @@ export default function InstallGuideScreen() {
   );
 }
 
-// ──────────── STYLES ────────────
+// ──────────── DEMO STYLES ────────────
+
+const demoStyles = StyleSheet.create({
+  phone: {
+    width: 280,
+    height: 310,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: '#3A3A3C',
+    overflow: 'hidden',
+    alignSelf: 'center',
+    position: 'relative',
+  },
+  // iOS status bar
+  statusBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 4,
+    height: 28,
+  },
+  statusTime: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  statusIcons: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  statusIcon: {
+    fontSize: 8,
+    color: '#999',
+  },
+  // Chrome top bar
+  chromeBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#2C2C2E',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  chromeUrlBar: {
+    flex: 1,
+    backgroundColor: '#3A3A3C',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  chromeUrl: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    color: '#aaa',
+  },
+  chromeDotsBtn: {
+    gap: 3,
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  chromeDot: {
+    width: 3.5,
+    height: 3.5,
+    borderRadius: 2,
+    backgroundColor: '#999',
+  },
+  // Browser content
+  browserContent: {
+    flex: 1,
+    position: 'relative',
+  },
+  urlBar: {
+    backgroundColor: '#2C2C2E',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginHorizontal: 12,
+    marginTop: 4,
+  },
+  urlText: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    color: '#888',
+    textAlign: 'center',
+  },
+  pageContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 12,
+  },
+  forgaIconSmall: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  forgaIconText: {
+    fontFamily: fonts.display,
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#fff',
+  },
+  pageTitleText: {
+    fontFamily: fonts.display,
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#fff',
+  },
+  // Home screen result
+  homeScreenPreview: {
+    alignItems: 'center',
+    marginTop: 16,
+  },
+  appIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
+  },
+  appIconText: {
+    fontFamily: fonts.display,
+    fontSize: 26,
+    fontWeight: '800',
+    color: '#fff',
+  },
+  checkBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -22,
+    backgroundColor: colors.success,
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  checkText: {
+    fontFamily: fonts.body,
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#fff',
+  },
+  installedText: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: colors.success,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  // Safari bottom bar
+  safariBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    backgroundColor: '#2C2C2E',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#3A3A3C',
+  },
+  safariBtn: {
+    fontSize: 16,
+    color: '#666',
+  },
+  shareBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255, 107, 53, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shareBtnIcon: {
+    fontSize: 18,
+    color: colors.primary,
+    fontWeight: '700',
+  },
+  // Share sheet (iOS)
+  shareSheet: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#2C2C2E',
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+    paddingBottom: 8,
+    paddingTop: 8,
+  },
+  shareSheetHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#555',
+    alignSelf: 'center',
+    marginBottom: 8,
+  },
+  // Chrome dropdown menu (Android)
+  chromeMenu: {
+    position: 'absolute',
+    top: 0,
+    right: 8,
+    width: 220,
+    backgroundColor: '#2C2C2E',
+    borderRadius: 8,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: '#3A3A3C',
+  },
+  // Menu rows (shared)
+  menuRow: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  menuRowHighlight: {
+    backgroundColor: 'rgba(255, 107, 53, 0.12)',
+  },
+  menuIcon: {
+    fontSize: 14,
+    color: '#888',
+    width: 18,
+    textAlign: 'center',
+  },
+  menuText: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: '#ccc',
+  },
+  // Step dots
+  stepDots: {
+    position: 'absolute',
+    bottom: -20,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#3A3A3C',
+  },
+  dotActive: {
+    backgroundColor: colors.primary,
+  },
+});
+
+// ──────────── MAIN STYLES ────────────
 
 const styles = StyleSheet.create({
   container: {
@@ -326,66 +822,58 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     width: '100%',
   },
-  logoContainer: {
+  headerSection: {
     alignItems: 'center',
     marginBottom: spacing.xl,
   },
   logo: {
-    width: 64,
-    height: 64,
+    width: 48,
+    height: 48,
+    marginBottom: spacing.sm,
   },
   title: {
     fontFamily: fonts.display,
-    fontSize: fontSizes['3xl'],
+    fontSize: fontSizes['2xl'],
     fontWeight: '800',
     color: colors.text,
     textAlign: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.xs,
   },
   subtitle: {
     fontFamily: fonts.body,
-    fontSize: fontSizes.md,
+    fontSize: fontSizes.sm,
     color: colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: spacing['3xl'],
+    lineHeight: 20,
   },
-  stepsContainer: {
-    gap: spacing.lg,
-  },
-  stepCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
+  stepsText: {
+    marginTop: spacing['3xl'],
     gap: spacing.md,
   },
-  stepNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  stepRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  stepBullet: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
   },
-  stepNumberText: {
+  stepBulletText: {
     fontFamily: fonts.display,
-    fontSize: fontSizes.md,
+    fontSize: fontSizes.xs,
     fontWeight: '800',
     color: colors.white,
   },
-  stepIconContainer: {
-    flexShrink: 0,
-  },
-  stepText: {
+  stepLabel: {
     fontFamily: fonts.body,
     fontSize: fontSizes.md,
     color: colors.text,
-    lineHeight: 22,
     flex: 1,
   },
   buttonsContainer: {
