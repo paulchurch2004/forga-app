@@ -251,15 +251,21 @@ function IOSDemo() {
 
         {/* Page content - FORGA logo */}
         <View style={demoStyles.pageContent}>
-          <View style={demoStyles.forgaIconSmall}>
-            <Text style={demoStyles.forgaIconText}>F</Text>
-          </View>
+          <Image
+            source={require('../assets/logo/logo_sans_fond.png')}
+            style={demoStyles.forgaLogoImg}
+            resizeMode="contain"
+          />
           <Text style={demoStyles.pageTitleText}>FORGA</Text>
 
           {step === 2 && (
             <View style={demoStyles.homeScreenPreview}>
               <RNAnimated.View style={[demoStyles.appIcon, { transform: [{ scale: iconScale }] }]}>
-                <Text style={demoStyles.appIconText}>F</Text>
+                <Image
+                  source={require('../assets/logo/logo_sans_fond.png')}
+                  style={demoStyles.appIconImg}
+                  resizeMode="contain"
+                />
               </RNAnimated.View>
               <RNAnimated.View style={[demoStyles.checkBadge, { transform: [{ scale: checkScale }] }]}>
                 <Text style={demoStyles.checkText}>OK</Text>
@@ -393,15 +399,21 @@ function AndroidDemo() {
       {/* Browser content */}
       <View style={demoStyles.browserContent}>
         <View style={demoStyles.pageContent}>
-          <View style={demoStyles.forgaIconSmall}>
-            <Text style={demoStyles.forgaIconText}>F</Text>
-          </View>
+          <Image
+            source={require('../assets/logo/logo_sans_fond.png')}
+            style={demoStyles.forgaLogoImg}
+            resizeMode="contain"
+          />
           <Text style={demoStyles.pageTitleText}>FORGA</Text>
 
           {step === 2 && (
             <View style={demoStyles.homeScreenPreview}>
               <RNAnimated.View style={[demoStyles.appIcon, { transform: [{ scale: iconScale }] }]}>
-                <Text style={demoStyles.appIconText}>F</Text>
+                <Image
+                  source={require('../assets/logo/logo_sans_fond.png')}
+                  style={demoStyles.appIconImg}
+                  resizeMode="contain"
+                />
               </RNAnimated.View>
               <RNAnimated.View style={[demoStyles.checkBadge, { transform: [{ scale: checkScale }] }]}>
                 <Text style={demoStyles.checkText}>OK</Text>
@@ -642,20 +654,11 @@ const demoStyles = StyleSheet.create({
     justifyContent: 'center',
     paddingTop: 12,
   },
-  forgaIconSmall: {
+  forgaLogoImg: {
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: 6,
-  },
-  forgaIconText: {
-    fontFamily: fonts.display,
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#fff',
   },
   pageTitleText: {
     fontFamily: fonts.display,
@@ -677,11 +680,10 @@ const demoStyles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 4,
   },
-  appIconText: {
-    fontFamily: fonts.display,
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#fff',
+  appIconImg: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
   },
   checkBadge: {
     position: 'absolute',
