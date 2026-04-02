@@ -7,6 +7,7 @@ import {
   TextInput,
   Image,
   ActivityIndicator,
+  ScrollView,
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -66,20 +67,20 @@ export default function BarcodeScanScreen() {
     setStatus('scanning');
   };
 
-  // Web fallback
+  // On web/PWA: manual barcode entry instead of camera
   if (Platform.OS === 'web') {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={styles.webIcon}>{'📷'}</Text>
-        <Text style={styles.webTitle}>Scanner de code-barres</Text>
-        <Text style={styles.webSubtitle}>
-          Disponible sur l'application mobile uniquement.
-        </Text>
-        <Pressable style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.backBtnText}>Retour</Text>
-        </Pressable>
-      </View>
-    );
+    return <WebBarcodeEntry
+      insets={insets}
+      contentMaxWidth={contentMaxWidth}
+      status={status}
+      product={product}
+      quantity={quantity}
+      setQuantity={setQuantity}
+      macros={macros}
+      handleBarcodeScanned={handleBarcodeScanned}
+      handleValidate={handleValidate}
+      handleRetry={handleRetry}
+    />;
   }
 
   // Dynamic import for CameraView (avoids web build errors)
@@ -236,6 +237,143 @@ function ScannerContent({
           </Pressable>
         </View>
       )}
+    </View>
+  );
+}
+
+function WebBarcodeEntry({
+  insets,
+  contentMaxWidth,
+  status,
+  product,
+  quantity,
+  setQuantity,
+  macros,
+  handleBarcodeScanned,
+  handleValidate,
+  handleRetry,
+}: any) {
+  const [barcode, setBarcode] = useState('');
+
+  const handleSearch = () => {
+    const trimmed = barcode.trim();
+    if (!trimmed) return;
+    handleBarcodeScanned({ data: trimmed });
+  };
+
+  return (
+    <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.resultContainer,
+          { paddingTop: insets.top + spacing.lg, maxWidth: contentMaxWidth },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} hitSlop={16}>
+            <Text style={styles.headerBack}>Retour</Text>
+          </Pressable>
+          <Text style={styles.headerTitle}>Scanner</Text>
+          <View style={{ width: 60 }} />
+        </View>
+
+        {status === 'scanning' && (
+          <View style={{ alignItems: 'center', paddingTop: spacing['2xl'] }}>
+            <Text style={styles.webIcon}>{'🔢'}</Text>
+            <Text style={styles.webTitle}>Saisis le code-barres</Text>
+            <Text style={styles.webSubtitle}>
+              Entre le numero sous le code-barres de ton produit.
+            </Text>
+            <TextInput
+              style={styles.barcodeInput}
+              value={barcode}
+              onChangeText={setBarcode}
+              placeholder="Ex: 3017620422003"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="numeric"
+              autoFocus
+              onSubmitEditing={handleSearch}
+            />
+            <Pressable style={styles.primaryBtn} onPress={handleSearch}>
+              <Text style={styles.primaryBtnText}>Rechercher</Text>
+            </Pressable>
+            <Pressable style={styles.secondaryBtn} onPress={() => router.replace('/meal/custom')}>
+              <Text style={styles.secondaryBtnText}>Saisie manuelle</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {status === 'loading' && (
+          <View style={styles.centerContent}>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={styles.loadingText}>Recherche du produit...</Text>
+          </View>
+        )}
+
+        {status === 'not_found' && (
+          <View style={styles.centerContent}>
+            <Text style={styles.notFoundIcon}>{'🔍'}</Text>
+            <Text style={styles.notFoundTitle}>Produit non trouve</Text>
+            <Text style={styles.notFoundSubtitle}>
+              Ce code-barres n'est pas dans la base Open Food Facts.
+            </Text>
+            <Pressable style={styles.primaryBtn} onPress={() => router.replace('/meal/custom')}>
+              <Text style={styles.primaryBtnText}>Saisie manuelle</Text>
+            </Pressable>
+            <Pressable style={styles.secondaryBtn} onPress={handleRetry}>
+              <Text style={styles.secondaryBtnText}>Reessayer</Text>
+            </Pressable>
+          </View>
+        )}
+
+        {status === 'found' && product && macros && (
+          <View>
+            {product.imageUrl && (
+              <Image source={{ uri: product.imageUrl }} style={styles.productImage} />
+            )}
+            <Text style={styles.productName}>{product.name}</Text>
+
+            <Text style={styles.per100gLabel}>Pour 100g</Text>
+            <View style={styles.macroRow}>
+              <MacroPill label="Cal" value={product.caloriesPer100g} unit="kcal" />
+              <MacroPill label="P" value={product.proteinPer100g} unit="g" />
+              <MacroPill label="G" value={product.carbsPer100g} unit="g" />
+              <MacroPill label="L" value={product.fatPer100g} unit="g" />
+            </View>
+
+            <Text style={styles.qtyLabel}>Quantite consommee</Text>
+            <View style={styles.qtyRow}>
+              <TextInput
+                style={styles.qtyInput}
+                value={quantity}
+                onChangeText={setQuantity}
+                keyboardType="numeric"
+                selectTextOnFocus
+              />
+              <Text style={styles.qtyUnit}>g</Text>
+            </View>
+
+            <Text style={styles.computedLabel}>Macros pour {quantity}g</Text>
+            <View style={styles.macroRow}>
+              <MacroPill label="Cal" value={macros.calories} unit="kcal" highlight />
+              <MacroPill label="P" value={macros.protein} unit="g" highlight />
+              <MacroPill label="G" value={macros.carbs} unit="g" highlight />
+              <MacroPill label="L" value={macros.fat} unit="g" highlight />
+            </View>
+
+            <Pressable style={styles.primaryBtn} onPress={handleValidate}>
+              <Text style={styles.primaryBtnText}>Valider</Text>
+            </Pressable>
+            <Pressable style={styles.secondaryBtn} onPress={handleRetry}>
+              <Text style={styles.secondaryBtnText}>Scanner un autre</Text>
+            </Pressable>
+          </View>
+        )}
+
+        <View style={{ height: spacing['5xl'] }} />
+      </ScrollView>
     </View>
   );
 }
@@ -498,5 +636,21 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     color: colors.textSecondary,
     textAlign: 'center',
+  },
+  barcodeInput: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+    fontFamily: fonts.data,
+    fontSize: fontSizes.xl,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+    width: '100%',
+    marginTop: spacing.xl,
+    letterSpacing: 2,
   },
 });

@@ -19,6 +19,28 @@ import { analyzeFoodPhoto, isVisionAvailable, type FoodAnalysisResult } from '..
 
 type Status = 'idle' | 'capturing' | 'analyzing' | 'result' | 'error';
 
+// On web/PWA, convert file to base64
+async function fileToBase64(uri: string): Promise<string | null> {
+  if (Platform.OS !== 'web') return null;
+  try {
+    const res = await fetch(uri);
+    const blob = await res.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        // Remove "data:image/...;base64," prefix
+        const base64 = dataUrl.split(',')[1] || null;
+        resolve(base64);
+      };
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
 export default function PhotoScanScreen() {
   const insets = useSafeAreaInsets();
   const { contentMaxWidth } = useResponsive();
@@ -43,7 +65,7 @@ export default function PhotoScanScreen() {
           mediaTypes: ['images'],
           quality: 0.7,
           base64: true,
-          allowsEditing: true,
+          allowsEditing: Platform.OS !== 'web',
           aspect: [1, 1],
         });
       } else {
@@ -53,7 +75,7 @@ export default function PhotoScanScreen() {
           mediaTypes: ['images'],
           quality: 0.7,
           base64: true,
-          allowsEditing: true,
+          allowsEditing: Platform.OS !== 'web',
           aspect: [1, 1],
         });
       }
@@ -63,13 +85,19 @@ export default function PhotoScanScreen() {
       const asset = pickerResult.assets[0];
       setImageUri(asset.uri);
 
-      if (!isVisionAvailable() || !asset.base64) {
+      // On web, base64 may not be provided by expo-image-picker, so convert manually
+      let base64 = asset.base64;
+      if (!base64 && Platform.OS === 'web') {
+        base64 = await fileToBase64(asset.uri);
+      }
+
+      if (!isVisionAvailable() || !base64) {
         setStatus('error');
         return;
       }
 
       setStatus('analyzing');
-      const analysis = await analyzeFoodPhoto(asset.base64);
+      const analysis = await analyzeFoodPhoto(base64);
 
       if (analysis) {
         setResult(analysis);
@@ -101,22 +129,6 @@ export default function PhotoScanScreen() {
   const handleManual = () => {
     router.replace('/meal/custom');
   };
-
-  // Web fallback
-  if (Platform.OS === 'web') {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={styles.emptyIcon}>{'📸'}</Text>
-        <Text style={styles.emptyTitle}>Scan photo IA</Text>
-        <Text style={styles.emptySubtitle}>
-          Disponible sur l'application mobile uniquement.
-        </Text>
-        <Pressable style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.backBtnText}>Retour</Text>
-        </Pressable>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
