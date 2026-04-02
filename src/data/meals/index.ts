@@ -14,28 +14,35 @@ import { AFTERNOON_SNACKS } from './afternoonSnack';
 import { DINNERS } from './dinner';
 import { BEDTIME_SNACKS } from './bedtime';
 
+import { BREAKFASTS_EXTRA } from './breakfast_extra';
+import { MORNING_SNACKS_EXTRA } from './morningSnack_extra';
+import { LUNCHES_EXTRA } from './lunch_extra';
+import { AFTERNOON_SNACKS_EXTRA } from './afternoonSnack_extra';
+import { DINNERS_EXTRA } from './dinner_extra';
+import { BEDTIME_SNACKS_EXTRA } from './bedtime_extra';
+
 /**
  * Tous les repas de la base FORGA, indexés par slot.
  */
 export const MEALS_BY_SLOT: Record<MealSlot, Meal[]> = {
-  breakfast: BREAKFASTS,
-  morning_snack: MORNING_SNACKS,
-  lunch: LUNCHES,
-  afternoon_snack: AFTERNOON_SNACKS,
-  dinner: DINNERS,
-  bedtime: BEDTIME_SNACKS,
+  breakfast: [...BREAKFASTS, ...BREAKFASTS_EXTRA],
+  morning_snack: [...MORNING_SNACKS, ...MORNING_SNACKS_EXTRA],
+  lunch: [...LUNCHES, ...LUNCHES_EXTRA],
+  afternoon_snack: [...AFTERNOON_SNACKS, ...AFTERNOON_SNACKS_EXTRA],
+  dinner: [...DINNERS, ...DINNERS_EXTRA],
+  bedtime: [...BEDTIME_SNACKS, ...BEDTIME_SNACKS_EXTRA],
 };
 
 /**
- * Liste complète de tous les repas (192 au total).
+ * Liste complète de tous les repas (510 au total).
  */
 export const ALL_MEALS: Meal[] = [
-  ...BREAKFASTS,
-  ...MORNING_SNACKS,
-  ...LUNCHES,
-  ...AFTERNOON_SNACKS,
-  ...DINNERS,
-  ...BEDTIME_SNACKS,
+  ...BREAKFASTS, ...BREAKFASTS_EXTRA,
+  ...MORNING_SNACKS, ...MORNING_SNACKS_EXTRA,
+  ...LUNCHES, ...LUNCHES_EXTRA,
+  ...AFTERNOON_SNACKS, ...AFTERNOON_SNACKS_EXTRA,
+  ...DINNERS, ...DINNERS_EXTRA,
+  ...BEDTIME_SNACKS, ...BEDTIME_SNACKS_EXTRA,
 ];
 
 /**
