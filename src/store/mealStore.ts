@@ -9,6 +9,7 @@ interface MealState {
   favorites: string[]; // meal IDs
   likedMeals: string[]; // meal IDs
   dislikedMeals: string[]; // meal IDs
+  mealHistory: Record<string, DailyMeal[]>; // key = 'YYYY-MM-DD'
 
   setTodayMeals: (meals: DailyMeal[]) => void;
   addValidatedMeal: (meal: DailyMeal) => void;
@@ -22,6 +23,7 @@ interface MealState {
   getMealScore: (mealId: string) => number; // +1 liked, -1 disliked, 0 neutral
   getMealForSlot: (slot: MealSlot) => DailyMeal | undefined;
   getValidatedCount: () => number;
+  getHistoryForDate: (date: string) => DailyMeal[];
   reset: () => void;
 }
 
@@ -33,15 +35,26 @@ export const useMealStore = create<MealState>()(
       favorites: [],
       likedMeals: [],
       dislikedMeals: [],
+      mealHistory: {},
 
       setTodayMeals: (todayMeals) => set({ todayMeals }),
       addValidatedMeal: (meal) =>
-        set((state) => ({
-          todayMeals: [
-            ...state.todayMeals.filter((m) => m.slot !== meal.slot),
-            meal,
-          ],
-        })),
+        set((state) => {
+          const date = meal.date;
+          return {
+            todayMeals: [
+              ...state.todayMeals.filter((m) => m.slot !== meal.slot),
+              meal,
+            ],
+            mealHistory: {
+              ...state.mealHistory,
+              [date]: [
+                ...(state.mealHistory[date] ?? []).filter((m) => m.slot !== meal.slot),
+                meal,
+              ],
+            },
+          };
+        }),
       removeValidatedMeal: (slot) =>
         set((state) => ({
           todayMeals: state.todayMeals.filter((m) => m.slot !== slot),
@@ -77,7 +90,8 @@ export const useMealStore = create<MealState>()(
       },
       getMealForSlot: (slot) => get().todayMeals.find((m) => m.slot === slot),
       getValidatedCount: () => get().todayMeals.length,
-      reset: () => set({ todayMeals: [], dayPlan: null, favorites: [], likedMeals: [], dislikedMeals: [] }),
+      getHistoryForDate: (date) => get().mealHistory[date] ?? [],
+      reset: () => set({ todayMeals: [], dayPlan: null, favorites: [], likedMeals: [], dislikedMeals: [], mealHistory: {} }),
     }),
     {
       name: 'forga-meal-store',
@@ -86,6 +100,9 @@ export const useMealStore = create<MealState>()(
         favorites: state.favorites,
         likedMeals: state.likedMeals,
         dislikedMeals: state.dislikedMeals,
+        todayMeals: state.todayMeals,
+        dayPlan: state.dayPlan,
+        mealHistory: state.mealHistory,
       }),
     }
   )

@@ -289,6 +289,22 @@ export default function HomeScreen() {
         <MealSlotList slots={slots} />
       </View>
 
+      {/* Quick actions */}
+      <View style={styles.quickActions}>
+        <Pressable style={styles.quickActionBtn} onPress={() => router.push('/shopping-list')}>
+          <Text style={styles.quickActionIcon}>{'\uD83D\uDED2'}</Text>
+          <Text style={styles.quickActionText}>Liste de courses</Text>
+        </Pressable>
+        <Pressable style={styles.quickActionBtn} onPress={() => router.push('/weekly-plan')}>
+          <Text style={styles.quickActionIcon}>{'\uD83D\uDCCB'}</Text>
+          <Text style={styles.quickActionText}>Plan semaine</Text>
+        </Pressable>
+        <Pressable style={styles.quickActionBtn} onPress={() => router.push('/meal-history')}>
+          <Text style={styles.quickActionIcon}>{'\uD83D\uDCC5'}</Text>
+          <Text style={styles.quickActionText}>Historique</Text>
+        </Pressable>
+      </View>
+
       {/* Bottom spacing */}
       <View style={styles.bottomSpacer} />
     </ScrollView>
@@ -375,6 +391,31 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: spacing['3xl'],
+  },
+  quickActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  quickActionBtn: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  quickActionIcon: {
+    fontSize: 20,
+  },
+  quickActionText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    textAlign: 'center',
   },
   shareStreakBtn: {
     marginTop: spacing.sm,

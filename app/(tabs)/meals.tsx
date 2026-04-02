@@ -105,7 +105,8 @@ export default function MealsScreen() {
         (meal) =>
           meal.name.toLowerCase().includes(query) ||
           meal.description.toLowerCase().includes(query) ||
-          meal.tags.some((tag) => tag.toLowerCase().includes(query))
+          meal.tags.some((tag) => tag.toLowerCase().includes(query)) ||
+          meal.ingredients.some((i) => i.name.toLowerCase().includes(query))
       );
     }
 
@@ -235,7 +236,7 @@ export default function MealsScreen() {
       <View style={[styles.searchContainer, { maxWidth: contentMaxWidth }]}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Rechercher un repas..."
+          placeholder="Rechercher un repas ou ingredient..."
           placeholderTextColor={colors.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}

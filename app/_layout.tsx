@@ -37,6 +37,8 @@ import {
 } from '../src/services/notifications';
 import { useUserStore } from '../src/store/userStore';
 import type { MealSlot } from '../src/types/meal';
+import { OfflineBanner } from '../src/components/ui/OfflineBanner';
+import { processQueue } from '../src/services/syncQueue';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -163,6 +165,16 @@ function RootLayoutInner() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Sync queue: process pending actions when coming back online
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const handleOnline = () => {
+      processQueue();
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, []);
+
   // Cacher le splash screen quand tout est prêt
   useEffect(() => {
     if ((fontsLoaded || fontError) && !isLoading) {
@@ -190,6 +202,7 @@ function RootLayoutInner() {
   return (
     <QueryClientProvider client={queryClient}>
       <StatusBar style="light" />
+      <OfflineBanner />
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }} />
     </QueryClientProvider>
   );

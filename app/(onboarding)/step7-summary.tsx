@@ -8,7 +8,15 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Modal,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  requestPermissions,
+  scheduleMealReminder,
+  scheduleWeeklyCheckIn,
+} from '../../src/services/notifications';
+import type { MealSlot } from '../../src/types/meal';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
@@ -78,6 +86,7 @@ export default function Step7Summary() {
   const setOnboarded = useAuthStore((s) => s.setOnboarded);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [showNotifPrompt, setShowNotifPrompt] = useState(false);
 
   // Compute TDEE and macros from onboarding data
   const computed = useMemo(() => {
@@ -227,9 +236,13 @@ export default function Step7Summary() {
       setProfile(profileData);
       setOnboarded(true);
 
-      // Navigate to root — app/index.tsx handles routing
-      // (install guide on mobile web, home otherwise)
-      router.replace('/');
+      // On native: show notification opt-in prompt
+      // On web: navigate directly (notifications not supported)
+      if (Platform.OS !== 'web') {
+        setShowNotifPrompt(true);
+      } else {
+        router.replace('/');
+      }
     } catch (err: any) {
       const message = err?.message ?? 'Une erreur est survenue.';
       if (Platform.OS === 'web') {
@@ -241,6 +254,29 @@ export default function Step7Summary() {
       setIsLoading(false);
     }
   }, [isLoading, user, onboardingData, computed, setProfile, setOnboarded, router]);
+
+  const handleEnableNotifs = useCallback(async () => {
+    try {
+      const granted = await requestPermissions();
+      if (granted) {
+        const slots: MealSlot[] = ['breakfast', 'morning_snack', 'lunch', 'afternoon_snack', 'dinner', 'bedtime'];
+        for (const slot of slots) {
+          await scheduleMealReminder(slot);
+        }
+        await scheduleWeeklyCheckIn();
+        await AsyncStorage.setItem('forga-notifications-enabled', 'true');
+      }
+    } catch {
+      // Silent fail
+    }
+    setShowNotifPrompt(false);
+    router.replace('/');
+  }, [router]);
+
+  const handleSkipNotifs = useCallback(() => {
+    setShowNotifPrompt(false);
+    router.replace('/');
+  }, [router]);
 
   const objective = onboardingData.objective ?? 'maintain';
   const currentWeight = onboardingData.currentWeight ?? 75;
@@ -406,6 +442,29 @@ export default function Step7Summary() {
           )}
         </Pressable>
       </View>
+
+      {/* Notification opt-in modal */}
+      <Modal
+        visible={showNotifPrompt}
+        transparent
+        animationType="fade"
+        onRequestClose={handleSkipNotifs}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Activer les rappels ?</Text>
+            <Text style={styles.modalBody}>
+              FORGA peut t'envoyer des rappels pour tes repas et check-ins hebdomadaires.
+            </Text>
+            <Pressable style={styles.modalBtnPrimary} onPress={handleEnableNotifs}>
+              <Text style={styles.modalBtnPrimaryText}>Activer</Text>
+            </Pressable>
+            <Pressable style={styles.modalBtnSecondary} onPress={handleSkipNotifs}>
+              <Text style={styles.modalBtnSecondaryText}>Plus tard</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -655,5 +714,64 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.xl,
     fontWeight: fontWeights.bold,
     color: colors.white,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.xl,
+  },
+  modalCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing['2xl'],
+    width: '100%',
+    maxWidth: 360,
+    alignItems: 'center',
+  },
+  modalTitle: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes.xl,
+    fontWeight: fontWeights.bold,
+    color: colors.text,
+    marginBottom: spacing.md,
+    textAlign: 'center',
+  },
+  modalBody: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: fontSizes.md * 1.5,
+    marginBottom: spacing.xl,
+  },
+  modalBtnPrimary: {
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.md,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    marginBottom: spacing.sm,
+  },
+  modalBtnPrimaryText: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes.md,
+    fontWeight: fontWeights.bold,
+    color: colors.white,
+  },
+  modalBtnSecondary: {
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  modalBtnSecondaryText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    color: colors.textSecondary,
   },
 });
