@@ -8,6 +8,7 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
+import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
 import { useScoreStore } from '../../src/store/scoreStore';
@@ -39,6 +40,7 @@ export default function HomeScreen() {
   const { cardRef, share } = useShareCard();
 
   const profile = useUserStore((s) => s.profile);
+  const checkIns = useUserStore((s) => s.checkIns);
   const { currentScore, weeklyChange } = useScoreStore();
   const todayMeals = useMealStore((s) => s.todayMeals);
   const engine = useEngine();
@@ -95,6 +97,23 @@ export default function HomeScreen() {
     const diffMonths = diffMs / (1000 * 60 * 60 * 24 * 30.44);
     return Math.round(diffMonths);
   }, [profile]);
+
+  // Check-in banner: show if no check-in for > 6 days
+  const showCheckInBanner = useMemo(() => {
+    if (checkIns.length === 0) return true;
+    const lastCheckIn = [...checkIns].sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    )[0];
+    const daysSince = (Date.now() - new Date(lastCheckIn.createdAt).getTime()) / (1000 * 60 * 60 * 24);
+    return daysSince > 6;
+  }, [checkIns]);
+
+  // Last calorie adjustment from check-ins
+  const lastCalorieAdjustment = useMemo(() => {
+    return [...checkIns]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .find((c) => c.calorieAdjustment !== 0) ?? null;
+  }, [checkIns]);
 
   // Coach message
   const coachMessage = useMemo(() => {
@@ -221,6 +240,27 @@ export default function HomeScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Check-in banner */}
+      {showCheckInBanner && (
+        <Pressable style={styles.checkInBanner} onPress={() => router.push('/checkin')}>
+          <Text style={styles.checkInBannerIcon}>{'\uD83D\uDDD3'}</Text>
+          <View style={styles.checkInBannerText}>
+            <Text style={styles.checkInBannerTitle}>Check-in de la semaine</Text>
+            <Text style={styles.checkInBannerSub}>2 min pour affiner ton plan</Text>
+          </View>
+          <Text style={styles.checkInBannerArrow}>{'\u203A'}</Text>
+        </Pressable>
+      )}
+
+      {/* Adjusted macros indicator */}
+      {lastCalorieAdjustment && (
+        <View style={styles.adjustedMacros}>
+          <Text style={styles.adjustedMacrosText}>
+            {'\u26A1'} Plan ajuste {lastCalorieAdjustment.calorieAdjustment > 0 ? '+' : ''}{lastCalorieAdjustment.calorieAdjustment} kcal
+          </Text>
+        </View>
+      )}
 
       {/* Coach Card */}
       {coachMessage && <CoachCard message={coachMessage} />}
@@ -392,5 +432,53 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     fontWeight: '600',
     color: colors.textSecondary,
+  },
+  checkInBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    backgroundColor: `${colors.primary}18`,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: `${colors.primary}40`,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  checkInBannerIcon: {
+    fontSize: 20,
+  },
+  checkInBannerText: {
+    flex: 1,
+  },
+  checkInBannerTitle: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  checkInBannerSub: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.xs,
+    color: colors.textSecondary,
+  },
+  checkInBannerArrow: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.xl,
+    color: colors.primary,
+  },
+  adjustedMacros: {
+    backgroundColor: `${colors.carbs}15`,
+    borderRadius: borderRadius.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    marginBottom: spacing.sm,
+    alignSelf: 'flex-start',
+  },
+  adjustedMacrosText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+    color: colors.carbs,
   },
 });

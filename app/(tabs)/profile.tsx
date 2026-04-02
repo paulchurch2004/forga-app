@@ -8,6 +8,7 @@ import {
   Alert,
   Share,
   Platform,
+  Switch,
 } from 'react-native';
 import { router } from 'expo-router';
 import { colors } from '../../src/theme/colors';
@@ -23,6 +24,7 @@ import { supabase } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/store/authStore';
 import { BADGE_INFO, type BadgeType } from '../../src/types/user';
 import { BadgeCard } from '../../src/components/gamification/BadgeCard';
+import { useNotifications } from '../../src/hooks/useNotifications';
 import { events } from '../../src/services/analytics';
 
 export default function ProfileScreen() {
@@ -32,8 +34,15 @@ export default function ProfileScreen() {
   const score = useScoreStore((s) => s.currentScore);
   const { currentStreak, bestStreak } = useStreak();
   const { isPremium } = usePremium();
+  const checkIns = useUserStore((s) => s.checkIns);
+  const { isEnabled: notifEnabled, toggle: toggleNotif } = useNotifications();
   const [exporting, setExporting] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+
+  // Last non-zero calorie adjustment
+  const lastAdjustment = [...checkIns]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .find((c) => c.calorieAdjustment !== 0);
 
   const handleCopyCode = useCallback(async () => {
     const code = profile?.referralCode;
@@ -207,8 +216,23 @@ export default function ProfileScreen() {
         </View>
       )}
 
-      {/* Progression */}
+      {/* Check-in + Progression */}
       <View style={styles.section}>
+        <Pressable
+          style={[styles.progressionButton, { marginBottom: spacing.sm }]}
+          onPress={() => router.push('/checkin')}
+        >
+          <View style={styles.progressionLeft}>
+            <Text style={styles.progressionIcon}>{'\uD83D\uDCCA'}</Text>
+            <View>
+              <Text style={styles.progressionTitle}>Check-in hebdo</Text>
+              <Text style={styles.progressionSubtitle}>
+                Poids + ressentis → plan ajuste
+              </Text>
+            </View>
+          </View>
+          <Text style={styles.progressionArrow}>{'\u203A'}</Text>
+        </Pressable>
         <Pressable
           style={styles.progressionButton}
           onPress={() => router.push('/progression')}
@@ -241,6 +265,16 @@ export default function ProfileScreen() {
         <ProfileRow label="Protéines" value={`${profile.dailyProtein}g`} />
         <ProfileRow label="Glucides" value={`${profile.dailyCarbs}g`} />
         <ProfileRow label="Lipides" value={`${profile.dailyFat}g`} />
+        {lastAdjustment && (
+          <View style={styles.adjustmentRow}>
+            <Text style={styles.adjustmentIcon}>{'\u26A1'}</Text>
+            <Text style={styles.adjustmentText}>
+              Ajuste {lastAdjustment.calorieAdjustment > 0 ? '+' : ''}{lastAdjustment.calorieAdjustment} kcal
+              {' '}(check-in du{' '}
+              {new Date(lastAdjustment.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })})
+            </Text>
+          </View>
+        )}
       </View>
 
       {/* Actions */}
@@ -258,6 +292,18 @@ export default function ProfileScreen() {
           <Pressable style={styles.actionRow}>
             <Text style={styles.actionText}>Gérer mon abonnement</Text>
           </Pressable>
+        )}
+
+        {Platform.OS !== 'web' && (
+          <View style={styles.actionRow}>
+            <Text style={styles.actionText}>Notifications</Text>
+            <Switch
+              value={notifEnabled}
+              onValueChange={() => toggleNotif(currentStreak)}
+              trackColor={{ false: colors.border, true: colors.primary }}
+              thumbColor={colors.white}
+            />
+          </View>
         )}
 
         <Pressable style={styles.actionRow} onPress={handleExportData}>
@@ -459,11 +505,33 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   actionText: {
     fontFamily: 'DMSans',
     fontSize: fontSizes.md,
     color: colors.text,
+  },
+  adjustmentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    backgroundColor: `${colors.primary}15`,
+    borderRadius: borderRadius.sm,
+  },
+  adjustmentIcon: {
+    fontSize: 14,
+  },
+  adjustmentText: {
+    fontFamily: 'DMSans',
+    fontSize: fontSizes.xs,
+    color: colors.primary,
+    flex: 1,
   },
   legal: {
     marginTop: spacing.lg,

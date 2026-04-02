@@ -26,7 +26,17 @@ import { isDemoMode, supabase } from '../src/services/supabase';
 import { useAuthStore } from '../src/store/authStore';
 import { loadProfileFromSupabase } from '../src/services/profile';
 import { initSentry, captureException } from '../src/services/sentry';
-import { View, Text, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, ActivityIndicator, ScrollView, Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
+import {
+  scheduleMealReminder,
+  scheduleWeeklyCheckIn,
+  scheduleStreakDanger,
+} from '../src/services/notifications';
+import { useUserStore } from '../src/store/userStore';
+import type { MealSlot } from '../src/types/meal';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -85,6 +95,44 @@ function RootLayoutInner() {
 
   useEffect(() => {
     initSentry();
+  }, []);
+
+  // Notification init + tap listener
+  useEffect(() => {
+    if (Platform.OS === 'web') return;
+
+    let subscription: Notifications.EventSubscription | null = null;
+
+    AsyncStorage.getItem('forga-notifications-enabled').then(async (value) => {
+      if (value !== 'true') return;
+
+      const profile = useUserStore.getState().profile;
+      const streak = profile?.currentStreak ?? 0;
+
+      try {
+        const slots: MealSlot[] = ['breakfast', 'morning_snack', 'lunch', 'afternoon_snack', 'dinner', 'bedtime'];
+        for (const slot of slots) {
+          await scheduleMealReminder(slot);
+        }
+        await scheduleWeeklyCheckIn();
+        if (streak > 0) await scheduleStreakDanger(streak);
+      } catch {
+        // Silent fail
+      }
+    });
+
+    subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      const data = response.notification.request.content.data as { type?: string };
+      if (data?.type === 'weekly_checkin') {
+        router.push('/checkin');
+      } else if (data?.type === 'streak_danger') {
+        router.push('/(tabs)/meals');
+      }
+    });
+
+    return () => {
+      subscription?.remove();
+    };
   }, []);
 
   useEffect(() => {
