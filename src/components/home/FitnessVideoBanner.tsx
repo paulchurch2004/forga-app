@@ -1,97 +1,68 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Platform, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, Animated, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors } from '../../theme/colors';
 import { fonts, fontSizes } from '../../theme/fonts';
 import { spacing, borderRadius } from '../../theme/spacing';
 
-// Free stock fitness videos (SD for fast mobile loading)
-// Source: Pexels.com (free for commercial use, no attribution required)
-const VIDEOS = [
-  'https://videos.pexels.com/video-files/4754031/4754031-sd_640_360_25fps.mp4',
-  'https://videos.pexels.com/video-files/4761563/4761563-sd_640_360_25fps.mp4',
-  'https://videos.pexels.com/video-files/3195394/3195394-sd_640_360_25fps.mp4',
-  'https://videos.pexels.com/video-files/4753879/4753879-sd_640_360_25fps.mp4',
+// Free fitness images (Unsplash Source — allows hotlinking)
+const IMAGES = [
+  'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=640&h=360&fit=crop&q=60',
+  'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=640&h=360&fit=crop&q=60',
+  'https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=640&h=360&fit=crop&q=60',
+  'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=640&h=360&fit=crop&q=60',
 ];
 
 const MOTIVATIONAL = [
   'FORGE TON CORPS',
   'CHAQUE REPAS COMPTE',
-  'LA REGULARITE PAIE',
-  'DEPASSE TES LIMITES',
+  'LA RÉGULARITÉ PAIE',
+  'DÉPASSE TES LIMITES',
 ];
 
 export function FitnessVideoBanner() {
-  const [videoIndex, setVideoIndex] = useState(0);
-  const [hasError, setHasError] = useState(false);
+  const [index, setIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  const textIndex = useRef(0);
-  const [motivText, setMotivText] = useState(MOTIVATIONAL[0]);
 
-  // Rotate videos every 12s with fade transition
+  // Rotate images every 8s with fade transition
   useEffect(() => {
     const interval = setInterval(() => {
-      // Fade out
       Animated.timing(fadeAnim, {
         toValue: 0,
         duration: 400,
         useNativeDriver: true,
       }).start(() => {
-        setVideoIndex((i) => (i + 1) % VIDEOS.length);
-        textIndex.current = (textIndex.current + 1) % MOTIVATIONAL.length;
-        setMotivText(MOTIVATIONAL[textIndex.current]);
-        // Fade in
+        setIndex((i) => (i + 1) % IMAGES.length);
         Animated.timing(fadeAnim, {
           toValue: 1,
           duration: 600,
           useNativeDriver: true,
         }).start();
       });
-    }, 12000);
+    }, 8000);
     return () => clearInterval(interval);
   }, []);
 
-  // Only render on web
-  if (Platform.OS !== 'web') return null;
-
-  const videoElement = !hasError
-    ? React.createElement('video', {
-        key: `video-${videoIndex}`,
-        src: VIDEOS[videoIndex],
-        autoPlay: true,
-        muted: true,
-        loop: true,
-        playsInline: true,
-        onError: () => setHasError(true),
-        style: {
-          position: 'absolute' as const,
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover' as const,
-          borderRadius: 16,
-        },
-      })
-    : null;
-
   return (
     <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-      {/* Video or fallback gradient */}
-      {videoElement}
+      <ImageBackground
+        source={{ uri: IMAGES[index] }}
+        style={styles.image}
+        resizeMode="cover"
+      >
+        {/* Dark gradient overlay for readability */}
+        <LinearGradient
+          colors={['rgba(11, 11, 20, 0.2)', 'rgba(11, 11, 20, 0.85)']}
+          style={styles.overlay}
+        />
 
-      {/* Dark gradient overlay for readability */}
-      <LinearGradient
-        colors={['rgba(11, 11, 20, 0.3)', 'rgba(11, 11, 20, 0.85)']}
-        style={styles.overlay}
-      />
-
-      {/* Motivational text */}
-      <View style={styles.content}>
-        <Text style={styles.motivText}>{motivText}</Text>
-        <View style={styles.divider} />
-        <Text style={styles.subText}>Chaque jour est une opportunite</Text>
-      </View>
+        {/* Motivational text */}
+        <View style={styles.content}>
+          <Text style={styles.motivText}>{MOTIVATIONAL[index]}</Text>
+          <View style={styles.divider} />
+          <Text style={styles.subText}>Chaque jour est une opportunité</Text>
+        </View>
+      </ImageBackground>
     </Animated.View>
   );
 }
@@ -103,11 +74,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: spacing.lg,
     backgroundColor: '#1a1a2e',
-    position: 'relative',
+  },
+  image: {
+    flex: 1,
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    borderRadius: borderRadius.lg,
   },
   content: {
     ...StyleSheet.absoluteFillObject,
