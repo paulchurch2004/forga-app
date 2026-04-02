@@ -22,6 +22,7 @@ import { usePremium } from '../../src/hooks/usePremium';
 import { supabase } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/store/authStore';
 import { BADGE_INFO, type BadgeType } from '../../src/types/user';
+import { BadgeCard } from '../../src/components/gamification/BadgeCard';
 import { events } from '../../src/services/analytics';
 
 export default function ProfileScreen() {
@@ -155,20 +156,17 @@ export default function ProfileScreen() {
 
       {/* Badges */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Badges</Text>
+        <Text style={styles.sectionTitle}>Mes badges</Text>
         <View style={styles.badgeGrid}>
           {(Object.keys(BADGE_INFO) as BadgeType[]).map((type) => {
-            const info = BADGE_INFO[type];
-            const unlocked = badges.some((b) => b.type === type);
+            const unlockedBadge = badges.find((b) => b.type === type);
             return (
-              <View
+              <BadgeCard
                 key={type}
-                style={[styles.badge, !unlocked && styles.badgeLocked]}
-              >
-                <Text style={styles.badgeName}>{info.name}</Text>
-                <Text style={styles.badgeDesc}>{info.description}</Text>
-                {unlocked && <Text style={styles.badgeCheck}>OK</Text>}
-              </View>
+                type={type}
+                unlocked={!!unlockedBadge}
+                unlockedAt={unlockedBadge?.unlockedAt}
+              />
             );
           })}
         </View>
@@ -382,6 +380,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   badgeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
   },
   badge: {

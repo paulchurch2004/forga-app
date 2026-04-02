@@ -61,6 +61,8 @@ export default function MealsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const favorites = useMealStore((s) => s.favorites);
+  const likedMeals = useMealStore((s) => s.likedMeals);
+  const dislikedMeals = useMealStore((s) => s.dislikedMeals);
 
   // Responsive grid: 2 cols on phone, 3-4 on tablet/PC
   const contentWidth = Math.min(windowWidth, contentMaxWidth);
@@ -112,8 +114,15 @@ export default function MealsScreen() {
       meals = meals.filter((meal) => favorites.includes(meal.id));
     }
 
+    // Sort by feedback: liked (+1) first, neutral (0) middle, disliked (-1) last
+    meals = [...meals].sort((a, b) => {
+      const scoreA = likedMeals.includes(a.id) ? 1 : dislikedMeals.includes(a.id) ? -1 : 0;
+      const scoreB = likedMeals.includes(b.id) ? 1 : dislikedMeals.includes(b.id) ? -1 : 0;
+      return scoreB - scoreA;
+    });
+
     return meals;
-  }, [currentMealSlot, budgetFilter, restrictionFilter, searchQuery, showFavoritesOnly, favorites]);
+  }, [currentMealSlot, budgetFilter, restrictionFilter, searchQuery, showFavoritesOnly, favorites, likedMeals, dislikedMeals]);
 
   // Limit for free users
   const displayedMeals = useMemo(() => {

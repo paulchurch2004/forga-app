@@ -1,10 +1,12 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   RefreshControl,
+  Modal,
+  Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
@@ -23,11 +25,18 @@ import { getCoachMessage, type CoachInput } from '../../src/engine/coachEngine';
 import { colors, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { FitnessVideoBanner } from '../../src/components/home/FitnessVideoBanner';
+import { ShareStreakCard } from '../../src/components/gamification/ShareStreakCard';
+import { useShareCard } from '../../src/hooks/useShareCard';
+import { BadgeUnlockToast } from '../../src/components/gamification/BadgeUnlockToast';
+import type { BadgeType } from '../../src/types/user';
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { contentMaxWidth } = useResponsive();
   const [refreshing, setRefreshing] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [toastBadge, setToastBadge] = useState<BadgeType | null>(null);
+  const { cardRef, share } = useShareCard();
 
   const profile = useUserStore((s) => s.profile);
   const { currentScore, weeklyChange } = useScoreStore();
@@ -36,6 +45,17 @@ export default function HomeScreen() {
   const { slots, currentSlot } = useMealSlot();
   const { currentStreak, isTodayValidated } = useStreak();
   const { recalculate } = useScore();
+  const badges = useUserStore((s) => s.badges);
+  const prevBadgeCount = useRef(badges.length);
+
+  // Show toast when a new badge is unlocked
+  useEffect(() => {
+    if (badges.length > prevBadgeCount.current) {
+      const newest = badges[badges.length - 1];
+      if (newest) setToastBadge(newest.type);
+    }
+    prevBadgeCount.current = badges.length;
+  }, [badges]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -123,6 +143,7 @@ export default function HomeScreen() {
   const firstName = profile.name.split(' ')[0];
 
   return (
+    <View style={styles.wrapper}>
     <ScrollView
       style={styles.container}
       contentContainerStyle={[
@@ -162,7 +183,44 @@ export default function HomeScreen() {
             size="sm"
           />
         </View>
+        {currentStreak >= 3 && (
+          <Pressable
+            style={styles.shareStreakBtn}
+            onPress={() => setShowShareModal(true)}
+          >
+            <Text style={styles.shareStreakBtnText}>{'\uD83D\uDD25'} Partager mon streak</Text>
+          </Pressable>
+        )}
       </View>
+
+      {/* Share Streak Modal */}
+      <Modal
+        visible={showShareModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowShareModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <ShareStreakCard
+              ref={cardRef}
+              streak={currentStreak}
+              score={currentScore.total}
+            />
+            <View style={styles.modalActions}>
+              <Pressable style={styles.modalShareBtn} onPress={share}>
+                <Text style={styles.modalShareBtnText}>Partager</Text>
+              </Pressable>
+              <Pressable
+                style={styles.modalCancelBtn}
+                onPress={() => setShowShareModal(false)}
+              >
+                <Text style={styles.modalCancelBtnText}>Fermer</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Coach Card */}
       {coachMessage && <CoachCard message={coachMessage} />}
@@ -194,13 +252,21 @@ export default function HomeScreen() {
       {/* Bottom spacing */}
       <View style={styles.bottomSpacer} />
     </ScrollView>
+    <BadgeUnlockToast
+      badgeType={toastBadge}
+      onHide={() => setToastBadge(null)}
+    />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  container: {
+    flex: 1,
   },
   content: {
     paddingHorizontal: spacing.lg,
@@ -269,5 +335,62 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: spacing['3xl'],
+  },
+  shareStreakBtn: {
+    marginTop: spacing.sm,
+    alignSelf: 'flex-start',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.full,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+  },
+  shareStreakBtnText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: colors.overlay,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+  },
+  modalContent: {
+    gap: spacing.lg,
+    alignItems: 'center',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  modalShareBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.md,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+  },
+  modalShareBtnText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+    color: colors.white,
+  },
+  modalCancelBtn: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+  },
+  modalCancelBtnText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
 });

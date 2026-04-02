@@ -11,6 +11,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { colors, fonts, fontSizes, spacing, borderRadius, shadows } from '../../theme';
 import { useMealStore } from '../../store/mealStore';
@@ -26,7 +27,13 @@ interface MealPhotoCardProps {
 export function MealPhotoCard({ meal, cardWidth }: MealPhotoCardProps) {
   const favorites = useMealStore((s) => s.favorites);
   const toggleFavorite = useMealStore((s) => s.toggleFavorite);
+  const likedMeals = useMealStore((s) => s.likedMeals);
+  const dislikedMeals = useMealStore((s) => s.dislikedMeals);
+  const toggleLike = useMealStore((s) => s.toggleLike);
+  const toggleDislike = useMealStore((s) => s.toggleDislike);
   const isFav = favorites.includes(meal.id);
+  const isLiked = likedMeals.includes(meal.id);
+  const isDisliked = dislikedMeals.includes(meal.id);
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -119,6 +126,30 @@ export function MealPhotoCard({ meal, cardWidth }: MealPhotoCardProps) {
               ? 'Moyen'
               : 'Avance'}
           </Text>
+          <View style={styles.feedbackRow}>
+            <Pressable
+              onPress={(e) => { e.stopPropagation?.(); toggleLike(meal.id); }}
+              hitSlop={6}
+              style={styles.feedbackBtn}
+            >
+              <Ionicons
+                name={isLiked ? 'thumbs-up' : 'thumbs-up-outline'}
+                size={14}
+                color={isLiked ? colors.success : colors.textMuted}
+              />
+            </Pressable>
+            <Pressable
+              onPress={(e) => { e.stopPropagation?.(); toggleDislike(meal.id); }}
+              hitSlop={6}
+              style={styles.feedbackBtn}
+            >
+              <Ionicons
+                name={isDisliked ? 'thumbs-down' : 'thumbs-down-outline'}
+                size={14}
+                color={isDisliked ? colors.error : colors.textMuted}
+              />
+            </Pressable>
+          </View>
         </View>
       </View>
     </AnimatedPressable>
@@ -247,6 +278,14 @@ const styles = StyleSheet.create({
   },
   favIconActive: {
     color: colors.error,
+  },
+  feedbackRow: {
+    flexDirection: 'row',
+    gap: spacing.xs,
+    marginLeft: 'auto',
+  },
+  feedbackBtn: {
+    padding: 2,
   },
 });
 
