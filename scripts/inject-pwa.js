@@ -38,6 +38,16 @@ const pwaStyles = `
 
 html = html.replace('</head>', `${pwaTags}\n${pwaStyles}\n</head>`);
 
+// Fix: Zustand uses import.meta.env which requires type="module" on script tags
+html = html.replace(
+  /<script (src="[^"]*entry[^"]*\.js") defer><\/script>/,
+  '<script type="module" $1></script>'
+);
+console.log('Added type="module" to entry script tag');
+
+// Also fix deprecated apple-mobile-web-app-capable
+html = html.replace('apple-mobile-web-app-capable', 'mobile-web-app-capable');
+
 // Ensure viewport includes viewport-fit=cover for iPhone notch/status bar
 if (html.includes('viewport') && !html.includes('viewport-fit=cover')) {
   html = html.replace(
