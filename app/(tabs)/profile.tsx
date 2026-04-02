@@ -187,18 +187,20 @@ export default function ProfileScreen() {
 
       {/* Score + Streak */}
       <View style={styles.statsRow}>
-        <View style={styles.statCard}>
+        <Pressable style={styles.statCard} onPress={() => router.push('/share?type=score')}>
           <Text style={[styles.statValue, { color: getScoreColor(score.total) }]}>
             {score.total}
           </Text>
           <Text style={styles.statLabel}>{getScoreLabel(score.total)}</Text>
-        </View>
-        <View style={styles.statCard}>
+          <Text style={styles.shareHint}>Partager</Text>
+        </Pressable>
+        <Pressable style={styles.statCard} onPress={() => router.push('/share?type=streak')}>
           <Text style={[styles.statValue, { color: colors.primary }]}>
             {currentStreak}
           </Text>
           <Text style={styles.statLabel}>jours de streak</Text>
-        </View>
+          <Text style={styles.shareHint}>Partager</Text>
+        </Pressable>
         <View style={styles.statCard}>
           <Text style={[styles.statValue, { color: colors.textSecondary }]}>
             {bestStreak}
@@ -214,12 +216,21 @@ export default function ProfileScreen() {
           {(Object.keys(BADGE_INFO) as BadgeType[]).map((type) => {
             const unlockedBadge = badges.find((b) => b.type === type);
             return (
-              <BadgeCard
-                key={type}
-                type={type}
-                unlocked={!!unlockedBadge}
-                unlockedAt={unlockedBadge?.unlockedAt}
-              />
+              <View key={type}>
+                <BadgeCard
+                  type={type}
+                  unlocked={!!unlockedBadge}
+                  unlockedAt={unlockedBadge?.unlockedAt}
+                />
+                {unlockedBadge && (
+                  <Pressable
+                    style={styles.badgeShareBtn}
+                    onPress={() => router.push(`/share?type=badge&badgeType=${type}`)}
+                  >
+                    <Text style={styles.badgeShareText}>Partager</Text>
+                  </Pressable>
+                )}
+              </View>
             );
           })}
         </View>
@@ -458,6 +469,24 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.xs,
     textAlign: 'center',
+  },
+  shareHint: {
+    fontFamily: 'DMSans',
+    fontSize: 10,
+    color: colors.primary,
+    marginTop: spacing.xs,
+  },
+  badgeShareBtn: {
+    alignSelf: 'center',
+    marginTop: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 2,
+  },
+  badgeShareText: {
+    fontFamily: 'DMSans',
+    fontSize: 10,
+    color: colors.primary,
+    fontWeight: '600',
   },
   section: {
     marginBottom: spacing['2xl'],

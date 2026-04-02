@@ -289,6 +289,24 @@ export default function HomeScreen() {
         <MealSlotList slots={slots} />
       </View>
 
+      {/* Scan actions */}
+      <View style={styles.scanActions}>
+        <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/barcode')}>
+          <Text style={styles.scanActionIcon}>{'\uD83D\uDCF7'}</Text>
+          <View>
+            <Text style={styles.scanActionTitle}>Scanner</Text>
+            <Text style={styles.scanActionSub}>Code-barres</Text>
+          </View>
+        </Pressable>
+        <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/photo')}>
+          <Text style={styles.scanActionIcon}>{'\uD83E\uDD16'}</Text>
+          <View>
+            <Text style={styles.scanActionTitle}>Photo IA</Text>
+            <Text style={styles.scanActionSub}>Identifier un plat</Text>
+          </View>
+        </Pressable>
+      </View>
+
       {/* Quick actions */}
       <View style={styles.quickActions}>
         <Pressable style={styles.quickActionBtn} onPress={() => router.push('/shopping-list')}>
@@ -391,6 +409,37 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: spacing['3xl'],
+  },
+  scanActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  scanActionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+  },
+  scanActionIcon: {
+    fontSize: 22,
+  },
+  scanActionTitle: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  scanActionSub: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.xs,
+    color: colors.textSecondary,
   },
   quickActions: {
     flexDirection: 'row',

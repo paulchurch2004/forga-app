@@ -28,18 +28,25 @@ const SLOTS: MealSlot[] = [
 ];
 
 export default function CustomMealScreen() {
-  const { slot: querySlot } = useLocalSearchParams<{ slot?: string }>();
+  const params = useLocalSearchParams<{
+    slot?: string;
+    name?: string;
+    calories?: string;
+    protein?: string;
+    carbs?: string;
+    fat?: string;
+  }>();
   const addValidatedMeal = useMealStore((s) => s.addValidatedMeal);
   const session = useAuthStore((s) => s.session);
 
   const [selectedSlot, setSelectedSlot] = useState<MealSlot>(
-    (querySlot as MealSlot) || 'lunch',
+    (params.slot as MealSlot) || 'lunch',
   );
-  const [name, setName] = useState('');
-  const [calories, setCalories] = useState('');
-  const [protein, setProtein] = useState('');
-  const [carbs, setCarbs] = useState('');
-  const [fat, setFat] = useState('');
+  const [name, setName] = useState(params.name || '');
+  const [calories, setCalories] = useState(params.calories || '');
+  const [protein, setProtein] = useState(params.protein || '');
+  const [carbs, setCarbs] = useState(params.carbs || '');
+  const [fat, setFat] = useState(params.fat || '');
 
   const handleValidate = () => {
     if (!name.trim()) {
