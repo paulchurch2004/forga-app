@@ -167,9 +167,9 @@ function RootLayoutInner() {
 
   // Sync queue: process pending actions when coming back online
   useEffect(() => {
-    if (Platform.OS !== 'web') return;
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
     const handleOnline = () => {
-      processQueue();
+      processQueue().catch(() => {});
     };
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);

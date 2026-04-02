@@ -5,9 +5,11 @@ export function useConnectivity() {
   const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
-    if (Platform.OS !== 'web') return;
+    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
 
-    const update = () => setIsOnline(navigator.onLine);
+    const update = () => {
+      setIsOnline(typeof navigator !== 'undefined' ? navigator.onLine : true);
+    };
     update();
 
     window.addEventListener('online', update);
