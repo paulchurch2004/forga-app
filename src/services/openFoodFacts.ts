@@ -11,6 +11,9 @@ export interface OpenFoodFactsProduct {
 export async function fetchProductByBarcode(
   barcode: string,
 ): Promise<OpenFoodFactsProduct | null> {
+  // Validate barcode format (numeric, 8-14 digits)
+  if (!/^\d{8,14}$/.test(barcode)) return null;
+
   try {
     const res = await fetch(
       `https://world.openfoodfacts.org/api/v2/product/${barcode}.json`,

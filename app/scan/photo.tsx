@@ -159,7 +159,7 @@ export default function PhotoScanScreen() {
             {!isVisionAvailable() && (
               <View style={styles.warningBanner}>
                 <Text style={styles.warningText}>
-                  Cle OpenAI non configuree. L'analyse IA ne sera pas disponible.
+                  Clé OpenAI non configurée. L'analyse IA ne sera pas disponible.
                 </Text>
               </View>
             )}
@@ -186,7 +186,7 @@ export default function PhotoScanScreen() {
           <View style={styles.resultContent}>
             {imageUri && <Image source={{ uri: imageUri }} style={styles.previewImageSmall} />}
 
-            <Text style={styles.fieldLabel}>Aliment identifie</Text>
+            <Text style={styles.fieldLabel}>Aliment identifié</Text>
             <TextInput
               style={styles.input}
               value={name}
@@ -195,10 +195,10 @@ export default function PhotoScanScreen() {
               placeholderTextColor={colors.textMuted}
             />
 
-            <Text style={styles.fieldLabel}>Macros estimees (modifiable)</Text>
+            <Text style={styles.fieldLabel}>Macros estimées (modifiable)</Text>
             <View style={styles.macroGrid}>
               <EditableMacro label="Calories" unit="kcal" value={calories} onChange={setCalories} color={colors.calories} />
-              <EditableMacro label="Proteines" unit="g" value={protein} onChange={setProtein} color={colors.protein} />
+              <EditableMacro label="Protéines" unit="g" value={protein} onChange={setProtein} color={colors.protein} />
               <EditableMacro label="Glucides" unit="g" value={carbs} onChange={setCarbs} color={colors.carbs} />
               <EditableMacro label="Lipides" unit="g" value={fat} onChange={setFat} color={colors.fat} />
             </View>
@@ -226,7 +226,7 @@ export default function PhotoScanScreen() {
               <Text style={styles.primaryBtnText}>Saisie manuelle</Text>
             </Pressable>
             <Pressable style={styles.secondaryBtn} onPress={() => { setStatus('idle'); setImageUri(null); }}>
-              <Text style={styles.secondaryBtnText}>Reessayer</Text>
+              <Text style={styles.secondaryBtnText}>Réessayer</Text>
             </Pressable>
           </View>
         )}

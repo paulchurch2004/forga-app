@@ -103,7 +103,7 @@ export default function CustomMealScreen() {
       >
         <Text style={styles.title}>Saisie libre</Text>
         <Text style={styles.subtitle}>
-          Tu as mange autre chose ? Entre les infos ici.
+          Tu as mangé autre chose ? Entre les infos ici.
         </Text>
 
         {/* Slot selector */}
@@ -157,7 +157,7 @@ export default function CustomMealScreen() {
             color={colors.calories}
           />
           <MacroInput
-            label="Proteines"
+            label="Protéines"
             unit="g"
             value={protein}
             onChangeText={setProtein}
@@ -180,7 +180,7 @@ export default function CustomMealScreen() {
         </View>
 
         <Text style={styles.hint}>
-          Pas besoin d'etre exact — une estimation suffit pour garder ton suivi.
+          Pas besoin d'être exact — une estimation suffit pour garder ton suivi.
         </Text>
 
         {/* Validate */}

@@ -107,7 +107,7 @@ export default function MealDetailScreen() {
     } catch (error) {
       Alert.alert(
         'Erreur',
-        'Impossible de valider le repas. Reessaie.',
+        'Impossible de valider le repas. Réessaie.',
         [{ text: 'OK' }]
       );
     } finally {

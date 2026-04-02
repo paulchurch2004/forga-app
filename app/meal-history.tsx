@@ -124,9 +124,9 @@ export default function MealHistoryScreen() {
               )}
             </>
           ) : selectedDate ? (
-            <Text style={styles.emptyText}>Aucun repas valide ce jour</Text>
+            <Text style={styles.emptyText}>Aucun repas validé ce jour</Text>
           ) : (
-            <Text style={styles.emptyText}>Selectionne un jour pour voir tes repas</Text>
+            <Text style={styles.emptyText}>Sélectionne un jour pour voir tes repas</Text>
           )}
         </View>
 
@@ -138,7 +138,7 @@ export default function MealHistoryScreen() {
 
 function formatDisplayDate(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number);
-  const months = ['jan.', 'fev.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aout', 'sept.', 'oct.', 'nov.', 'dec.'];
+  const months = ['jan.', 'fév.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
   return `${d} ${months[m - 1]} ${y}`;
 }
 

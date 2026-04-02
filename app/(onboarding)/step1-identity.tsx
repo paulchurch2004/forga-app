@@ -135,7 +135,7 @@ export default function Step1Identity() {
           </View>
 
           {/* Age input */}
-          <Text style={styles.sectionLabel}>Ton age</Text>
+          <Text style={styles.sectionLabel}>Ton âge</Text>
           <View style={styles.ageInputContainer}>
             <TextInput
               style={styles.ageInput}
@@ -155,7 +155,7 @@ export default function Step1Identity() {
           </View>
           {age.length > 0 && !isAgeValid && (
             <Text style={styles.errorText}>
-              L'age doit etre entre 14 et 65 ans.
+              L'âge doit être entre 14 et 65 ans.
             </Text>
           )}
         </ScrollView>

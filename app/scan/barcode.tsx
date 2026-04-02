@@ -178,7 +178,7 @@ function ScannerContent({
       {status === 'not_found' && (
         <View style={styles.centerContent}>
           <Text style={styles.notFoundIcon}>{'🔍'}</Text>
-          <Text style={styles.notFoundTitle}>Produit non trouve</Text>
+          <Text style={styles.notFoundTitle}>Produit non trouvé</Text>
           <Text style={styles.notFoundSubtitle}>
             Ce code-barres n'est pas dans la base Open Food Facts.
           </Text>
@@ -186,7 +186,7 @@ function ScannerContent({
             <Text style={styles.primaryBtnText}>Saisie manuelle</Text>
           </Pressable>
           <Pressable style={styles.secondaryBtn} onPress={handleRetry}>
-            <Text style={styles.secondaryBtnText}>Reessayer</Text>
+            <Text style={styles.secondaryBtnText}>Réessayer</Text>
           </Pressable>
         </View>
       )}
@@ -208,7 +208,7 @@ function ScannerContent({
           </View>
 
           {/* Quantity input */}
-          <Text style={styles.qtyLabel}>Quantite consommee</Text>
+          <Text style={styles.qtyLabel}>Quantité consommée</Text>
           <View style={styles.qtyRow}>
             <TextInput
               style={styles.qtyInput}
@@ -315,7 +315,7 @@ function WebBarcodeEntry({
         {status === 'not_found' && (
           <View style={styles.centerContent}>
             <Text style={styles.notFoundIcon}>{'🔍'}</Text>
-            <Text style={styles.notFoundTitle}>Produit non trouve</Text>
+            <Text style={styles.notFoundTitle}>Produit non trouvé</Text>
             <Text style={styles.notFoundSubtitle}>
               Ce code-barres n'est pas dans la base Open Food Facts.
             </Text>
@@ -323,7 +323,7 @@ function WebBarcodeEntry({
               <Text style={styles.primaryBtnText}>Saisie manuelle</Text>
             </Pressable>
             <Pressable style={styles.secondaryBtn} onPress={handleRetry}>
-              <Text style={styles.secondaryBtnText}>Reessayer</Text>
+              <Text style={styles.secondaryBtnText}>Réessayer</Text>
             </Pressable>
           </View>
         )}
@@ -343,7 +343,7 @@ function WebBarcodeEntry({
               <MacroPill label="L" value={product.fatPer100g} unit="g" />
             </View>
 
-            <Text style={styles.qtyLabel}>Quantite consommee</Text>
+            <Text style={styles.qtyLabel}>Quantité consommée</Text>
             <View style={styles.qtyRow}>
               <TextInput
                 style={styles.qtyInput}

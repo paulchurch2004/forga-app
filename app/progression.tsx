@@ -201,7 +201,7 @@ export default function ProgressionScreen() {
           unit=" pts"
           formatValue={(v) => Math.round(v).toString()}
           title="Score FORGA"
-          emptyMessage="Ton score apparaitra apres quelques jours"
+          emptyMessage="Ton score apparaîtra après quelques jours"
         />
       </View>
 
@@ -221,7 +221,7 @@ export default function ProgressionScreen() {
             color={getScoreColor(scoreStats.avg)}
           />
           <StatCard
-            label="Entrees"
+            label="Entrées"
             value={scoreStats.entries.toString()}
             unit=""
             color={colors.textSecondary}
@@ -311,7 +311,7 @@ function GoalProgress({
         <Text style={styles.goalWeight}>{targetWeight} kg</Text>
       </View>
       <Text style={styles.goalRemaining}>
-        Encore {remaining.toFixed(1)} kg {objective === 'cut' ? 'a perdre' : 'a prendre'}
+        Encore {remaining.toFixed(1)} kg {objective === 'cut' ? 'à perdre' : 'à prendre'}
       </Text>
     </View>
   );

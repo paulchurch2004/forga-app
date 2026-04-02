@@ -64,7 +64,7 @@ export default function ProfileScreen() {
     if (!code) return;
     try {
       await Share.share({
-        message: `Rejoins FORGA et commence ta transformation ! Utilise mon code parrain ${code} a l'inscription. Telecharge l'app : https://forga.fr`,
+        message: `Rejoins FORGA et commence ta transformation ! Utilise mon code parrain ${code} à l'inscription. Télécharge l'app : https://forga.fr`,
       });
       events.referralCodeShared('share');
     } catch {}
@@ -78,8 +78,9 @@ export default function ProfileScreen() {
       const weightLog = useUserStore.getState().weightLog;
       const mealHistory = useMealStore.getState().mealHistory;
       const scoreHistory = useScoreStore.getState().history;
+      const { id: _id, email: _email, referralCode: _ref, referredBy: _refBy, ...safeProfile } = profile;
       const data = {
-        profile,
+        profile: safeProfile,
         badges,
         score,
         weightLog,
@@ -152,7 +153,7 @@ export default function ProfileScreen() {
       // Web: redirect to Stripe customer portal or show info
       Alert.alert(
         'Abonnement',
-        'Pour gerer ton abonnement, contacte-nous a support@forga.fr ou consulte ton email de confirmation.',
+        'Pour gérer ton abonnement, contacte-nous à support@forga.fr ou consulte ton email de confirmation.',
       );
     }
   };
@@ -324,7 +325,7 @@ export default function ProfileScreen() {
           <View style={styles.adjustmentRow}>
             <Text style={styles.adjustmentIcon}>{'\u26A1'}</Text>
             <Text style={styles.adjustmentText}>
-              Ajuste {lastAdjustment.calorieAdjustment > 0 ? '+' : ''}{lastAdjustment.calorieAdjustment} kcal
+              Ajusté {lastAdjustment.calorieAdjustment > 0 ? '+' : ''}{lastAdjustment.calorieAdjustment} kcal
               {' '}(check-in du{' '}
               {new Date(lastAdjustment.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })})
             </Text>
@@ -345,7 +346,7 @@ export default function ProfileScreen() {
 
         {isPremium && (
           <Pressable style={styles.actionRow} onPress={handleManageSubscription}>
-            <Text style={styles.actionText}>Gerer mon abonnement</Text>
+            <Text style={styles.actionText}>Gérer mon abonnement</Text>
           </Pressable>
         )}
 
@@ -385,7 +386,7 @@ export default function ProfileScreen() {
         </Text>
         <Pressable onPress={() => router.push('/privacy')}>
           <Text style={[styles.legalText, { color: colors.primary, marginTop: spacing.sm }]}>
-            Politique de confidentialite
+            Politique de confidentialité
           </Text>
         </Pressable>
         <Text style={[styles.legalText, { marginTop: spacing.lg }]}>

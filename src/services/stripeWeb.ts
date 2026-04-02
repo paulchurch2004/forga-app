@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { isDemoMode } from './supabase';
+import { isDemoMode, supabase } from './supabase';
 
 const isWeb = Platform.OS === 'web';
 const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
@@ -37,9 +37,13 @@ export async function createCheckoutSession(
   if (!isWeb) return null;
   if (isDemoMode) return null;
 
+  const { data: { session: authSession } } = await supabase.auth.getSession();
   const response = await fetch(`${getFunctionsUrl()}/create-checkout`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(authSession?.access_token ? { Authorization: `Bearer ${authSession.access_token}` } : {}),
+    },
     body: JSON.stringify({
       plan,
       userId,

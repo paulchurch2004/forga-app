@@ -57,7 +57,7 @@ export default function ShareScreen() {
         </Pressable>
 
         <Text style={styles.hint}>
-          La carte sera partagee en image PNG via ton appli preferee.
+          La carte sera partagée en image PNG via ton appli préférée.
         </Text>
       </View>
     </View>

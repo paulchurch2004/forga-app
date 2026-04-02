@@ -68,9 +68,11 @@ class ErrorBoundary extends Component<
           <Text style={{ color: '#ff8888', fontSize: 14, marginTop: 16 }}>
             {this.state.error?.message}
           </Text>
-          <Text style={{ color: '#888', fontSize: 12, marginTop: 12 }}>
-            {this.state.error?.stack}
-          </Text>
+          {__DEV__ && (
+            <Text style={{ color: '#888', fontSize: 12, marginTop: 12 }}>
+              {this.state.error?.stack}
+            </Text>
+          )}
         </ScrollView>
       );
     }

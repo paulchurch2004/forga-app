@@ -201,7 +201,7 @@ export default function CheckInScreen() {
           value={energy}
           onChange={(v) => setEnergy(v as Rating)}
           max={5}
-          labels={['Epuisé', 'Faible', 'Normal', 'Bien', 'Top']}
+          labels={['Épuisé', 'Faible', 'Normal', 'Bien', 'Top']}
         />
       </View>
 

@@ -48,17 +48,17 @@ const TOTAL_STEPS = 7;
 
 const OBJECTIVE_LABELS: Record<Objective, string> = {
   bulk: 'Prise de masse',
-  cut: 'Seche',
+  cut: 'Sèche',
   maintain: 'Maintien',
   recomp: 'Recomposition',
 };
 
 const ACTIVITY_LABELS: Record<ActivityLevel, string> = {
-  sedentary: 'Sedentaire',
-  light: 'Leger',
-  moderate: 'Modere',
+  sedentary: 'Sédentaire',
+  light: 'Léger',
+  moderate: 'Modéré',
   active: 'Actif',
-  very_active: 'Tres actif',
+  very_active: 'Très actif',
 };
 
 const BUDGET_LABELS: Record<string, string> = {
@@ -68,7 +68,7 @@ const BUDGET_LABELS: Record<string, string> = {
 };
 
 const RESTRICTION_LABELS: Record<string, string> = {
-  vegetarian: 'Vegetarien',
+  vegetarian: 'Végétarien',
   vegan: 'Vegan',
   gluten_free: 'Sans gluten',
   lactose_free: 'Sans lactose',
@@ -309,9 +309,9 @@ export default function Step7Summary() {
         showsVerticalScrollIndicator={false}
       >
         {/* Title */}
-        <Text style={styles.title}>Ton plan est pret.</Text>
+        <Text style={styles.title}>Ton plan est prêt.</Text>
         <Text style={styles.subtitle}>
-          Voila ce que FORGA a calcule pour toi.
+          Voilà ce que FORGA a calculé pour toi.
         </Text>
 
         {/* Objective card */}
@@ -336,7 +336,7 @@ export default function Step7Summary() {
             </View>
           )}
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Activite</Text>
+            <Text style={styles.summaryLabel}>Activité</Text>
             <Text style={styles.summaryValue}>
               {ACTIVITY_LABELS[onboardingData.activityLevel ?? 'moderate']}
             </Text>
@@ -356,7 +356,7 @@ export default function Step7Summary() {
             <View style={styles.macroItem}>
               <View style={[styles.macroDot, { backgroundColor: colors.protein }]} />
               <Text style={styles.macroValue}>{computed.protein}g</Text>
-              <Text style={styles.macroLabel}>Proteines</Text>
+              <Text style={styles.macroLabel}>Protéines</Text>
             </View>
             <View style={styles.macroItem}>
               <View style={[styles.macroDot, { backgroundColor: colors.carbs }]} />
@@ -410,18 +410,18 @@ export default function Step7Summary() {
           <Text style={styles.scoreTitle}>Score FORGA</Text>
           <Text style={styles.scoreBigNumber}>0</Text>
           <Text style={styles.scoreDescription}>
-            Ton Score FORGA demarre a 0. Chaque jour que tu valides, il monte.
-            Chaque jour que tu rates, il descend. A toi de jouer.
+            Ton Score FORGA démarre à 0. Chaque jour que tu valides, il monte.
+            Chaque jour que tu rates, il descend. À toi de jouer.
           </Text>
         </View>
 
         {/* Disclaimer */}
         <Text style={styles.disclaimer}>
-          FORGA est un outil d'aide a la nutrition. Il ne remplace pas l'avis
-          d'un professionnel de sante. Les calculs sont bases sur des formules
+          FORGA est un outil d'aide à la nutrition. Il ne remplace pas l'avis
+          d'un professionnel de santé. Les calculs sont basés sur des formules
           scientifiques reconnues (Mifflin-St Jeor, ISSN) mais restent des
-          estimations. Consulte un medecin ou un dieteticien si tu as des
-          besoins specifiques.
+          estimations. Consulte un médecin ou un diététicien si tu as des
+          besoins spécifiques.
         </Text>
       </ScrollView>
 

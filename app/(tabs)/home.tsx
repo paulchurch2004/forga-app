@@ -154,7 +154,7 @@ export default function HomeScreen() {
   if (hour < 12) {
     greeting = 'Bonjour';
   } else if (hour < 18) {
-    greeting = 'Bon apres-midi';
+    greeting = 'Bon après-midi';
   } else {
     greeting = 'Bonsoir';
   }
@@ -192,8 +192,8 @@ export default function HomeScreen() {
             </Text>
             <Text style={styles.subtitle}>
               {isTodayValidated
-                ? 'Continue comme ca, tu geres !'
-                : 'Pret a forger ta journee ?'}
+                ? 'Continue comme ça, tu gères !'
+                : 'Prêt à forger ta journée ?'}
             </Text>
           </View>
           <StreakBadge

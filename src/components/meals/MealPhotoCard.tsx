@@ -124,7 +124,7 @@ export function MealPhotoCard({ meal, cardWidth }: MealPhotoCardProps) {
               ? 'Facile'
               : meal.difficulty === 2
               ? 'Moyen'
-              : 'Avance'}
+              : 'Avancé'}
           </Text>
           <View style={styles.feedbackRow}>
             <Pressable

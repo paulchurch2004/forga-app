@@ -140,15 +140,15 @@ export default function ShoppingListScreen() {
         {items.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>🛒</Text>
-            <Text style={styles.emptyTitle}>Aucun repas prevu</Text>
+            <Text style={styles.emptyTitle}>Aucun repas prévu</Text>
             <Text style={styles.emptySubtitle}>
-              Valide ou planifie des repas pour generer ta liste de courses.
+              Valide ou planifie des repas pour générer ta liste de courses.
             </Text>
           </View>
         ) : (
           <>
             <Text style={styles.countText}>
-              {items.length} ingredient{items.length > 1 ? 's' : ''}
+              {items.length} ingrédient{items.length > 1 ? 's' : ''}
             </Text>
 
             {items.map((item) => (
@@ -162,7 +162,7 @@ export default function ShoppingListScreen() {
 
             <Pressable style={styles.shareBtn} onPress={handleShare}>
               <Text style={styles.shareBtnText}>
-                {copied ? 'Copie !' : 'Partager la liste'}
+                {copied ? 'Copié !' : 'Partager la liste'}
               </Text>
             </Pressable>
           </>

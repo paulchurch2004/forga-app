@@ -75,7 +75,7 @@ export default function WeeklyPlanScreen() {
   if (!profile) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={styles.emptyText}>Profil non configure</Text>
+        <Text style={styles.emptyText}>Profil non configuré</Text>
       </View>
     );
   }
@@ -96,19 +96,19 @@ export default function WeeklyPlanScreen() {
           </Pressable>
           <Text style={styles.headerTitle}>Plan semaine</Text>
           <Pressable onPress={handleGenerate} hitSlop={12}>
-            <Text style={styles.regenerateText}>{days.length > 0 ? 'Refaire' : 'Generer'}</Text>
+            <Text style={styles.regenerateText}>{days.length > 0 ? 'Refaire' : 'Générer'}</Text>
           </Pressable>
         </View>
 
         {days.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>📋</Text>
-            <Text style={styles.emptyTitle}>Aucun plan genere</Text>
+            <Text style={styles.emptyTitle}>Aucun plan généré</Text>
             <Text style={styles.emptySubtitle}>
-              Genere un plan pour voir tes repas de la semaine.
+              Génère un plan pour voir tes repas de la semaine.
             </Text>
             <Pressable style={styles.generateBtn} onPress={handleGenerate}>
-              <Text style={styles.generateBtnText}>Generer le plan</Text>
+              <Text style={styles.generateBtnText}>Générer le plan</Text>
             </Pressable>
           </View>
         ) : (

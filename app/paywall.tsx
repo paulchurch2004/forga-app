@@ -185,7 +185,7 @@ export default function PaywallScreen() {
           onPress={() => setSelectedPlan('annual')}
         >
           <View style={styles.planBadge}>
-            <Text style={styles.planBadgeText}>RECOMMANDE</Text>
+            <Text style={styles.planBadgeText}>RECOMMANDÉ</Text>
           </View>
           <Text style={styles.planPrice}>14,99€/an</Text>
           <Text style={styles.planDetail}>1,25€/mois</Text>

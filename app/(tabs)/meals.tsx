@@ -39,7 +39,7 @@ const BUDGET_FILTERS: { key: BudgetFilter; label: string }[] = [
 
 const RESTRICTION_FILTERS: { key: RestrictionFilter; label: string }[] = [
   { key: 'all', label: 'Tous' },
-  { key: 'vegetarian', label: 'Vegetarien' },
+  { key: 'vegetarian', label: 'Végétarien' },
   { key: 'vegan', label: 'Vegan' },
   { key: 'gluten_free', label: 'Sans gluten' },
   { key: 'lactose_free', label: 'Sans lactose' },
@@ -236,7 +236,7 @@ export default function MealsScreen() {
       <View style={[styles.searchContainer, { maxWidth: contentMaxWidth }]}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Rechercher un repas ou ingredient..."
+          placeholder="Rechercher un repas ou ingrédient..."
           placeholderTextColor={colors.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -326,7 +326,7 @@ export default function MealsScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                Aucun repas ne correspond a tes filtres.
+                Aucun repas ne correspond à tes filtres.
               </Text>
             </View>
           }
@@ -343,7 +343,7 @@ export default function MealsScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                Aucun repas ne correspond a tes filtres.
+                Aucun repas ne correspond à tes filtres.
               </Text>
             </View>
           }
@@ -355,11 +355,11 @@ export default function MealsScreen() {
                 </Text>
                 <Text style={styles.paywallBannerSubtitle}>
                   Passe a FORGA PRO pour toutes les suggestions,
-                  photos et recettes detaillees.
+                  photos et recettes détaillées.
                 </Text>
                 <View style={styles.paywallButton}>
                   <Text style={styles.paywallButtonText}>
-                    Debloquer FORGA PRO
+                    Débloquer FORGA PRO
                   </Text>
                 </View>
               </Pressable>

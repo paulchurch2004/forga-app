@@ -25,17 +25,17 @@ import type { Sex, Objective, ActivityLevel, Budget, Restriction } from '../src/
 
 const OBJECTIVE_OPTIONS: { value: Objective; label: string }[] = [
   { value: 'bulk', label: 'Prise de masse' },
-  { value: 'cut', label: 'Seche' },
+  { value: 'cut', label: 'Sèche' },
   { value: 'maintain', label: 'Maintien' },
   { value: 'recomp', label: 'Recomposition' },
 ];
 
 const ACTIVITY_OPTIONS: { value: ActivityLevel; label: string }[] = [
-  { value: 'sedentary', label: 'Sedentaire' },
-  { value: 'light', label: 'Leger' },
-  { value: 'moderate', label: 'Modere' },
+  { value: 'sedentary', label: 'Sédentaire' },
+  { value: 'light', label: 'Léger' },
+  { value: 'moderate', label: 'Modéré' },
   { value: 'active', label: 'Actif' },
-  { value: 'very_active', label: 'Tres actif' },
+  { value: 'very_active', label: 'Très actif' },
 ];
 
 const BUDGET_OPTIONS: { value: Budget; label: string }[] = [
@@ -45,7 +45,7 @@ const BUDGET_OPTIONS: { value: Budget; label: string }[] = [
 ];
 
 const RESTRICTION_OPTIONS: { value: Restriction; label: string }[] = [
-  { value: 'vegetarian', label: 'Vegetarien' },
+  { value: 'vegetarian', label: 'Végétarien' },
   { value: 'vegan', label: 'Vegan' },
   { value: 'gluten_free', label: 'Sans gluten' },
   { value: 'lactose_free', label: 'Sans lactose' },
@@ -202,7 +202,7 @@ export default function SettingsScreen() {
         <Pressable onPress={() => router.back()} hitSlop={12}>
           <Text style={styles.backText}>{'\u2190'} Retour</Text>
         </Pressable>
-        <Text style={styles.title}>Reglages</Text>
+        <Text style={styles.title}>Réglages</Text>
       </View>
 
       <ScrollView
@@ -287,7 +287,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Activite */}
-        <Text style={styles.sectionTitle}>Niveau d'activite</Text>
+        <Text style={styles.sectionTitle}>Niveau d'activité</Text>
         <View style={styles.chipRow}>
           {ACTIVITY_OPTIONS.map((a) => (
             <Pressable
@@ -342,7 +342,7 @@ export default function SettingsScreen() {
             <Text style={styles.previewValue}>{computed.calories} kcal</Text>
           </View>
           <View style={styles.previewRow}>
-            <Text style={styles.previewLabel}>Proteines</Text>
+            <Text style={styles.previewLabel}>Protéines</Text>
             <Text style={styles.previewValue}>{computed.protein}g</Text>
           </View>
           <View style={styles.previewRow}>

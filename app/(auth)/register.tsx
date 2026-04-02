@@ -19,6 +19,14 @@ import { useAuthStore } from '../../src/store/authStore';
 import { useUserStore } from '../../src/store/userStore';
 import { isValidReferralCode } from '../../src/services/referrals';
 
+function showError(title: string, message: string) {
+  if (Platform.OS === 'web') {
+    window.alert(`${title}\n${message}`);
+  } else {
+    Alert.alert(title, message);
+  }
+}
+
 export default function RegisterScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -30,11 +38,11 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!name || !email || !password) {
-      Alert.alert('Erreur', 'Remplis tous les champs.');
+      showError('Erreur', 'Remplis tous les champs.');
       return;
     }
     if (password.length < 8) {
-      Alert.alert('Erreur', 'Le mot de passe doit faire au moins 8 caractères.');
+      showError('Erreur', 'Le mot de passe doit faire au moins 8 caractères.');
       return;
     }
 
@@ -72,7 +80,7 @@ export default function RegisterScreen() {
     setLoading(false);
 
     if (error) {
-      Alert.alert('Erreur', error.message);
+      showError('Erreur', error.message);
       return;
     }
 
@@ -168,12 +176,12 @@ export default function RegisterScreen() {
           <View style={styles.dividerLine} />
         </View>
 
-        <Pressable style={styles.socialButton}>
-          <Text style={styles.socialButtonText}>Continuer avec Apple</Text>
+        <Pressable style={[styles.socialButton, styles.socialButtonDisabled]} disabled>
+          <Text style={styles.socialButtonText}>Continuer avec Apple (bientôt)</Text>
         </Pressable>
 
-        <Pressable style={styles.socialButton}>
-          <Text style={styles.socialButtonText}>Continuer avec Google</Text>
+        <Pressable style={[styles.socialButton, styles.socialButtonDisabled]} disabled>
+          <Text style={styles.socialButtonText}>Continuer avec Google (bientôt)</Text>
         </Pressable>
       </View>
     </KeyboardAvoidingView>
@@ -265,6 +273,9 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     alignItems: 'center',
     marginBottom: spacing.md,
+  },
+  socialButtonDisabled: {
+    opacity: 0.4,
   },
   socialButtonText: {
     fontFamily: 'DMSans',

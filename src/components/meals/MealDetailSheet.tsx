@@ -106,7 +106,7 @@ export function MealDetailSheet({
         unit: 'kcal',
       },
       {
-        label: 'Proteines',
+        label: 'Protéines',
         value: adjustedMacros.protein,
         target: slotTargetMacros.protein,
         color: colors.protein,
@@ -190,14 +190,14 @@ export function MealDetailSheet({
                     ? 'Facile'
                     : meal.difficulty === 2
                     ? 'Moyen'
-                    : 'Avance'}
+                    : 'Avancé'}
                 </Text>
               </View>
             </View>
 
             {/* Macro bars */}
             <View style={styles.macroSection}>
-              <Text style={styles.sectionTitle}>Macros personnalisees</Text>
+              <Text style={styles.sectionTitle}>Macros personnalisées</Text>
               {macroBars.map((bar) => (
                 <MacroBar key={bar.label} {...bar} />
               ))}
@@ -206,7 +206,7 @@ export function MealDetailSheet({
             {/* Ingredients */}
             <View style={styles.ingredientSection}>
               <Text style={styles.sectionTitle}>
-                Ingredients ({adjustedIngredients.length})
+                Ingrédients ({adjustedIngredients.length})
               </Text>
               {adjustedIngredients.map((ing, index) => (
                 <IngredientRow
@@ -223,12 +223,12 @@ export function MealDetailSheet({
               <RecipeSteps steps={meal.recipeSteps} />
             ) : (
               <View style={styles.paywallSection}>
-                <Text style={styles.paywallTitle}>Recette detaillee</Text>
+                <Text style={styles.paywallTitle}>Recette détaillée</Text>
                 <Text style={styles.paywallText}>
-                  La recette etape par etape est disponible pour les membres FORGA PRO.
+                  La recette étape par étape est disponible pour les membres FORGA PRO.
                 </Text>
                 <Button
-                  title="Debloquer avec FORGA PRO"
+                  title="Débloquer avec FORGA PRO"
                   variant="primary"
                   size="md"
                   fullWidth
