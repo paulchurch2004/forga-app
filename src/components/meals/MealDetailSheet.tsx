@@ -11,7 +11,7 @@ import {
 import { IngredientRow } from './IngredientRow';
 import { RecipeSteps } from './RecipeSteps';
 import { Button } from '../ui/Button';
-import { colors, fonts, fontSizes, spacing, borderRadius, shadows } from '../../theme';
+import { colors, fonts, fontSizes, spacing, borderRadius, shadows, MAX_CONTENT_WIDTH } from '../../theme';
 import { useResponsive } from '../../hooks/useResponsive';
 import type { Meal, AdjustedIngredient } from '../../types/meal';
 import type { MacroTarget } from '../../types/engine';

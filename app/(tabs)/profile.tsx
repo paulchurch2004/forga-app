@@ -9,6 +9,7 @@ import {
   Share,
   Platform,
   Switch,
+  Linking,
 } from 'react-native';
 import { router } from 'expo-router';
 import { colors } from '../../src/theme/colors';
@@ -18,6 +19,7 @@ import { useResponsive } from '../../src/hooks/useResponsive';
 import { getScoreColor, getScoreLabel } from '../../src/theme/colors';
 import { useUserStore } from '../../src/store/userStore';
 import { useScoreStore } from '../../src/store/scoreStore';
+import { useMealStore } from '../../src/store/mealStore';
 import { useStreak } from '../../src/hooks/useStreak';
 import { usePremium } from '../../src/hooks/usePremium';
 import { supabase } from '../../src/services/supabase';
@@ -73,17 +75,39 @@ export default function ProfileScreen() {
   const handleExportData = async () => {
     setExporting(true);
     try {
+      const weightLog = useUserStore.getState().weightLog;
+      const mealHistory = useMealStore.getState().mealHistory;
+      const scoreHistory = useScoreStore.getState().history;
       const data = {
         profile,
         badges,
         score,
+        weightLog,
+        checkIns,
+        mealHistory,
+        scoreHistory,
         exportedAt: new Date().toISOString(),
       };
-      // In a real app, this would generate a JSON file and share it
-      Alert.alert(
-        'Export RGPD',
-        'Tes données ont été préparées pour l\'export. Fonctionnalité de partage à venir.',
-      );
+      const json = JSON.stringify(data, null, 2);
+
+      if (Platform.OS === 'web') {
+        // Download as file on web
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `forga-export-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        // Share as text on native
+        await Share.share({
+          message: json,
+          title: 'Export FORGA',
+        });
+      }
+    } catch {
+      Alert.alert('Erreur', "Impossible d'exporter tes donnees.");
     } finally {
       setExporting(false);
     }
@@ -109,6 +133,9 @@ export default function ProfileScreen() {
             await supabase.from('score_history').delete().eq('user_id', userId);
             await supabase.from('users').delete().eq('id', userId);
             await supabase.auth.signOut();
+            useUserStore.getState().reset();
+            useMealStore.getState().reset();
+            useScoreStore.getState().reset();
             useAuthStore.getState().reset();
           },
         },
@@ -116,8 +143,25 @@ export default function ProfileScreen() {
     );
   };
 
+  const handleManageSubscription = async () => {
+    if (Platform.OS === 'ios') {
+      await Linking.openURL('https://apps.apple.com/account/subscriptions');
+    } else if (Platform.OS === 'android') {
+      await Linking.openURL('https://play.google.com/store/account/subscriptions');
+    } else {
+      // Web: redirect to Stripe customer portal or show info
+      Alert.alert(
+        'Abonnement',
+        'Pour gerer ton abonnement, contacte-nous a support@forga.fr ou consulte ton email de confirmation.',
+      );
+    }
+  };
+
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    useUserStore.getState().reset();
+    useMealStore.getState().reset();
+    useScoreStore.getState().reset();
     useAuthStore.getState().reset();
   };
 
@@ -289,8 +333,8 @@ export default function ProfileScreen() {
         )}
 
         {isPremium && (
-          <Pressable style={styles.actionRow}>
-            <Text style={styles.actionText}>Gérer mon abonnement</Text>
+          <Pressable style={styles.actionRow} onPress={handleManageSubscription}>
+            <Text style={styles.actionText}>Gerer mon abonnement</Text>
           </Pressable>
         )}
 
@@ -328,9 +372,9 @@ export default function ProfileScreen() {
           d'un médecin, nutritionniste ou professionnel de santé. Consulte un professionnel
           avant tout changement alimentaire significatif.
         </Text>
-        <Pressable>
+        <Pressable onPress={() => router.push('/privacy')}>
           <Text style={[styles.legalText, { color: colors.primary, marginTop: spacing.sm }]}>
-            Politique de confidentialité
+            Politique de confidentialite
           </Text>
         </Pressable>
         <Text style={[styles.legalText, { marginTop: spacing.lg }]}>

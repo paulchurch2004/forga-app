@@ -15,6 +15,8 @@ import { useMealStore } from '../src/store/mealStore';
 import { useWeeklyPlanStore } from '../src/store/weeklyPlanStore';
 import { generateWeeklyPlan, getCurrentWeekStart } from '../src/engine/weeklyPlanner';
 import { getMealById, getMealsBySlotAndBudget } from '../src/data/meals';
+import { calculatePortions } from '../src/engine/portionCalculator';
+import { useEngine } from '../src/hooks/useEngine';
 import { MEAL_SLOT_LABELS, type MealSlot } from '../src/types/meal';
 import { colors, fonts, fontSizes, spacing, borderRadius } from '../src/theme';
 import { useResponsive } from '../src/hooks/useResponsive';
@@ -26,6 +28,7 @@ export default function WeeklyPlanScreen() {
   const { contentMaxWidth } = useResponsive();
 
   const profile = useUserStore((s) => s.profile);
+  const engine = useEngine();
   const likedMeals = useMealStore((s) => s.likedMeals);
   const dislikedMeals = useMealStore((s) => s.dislikedMeals);
 
@@ -150,6 +153,11 @@ export default function WeeklyPlanScreen() {
               <View style={styles.mealsSection}>
                 {selectedDay.meals.map((m) => {
                   const meal = getMealById(m.mealId);
+                  const slotTarget = engine?.getSlotMacros(m.slot);
+                  const adjusted = meal && slotTarget
+                    ? calculatePortions(slotTarget, meal.baseMacros, meal.ingredients)
+                    : null;
+                  const macros = adjusted?.adjustedMacros ?? meal?.baseMacros;
                   return (
                     <View key={m.slot} style={styles.mealCard}>
                       <View style={styles.mealCardTop}>
@@ -163,15 +171,42 @@ export default function WeeklyPlanScreen() {
                       </View>
                       <Pressable onPress={() => router.push(`/meal/${m.mealId}`)}>
                         <Text style={styles.mealName}>{m.mealName}</Text>
-                        {meal && (
+                        {macros && (
                           <Text style={styles.mealMacros}>
-                            {meal.baseMacros.calories} kcal {'\u00B7'} {meal.baseMacros.protein}g P {'\u00B7'} {meal.baseMacros.carbs}g G {'\u00B7'} {meal.baseMacros.fat}g L
+                            {macros.calories} kcal {'\u00B7'} {macros.protein}g P {'\u00B7'} {macros.carbs}g G {'\u00B7'} {macros.fat}g L
                           </Text>
                         )}
                       </Pressable>
                     </View>
                   );
                 })}
+
+                {/* Daily total */}
+                {engine && (() => {
+                  const dayTotal = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+                  for (const m of selectedDay.meals) {
+                    const meal = getMealById(m.mealId);
+                    const slotTarget = engine.getSlotMacros(m.slot);
+                    if (meal && slotTarget) {
+                      const adj = calculatePortions(slotTarget, meal.baseMacros, meal.ingredients);
+                      dayTotal.calories += adj.adjustedMacros.calories;
+                      dayTotal.protein += adj.adjustedMacros.protein;
+                      dayTotal.carbs += adj.adjustedMacros.carbs;
+                      dayTotal.fat += adj.adjustedMacros.fat;
+                    }
+                  }
+                  return (
+                    <View style={styles.dayTotalCard}>
+                      <Text style={styles.dayTotalLabel}>Total du jour</Text>
+                      <Text style={styles.dayTotalValue}>
+                        {dayTotal.calories} kcal {'\u00B7'} {dayTotal.protein}g P {'\u00B7'} {dayTotal.carbs}g G {'\u00B7'} {dayTotal.fat}g L
+                      </Text>
+                      <Text style={styles.dayTotalTarget}>
+                        Objectif : {engine.dailyMacros.calories} kcal
+                      </Text>
+                    </View>
+                  );
+                })()}
               </View>
             )}
           </>
@@ -201,15 +236,22 @@ export default function WeeklyPlanScreen() {
               data={swapCandidates}
               keyExtractor={(item) => item.id}
               style={styles.modalList}
-              renderItem={({ item }) => (
-                <Pressable
-                  style={styles.swapItem}
-                  onPress={() => handleSwap(item.id, item.name)}
-                >
-                  <Text style={styles.swapItemName} numberOfLines={1}>{item.name}</Text>
-                  <Text style={styles.swapItemCal}>{item.baseMacros.calories} kcal</Text>
-                </Pressable>
-              )}
+              renderItem={({ item }) => {
+                const slotTarget = swapModal && engine ? engine.getSlotMacros(swapModal.slot) : null;
+                const adj = slotTarget
+                  ? calculatePortions(slotTarget, item.baseMacros, item.ingredients)
+                  : null;
+                const cal = adj ? adj.adjustedMacros.calories : item.baseMacros.calories;
+                return (
+                  <Pressable
+                    style={styles.swapItem}
+                    onPress={() => handleSwap(item.id, item.name)}
+                  >
+                    <Text style={styles.swapItemName} numberOfLines={1}>{item.name}</Text>
+                    <Text style={styles.swapItemCal}>{cal} kcal</Text>
+                  </Pressable>
+                );
+              }}
             />
           </View>
         </View>
@@ -424,5 +466,34 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     fontWeight: '600',
     color: colors.primary,
+  },
+  dayTotalCard: {
+    backgroundColor: colors.primary + '15',
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.primary + '40',
+    padding: spacing.lg,
+    alignItems: 'center',
+  },
+  dayTotalLabel: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+    color: colors.primary,
+    marginBottom: spacing.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  dayTotalValue: {
+    fontFamily: fonts.data,
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  dayTotalTarget: {
+    fontFamily: fonts.data,
+    fontSize: fontSizes.xs,
+    color: colors.textSecondary,
   },
 });
