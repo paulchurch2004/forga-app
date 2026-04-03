@@ -17,14 +17,14 @@ import { useEngine } from '../src/hooks/useEngine';
 import { useMealSlot } from '../src/hooks/useMealSlot';
 import { useStreak } from '../src/hooks/useStreak';
 import { useScore } from '../src/hooks/useScore';
-import { ScoreCard } from '../src/components/home/ScoreCard';
-import { DailyMacros } from '../src/components/home/DailyMacros';
+import { HeroScore } from '../src/components/home/HeroScore';
 import { MealSlotList } from '../src/components/home/MealSlotList';
 import { StreakBadge } from '../src/components/ui/StreakBadge';
 import { CoachCard } from '../src/components/home/CoachCard';
 import { getCoachMessage, type CoachInput } from '../src/engine/coachEngine';
 import { colors, fonts, fontSizes, spacing, borderRadius } from '../src/theme';
 import { useResponsive } from '../src/hooks/useResponsive';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ShareStreakCard } from '../src/components/gamification/ShareStreakCard';
 import { useShareCard } from '../src/hooks/useShareCard';
 import { BadgeUnlockToast } from '../src/components/gamification/BadgeUnlockToast';
@@ -228,66 +228,76 @@ export default function NutritionScreen() {
           </View>
         )}
 
+        {/* Hero Score */}
+        <HeroScore
+          score={currentScore}
+          weeklyChange={weeklyChange}
+          consumed={consumedMacros}
+          target={targetMacros}
+        />
+
         {/* Coach Card */}
-        {coachMessage && <CoachCard message={coachMessage} />}
+        {coachMessage && (
+          <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+            <CoachCard message={coachMessage} />
+          </Animated.View>
+        )}
 
         {/* Objective */}
-        <View style={styles.objectiveCard}>
-          <Text style={styles.objectiveIcon}>{'\u2691'}</Text>
-          <Text style={styles.objectiveText}>
-            Objectif : {profile.targetWeight}kg
-            {monthsToGoal > 0 ? ` - dans ~${monthsToGoal} mois` : ' - atteint !'}
-          </Text>
-        </View>
-
-        {/* Score */}
-        <View style={styles.section}>
-          <ScoreCard score={currentScore} weeklyChange={weeklyChange} />
-        </View>
-
-        {/* Daily Macros */}
-        <View style={styles.section}>
-          <DailyMacros consumed={consumedMacros} target={targetMacros} />
-        </View>
+        <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+          <View style={styles.objectiveCard}>
+            <Text style={styles.objectiveIcon}>{'\u2691'}</Text>
+            <Text style={styles.objectiveText}>
+              Objectif : {profile.targetWeight}kg
+              {monthsToGoal > 0 ? ` - dans ~${monthsToGoal} mois` : ' - atteint !'}
+            </Text>
+          </View>
+        </Animated.View>
 
         {/* Meal Slots */}
-        <View style={styles.section}>
-          <MealSlotList slots={slots} />
-        </View>
+        <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+          <View style={styles.section}>
+            <MealSlotList slots={slots} />
+          </View>
+        </Animated.View>
 
         {/* Scan actions */}
-        <View style={styles.scanActions}>
-          <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/barcode')}>
-            <Text style={styles.scanActionIcon}>{'\uD83D\uDCF7'}</Text>
-            <View>
-              <Text style={styles.scanActionTitle}>Scanner</Text>
-              <Text style={styles.scanActionSub}>Code-barres</Text>
-            </View>
-          </Pressable>
-          <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/photo')}>
-            <Text style={styles.scanActionIcon}>{'\uD83E\uDD16'}</Text>
-            <View>
-              <Text style={styles.scanActionTitle}>Photo IA</Text>
-              <Text style={styles.scanActionSub}>Identifier un plat</Text>
-            </View>
-          </Pressable>
-        </View>
+        <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+          <View style={styles.scanActions}>
+            <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/barcode')}>
+              <Text style={styles.scanActionIcon}>{'\uD83D\uDCF7'}</Text>
+              <View>
+                <Text style={styles.scanActionTitle}>Scanner</Text>
+                <Text style={styles.scanActionSub}>Code-barres</Text>
+              </View>
+            </Pressable>
+            <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/photo')}>
+              <Text style={styles.scanActionIcon}>{'\uD83E\uDD16'}</Text>
+              <View>
+                <Text style={styles.scanActionTitle}>Photo IA</Text>
+                <Text style={styles.scanActionSub}>Identifier un plat</Text>
+              </View>
+            </Pressable>
+          </View>
+        </Animated.View>
 
         {/* Quick actions */}
-        <View style={styles.quickActions}>
-          <Pressable style={styles.quickActionBtn} onPress={() => router.push('/shopping-list')}>
-            <Text style={styles.quickActionIcon}>{'\uD83D\uDED2'}</Text>
-            <Text style={styles.quickActionText}>Liste de courses</Text>
-          </Pressable>
-          <Pressable style={styles.quickActionBtn} onPress={() => router.push('/weekly-plan')}>
-            <Text style={styles.quickActionIcon}>{'\uD83D\uDCCB'}</Text>
-            <Text style={styles.quickActionText}>Plan semaine</Text>
-          </Pressable>
-          <Pressable style={styles.quickActionBtn} onPress={() => router.push('/meal-history')}>
-            <Text style={styles.quickActionIcon}>{'\uD83D\uDCC5'}</Text>
-            <Text style={styles.quickActionText}>Historique</Text>
-          </Pressable>
-        </View>
+        <Animated.View entering={FadeInDown.delay(600).duration(400)}>
+          <View style={styles.quickActions}>
+            <Pressable style={styles.quickActionBtn} onPress={() => router.push('/shopping-list')}>
+              <Text style={styles.quickActionIcon}>{'\uD83D\uDED2'}</Text>
+              <Text style={styles.quickActionText}>Liste de courses</Text>
+            </Pressable>
+            <Pressable style={styles.quickActionBtn} onPress={() => router.push('/weekly-plan')}>
+              <Text style={styles.quickActionIcon}>{'\uD83D\uDCCB'}</Text>
+              <Text style={styles.quickActionText}>Plan semaine</Text>
+            </Pressable>
+            <Pressable style={styles.quickActionBtn} onPress={() => router.push('/meal-history')}>
+              <Text style={styles.quickActionIcon}>{'\uD83D\uDCC5'}</Text>
+              <Text style={styles.quickActionText}>Historique</Text>
+            </Pressable>
+          </View>
+        </Animated.View>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>

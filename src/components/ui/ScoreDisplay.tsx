@@ -25,6 +25,8 @@ export interface ScoreDisplayProps {
   strokeWidth?: number;
   /** Animation duration in ms */
   animationDuration?: number;
+  /** Show pillar bars and score label below the circle (default true) */
+  showPillars?: boolean;
 }
 
 interface PillarBarProps {
@@ -79,6 +81,7 @@ export function ScoreDisplay({
   size = 160,
   strokeWidth = 12,
   animationDuration = 1200,
+  showPillars = true,
 }: ScoreDisplayProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -177,23 +180,27 @@ export function ScoreDisplay({
       </View>
 
       {/* Score label */}
-      <Text style={[styles.scoreLabel, { color: scoreColor }]}>
-        {scoreLabel}
-      </Text>
+      {showPillars && (
+        <Text style={[styles.scoreLabel, { color: scoreColor }]}>
+          {scoreLabel}
+        </Text>
+      )}
 
       {/* Pillar progress bars */}
-      <View style={styles.pillarsContainer}>
-        {pillars.map((pillar) => (
-          <PillarBar
-            key={pillar.label}
-            label={pillar.label}
-            value={pillar.value}
-            maxValue={pillar.maxValue}
-            color={pillar.color}
-            animationDuration={animationDuration}
-          />
-        ))}
-      </View>
+      {showPillars && (
+        <View style={styles.pillarsContainer}>
+          {pillars.map((pillar) => (
+            <PillarBar
+              key={pillar.label}
+              label={pillar.label}
+              value={pillar.value}
+              maxValue={pillar.maxValue}
+              color={pillar.color}
+              animationDuration={animationDuration}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 }
