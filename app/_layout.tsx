@@ -34,8 +34,10 @@ import {
   scheduleMealReminder,
   scheduleWeeklyCheckIn,
   scheduleStreakDanger,
+  scheduleReactivation,
 } from '../src/services/notifications';
 import { useUserStore } from '../src/store/userStore';
+import { useMealStore } from '../src/store/mealStore';
 import type { MealSlot } from '../src/types/meal';
 import { OfflineBanner } from '../src/components/ui/OfflineBanner';
 import { processQueue } from '../src/services/syncQueue';
@@ -120,6 +122,18 @@ function RootLayoutInner() {
         }
         await scheduleWeeklyCheckIn();
         if (streak > 0) await scheduleStreakDanger(streak);
+
+        // Reactivation: check last meal activity
+        const mealHistory = useMealStore.getState().mealHistory;
+        const lastDate = Object.keys(mealHistory).sort().pop();
+        if (lastDate) {
+          const daysSince = Math.floor(
+            (Date.now() - new Date(lastDate).getTime()) / 86400000
+          );
+          if ([2, 3, 5].includes(daysSince)) {
+            await scheduleReactivation(daysSince);
+          }
+        }
       } catch {
         // Silent fail
       }
@@ -129,8 +143,10 @@ function RootLayoutInner() {
       const data = response.notification.request.content.data as { type?: string };
       if (data?.type === 'weekly_checkin') {
         router.push('/checkin');
-      } else if (data?.type === 'streak_danger') {
+      } else if (data?.type === 'streak_danger' || data?.type === 'reactivation' || data?.type === 'meal_reminder') {
         router.push('/(tabs)/meals');
+      } else if (data?.type === 'badge_unlocked') {
+        router.push('/(tabs)/profile');
       }
     });
 

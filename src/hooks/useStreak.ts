@@ -1,8 +1,11 @@
 import { useCallback } from 'react';
+import { Platform } from 'react-native';
 import { useUserStore } from '../store/userStore';
 import { useMealStore } from '../store/mealStore';
 import { useScoreStore } from '../store/scoreStore';
 import type { Badge, BadgeType } from '../types/user';
+import { BADGE_INFO } from '../types/user';
+import { sendBadgeNotification, scheduleStreakDanger } from '../services/notifications';
 
 function makeBadge(type: BadgeType): Badge {
   return { id: `${type}_${Date.now()}`, type, unlockedAt: new Date().toISOString() };
@@ -31,24 +34,34 @@ export function useStreak() {
 
   const checkAndUnlockBadges = useCallback(
     (newStreak: number) => {
+      const notifyBadge = (type: BadgeType) => {
+        if (Platform.OS !== 'web') {
+          sendBadgeNotification(BADGE_INFO[type].name).catch(() => {});
+        }
+      };
+
       // first_meal
       if (todayMeals.length > 0 && !hasBadge('first_meal')) {
         addBadge(makeBadge('first_meal'));
+        notifyBadge('first_meal');
       }
 
       // first_week
       if (newStreak >= 7 && !hasBadge('first_week')) {
         addBadge(makeBadge('first_week'));
+        notifyBadge('first_week');
       }
 
       // month_of_forge
       if (newStreak >= 30 && !hasBadge('month_of_forge')) {
         addBadge(makeBadge('month_of_forge'));
+        notifyBadge('month_of_forge');
       }
 
       // forgeron: score > 70
       if (currentScore.total > 70 && !hasBadge('forgeron')) {
         addBadge(makeBadge('forgeron'));
+        notifyBadge('forgeron');
       }
 
       // first_kilo: 1kg+ progress toward goal
@@ -60,6 +73,7 @@ export function useStreak() {
         const delta = Math.abs(startWeight - latestWeight);
         if (delta >= 1) {
           addBadge(makeBadge('first_kilo'));
+          notifyBadge('first_kilo');
         }
       }
     },
@@ -75,6 +89,10 @@ export function useStreak() {
       bestStreak: Math.max(profile.bestStreak, newStreak),
     });
     checkAndUnlockBadges(newStreak);
+    // Re-schedule streak danger notification with updated count
+    if (Platform.OS !== 'web') {
+      scheduleStreakDanger(newStreak).catch(() => {});
+    }
   }, [profile, updateProfile, checkAndUnlockBadges]);
 
   // Break streak
