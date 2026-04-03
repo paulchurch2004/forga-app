@@ -8,7 +8,6 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
-import { Head } from 'expo-router/head';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useResponsive } from '../src/hooks/useResponsive';
@@ -156,14 +155,6 @@ export default function TDEECalculator() {
 
   return (
     <View style={styles.container}>
-      <Head>
-        <title>Calculateur TDEE — Calcule tes besoins caloriques | FORGA</title>
-        <meta
-          name="description"
-          content="Calcule ton TDEE (dépense énergétique journalière) et tes macros gratuitement. Formule Mifflin-St Jeor, répartition protéines/glucides/lipides selon ton objectif."
-        />
-      </Head>
-
       <ScrollView
         contentContainerStyle={[
           styles.scrollContent,
