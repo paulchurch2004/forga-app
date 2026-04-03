@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../src/store/userStore';
@@ -20,7 +20,8 @@ export default function ShareScreen() {
   const badges = useUserStore((s) => s.badges);
   const { currentStreak, bestStreak } = useStreak();
 
-  const { cardRef, share } = useShareCard();
+  const shareType = (type as 'score' | 'streak' | 'badge') || 'streak';
+  const { cardRef, share } = useShareCard(shareType);
 
   const badge = badgeType
     ? badges.find((b) => b.type === badgeType)
@@ -28,7 +29,14 @@ export default function ShareScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.content, { paddingTop: insets.top + spacing.lg, maxWidth: contentMaxWidth }]}>
+      {/* Scrollable preview — the 9:16 card is taller than most screens */}
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: insets.top + spacing.lg, maxWidth: contentMaxWidth },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={16}>
@@ -51,15 +59,21 @@ export default function ShareScreen() {
           )}
         </View>
 
-        {/* Share button */}
+        <Text style={styles.formatHint}>
+          Format story 9:16 — Prêt pour Instagram, WhatsApp, Snapchat
+        </Text>
+
+        {/* Share button inside scroll so everything is reachable */}
         <Pressable style={styles.shareBtn} onPress={share}>
           <Text style={styles.shareBtnText}>Partager</Text>
         </Pressable>
 
         <Text style={styles.hint}>
-          La carte sera partagée en image PNG via ton appli préférée.
+          L'image sera exportée en HD (1080×1920) pour un rendu net.
         </Text>
-      </View>
+
+        <View style={{ height: insets.bottom + spacing['3xl'] }} />
+      </ScrollView>
     </View>
   );
 }
@@ -69,8 +83,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  content: {
-    flex: 1,
+  scrollContent: {
     paddingHorizontal: spacing.lg,
     alignSelf: 'center',
     width: '100%',
@@ -94,7 +107,15 @@ const styles = StyleSheet.create({
   },
   cardWrapper: {
     alignItems: 'center',
-    marginBottom: spacing['2xl'],
+    marginBottom: spacing.lg,
+  },
+  formatHint: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.xs,
+    color: colors.textSecondary,
+    textAlign: 'center',
+    marginBottom: spacing.xl,
+    letterSpacing: 0.5,
   },
   shareBtn: {
     backgroundColor: colors.primary,

@@ -93,7 +93,7 @@ export const BEDTIME_SNACKS: Meal[] = [
     name: 'Shaker caséine',
     description: 'Un shaker de caséine simple. La protéine lente de référence pour la nuit.',
     slot: 'bedtime',
-    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/68/Strawberry_milk_shake_%28cropped%29.jpg/800px-Strawberry_milk_shake_%28cropped%29.jpg',
+    photoUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/16/Cottagecheese200px.jpg/800px-Cottagecheese200px.jpg',
     budget: 'eco',
     restrictions: ['vegetarian', 'gluten_free', 'halal', 'pork_free'],
     prepTimeMin: 1,
