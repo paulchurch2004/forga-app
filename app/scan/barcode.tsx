@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -241,6 +241,9 @@ function ScannerContent({
   );
 }
 
+const hasBarcodeDetector =
+  typeof window !== 'undefined' && 'BarcodeDetector' in window;
+
 function WebBarcodeEntry({
   insets,
   contentMaxWidth,
@@ -254,6 +257,74 @@ function WebBarcodeEntry({
   handleRetry,
 }: any) {
   const [barcode, setBarcode] = useState('');
+  const [mode, setMode] = useState<'camera' | 'manual'>(
+    hasBarcodeDetector ? 'camera' : 'manual'
+  );
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  // Start/stop camera stream
+  useEffect(() => {
+    if (mode !== 'camera' || status !== 'scanning') return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' },
+        });
+        if (cancelled) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
+        streamRef.current = stream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          videoRef.current.play();
+        }
+      } catch {
+        setMode('manual');
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    };
+  }, [mode, status]);
+
+  // Barcode detection loop
+  useEffect(() => {
+    if (mode !== 'camera' || status !== 'scanning' || !hasBarcodeDetector) return;
+    let running = true;
+
+    const detector = new (window as any).BarcodeDetector({
+      formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'],
+    });
+
+    const scan = async () => {
+      if (!running || !videoRef.current || videoRef.current.readyState < 2) {
+        if (running) requestAnimationFrame(scan);
+        return;
+      }
+      try {
+        const barcodes = await detector.detect(videoRef.current);
+        if (barcodes.length > 0 && running) {
+          running = false;
+          handleBarcodeScanned({ data: barcodes[0].rawValue });
+        }
+      } catch {
+        /* ignore detection errors */
+      }
+      if (running) requestAnimationFrame(scan);
+    };
+    requestAnimationFrame(scan);
+
+    return () => {
+      running = false;
+    };
+  }, [mode, status, handleBarcodeScanned]);
 
   const handleSearch = () => {
     const trimmed = barcode.trim();
@@ -279,9 +350,64 @@ function WebBarcodeEntry({
           <View style={{ width: 60 }} />
         </View>
 
-        {status === 'scanning' && (
+        {/* Toggle camera / manual */}
+        {hasBarcodeDetector && status === 'scanning' && (
+          <View style={styles.toggleRow}>
+            <Pressable
+              style={[styles.toggleTab, mode === 'camera' && styles.toggleTabActive]}
+              onPress={() => setMode('camera')}
+            >
+              <Text
+                style={[
+                  styles.toggleTabText,
+                  mode === 'camera' && styles.toggleTabTextActive,
+                ]}
+              >
+                Camera
+              </Text>
+            </Pressable>
+            <Pressable
+              style={[styles.toggleTab, mode === 'manual' && styles.toggleTabActive]}
+              onPress={() => setMode('manual')}
+            >
+              <Text
+                style={[
+                  styles.toggleTabText,
+                  mode === 'manual' && styles.toggleTabTextActive,
+                ]}
+              >
+                Saisie manuelle
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
+        {/* Camera mode */}
+        {mode === 'camera' && status === 'scanning' && (
+          <View style={styles.webCameraContainer}>
+            <video
+              ref={videoRef as any}
+              style={{
+                width: '100%',
+                height: 300,
+                objectFit: 'cover',
+                borderRadius: 12,
+                backgroundColor: '#000',
+              }}
+              playsInline
+              muted
+            />
+            <View style={styles.webCameraOverlay}>
+              <View style={styles.scanFrame} />
+            </View>
+            <Text style={styles.scanHint}>Place le code-barres dans le cadre</Text>
+          </View>
+        )}
+
+        {/* Manual mode */}
+        {mode === 'manual' && status === 'scanning' && (
           <View style={{ alignItems: 'center', paddingTop: spacing['2xl'] }}>
-            <Text style={styles.webIcon}>{'🔢'}</Text>
+            {!hasBarcodeDetector && <Text style={styles.webIcon}>{'🔢'}</Text>}
             <Text style={styles.webTitle}>Saisis le code-barres</Text>
             <Text style={styles.webSubtitle}>
               Entre le numero sous le code-barres de ton produit.
@@ -636,6 +762,47 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     color: colors.textSecondary,
     textAlign: 'center',
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    padding: 4,
+    marginBottom: spacing.lg,
+  },
+  toggleTab: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    borderRadius: borderRadius.md,
+  },
+  toggleTabActive: {
+    backgroundColor: colors.primary,
+  },
+  toggleTabText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  toggleTabTextActive: {
+    color: colors.white,
+  },
+  webCameraContainer: {
+    position: 'relative',
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    marginBottom: spacing.lg,
+  },
+  webCameraOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
   },
   barcodeInput: {
     backgroundColor: colors.surface,
