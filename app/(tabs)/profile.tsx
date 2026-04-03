@@ -12,6 +12,7 @@ import {
   Linking,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors } from '../../src/theme/colors';
 import { fontSizes } from '../../src/theme/fonts';
 import { spacing, borderRadius } from '../../src/theme/spacing';
@@ -30,6 +31,7 @@ import { useNotifications } from '../../src/hooks/useNotifications';
 import { events } from '../../src/services/analytics';
 
 export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
   const { contentMaxWidth } = useResponsive();
   const profile = useUserStore((s) => s.profile);
   const badges = useUserStore((s) => s.badges);
@@ -174,7 +176,12 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { maxWidth: contentMaxWidth }]}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md, maxWidth: contentMaxWidth }]}>
+      {/* Back button */}
+      <Pressable onPress={() => router.push('/(tabs)/home')} hitSlop={16} style={styles.backRow}>
+        <Text style={styles.backText}>{'\u2039'} Accueil</Text>
+      </Pressable>
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.name}>{profile.name}</Text>
@@ -416,11 +423,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   content: {
-    paddingTop: 60,
     paddingHorizontal: spacing['2xl'],
     paddingBottom: spacing['5xl'],
     alignSelf: 'center',
     width: '100%',
+  },
+  backRow: {
+    marginBottom: spacing.md,
+  },
+  backText: {
+    fontFamily: 'DMSans',
+    fontSize: fontSizes.lg,
+    color: colors.primary,
+    fontWeight: '600',
   },
   header: {
     alignItems: 'center',
