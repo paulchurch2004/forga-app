@@ -202,6 +202,9 @@ export default function MealsScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={[styles.header, { maxWidth: contentMaxWidth }]}>
+        <Pressable onPress={() => router.push('/(tabs)/home')} hitSlop={16} style={styles.backRow}>
+          <Text style={styles.backArrow}>{'\u2039'} Accueil</Text>
+        </Pressable>
         <Text style={styles.headerTitle}>{currentSlotLabel}</Text>
         <View style={styles.headerMeta}>
           <Text style={styles.headerTime}>{currentSlotTime}</Text>
@@ -419,9 +422,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
+  backRow: {
+    marginBottom: spacing.sm,
+  },
+  backArrow: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    color: colors.primary,
+  },
   header: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
+    paddingTop: spacing.md,
     paddingBottom: spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,

@@ -32,6 +32,7 @@ import {
 } from '../../src/engine/coachChatEngine';
 import { colors, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
 import { useResponsive } from '../../src/hooks/useResponsive';
+import { router } from 'expo-router';
 
 // ──────────── TYPES ────────────
 
@@ -240,13 +241,16 @@ export default function CoachScreen() {
     <View style={[styles.container, { paddingTop: insets.top, maxWidth: contentMaxWidth }]}>
       {/* Header */}
       <View style={styles.header}>
+        <Pressable onPress={() => router.push('/(tabs)/home')} hitSlop={16} style={styles.backButton}>
+          <Text style={styles.backText}>{'\u2039'}</Text>
+        </Pressable>
         <View style={styles.headerIcon}>
           <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
             <Path d="M12 2c0 4-4 6-4 10a4 4 0 0 0 8 0c0-4-4-6-4-10Z" fill={colors.primary} opacity={0.9} />
             <Path d="M12 8c0 2-2 3-2 5a2 2 0 0 0 4 0c0-2-2-3-2-5Z" fill="#FFD93D" />
           </Svg>
         </View>
-        <View>
+        <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>Coach FORGA</Text>
           <Text style={styles.headerSubtitle}>En ligne</Text>
         </View>
@@ -320,6 +324,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
     backgroundColor: colors.surface,
+    gap: spacing.sm,
+  },
+  backButton: {
+    paddingRight: spacing.xs,
+  },
+  backText: {
+    fontFamily: fonts.display,
+    fontSize: 28,
+    color: colors.primary,
+    lineHeight: 32,
   },
   headerIcon: {
     width: 40,
@@ -328,7 +342,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,107,53,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: spacing.md,
   },
   headerTitle: {
     fontFamily: fonts.display,

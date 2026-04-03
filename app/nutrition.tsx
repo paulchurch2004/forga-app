@@ -284,13 +284,9 @@ export default function NutritionScreen() {
         {/* Quick actions */}
         <Animated.View entering={FadeInDown.delay(600).duration(400)}>
           <View style={styles.quickActions}>
-            <Pressable style={styles.quickActionBtn} onPress={() => router.push('/shopping-list')}>
-              <Text style={styles.quickActionIcon}>{'\uD83D\uDED2'}</Text>
-              <Text style={styles.quickActionText}>Liste de courses</Text>
-            </Pressable>
             <Pressable style={styles.quickActionBtn} onPress={() => router.push('/weekly-plan')}>
               <Text style={styles.quickActionIcon}>{'\uD83D\uDCCB'}</Text>
-              <Text style={styles.quickActionText}>Plan semaine</Text>
+              <Text style={styles.quickActionText}>Plan & Courses</Text>
             </Pressable>
             <Pressable style={styles.quickActionBtn} onPress={() => router.push('/meal-history')}>
               <Text style={styles.quickActionIcon}>{'\uD83D\uDCC5'}</Text>
