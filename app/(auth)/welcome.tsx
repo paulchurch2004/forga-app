@@ -408,7 +408,17 @@ export default function WelcomeScreen() {
               <FeatureCard icon={<IconSliders />} title="Ajustement automatique" description="Chaque semaine, tes macros s'adaptent selon tes ressentis et ta progression." wide={isWide} />
               <FeatureCard icon={<IconChart />} title="Graphiques de progression" description="Suis ta courbe de poids et l'evolution de ton score au fil du temps." wide={isWide} />
               <FeatureCard icon={<IconCheck />} title="Toutes restrictions" description="Vegetarien, vegan, sans gluten, sans lactose, halal, sans porc." wide={isWide} />
+              <FeatureCard icon={<IconChart />} title="Calculateur TDEE" description="Calcule tes besoins caloriques et ta repartition en macros gratuitement." wide={isWide} />
             </View>
+
+            <Pressable
+              style={styles.tdeeLink}
+              onPress={() => router.push('/tdee-calculator')}
+            >
+              <Text style={styles.tdeeLinkText}>
+                Essayer le calculateur TDEE gratuit {'\u2192'}
+              </Text>
+            </Pressable>
           </View>
         </ScrollReveal>
 
@@ -1239,6 +1249,21 @@ const styles = StyleSheet.create({
   featureGridWide: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+  },
+  tdeeLink: {
+    marginTop: spacing.xl,
+    alignSelf: 'center',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing['2xl'],
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: borderRadius.full,
+  },
+  tdeeLinkText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    fontWeight: '600',
+    color: colors.primary,
   },
   featureCard: {
     backgroundColor: glassBackground,

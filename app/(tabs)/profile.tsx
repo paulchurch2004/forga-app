@@ -362,6 +362,10 @@ export default function ProfileScreen() {
           </View>
         )}
 
+        <Pressable style={styles.actionRow} onPress={() => router.push('/tdee-calculator')}>
+          <Text style={styles.actionText}>Recalculer mes besoins (TDEE)</Text>
+        </Pressable>
+
         <Pressable style={styles.actionRow} onPress={handleExportData}>
           <Text style={styles.actionText}>Exporter mes données (RGPD)</Text>
         </Pressable>
