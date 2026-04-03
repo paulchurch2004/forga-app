@@ -1,57 +1,38 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   Pressable,
+  ImageBackground,
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUserStore } from '../../src/store/userStore';
-import { useScoreStore } from '../../src/store/scoreStore';
-import { useMealStore } from '../../src/store/mealStore';
-import { useEngine } from '../../src/hooks/useEngine';
 import { useStreak } from '../../src/hooks/useStreak';
 import { StreakBadge } from '../../src/components/ui/StreakBadge';
-import { colors, fonts, fontSizes, spacing, borderRadius, getScoreColor, getScoreLabel } from '../../src/theme';
+import { colors, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
 import { useResponsive } from '../../src/hooks/useResponsive';
-import type { Objective } from '../../src/types/user';
 
-const OBJECTIVE_LABELS: Record<Objective, string> = {
-  bulk: 'Prise de masse',
-  cut: 'Seche',
-  maintain: 'Maintien',
-  recomp: 'Recomposition',
+const CARD_IMAGES = {
+  nutrition:
+    'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80',
+  training:
+    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
+  space:
+    'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&q=80',
+  community:
+    'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
 };
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { contentMaxWidth } = useResponsive();
-
   const profile = useUserStore((s) => s.profile);
-  const { currentScore, weeklyChange } = useScoreStore();
-  const todayMeals = useMealStore((s) => s.todayMeals);
-  const engine = useEngine();
   const { currentStreak, isTodayValidated } = useStreak();
-
-  const consumedMacros = useMemo(() => {
-    const result = { calories: 0, protein: 0, carbs: 0, fat: 0 };
-    for (const meal of todayMeals) {
-      result.calories += meal.actualMacros.calories;
-      result.protein += meal.actualMacros.protein;
-      result.carbs += meal.actualMacros.carbs;
-      result.fat += meal.actualMacros.fat;
-    }
-    return result;
-  }, [todayMeals]);
-
-  const targetMacros = useMemo(() => {
-    if (!engine) return { calories: 0, protein: 0, carbs: 0, fat: 0 };
-    return engine.dailyMacros;
-  }, [engine]);
 
   if (!profile) {
     return (
@@ -70,9 +51,6 @@ export default function HomeScreen() {
   else greeting = 'Bonsoir';
 
   const firstName = profile.name.split(' ')[0];
-  const calPct = targetMacros.calories > 0
-    ? Math.min(Math.round((consumedMacros.calories / targetMacros.calories) * 100), 100)
-    : 0;
 
   return (
     <ScrollView
@@ -96,55 +74,28 @@ export default function HomeScreen() {
         <StreakBadge streak={currentStreak} isActive={isTodayValidated} size="sm" />
       </View>
 
-      {/* ── NUTRITION CARD ── */}
-      <Pressable style={styles.cardLarge} onPress={() => router.push('/nutrition')}>
-        <LinearGradient
-          colors={['#1a1033', '#FF6B3518']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.cardGradient}
+      {/* ── NUTRITION ── */}
+      <Pressable style={styles.card} onPress={() => router.push('/nutrition')}>
+        <ImageBackground
+          source={{ uri: CARD_IMAGES.nutrition }}
+          style={styles.cardImage}
+          imageStyle={styles.cardImageInner}
         >
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardLabel}>NUTRITION</Text>
-            <Text style={styles.cardArrow}>{'\u203A'}</Text>
-          </View>
-
-          {/* Calorie bar */}
-          <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${calPct}%` }]} />
-          </View>
-          <Text style={styles.calText}>
-            {consumedMacros.calories} / {targetMacros.calories} kcal
-          </Text>
-
-          {/* Macro pills */}
-          <View style={styles.macroPills}>
-            <View style={[styles.macroPill, { borderColor: colors.protein }]}>
-              <Text style={[styles.macroPillText, { color: colors.protein }]}>
-                P {consumedMacros.protein}g
-              </Text>
-            </View>
-            <View style={[styles.macroPill, { borderColor: colors.carbs }]}>
-              <Text style={[styles.macroPillText, { color: colors.carbs }]}>
-                G {consumedMacros.carbs}g
-              </Text>
-            </View>
-            <View style={[styles.macroPill, { borderColor: colors.fat }]}>
-              <Text style={[styles.macroPillText, { color: colors.fat }]}>
-                L {consumedMacros.fat}g
-              </Text>
-            </View>
-          </View>
-
-          <Text style={styles.cardHint}>
-            Score, repas, coach, scanner...
-          </Text>
-        </LinearGradient>
+          <LinearGradient
+            colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.75)']}
+            style={styles.cardOverlay}
+          >
+            <Text style={styles.cardTitle}>Nutrition</Text>
+            <Text style={styles.cardDesc}>
+              Score, macros, repas, coach, scanner
+            </Text>
+          </LinearGradient>
+        </ImageBackground>
       </Pressable>
 
-      {/* ── ENTRAÎNEMENT CARD ── */}
+      {/* ── ENTRAÎNEMENT ── */}
       <Pressable
-        style={styles.cardLarge}
+        style={styles.card}
         onPress={() => {
           if (Platform.OS === 'web') {
             window.alert('Bientot disponible !');
@@ -155,84 +106,83 @@ export default function HomeScreen() {
           }
         }}
       >
-        <LinearGradient
-          colors={['#1a1033', '#00D4AA18']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.cardGradient}
+        <ImageBackground
+          source={{ uri: CARD_IMAGES.training }}
+          style={styles.cardImage}
+          imageStyle={styles.cardImageInner}
         >
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardLabel}>ENTRAINEMENT</Text>
-            <View style={styles.comingSoonBadge}>
-              <Text style={styles.comingSoonText}>Bientot</Text>
+          <LinearGradient
+            colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.75)']}
+            style={styles.cardOverlay}
+          >
+            <View style={styles.cardTitleRow}>
+              <Text style={styles.cardTitle}>Entrainement</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>Bientot</Text>
+              </View>
             </View>
-          </View>
-
-          <Text style={styles.trainingIcon}>{'\uD83D\uDCAA'}</Text>
-
-          <Text style={styles.trainingDesc}>
-            Programmes personnalises, suivi des seances, et progression.
-          </Text>
-        </LinearGradient>
+            <Text style={styles.cardDesc}>
+              Programmes, seances et progression
+            </Text>
+          </LinearGradient>
+        </ImageBackground>
       </Pressable>
 
-      {/* ── MON ESPACE CARD ── */}
-      <Pressable style={styles.cardLarge} onPress={() => router.push('/(tabs)/profile')}>
-        <LinearGradient
-          colors={['#1a1033', '#7B61FF18']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.cardGradient}
+      {/* ── MON ESPACE ── */}
+      <Pressable style={styles.card} onPress={() => router.push('/(tabs)/profile')}>
+        <ImageBackground
+          source={{ uri: CARD_IMAGES.space }}
+          style={styles.cardImage}
+          imageStyle={styles.cardImageInner}
         >
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardLabel}>MON ESPACE</Text>
-            <Text style={styles.cardArrow}>{'\u203A'}</Text>
-          </View>
-
-          <View style={styles.spaceRow}>
-            {/* Score mini */}
-            <View style={styles.scoreMini}>
-              <Text style={[styles.scoreMiniNumber, { color: getScoreColor(currentScore.total) }]}>
-                {currentScore.total}
-              </Text>
-              <Text style={styles.scoreMiniLabel}>/100</Text>
-            </View>
-
-            {/* User info */}
-            <View style={styles.spaceInfo}>
-              <Text style={styles.spaceName}>{profile.name}</Text>
-              <Text style={styles.spaceObjective}>
-                {OBJECTIVE_LABELS[profile.objective] || 'Maintien'}
-              </Text>
-              <Text style={styles.spaceWeight}>
-                {profile.currentWeight}kg {'\u2192'} {profile.targetWeight}kg
-              </Text>
-            </View>
-          </View>
-
-          <Text style={styles.cardHint}>
-            Profil, badges, reglages, notifications...
-          </Text>
-        </LinearGradient>
+          <LinearGradient
+            colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.75)']}
+            style={styles.cardOverlay}
+          >
+            <Text style={styles.cardTitle}>Mon Espace</Text>
+            <Text style={styles.cardDesc}>
+              Profil, badges, reglages, notifications
+            </Text>
+          </LinearGradient>
+        </ImageBackground>
       </Pressable>
 
-      {/* Quick actions */}
-      <View style={styles.quickActions}>
-        <Pressable style={styles.quickActionBtn} onPress={() => router.push('/scan/barcode')}>
-          <Text style={styles.quickActionIcon}>{'\uD83D\uDCF7'}</Text>
-          <Text style={styles.quickActionText}>Scanner</Text>
-        </Pressable>
-        <Pressable style={styles.quickActionBtn} onPress={() => router.push('/scan/photo')}>
-          <Text style={styles.quickActionIcon}>{'\uD83E\uDD16'}</Text>
-          <Text style={styles.quickActionText}>Photo IA</Text>
-        </Pressable>
-        <Pressable style={styles.quickActionBtn} onPress={() => router.push('/shopping-list')}>
-          <Text style={styles.quickActionIcon}>{'\uD83D\uDED2'}</Text>
-          <Text style={styles.quickActionText}>Courses</Text>
-        </Pressable>
-      </View>
+      {/* ── COMMUNAUTÉ ── */}
+      <Pressable
+        style={styles.card}
+        onPress={() => {
+          if (Platform.OS === 'web') {
+            window.alert('Bientot disponible !');
+          } else {
+            import('react-native').then(({ Alert }) => {
+              Alert.alert('FORGA', 'La Communaute arrive bientot !');
+            });
+          }
+        }}
+      >
+        <ImageBackground
+          source={{ uri: CARD_IMAGES.community }}
+          style={styles.cardImage}
+          imageStyle={styles.cardImageInner}
+        >
+          <LinearGradient
+            colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.75)']}
+            style={styles.cardOverlay}
+          >
+            <View style={styles.cardTitleRow}>
+              <Text style={styles.cardTitle}>Communaute</Text>
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>Bientot</Text>
+              </View>
+            </View>
+            <Text style={styles.cardDesc}>
+              Echange avec les autres forgerons
+            </Text>
+          </LinearGradient>
+        </ImageBackground>
+      </Pressable>
 
-      <View style={{ height: spacing['5xl'] }} />
+      <View style={{ height: spacing['3xl'] }} />
     </ScrollView>
   );
 }
@@ -283,172 +233,53 @@ const styles = StyleSheet.create({
   },
 
   // Cards
-  cardLarge: {
+  card: {
     borderRadius: borderRadius.xl,
     overflow: 'hidden',
     marginBottom: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
-  cardGradient: {
+  cardImage: {
+    width: '100%',
+    height: 160,
+  },
+  cardImageInner: {
+    borderRadius: borderRadius.xl,
+  },
+  cardOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
     padding: spacing.xl,
-    minHeight: 160,
-    justifyContent: 'space-between',
+    borderRadius: borderRadius.xl,
   },
-  cardHeader: {
+  cardTitleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: spacing.md,
-  },
-  cardLabel: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    color: colors.textSecondary,
-    letterSpacing: 2,
-  },
-  cardArrow: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes['2xl'],
-    color: colors.textMuted,
-  },
-  cardHint: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.xs,
-    color: colors.textMuted,
-    marginTop: spacing.md,
-  },
-
-  // Nutrition card
-  progressBarBg: {
-    height: 8,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.full,
-    overflow: 'hidden',
-    marginBottom: spacing.sm,
-  },
-  progressBarFill: {
-    height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.full,
-  },
-  calText: {
-    fontFamily: fonts.data,
-    fontSize: fontSizes.lg,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.md,
-  },
-  macroPills: {
-    flexDirection: 'row',
     gap: spacing.sm,
   },
-  macroPill: {
-    borderWidth: 1,
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  macroPillText: {
-    fontFamily: fonts.data,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-  },
-
-  // Training card
-  comingSoonBadge: {
-    backgroundColor: `${colors.success}20`,
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  comingSoonText: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    color: colors.success,
-  },
-  trainingIcon: {
-    fontSize: 40,
-    alignSelf: 'center',
-    marginVertical: spacing.md,
-  },
-  trainingDesc: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.sm,
-    color: colors.textSecondary,
-    textAlign: 'center',
-  },
-
-  // Mon Espace card
-  spaceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.lg,
-    marginBottom: spacing.sm,
-  },
-  scoreMini: {
-    alignItems: 'center',
-  },
-  scoreMiniNumber: {
-    fontFamily: fonts.data,
-    fontSize: 36,
-    fontWeight: '700',
-  },
-  scoreMiniLabel: {
-    fontFamily: fonts.data,
-    fontSize: fontSizes.sm,
-    color: colors.textMuted,
-    marginTop: -4,
-  },
-  spaceInfo: {
-    flex: 1,
-  },
-  spaceName: {
+  cardTitle: {
     fontFamily: fonts.display,
-    fontSize: fontSizes.lg,
+    fontSize: fontSizes.xl,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.white,
   },
-  spaceObjective: {
+  cardDesc: {
     fontFamily: fonts.body,
     fontSize: fontSizes.sm,
-    color: colors.primary,
-    fontWeight: '600',
-    marginTop: spacing.xs,
-  },
-  spaceWeight: {
-    fontFamily: fonts.data,
-    fontSize: fontSizes.sm,
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.75)',
     marginTop: spacing.xs,
   },
 
-  // Quick actions
-  quickActions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
+  // Badge
+  badge: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 2,
   },
-  quickActionBtn: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  quickActionIcon: {
-    fontSize: 20,
-  },
-  quickActionText: {
+  badgeText: {
     fontFamily: fonts.body,
     fontSize: fontSizes.xs,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    textAlign: 'center',
+    fontWeight: '700',
+    color: colors.white,
   },
 });

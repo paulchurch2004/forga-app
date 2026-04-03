@@ -80,9 +80,7 @@ export default function TabLayout() {
       backBehavior="initialRoute"
       screenOptions={{
         headerShown: false,
-        tabBarStyle: isDesktop
-          ? { display: 'none' as const }
-          : mobileTabBarStyle,
+        tabBarStyle: { display: 'none' as const },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
         tabBarShowLabel: false,
