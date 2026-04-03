@@ -241,8 +241,8 @@ function ScannerContent({
   );
 }
 
-const hasBarcodeDetector =
-  typeof window !== 'undefined' && 'BarcodeDetector' in window;
+const hasCamera =
+  typeof navigator !== 'undefined' && !!navigator.mediaDevices?.getUserMedia;
 
 function WebBarcodeEntry({
   insets,
@@ -258,7 +258,7 @@ function WebBarcodeEntry({
 }: any) {
   const [barcode, setBarcode] = useState('');
   const [mode, setMode] = useState<'camera' | 'manual'>(
-    hasBarcodeDetector ? 'camera' : 'manual'
+    hasCamera ? 'camera' : 'manual'
   );
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -294,32 +294,40 @@ function WebBarcodeEntry({
     };
   }, [mode, status]);
 
-  // Barcode detection loop
+  // Barcode detection loop (uses polyfill for cross-browser support)
   useEffect(() => {
-    if (mode !== 'camera' || status !== 'scanning' || !hasBarcodeDetector) return;
+    if (mode !== 'camera' || status !== 'scanning') return;
     let running = true;
+    let detector: any = null;
 
-    const detector = new (window as any).BarcodeDetector({
-      formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'],
-    });
-
-    const scan = async () => {
-      if (!running || !videoRef.current || videoRef.current.readyState < 2) {
-        if (running) requestAnimationFrame(scan);
-        return;
-      }
+    (async () => {
       try {
-        const barcodes = await detector.detect(videoRef.current);
-        if (barcodes.length > 0 && running) {
-          running = false;
-          handleBarcodeScanned({ data: barcodes[0].rawValue });
-        }
+        const { BarcodeDetector } = await import('barcode-detector/pure');
+        detector = new BarcodeDetector({
+          formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'],
+        });
       } catch {
-        /* ignore detection errors */
+        return; // polyfill load failed, stay on camera view without detection
       }
-      if (running) requestAnimationFrame(scan);
-    };
-    requestAnimationFrame(scan);
+
+      const scan = async () => {
+        if (!running || !videoRef.current || videoRef.current.readyState < 2) {
+          if (running) requestAnimationFrame(scan);
+          return;
+        }
+        try {
+          const barcodes = await detector.detect(videoRef.current);
+          if (barcodes.length > 0 && running) {
+            running = false;
+            handleBarcodeScanned({ data: barcodes[0].rawValue });
+          }
+        } catch {
+          /* ignore detection errors */
+        }
+        if (running) requestAnimationFrame(scan);
+      };
+      requestAnimationFrame(scan);
+    })();
 
     return () => {
       running = false;
@@ -351,7 +359,7 @@ function WebBarcodeEntry({
         </View>
 
         {/* Toggle camera / manual */}
-        {hasBarcodeDetector && status === 'scanning' && (
+        {hasCamera && status === 'scanning' && (
           <View style={styles.toggleRow}>
             <Pressable
               style={[styles.toggleTab, mode === 'camera' && styles.toggleTabActive]}
@@ -407,7 +415,7 @@ function WebBarcodeEntry({
         {/* Manual mode */}
         {mode === 'manual' && status === 'scanning' && (
           <View style={{ alignItems: 'center', paddingTop: spacing['2xl'] }}>
-            {!hasBarcodeDetector && <Text style={styles.webIcon}>{'🔢'}</Text>}
+            {!hasCamera && <Text style={styles.webIcon}>{'🔢'}</Text>}
             <Text style={styles.webTitle}>Saisis le code-barres</Text>
             <Text style={styles.webSubtitle}>
               Entre le numero sous le code-barres de ton produit.
