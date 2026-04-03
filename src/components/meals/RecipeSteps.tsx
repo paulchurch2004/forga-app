@@ -1,15 +1,19 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { View, Text } from 'react-native';
+import { makeStyles, fonts, fontSizes, spacing } from '../../theme';
+import { useT } from '../../i18n';
 
 interface RecipeStepsProps {
   steps: string[];
 }
 
 export function RecipeSteps({ steps }: RecipeStepsProps) {
+  const styles = useStyles();
+  const { t } = useT();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Preparation</Text>
+      <Text style={styles.title}>{t('preparationTime')}</Text>
       {steps.map((step, index) => (
         <View key={index} style={styles.stepRow}>
           <View style={styles.stepNumberContainer}>
@@ -22,7 +26,7 @@ export function RecipeSteps({ steps }: RecipeStepsProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     marginTop: spacing.lg,
   },
@@ -62,6 +66,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 4,
   },
-});
+}));
 
 export default RecipeSteps;

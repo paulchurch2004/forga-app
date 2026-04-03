@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Pressable,
   ScrollView,
   Platform,
@@ -20,7 +19,9 @@ const triggerHaptic = (style: 'light' | 'medium' = 'light') => {
     Haptics.impactAsync(s);
   }).catch(() => {});
 };
-import { colors } from '../../src/theme/colors';
+import { makeStyles } from '../../src/theme';
+import { useTheme } from '../../src/context/ThemeContext';
+import { useT } from '../../src/i18n';
 import { fonts, fontSizes, fontWeights } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
 import type { ActivityLevel } from '../../src/types/user';
@@ -36,41 +37,19 @@ interface ActivityOption {
 }
 
 const ACTIVITY_OPTIONS: ActivityOption[] = [
-  {
-    value: 'sedentary',
-    label: 'Sedentaire',
-    description: 'Bureau, peu de sport',
-    multiplier: 'x1.2',
-  },
-  {
-    value: 'light',
-    label: 'Leger',
-    description: 'Sport 1-3x/semaine',
-    multiplier: 'x1.375',
-  },
-  {
-    value: 'moderate',
-    label: 'Modere',
-    description: 'Sport 3-5x/semaine',
-    multiplier: 'x1.55',
-  },
-  {
-    value: 'active',
-    label: 'Actif',
-    description: 'Sport 6-7x/semaine',
-    multiplier: 'x1.725',
-  },
-  {
-    value: 'very_active',
-    label: 'Tres actif',
-    description: 'Sport intense + travail physique',
-    multiplier: 'x1.9',
-  },
+  { value: 'sedentary', label: 'activitySedentary', description: 'activitySedentaryDesc', multiplier: 'x1.2' },
+  { value: 'light', label: 'activityLight', description: 'activityLightDesc', multiplier: 'x1.375' },
+  { value: 'moderate', label: 'activityModerate', description: 'activityModerateDesc', multiplier: 'x1.55' },
+  { value: 'active', label: 'activityActive', description: 'activityActiveDesc', multiplier: 'x1.725' },
+  { value: 'very_active', label: 'activityVeryActive', description: 'activityVeryActiveDesc', multiplier: 'x1.9' },
 ];
 
 export default function Step5Activity() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const onboardingData = useUserStore((s) => s.onboardingData);
   const setOnboardingData = useUserStore((s) => s.setOnboardingData);
 
@@ -101,7 +80,7 @@ export default function Step5Activity() {
     <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
       {/* Progress bar */}
       <View style={styles.progressContainer}>
-        <Pressable onPress={handleBack} hitSlop={12} accessibilityLabel="Retour">
+        <Pressable onPress={handleBack} hitSlop={12} accessibilityLabel={t("back")}>
           <Text style={styles.backArrow}>{'\u2190'}</Text>
         </Pressable>
         <View style={styles.progressTrack}>
@@ -123,9 +102,9 @@ export default function Step5Activity() {
         showsVerticalScrollIndicator={false}
       >
         {/* Title */}
-        <Text style={styles.title}>Ton niveau d'activite.</Text>
+        <Text style={styles.title}>{t("onboardingStep5Title")}</Text>
         <Text style={styles.subtitle}>
-          Sois honnete. On calcule tes calories la-dessus.
+          {t("onboardingStep5Subtitle")}
         </Text>
 
         {/* Activity cards */}
@@ -141,7 +120,7 @@ export default function Step5Activity() {
                 ]}
                 onPress={() => handleSelect(item.value)}
                 accessibilityRole="button"
-                accessibilityLabel={`${item.label}: ${item.description}`}
+                accessibilityLabel={`${t(item.label as any)}: ${t(item.description as any)}`}
                 accessibilityState={{ selected: isSelected }}
               >
                 {/* Level indicator */}
@@ -165,10 +144,10 @@ export default function Step5Activity() {
                       isSelected && styles.activityLabelSelected,
                     ]}
                   >
-                    {item.label}
+                    {t(item.label as any)}
                   </Text>
                   <Text style={styles.activityDescription}>
-                    {item.description}
+                    {t(item.description as any)}
                   </Text>
                 </View>
 
@@ -193,17 +172,17 @@ export default function Step5Activity() {
           onPress={handleNext}
           disabled={!canContinue}
           accessibilityRole="button"
-          accessibilityLabel="Suivant"
+          accessibilityLabel={t("next")}
           accessibilityState={{ disabled: !canContinue }}
         >
-          <Text style={styles.nextButtonText}>Suivant</Text>
+          <Text style={styles.nextButtonText}>{t("next")}</Text>
         </Pressable>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   flex: {
     flex: 1,
   },
@@ -343,4 +322,4 @@ const styles = StyleSheet.create({
     fontWeight: fontWeights.semibold,
     color: colors.white,
   },
-});
+}));

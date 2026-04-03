@@ -2,7 +2,6 @@ import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Pressable,
   Image,
   TextInput,
@@ -13,7 +12,9 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
+import { useTheme } from '../../src/context/ThemeContext';
+import { useT } from '../../src/i18n';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { analyzeFoodPhoto, isVisionAvailable, type FoodAnalysisResult } from '../../src/services/foodVision';
 
@@ -44,6 +45,9 @@ async function fileToBase64(uri: string): Promise<string | null> {
 export default function PhotoScanScreen() {
   const insets = useSafeAreaInsets();
   const { contentMaxWidth } = useResponsive();
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const { t } = useT();
   const [status, setStatus] = useState<Status>('idle');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [result, setResult] = useState<FoodAnalysisResult | null>(null);
@@ -117,7 +121,7 @@ export default function PhotoScanScreen() {
 
   const handleValidate = () => {
     const params = new URLSearchParams({
-      name: name || 'Aliment scanne',
+      name: name || t('scannedFood'),
       calories: calories || '0',
       protein: protein || '0',
       carbs: carbs || '0',
@@ -142,33 +146,33 @@ export default function PhotoScanScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={16}>
-            <Text style={styles.headerBack}>Retour</Text>
+            <Text style={styles.headerBack}>{t("back")}</Text>
           </Pressable>
-          <Text style={styles.headerTitle}>Photo IA</Text>
+          <Text style={styles.headerTitle}>{t("photoAI")}</Text>
           <View style={{ width: 60 }} />
         </View>
 
         {status === 'idle' && (
           <View style={styles.idleContent}>
             <Text style={styles.emptyIcon}>{'🍽️'}</Text>
-            <Text style={styles.emptyTitle}>Identifie ton repas</Text>
+            <Text style={styles.emptyTitle}>{t("identifyYourMeal")}</Text>
             <Text style={styles.emptySubtitle}>
-              Prends une photo de ton plat et l'IA estimera les macros.
+              {t("identifyYourMealHint")}
             </Text>
 
             {!isVisionAvailable() && (
               <View style={styles.warningBanner}>
                 <Text style={styles.warningText}>
-                  Clé OpenAI non configurée. L'analyse IA ne sera pas disponible.
+                  {t("openAINotConfigured")}
                 </Text>
               </View>
             )}
 
             <Pressable style={styles.primaryBtn} onPress={() => handlePickImage(true)}>
-              <Text style={styles.primaryBtnText}>Prendre une photo</Text>
+              <Text style={styles.primaryBtnText}>{t("takePhoto")}</Text>
             </Pressable>
             <Pressable style={styles.secondaryBtn} onPress={() => handlePickImage(false)}>
-              <Text style={styles.secondaryBtnText}>Depuis la galerie</Text>
+              <Text style={styles.secondaryBtnText}>{t("fromGallery")}</Text>
             </Pressable>
           </View>
         )}
@@ -177,8 +181,8 @@ export default function PhotoScanScreen() {
           <View style={styles.analyzingContent}>
             {imageUri && <Image source={{ uri: imageUri }} style={styles.previewImage} />}
             <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: spacing.xl }} />
-            <Text style={styles.analyzingText}>Analyse en cours...</Text>
-            <Text style={styles.analyzingHint}>GPT-4o identifie ton plat</Text>
+            <Text style={styles.analyzingText}>{t("analyzing")}</Text>
+            <Text style={styles.analyzingHint}>{t("gpt4oIdentifying")}</Text>
           </View>
         )}
 
@@ -186,28 +190,28 @@ export default function PhotoScanScreen() {
           <View style={styles.resultContent}>
             {imageUri && <Image source={{ uri: imageUri }} style={styles.previewImageSmall} />}
 
-            <Text style={styles.fieldLabel}>Aliment identifié</Text>
+            <Text style={styles.fieldLabel}>{t("identifiedFood")}</Text>
             <TextInput
               style={styles.input}
               value={name}
               onChangeText={setName}
-              placeholder="Nom de l'aliment"
+              placeholder={t("foodName")}
               placeholderTextColor={colors.textMuted}
             />
 
-            <Text style={styles.fieldLabel}>Macros estimées (modifiable)</Text>
+            <Text style={styles.fieldLabel}>{t("estimatedMacros")}</Text>
             <View style={styles.macroGrid}>
-              <EditableMacro label="Calories" unit="kcal" value={calories} onChange={setCalories} color={colors.calories} />
-              <EditableMacro label="Protéines" unit="g" value={protein} onChange={setProtein} color={colors.protein} />
-              <EditableMacro label="Glucides" unit="g" value={carbs} onChange={setCarbs} color={colors.carbs} />
-              <EditableMacro label="Lipides" unit="g" value={fat} onChange={setFat} color={colors.fat} />
+              <EditableMacro label={t("caloriesLabel")} unit="kcal" value={calories} onChange={setCalories} color={colors.calories} />
+              <EditableMacro label={t("proteinLabel")} unit="g" value={protein} onChange={setProtein} color={colors.protein} />
+              <EditableMacro label={t("carbsLabel")} unit="g" value={carbs} onChange={setCarbs} color={colors.carbs} />
+              <EditableMacro label={t("fatLabel")} unit="g" value={fat} onChange={setFat} color={colors.fat} />
             </View>
 
             <Pressable style={styles.primaryBtn} onPress={handleValidate}>
-              <Text style={styles.primaryBtnText}>Valider le repas</Text>
+              <Text style={styles.primaryBtnText}>{t("validateMealBtn")}</Text>
             </Pressable>
             <Pressable style={styles.secondaryBtn} onPress={() => { setStatus('idle'); setImageUri(null); }}>
-              <Text style={styles.secondaryBtnText}>Reprendre une photo</Text>
+              <Text style={styles.secondaryBtnText}>{t("retakePhoto")}</Text>
             </Pressable>
           </View>
         )}
@@ -216,17 +220,17 @@ export default function PhotoScanScreen() {
           <View style={styles.errorContent}>
             {imageUri && <Image source={{ uri: imageUri }} style={styles.previewImageSmall} />}
             <Text style={styles.errorIcon}>{'🤔'}</Text>
-            <Text style={styles.errorTitle}>Identification impossible</Text>
+            <Text style={styles.errorTitle}>{t("identificationFailed")}</Text>
             <Text style={styles.errorSubtitle}>
               {isVisionAvailable()
-                ? "L'IA n'a pas pu identifier cet aliment. Tu peux saisir les macros manuellement."
-                : "Configure ta cle OpenAI (EXPO_PUBLIC_OPENAI_KEY) pour activer l'analyse IA."}
+                ? t("identificationFailedHint")
+                : t("configureOpenAI")}
             </Text>
             <Pressable style={styles.primaryBtn} onPress={handleManual}>
-              <Text style={styles.primaryBtnText}>Saisie manuelle</Text>
+              <Text style={styles.primaryBtnText}>{t("manualEntry")}</Text>
             </Pressable>
             <Pressable style={styles.secondaryBtn} onPress={() => { setStatus('idle'); setImageUri(null); }}>
-              <Text style={styles.secondaryBtnText}>Réessayer</Text>
+              <Text style={styles.secondaryBtnText}>{t("retry")}</Text>
             </Pressable>
           </View>
         )}
@@ -240,6 +244,7 @@ export default function PhotoScanScreen() {
 function EditableMacro({ label, unit, value, onChange, color }: {
   label: string; unit: string; value: string; onChange: (v: string) => void; color: string;
 }) {
+  const styles = useStyles();
   return (
     <View style={styles.macroInputContainer}>
       <View style={[styles.macroColorDot, { backgroundColor: color }]} />
@@ -258,7 +263,7 @@ function EditableMacro({ label, unit, value, onChange, color }: {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -477,4 +482,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     color: colors.primary,
   },
-});
+}));

@@ -3,6 +3,7 @@ import { calculateForgaScore } from '../engine/scoreEngine';
 import { useScoreStore } from '../store/scoreStore';
 import { useUserStore } from '../store/userStore';
 import { useMealStore } from '../store/mealStore';
+import { useWaterStore } from '../store/waterStore';
 import type { ScoreInput } from '../types/score';
 
 export function useScore() {
@@ -67,6 +68,12 @@ export function useScore() {
         ? 100
         : 0;
 
+    // Water tracking bonus
+    const waterStore = useWaterStore.getState();
+    const todayDate = now.toISOString().split('T')[0];
+    const waterWeek = waterStore.getWeekHistory(todayDate);
+    const waterDaysMet = waterWeek.filter((d) => d.total >= waterStore.dailyTargetMl).length;
+
     const input: ScoreInput = {
       mealsValidated: todayMeals.length,
       mealsExpected: profile.mealsPerDay,
@@ -79,6 +86,7 @@ export function useScore() {
       goalProgressPercent,
       activeDaysLast7: Math.min(7, profile.currentStreak),
       thisWeekCheckIn,
+      waterTargetDaysMet: waterDaysMet,
     };
 
     const newScore = calculateForgaScore(input);

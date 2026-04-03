@@ -22,7 +22,9 @@ const triggerHaptic = (style: 'light' | 'medium' = 'light') => {
     Haptics.impactAsync(s);
   }).catch(() => {});
 };
-import { colors } from '../../src/theme/colors';
+import { makeStyles } from '../../src/theme';
+import { useTheme } from '../../src/context/ThemeContext';
+import { useT } from '../../src/i18n';
 import { fonts, fontSizes, fontWeights } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
 
@@ -37,6 +39,9 @@ const WEIGHT_MAX = 250;
 export default function Step2Body() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const onboardingData = useUserStore((s) => s.onboardingData);
   const setOnboardingData = useUserStore((s) => s.setOnboardingData);
 
@@ -75,10 +80,10 @@ export default function Step2Body() {
     if (!isHeightValid || !isWeightValid) return null;
     const heightM = parsedHeight / 100;
     const bmi = parsedWeight / (heightM * heightM);
-    if (bmi < 18.5) return 'Sous-poids';
-    if (bmi < 25) return 'Poids normal';
-    if (bmi < 30) return 'Surpoids';
-    return 'Obesite';
+    if (bmi < 18.5) return t('bmiUnderweight');
+    if (bmi < 25) return t('bmiNormal');
+    if (bmi < 30) return t('bmiOverweight');
+    return t('bmiObese');
   };
 
   const getBMIValue = (): string | null => {
@@ -99,7 +104,7 @@ export default function Step2Body() {
       <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
         {/* Progress bar */}
         <View style={styles.progressContainer}>
-          <Pressable onPress={handleBack} hitSlop={12} accessibilityLabel="Retour">
+          <Pressable onPress={handleBack} hitSlop={12} accessibilityLabel={t('back')}>
             <Text style={styles.backArrow}>{'\u2190'}</Text>
           </Pressable>
           <View style={styles.progressTrack}>
@@ -122,13 +127,13 @@ export default function Step2Body() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Title */}
-          <Text style={styles.title}>Tes mensurations.</Text>
+          <Text style={styles.title}>{t('onboardingStep2Title')}</Text>
           <Text style={styles.subtitle}>
-            On a besoin de ca pour calculer tes besoins.
+            {t('onboardingStep2Subtitle')}
           </Text>
 
           {/* Height input */}
-          <Text style={styles.sectionLabel}>Taille</Text>
+          <Text style={styles.sectionLabel}>{t('heightLabel')}</Text>
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.numericInput}
@@ -142,19 +147,19 @@ export default function Step2Body() {
               keyboardType="number-pad"
               maxLength={3}
               returnKeyType="next"
-              accessibilityLabel="Taille en centimetres"
+              accessibilityLabel={t('heightLabel')}
             />
             <Text style={styles.inputUnit}>cm</Text>
           </View>
           {height.length > 0 && !isHeightValid && (
             <Text style={styles.errorText}>
-              Entre {HEIGHT_MIN} et {HEIGHT_MAX} cm.
+              {t('betweenRange', { min: String(HEIGHT_MIN), max: String(HEIGHT_MAX), unit: 'cm' })}
             </Text>
           )}
 
           {/* Weight input */}
           <Text style={[styles.sectionLabel, { marginTop: spacing['2xl'] }]}>
-            Poids actuel
+            {t("currentWeightLabel")}
           </Text>
           <View style={styles.inputContainer}>
             <TextInput
@@ -177,13 +182,13 @@ export default function Step2Body() {
               keyboardType="decimal-pad"
               maxLength={5}
               returnKeyType="done"
-              accessibilityLabel="Poids en kilogrammes"
+              accessibilityLabel={t('currentWeightLabel')}
             />
             <Text style={styles.inputUnit}>kg</Text>
           </View>
           {weight.length > 0 && !isWeightValid && (
             <Text style={styles.errorText}>
-              Entre {WEIGHT_MIN} et {WEIGHT_MAX} kg.
+              {t('betweenRange', { min: String(WEIGHT_MIN), max: String(WEIGHT_MAX), unit: 'kg' })}
             </Text>
           )}
 
@@ -191,13 +196,12 @@ export default function Step2Body() {
           {bmiValue && bmiCategory && (
             <View style={styles.bmiCard}>
               <View style={styles.bmiRow}>
-                <Text style={styles.bmiLabel}>IMC</Text>
+                <Text style={styles.bmiLabel}>{t('bmiLabel')}</Text>
                 <Text style={styles.bmiValue}>{bmiValue}</Text>
               </View>
               <Text style={styles.bmiCategory}>{bmiCategory}</Text>
               <Text style={styles.bmiDisclaimer}>
-                L'IMC est un indicateur approximatif. Il ne prend pas en compte la masse
-                musculaire.
+                {t('bmiDisclaimer')}
               </Text>
             </View>
           )}
@@ -210,10 +214,10 @@ export default function Step2Body() {
             onPress={handleNext}
             disabled={!canContinue}
             accessibilityRole="button"
-            accessibilityLabel="Suivant"
+            accessibilityLabel={t('next')}
             accessibilityState={{ disabled: !canContinue }}
           >
-            <Text style={styles.nextButtonText}>Suivant</Text>
+            <Text style={styles.nextButtonText}>{t('next')}</Text>
           </Pressable>
         </View>
       </View>
@@ -221,7 +225,7 @@ export default function Step2Body() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   flex: {
     flex: 1,
   },
@@ -378,4 +382,4 @@ const styles = StyleSheet.create({
     fontWeight: fontWeights.semibold,
     color: colors.white,
   },
-});
+}));

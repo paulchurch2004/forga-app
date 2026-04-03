@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import Svg, { Path, Circle, Line, Text as SvgText } from 'react-native-svg';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
+import { useT } from '../../i18n';
 
 export interface DataPoint {
   date: string; // ISO date string
@@ -30,13 +32,18 @@ export function LineChart({
   data,
   width,
   height = 200,
-  lineColor = colors.primary,
+  lineColor: lineColorProp,
   fillColor,
   unit = '',
   formatValue = (v) => v.toFixed(1),
   title,
-  emptyMessage = 'Pas encore de donnees',
+  emptyMessage,
 }: LineChartProps) {
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
+  const lineColor = lineColorProp ?? colors.primary;
+  const resolvedEmptyMessage = emptyMessage ?? t('chartNoData');
   const chartWidth = width - PADDING_LEFT - PADDING_RIGHT;
   const chartHeight = height - PADDING_TOP - PADDING_BOTTOM;
 
@@ -102,9 +109,9 @@ export function LineChart({
       <View style={[styles.container, { width }]}>
         {title && <Text style={styles.title}>{title}</Text>}
         <View style={[styles.emptyContainer, { height }]}>
-          <Text style={styles.emptyText}>{emptyMessage}</Text>
+          <Text style={styles.emptyText}>{resolvedEmptyMessage}</Text>
           <Text style={styles.emptySubtext}>
-            Minimum 2 entrees requises pour afficher le graphique
+            {t('chartMinEntries')}
           </Text>
         </View>
       </View>
@@ -234,7 +241,7 @@ function formatDate(dateStr: string): string {
   return `${day} ${months[d.getMonth()]}`;
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
@@ -298,4 +305,4 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
   },
-});
+}));

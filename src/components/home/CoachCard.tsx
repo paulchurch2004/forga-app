@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, withTiming, useAnimatedStyle, Easing } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
+import { useT } from '../../i18n';
 import type { CoachMessage, CoachMood } from '../../engine/coachEngine';
 
 interface CoachCardProps {
@@ -11,6 +13,8 @@ interface CoachCardProps {
 }
 
 function MoodIcon({ mood }: { mood: CoachMood }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const size = 28;
 
   if (mood === 'fire') {
@@ -60,6 +64,8 @@ function MoodIcon({ mood }: { mood: CoachMood }) {
 }
 
 export function CoachCard({ message }: CoachCardProps) {
+  const { t } = useT();
+  const styles = useStyles();
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(12);
 
@@ -97,14 +103,14 @@ export function CoachCard({ message }: CoachCardProps) {
           style={styles.chatButton}
           onPress={() => router.push('/(tabs)/coach' as any)}
         >
-          <Text style={styles.chatButtonText}>Discuter</Text>
+          <Text style={styles.chatButtonText}>{t('coachChat')}</Text>
         </Pressable>
       </View>
     </Animated.View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
@@ -177,6 +183,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.white,
   },
-});
+}));
 
 export default CoachCard;

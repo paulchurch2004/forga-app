@@ -1,15 +1,29 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../src/theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../src/theme';
+import { useTheme } from '../src/context/ThemeContext';
+import { useT } from '../src/i18n';
 import { useResponsive } from '../src/hooks/useResponsive';
 
 const LAST_UPDATED = '2 avril 2025';
 
 export default function PrivacyScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const { contentMaxWidth } = useResponsive();
+
+  function Section({ title, children }: { title: string; children: string }) {
+    return (
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{title}</Text>
+        <Text style={styles.sectionBody}>{children}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -23,13 +37,13 @@ export default function PrivacyScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={16}>
-            <Text style={styles.backText}>Retour</Text>
+            <Text style={styles.backText}>{t("back")}</Text>
           </Pressable>
-          <Text style={styles.headerTitle}>Confidentialite</Text>
+          <Text style={styles.headerTitle}>{t("privacyTitle")}</Text>
           <View style={{ width: 60 }} />
         </View>
 
-        <Text style={styles.updated}>Derniere mise a jour : {LAST_UPDATED}</Text>
+        <Text style={styles.updated}>{t("lastUpdated", { date: LAST_UPDATED })}</Text>
 
         <Section title="1. Introduction">
           FORGA (ci-apres "l'Application") est editee par FORGA SAS. La presente
@@ -130,16 +144,7 @@ export default function PrivacyScreen() {
   );
 }
 
-function Section({ title, children }: { title: string; children: string }) {
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <Text style={styles.sectionBody}>{children}</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -190,4 +195,4 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 22,
   },
-});
+}));

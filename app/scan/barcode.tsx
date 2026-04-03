@@ -2,7 +2,6 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Pressable,
   TextInput,
   Image,
@@ -12,13 +11,17 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
+import { useTheme } from '../../src/context/ThemeContext';
+import { useT } from '../../src/i18n';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { fetchProductByBarcode, type OpenFoodFactsProduct } from '../../src/services/openFoodFacts';
 
 export default function BarcodeScanScreen() {
   const insets = useSafeAreaInsets();
   const { contentMaxWidth } = useResponsive();
+  const { colors } = useTheme();
+  const { t } = useT();
   const [status, setStatus] = useState<'scanning' | 'loading' | 'found' | 'not_found'>('scanning');
   const [product, setProduct] = useState<OpenFoodFactsProduct | null>(null);
   const [quantity, setQuantity] = useState('100');
@@ -117,6 +120,9 @@ function ScannerContent({
   CameraViewComponent,
   useCameraPermissions,
 }: any) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const { t } = useT();
   const [permission, requestPermission] = useCameraPermissions();
 
   if (!permission) {
@@ -126,15 +132,15 @@ function ScannerContent({
   if (!permission.granted) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', paddingHorizontal: spacing.xl }]}>
-        <Text style={styles.webTitle}>Acces camera requis</Text>
+        <Text style={styles.webTitle}>{t("cameraAccessRequired")}</Text>
         <Text style={styles.webSubtitle}>
-          FORGA a besoin de ta camera pour scanner les codes-barres.
+          {t("cameraAccessMessage")}
         </Text>
         <Pressable style={styles.primaryBtn} onPress={requestPermission}>
-          <Text style={styles.primaryBtnText}>Autoriser la camera</Text>
+          <Text style={styles.primaryBtnText}>{t("allowCamera")}</Text>
         </Pressable>
         <Pressable style={styles.backBtn} onPress={() => router.back()}>
-          <Text style={styles.backBtnText}>Retour</Text>
+          <Text style={styles.backBtnText}>{t("back")}</Text>
         </Pressable>
       </View>
     );
@@ -145,9 +151,9 @@ function ScannerContent({
       {/* Header */}
       <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
         <Pressable onPress={() => router.back()} hitSlop={16}>
-          <Text style={styles.headerBack}>Retour</Text>
+          <Text style={styles.headerBack}>{t("back")}</Text>
         </Pressable>
-        <Text style={styles.headerTitle}>Scanner</Text>
+        <Text style={styles.headerTitle}>{t("scanner")}</Text>
         <View style={{ width: 60 }} />
       </View>
 
@@ -164,29 +170,29 @@ function ScannerContent({
           <View style={styles.overlay}>
             <View style={styles.scanFrame} />
           </View>
-          <Text style={styles.scanHint}>Place le code-barres dans le cadre</Text>
+          <Text style={styles.scanHint}>{t("placeBarcode")}</Text>
         </View>
       )}
 
       {status === 'loading' && (
         <View style={styles.centerContent}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Recherche du produit...</Text>
+          <Text style={styles.loadingText}>{t("searchingProduct")}</Text>
         </View>
       )}
 
       {status === 'not_found' && (
         <View style={styles.centerContent}>
           <Text style={styles.notFoundIcon}>{'🔍'}</Text>
-          <Text style={styles.notFoundTitle}>Produit non trouvé</Text>
+          <Text style={styles.notFoundTitle}>{t("productNotFound")}</Text>
           <Text style={styles.notFoundSubtitle}>
-            Ce code-barres n'est pas dans la base Open Food Facts.
+            {t("productNotFoundMessage")}
           </Text>
           <Pressable style={styles.primaryBtn} onPress={() => router.replace('/meal/custom')}>
-            <Text style={styles.primaryBtnText}>Saisie manuelle</Text>
+            <Text style={styles.primaryBtnText}>{t("manualEntry")}</Text>
           </Pressable>
           <Pressable style={styles.secondaryBtn} onPress={handleRetry}>
-            <Text style={styles.secondaryBtnText}>Réessayer</Text>
+            <Text style={styles.secondaryBtnText}>{t("retry")}</Text>
           </Pressable>
         </View>
       )}
@@ -199,7 +205,7 @@ function ScannerContent({
           <Text style={styles.productName}>{product.name}</Text>
 
           {/* Macros per 100g */}
-          <Text style={styles.per100gLabel}>Pour 100g</Text>
+          <Text style={styles.per100gLabel}>{t("per100g")}</Text>
           <View style={styles.macroRow}>
             <MacroPill label="Cal" value={product.caloriesPer100g} unit="kcal" />
             <MacroPill label="P" value={product.proteinPer100g} unit="g" />
@@ -208,7 +214,7 @@ function ScannerContent({
           </View>
 
           {/* Quantity input */}
-          <Text style={styles.qtyLabel}>Quantité consommée</Text>
+          <Text style={styles.qtyLabel}>{t("quantityConsumed")}</Text>
           <View style={styles.qtyRow}>
             <TextInput
               style={styles.qtyInput}
@@ -221,7 +227,7 @@ function ScannerContent({
           </View>
 
           {/* Computed macros */}
-          <Text style={styles.computedLabel}>Macros pour {quantity}g</Text>
+          <Text style={styles.computedLabel}>{t("macrosForQuantity", { qty: quantity })}</Text>
           <View style={styles.macroRow}>
             <MacroPill label="Cal" value={macros.calories} unit="kcal" highlight />
             <MacroPill label="P" value={macros.protein} unit="g" highlight />
@@ -230,10 +236,10 @@ function ScannerContent({
           </View>
 
           <Pressable style={styles.primaryBtn} onPress={handleValidate}>
-            <Text style={styles.primaryBtnText}>Valider</Text>
+            <Text style={styles.primaryBtnText}>{t("validate")}</Text>
           </Pressable>
           <Pressable style={styles.secondaryBtn} onPress={handleRetry}>
-            <Text style={styles.secondaryBtnText}>Scanner un autre</Text>
+            <Text style={styles.secondaryBtnText}>{t("scanAnother")}</Text>
           </Pressable>
         </View>
       )}
@@ -256,6 +262,9 @@ function WebBarcodeEntry({
   handleValidate,
   handleRetry,
 }: any) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const { t } = useT();
   const [barcode, setBarcode] = useState('');
   const [mode, setMode] = useState<'camera' | 'manual'>(
     hasCamera ? 'camera' : 'manual'
@@ -352,9 +361,9 @@ function WebBarcodeEntry({
         {/* Header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={16}>
-            <Text style={styles.headerBack}>Retour</Text>
+            <Text style={styles.headerBack}>{t("back")}</Text>
           </Pressable>
-          <Text style={styles.headerTitle}>Scanner</Text>
+          <Text style={styles.headerTitle}>{t("scanner")}</Text>
           <View style={{ width: 60 }} />
         </View>
 
@@ -371,7 +380,7 @@ function WebBarcodeEntry({
                   mode === 'camera' && styles.toggleTabTextActive,
                 ]}
               >
-                Camera
+                {t("camera")}
               </Text>
             </Pressable>
             <Pressable
@@ -384,7 +393,7 @@ function WebBarcodeEntry({
                   mode === 'manual' && styles.toggleTabTextActive,
                 ]}
               >
-                Saisie manuelle
+                {t("manualEntry")}
               </Text>
             </Pressable>
           </View>
@@ -408,7 +417,7 @@ function WebBarcodeEntry({
             <View style={styles.webCameraOverlay}>
               <View style={styles.scanFrame} />
             </View>
-            <Text style={styles.scanHint}>Place le code-barres dans le cadre</Text>
+            <Text style={styles.scanHint}>{t("placeBarcode")}</Text>
           </View>
         )}
 
@@ -416,9 +425,9 @@ function WebBarcodeEntry({
         {mode === 'manual' && status === 'scanning' && (
           <View style={{ alignItems: 'center', paddingTop: spacing['2xl'] }}>
             {!hasCamera && <Text style={styles.webIcon}>{'🔢'}</Text>}
-            <Text style={styles.webTitle}>Saisis le code-barres</Text>
+            <Text style={styles.webTitle}>{t("enterBarcode")}</Text>
             <Text style={styles.webSubtitle}>
-              Entre le numero sous le code-barres de ton produit.
+              {t("enterBarcodeHint")}
             </Text>
             <TextInput
               style={styles.barcodeInput}
@@ -431,10 +440,10 @@ function WebBarcodeEntry({
               onSubmitEditing={handleSearch}
             />
             <Pressable style={styles.primaryBtn} onPress={handleSearch}>
-              <Text style={styles.primaryBtnText}>Rechercher</Text>
+              <Text style={styles.primaryBtnText}>{t("search")}</Text>
             </Pressable>
             <Pressable style={styles.secondaryBtn} onPress={() => router.replace('/meal/custom')}>
-              <Text style={styles.secondaryBtnText}>Saisie manuelle</Text>
+              <Text style={styles.secondaryBtnText}>{t("manualEntry")}</Text>
             </Pressable>
           </View>
         )}
@@ -442,22 +451,22 @@ function WebBarcodeEntry({
         {status === 'loading' && (
           <View style={styles.centerContent}>
             <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>Recherche du produit...</Text>
+            <Text style={styles.loadingText}>{t("searchingProduct")}</Text>
           </View>
         )}
 
         {status === 'not_found' && (
           <View style={styles.centerContent}>
             <Text style={styles.notFoundIcon}>{'🔍'}</Text>
-            <Text style={styles.notFoundTitle}>Produit non trouvé</Text>
+            <Text style={styles.notFoundTitle}>{t("productNotFound")}</Text>
             <Text style={styles.notFoundSubtitle}>
-              Ce code-barres n'est pas dans la base Open Food Facts.
+              {t("productNotFoundMessage")}
             </Text>
             <Pressable style={styles.primaryBtn} onPress={() => router.replace('/meal/custom')}>
-              <Text style={styles.primaryBtnText}>Saisie manuelle</Text>
+              <Text style={styles.primaryBtnText}>{t("manualEntry")}</Text>
             </Pressable>
             <Pressable style={styles.secondaryBtn} onPress={handleRetry}>
-              <Text style={styles.secondaryBtnText}>Réessayer</Text>
+              <Text style={styles.secondaryBtnText}>{t("retry")}</Text>
             </Pressable>
           </View>
         )}
@@ -469,7 +478,7 @@ function WebBarcodeEntry({
             )}
             <Text style={styles.productName}>{product.name}</Text>
 
-            <Text style={styles.per100gLabel}>Pour 100g</Text>
+            <Text style={styles.per100gLabel}>{t("per100g")}</Text>
             <View style={styles.macroRow}>
               <MacroPill label="Cal" value={product.caloriesPer100g} unit="kcal" />
               <MacroPill label="P" value={product.proteinPer100g} unit="g" />
@@ -477,7 +486,7 @@ function WebBarcodeEntry({
               <MacroPill label="L" value={product.fatPer100g} unit="g" />
             </View>
 
-            <Text style={styles.qtyLabel}>Quantité consommée</Text>
+            <Text style={styles.qtyLabel}>{t("quantityConsumed")}</Text>
             <View style={styles.qtyRow}>
               <TextInput
                 style={styles.qtyInput}
@@ -489,7 +498,7 @@ function WebBarcodeEntry({
               <Text style={styles.qtyUnit}>g</Text>
             </View>
 
-            <Text style={styles.computedLabel}>Macros pour {quantity}g</Text>
+            <Text style={styles.computedLabel}>{t("macrosForQuantity", { qty: quantity })}</Text>
             <View style={styles.macroRow}>
               <MacroPill label="Cal" value={macros.calories} unit="kcal" highlight />
               <MacroPill label="P" value={macros.protein} unit="g" highlight />
@@ -498,10 +507,10 @@ function WebBarcodeEntry({
             </View>
 
             <Pressable style={styles.primaryBtn} onPress={handleValidate}>
-              <Text style={styles.primaryBtnText}>Valider</Text>
+              <Text style={styles.primaryBtnText}>{t("validate")}</Text>
             </Pressable>
             <Pressable style={styles.secondaryBtn} onPress={handleRetry}>
-              <Text style={styles.secondaryBtnText}>Scanner un autre</Text>
+              <Text style={styles.secondaryBtnText}>{t("scanAnother")}</Text>
             </Pressable>
           </View>
         )}
@@ -513,6 +522,7 @@ function WebBarcodeEntry({
 }
 
 function MacroPill({ label, value, unit, highlight }: { label: string; value: number; unit: string; highlight?: boolean }) {
+  const styles = useStyles();
   return (
     <View style={[styles.macroPill, highlight && styles.macroPillHighlight]}>
       <Text style={styles.macroPillLabel}>{label}</Text>
@@ -524,7 +534,7 @@ function MacroPill({ label, value, unit, highlight }: { label: string; value: nu
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -557,7 +567,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.4)',
@@ -828,4 +842,4 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     letterSpacing: 2,
   },
-});
+}));

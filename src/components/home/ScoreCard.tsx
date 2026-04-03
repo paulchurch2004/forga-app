@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -8,7 +8,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Card } from '../ui/Card';
 import { ScoreDisplay } from '../ui/ScoreDisplay';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
+import { useT } from '../../i18n';
 import type { ForgaScore } from '../../types/score';
 
 interface ScoreCardProps {
@@ -17,6 +19,9 @@ interface ScoreCardProps {
 }
 
 export function ScoreCard({ score, weeklyChange }: ScoreCardProps) {
+  const { colors } = useTheme();
+  const { t } = useT();
+  const styles = useStyles();
   const [expanded, setExpanded] = useState(false);
   const contentHeight = useSharedValue(0);
 
@@ -39,11 +44,11 @@ export function ScoreCard({ score, weeklyChange }: ScoreCardProps) {
 
   return (
     <Card
-      header="Score FORGA"
+      header={t('scoreForga')}
       headerRight={
         <View style={styles.changeBadge}>
           <Text style={[styles.changeText, { color: changeColor }]}>
-            {changePrefix}{weeklyChange} pts cette semaine
+            {t('ptsThisWeek', { change: `${changePrefix}${weeklyChange}` })}
           </Text>
         </View>
       }
@@ -57,27 +62,27 @@ export function ScoreCard({ score, weeklyChange }: ScoreCardProps) {
       />
       <Animated.View style={expandStyle}>
         <View style={styles.detailSection}>
-          <Text style={styles.detailTitle}>Detaille des piliers</Text>
+          <Text style={styles.detailTitle}>{t('pillarDetails')}</Text>
           <DetailRow
-            label="Nutrition"
+            label={t('pillarNutrition')}
             value={score.nutrition}
             max={40}
             color={colors.primary}
           />
           <DetailRow
-            label="Constance"
+            label={t('pillarConsistency')}
             value={score.consistency}
             max={30}
             color={colors.carbs}
           />
           <DetailRow
-            label="Progression"
+            label={t('pillarProgression')}
             value={score.progression}
             max={20}
             color={colors.fat}
           />
           <DetailRow
-            label="Discipline"
+            label={t('pillarDiscipline')}
             value={score.discipline}
             max={10}
             color={colors.calories}
@@ -99,6 +104,7 @@ function DetailRow({
   max: number;
   color: string;
 }) {
+  const styles = useStyles();
   const percent = max > 0 ? (value / max) * 100 : 0;
 
   return (
@@ -121,7 +127,7 @@ function DetailRow({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   changeBadge: {
     backgroundColor: colors.surfaceHover,
     borderRadius: borderRadius.full,
@@ -175,6 +181,6 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: borderRadius.full,
   },
-});
+}));
 
 export default ScoreCard;

@@ -2,7 +2,6 @@ import React, { useState, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Pressable,
   Modal,
@@ -20,14 +19,15 @@ import { getMealById, getMealsBySlotAndBudget } from '../src/data/meals';
 import { calculatePortions } from '../src/engine/portionCalculator';
 import { useEngine } from '../src/hooks/useEngine';
 import { MEAL_SLOT_LABELS, type MealSlot } from '../src/types/meal';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../src/theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../src/theme';
+import { useT } from '../src/i18n';
 import { useResponsive } from '../src/hooks/useResponsive';
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
 type TabKey = 'plan' | 'courses';
 
-// ── Smart unit conversions ──
+// -- Smart unit conversions --
 // Maps ingredient IDs to approximate weight per natural unit
 const UNIT_WEIGHTS: Record<string, { weight: number; label: string; plural: string }> = {
   banana: { weight: 120, label: 'banane', plural: 'bananes' },
@@ -101,6 +101,8 @@ function formatSmartQuantity(item: ShoppingItem): string {
 
 export default function WeeklyPlanScreen() {
   const insets = useSafeAreaInsets();
+  const styles = useStyles();
+  const { t } = useT();
   const { contentMaxWidth } = useResponsive();
 
   const profile = useUserStore((s) => s.profile);
@@ -144,7 +146,7 @@ export default function WeeklyPlanScreen() {
       .slice(0, 20);
   }, [swapModal, profile, dislikedMeals]);
 
-  // ── Shopping list: aggregate all 7 days ──
+  // -- Shopping list: aggregate all 7 days --
   const shoppingItems = useMemo(() => {
     if (days.length === 0 || !engine) return [];
     const map = new Map<string, ShoppingItem>();
@@ -198,7 +200,7 @@ export default function WeeklyPlanScreen() {
 
   const handleShare = async () => {
     const text = buildTextList();
-    const title = 'Liste de courses FORGA';
+    const title = t('shoppingList');
 
     if (Platform.OS === 'web') {
       try {
@@ -220,7 +222,7 @@ export default function WeeklyPlanScreen() {
   if (!profile) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-        <Text style={styles.emptyText}>Profil non configuré</Text>
+        <Text style={styles.emptyText}>Profil non configure</Text>
       </View>
     );
   }
@@ -237,11 +239,11 @@ export default function WeeklyPlanScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={16}>
-            <Text style={styles.backText}>Retour</Text>
+            <Text style={styles.backText}>{t('back')}</Text>
           </Pressable>
-          <Text style={styles.headerTitle}>Plan & Courses</Text>
+          <Text style={styles.headerTitle}>{t('planAndShopping')}</Text>
           <Pressable onPress={handleGenerate} hitSlop={12}>
-            <Text style={styles.regenerateText}>{days.length > 0 ? 'Refaire' : 'Générer'}</Text>
+            <Text style={styles.regenerateText}>{days.length > 0 ? 'Refaire' : t('generatePlan')}</Text>
           </Pressable>
         </View>
 
@@ -253,7 +255,7 @@ export default function WeeklyPlanScreen() {
               onPress={() => setActiveTab('plan')}
             >
               <Text style={[styles.tabText, activeTab === 'plan' && styles.tabTextActive]}>
-                Plan semaine
+                {t('planTab')}
               </Text>
             </Pressable>
             <Pressable
@@ -261,7 +263,7 @@ export default function WeeklyPlanScreen() {
               onPress={() => setActiveTab('courses')}
             >
               <Text style={[styles.tabText, activeTab === 'courses' && styles.tabTextActive]}>
-                Courses ({shoppingItems.length})
+                {t('shoppingTab')} ({shoppingItems.length})
               </Text>
             </Pressable>
           </View>
@@ -270,12 +272,12 @@ export default function WeeklyPlanScreen() {
         {days.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>{'\uD83D\uDCCB'}</Text>
-            <Text style={styles.emptyTitle}>Aucun plan généré</Text>
+            <Text style={styles.emptyTitle}>Aucun plan genere</Text>
             <Text style={styles.emptySubtitle}>
-              Génère un plan pour voir tes repas et ta liste de courses.
+              Genere un plan pour voir tes repas et ta liste de courses.
             </Text>
             <Pressable style={styles.generateBtn} onPress={handleGenerate}>
-              <Text style={styles.generateBtnText}>Générer le plan</Text>
+              <Text style={styles.generateBtnText}>{t('generatePlan')}</Text>
             </Pressable>
           </View>
         ) : activeTab === 'plan' ? (
@@ -333,7 +335,7 @@ export default function WeeklyPlanScreen() {
                           hitSlop={8}
                           onPress={() => setSwapModal({ date: selectedDay.date, slot: m.slot })}
                         >
-                          <Text style={styles.swapText}>Changer</Text>
+                          <Text style={styles.swapText}>{t('swapMeal')}</Text>
                         </Pressable>
                       </View>
                       <Pressable onPress={() => router.push(`/meal/${m.mealId}`)}>
@@ -369,7 +371,7 @@ export default function WeeklyPlanScreen() {
                         {dayTotal.calories} kcal {'\u00B7'} {dayTotal.protein}g P {'\u00B7'} {dayTotal.carbs}g G {'\u00B7'} {dayTotal.fat}g L
                       </Text>
                       <Text style={styles.dayTotalTarget}>
-                        Objectif : {engine.dailyMacros.calories} kcal
+                        {t('objective')} : {engine.dailyMacros.calories} kcal
                       </Text>
                     </View>
                   );
@@ -378,10 +380,10 @@ export default function WeeklyPlanScreen() {
             )}
           </>
         ) : (
-          /* ── Shopping list tab ── */
+          /* -- Shopping list tab -- */
           <View style={styles.shoppingSection}>
             <Text style={styles.shoppingIntro}>
-              {shoppingItems.length} ingrédient{shoppingItems.length > 1 ? 's' : ''} pour la semaine
+              {shoppingItems.length} ingredient{shoppingItems.length > 1 ? 's' : ''} pour la semaine
             </Text>
 
             {shoppingItems.map((item) => (
@@ -395,7 +397,7 @@ export default function WeeklyPlanScreen() {
 
             <Pressable style={styles.shareBtn} onPress={handleShare}>
               <Text style={styles.shareBtnText}>
-                {copied ? 'Copié !' : 'Partager la liste'}
+                {copied ? t('listCopied') : t('shareList')}
               </Text>
             </Pressable>
           </View>
@@ -418,7 +420,7 @@ export default function WeeklyPlanScreen() {
                 {swapModal ? MEAL_SLOT_LABELS[swapModal.slot] : ''}
               </Text>
               <Pressable onPress={() => setSwapModal(null)} hitSlop={12}>
-                <Text style={styles.modalClose}>Fermer</Text>
+                <Text style={styles.modalClose}>{t('close')}</Text>
               </Pressable>
             </View>
             <FlatList
@@ -449,7 +451,7 @@ export default function WeeklyPlanScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -774,4 +776,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.primary,
   },
-});
+}));

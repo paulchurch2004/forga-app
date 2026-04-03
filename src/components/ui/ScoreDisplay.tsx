@@ -9,8 +9,10 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
 import { getScoreColor, getScoreLabel } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
+import { useT } from '../../i18n';
 import type { ForgaScore } from '../../types/score';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -38,6 +40,7 @@ interface PillarBarProps {
 }
 
 function PillarBar({ label, value, maxValue, color, animationDuration }: PillarBarProps) {
+  const pillarS = usePillarStyles();
   const widthPercent = useSharedValue(0);
 
   useEffect(() => {
@@ -53,20 +56,20 @@ function PillarBar({ label, value, maxValue, color, animationDuration }: PillarB
   }));
 
   return (
-    <View style={pillarStyles.row}>
-      <View style={pillarStyles.labelContainer}>
-        <Text style={pillarStyles.label} numberOfLines={1}>
+    <View style={pillarS.row}>
+      <View style={pillarS.labelContainer}>
+        <Text style={pillarS.label} numberOfLines={1}>
           {label}
         </Text>
-        <Text style={[pillarStyles.value, { color }]}>
+        <Text style={[pillarS.value, { color }]}>
           {Math.round(value)}/{maxValue}
         </Text>
       </View>
-      <View style={pillarStyles.trackContainer}>
-        <View style={pillarStyles.track} />
+      <View style={pillarS.trackContainer}>
+        <View style={pillarS.track} />
         <Animated.View
           style={[
-            pillarStyles.fill,
+            pillarS.fill,
             { backgroundColor: color },
             barStyle,
           ]}
@@ -83,12 +86,15 @@ export function ScoreDisplay({
   animationDuration = 1200,
   showPillars = true,
 }: ScoreDisplayProps) {
+  const { colors } = useTheme();
+  const { t, locale } = useT();
+  const styles = useStyles();
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const center = size / 2;
 
   const scoreColor = getScoreColor(score.total);
-  const scoreLabel = getScoreLabel(score.total);
+  const scoreLabel = getScoreLabel(score.total, locale);
 
   const animatedProgress = useSharedValue(0);
   const animatedScore = useSharedValue(0);
@@ -115,25 +121,25 @@ export function ScoreDisplay({
 
   const pillars = [
     {
-      label: 'Nutrition',
+      label: t('pillarNutrition'),
       value: score.nutrition,
       maxValue: 40,
       color: colors.primary,
     },
     {
-      label: 'Constance',
+      label: t('pillarConsistency'),
       value: score.consistency,
       maxValue: 30,
       color: colors.carbs,
     },
     {
-      label: 'Progression',
+      label: t('pillarProgression'),
       value: score.progression,
       maxValue: 20,
       color: colors.fat,
     },
     {
-      label: 'Discipline',
+      label: t('pillarDiscipline'),
       value: score.discipline,
       maxValue: 10,
       color: colors.calories,
@@ -205,7 +211,7 @@ export function ScoreDisplay({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     alignItems: 'center',
   },
@@ -241,9 +247,9 @@ const styles = StyleSheet.create({
     width: '100%',
     gap: spacing.md,
   },
-});
+}));
 
-const pillarStyles = StyleSheet.create({
+const usePillarStyles = makeStyles((colors) => ({
   row: {
     width: '100%',
   },
@@ -281,6 +287,6 @@ const pillarStyles = StyleSheet.create({
     left: 0,
     top: 0,
   },
-});
+}));
 
 export default ScoreDisplay;

@@ -1,8 +1,7 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   Pressable,
   Text,
-  StyleSheet,
   ActivityIndicator,
   Platform,
   type ViewStyle,
@@ -21,7 +20,8 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
-import { colors, fonts, fontSizes, spacing, borderRadius, shadows } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius, shadows } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -40,29 +40,6 @@ export interface ButtonProps extends Omit<PressableProps, 'style'> {
   onPress?: () => void;
   style?: ViewStyle;
 }
-
-const VARIANT_STYLES: Record<ButtonVariant, { bg: string; text: string; border: string }> = {
-  primary: {
-    bg: colors.primary,
-    text: colors.white,
-    border: colors.primary,
-  },
-  secondary: {
-    bg: colors.surface,
-    text: colors.text,
-    border: colors.border,
-  },
-  ghost: {
-    bg: colors.transparent,
-    text: colors.text,
-    border: colors.transparent,
-  },
-  danger: {
-    bg: colors.error,
-    text: colors.white,
-    border: colors.error,
-  },
-};
 
 const SIZE_STYLES: Record<ButtonSize, { height: number; paddingH: number; fontSize: number }> = {
   sm: { height: 36, paddingH: spacing.md, fontSize: fontSizes.sm },
@@ -83,10 +60,35 @@ export function Button({
   style,
   ...pressableProps
 }: ButtonProps) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
 
-  const variantStyle = VARIANT_STYLES[variant];
+  const variantStyles = useMemo<Record<ButtonVariant, { bg: string; text: string; border: string }>>(() => ({
+    primary: {
+      bg: colors.primary,
+      text: colors.white,
+      border: colors.primary,
+    },
+    secondary: {
+      bg: colors.surface,
+      text: colors.text,
+      border: colors.border,
+    },
+    ghost: {
+      bg: colors.transparent,
+      text: colors.text,
+      border: colors.transparent,
+    },
+    danger: {
+      bg: colors.error,
+      text: colors.white,
+      border: colors.error,
+    },
+  }), [colors]);
+
+  const variantStyle = variantStyles[variant];
   const sizeStyle = SIZE_STYLES[size];
   const isDisabled = disabled || loading;
 
@@ -165,7 +167,7 @@ export function Button({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles(() => ({
   base: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -183,6 +185,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body,
     fontWeight: '600',
   },
-});
+}));
 
 export default Button;

@@ -1,11 +1,18 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { View, Text, Pressable } from 'react-native';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { useT } from '../../i18n';
+import type { TranslationKey } from '../../i18n';
 
-const DAY_LABELS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-const MONTH_LABELS = [
-  'Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin',
-  'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre',
+const DAY_LABEL_KEYS: TranslationKey[] = [
+  'calMonday', 'calTuesday', 'calWednesday', 'calThursday',
+  'calFriday', 'calSaturday', 'calSunday',
+];
+
+const MONTH_LABEL_KEYS: TranslationKey[] = [
+  'calJanuary', 'calFebruary', 'calMarch', 'calApril',
+  'calMay', 'calJune', 'calJuly', 'calAugust',
+  'calSeptember', 'calOctober', 'calNovember', 'calDecember',
 ];
 
 interface CalendarGridProps {
@@ -32,6 +39,8 @@ export function CalendarGrid({
   onSelectDate,
   onChangeMonth,
 }: CalendarGridProps) {
+  const { t } = useT();
+  const styles = useStyles();
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
   const todayKey = getTodayKey();
@@ -56,7 +65,7 @@ export function CalendarGrid({
           <Text style={styles.arrow}>{'\u2190'}</Text>
         </Pressable>
         <Text style={styles.monthLabel}>
-          {MONTH_LABELS[month]} {year}
+          {t(MONTH_LABEL_KEYS[month])} {year}
         </Text>
         <Pressable onPress={() => onChangeMonth(1)} hitSlop={12}>
           <Text style={styles.arrow}>{'\u2192'}</Text>
@@ -65,9 +74,9 @@ export function CalendarGrid({
 
       {/* Day-of-week header */}
       <View style={styles.weekRow}>
-        {DAY_LABELS.map((label, i) => (
+        {DAY_LABEL_KEYS.map((key, i) => (
           <View key={i} style={styles.dayCell}>
-            <Text style={styles.dayLabel}>{label}</Text>
+            <Text style={styles.dayLabel}>{t(key)}</Text>
           </View>
         ))}
       </View>
@@ -115,7 +124,7 @@ export function CalendarGrid({
 
 const CELL_SIZE = 40;
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
@@ -184,4 +193,4 @@ const styles = StyleSheet.create({
   dotSelected: {
     backgroundColor: colors.white,
   },
-});
+}));

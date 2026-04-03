@@ -22,9 +22,11 @@ import Animated, {
   withSpring,
   Easing,
 } from 'react-native-reanimated';
-import { colors } from '../../src/theme/colors';
+import { makeStyles } from '../../src/theme';
 import { fonts, fontSizes } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
+import { useTheme } from '../../src/context/ThemeContext';
+import { useT } from '../../src/i18n';
 import { supabase } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/store/authStore';
 import { loadProfileFromSupabase } from '../../src/services/profile';
@@ -48,6 +50,9 @@ function useEntrance(delay: number) {
 
 export default function LoginScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -92,7 +97,7 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email || !password) {
-      showError('Erreur', 'Remplis tous les champs.');
+      showError(t('error'), t('fillAllFields'));
       return;
     }
 
@@ -104,7 +109,7 @@ export default function LoginScreen() {
     setLoading(false);
 
     if (error) {
-      showError('Erreur', error.message);
+      showError(t('error'), error.message);
       return;
     }
 
@@ -117,15 +122,15 @@ export default function LoginScreen() {
 
   const handleForgotPassword = async () => {
     if (!email) {
-      showError('Email requis', 'Entre ton email pour réinitialiser ton mot de passe.');
+      showError(t('email'), t('resetPasswordPrompt'));
       return;
     }
 
     const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase());
     if (error) {
-      showError('Erreur', error.message);
+      showError(t('error'), error.message);
     } else {
-      showError('Email envoyé', 'Vérifie ta boîte mail pour réinitialiser ton mot de passe.');
+      showError(t('emailSent'), t('checkInbox'));
     }
   };
 
@@ -155,7 +160,7 @@ export default function LoginScreen() {
         >
           {/* Back */}
           <Pressable onPress={() => router.back()} hitSlop={16} style={styles.backRow}>
-            <Text style={styles.backText}>{'\u2039'} Retour</Text>
+            <Text style={styles.backText}>{'\u2039'} {t('back')}</Text>
           </Pressable>
 
           {/* Brand */}
@@ -166,10 +171,10 @@ export default function LoginScreen() {
 
           {/* Title */}
           <Animated.View style={titleStyle}>
-            <Text style={styles.title}>Connexion</Text>
+            <Text style={styles.title}>{t('login')}</Text>
           </Animated.View>
           <Animated.View style={subtitleStyle}>
-            <Text style={styles.subtitle}>Content de te revoir.</Text>
+            <Text style={styles.subtitle}>{t('welcomeBack')}</Text>
           </Animated.View>
 
           {/* Form */}
@@ -177,7 +182,7 @@ export default function LoginScreen() {
             <Animated.View style={emailInputStyle}>
               <View style={[styles.inputWrapper, emailFocused && styles.inputWrapperFocused]}>
                 <Text style={[styles.inputLabel, emailFocused && styles.inputLabelFocused]}>
-                  Email
+                  {t('email')}
                 </Text>
                 <TextInput
                   style={styles.input}
@@ -197,7 +202,7 @@ export default function LoginScreen() {
             <Animated.View style={passwordInputStyle}>
               <View style={[styles.inputWrapper, passwordFocused && styles.inputWrapperFocused]}>
                 <Text style={[styles.inputLabel, passwordFocused && styles.inputLabelFocused]}>
-                  Mot de passe
+                  {t('password')}
                 </Text>
                 <TextInput
                   style={styles.input}
@@ -214,7 +219,7 @@ export default function LoginScreen() {
 
             <Animated.View style={forgotStyle}>
               <Pressable onPress={handleForgotPassword}>
-                <Text style={styles.forgotText}>Mot de passe oublié ?</Text>
+                <Text style={styles.forgotText}>{t('forgotPassword')}</Text>
               </Pressable>
             </Animated.View>
 
@@ -237,7 +242,7 @@ export default function LoginScreen() {
                     {loading ? (
                       <ActivityIndicator color={colors.white} />
                     ) : (
-                      <Text style={styles.buttonText}>Se connecter</Text>
+                      <Text style={styles.buttonText}>{t('signIn')}</Text>
                     )}
                   </LinearGradient>
                 </Pressable>
@@ -247,9 +252,9 @@ export default function LoginScreen() {
 
           {/* Bottom link */}
           <Animated.View style={[styles.bottomLink, bottomStyle]}>
-            <Text style={styles.bottomText}>Pas encore de compte ? </Text>
+            <Text style={styles.bottomText}>{t('noAccount')} </Text>
             <Pressable onPress={() => router.replace('/(auth)/register')}>
-              <Text style={styles.bottomAction}>S'inscrire</Text>
+              <Text style={styles.bottomAction}>{t('signUp')}</Text>
             </Pressable>
           </Animated.View>
         </ScrollView>
@@ -258,7 +263,7 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -406,4 +411,4 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: '700',
   },
-});
+}));

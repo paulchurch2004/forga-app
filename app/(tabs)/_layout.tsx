@@ -1,18 +1,23 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { View, Text, StyleSheet, Platform } from 'react-native';
-import { colors } from '../../src/theme/colors';
+import { useTheme } from '../../src/context/ThemeContext';
 import { fonts, fontSizes } from '../../src/theme/fonts';
 import { spacing } from '../../src/theme/spacing';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { Sidebar } from '../../src/components/layout/Sidebar';
+import { useT } from '../../src/i18n';
+import type { ThemeColors } from '../../src/theme';
 
-function TabIcon({ label, focused }: { label: string; focused: boolean }) {
+function TabIcon({ label, focused, colors }: { label: string; focused: boolean; colors: ThemeColors }) {
   const icons: Record<string, { active: string; inactive: string }> = {
     Accueil: { active: '\u2302', inactive: '\u2302' },
     Repas: { active: '\u2615', inactive: '\u2615' },
     Coach: { active: '\u2709', inactive: '\u2709' },
     Profil: { active: '\u2603', inactive: '\u2603' },
+    Home: { active: '\u2302', inactive: '\u2302' },
+    Meals: { active: '\u2615', inactive: '\u2615' },
+    Profile: { active: '\u2603', inactive: '\u2603' },
   };
 
   const icon = icons[label] ?? { active: '\u25CF', inactive: '\u25CB' };
@@ -62,6 +67,13 @@ const tabIconStyles = StyleSheet.create({
 
 export default function TabLayout() {
   const { isDesktop } = useResponsive();
+  const { colors } = useTheme();
+  const { t } = useT();
+
+  const tabHome = t('tabHome');
+  const tabMeals = t('tabMeals');
+  const tabCoach = t('tabCoach');
+  const tabProfile = t('tabProfile');
 
   const mobileTabBarStyle = {
     backgroundColor: colors.surface,
@@ -89,36 +101,36 @@ export default function TabLayout() {
       <Tabs.Screen
         name="home"
         options={{
-          title: 'Accueil',
+          title: tabHome,
           tabBarIcon: ({ focused }) => (
-            <TabIcon label="Accueil" focused={focused} />
+            <TabIcon label={tabHome} focused={focused} colors={colors} />
           ),
         }}
       />
       <Tabs.Screen
         name="meals"
         options={{
-          title: 'Repas',
+          title: tabMeals,
           tabBarIcon: ({ focused }) => (
-            <TabIcon label="Repas" focused={focused} />
+            <TabIcon label={tabMeals} focused={focused} colors={colors} />
           ),
         }}
       />
       <Tabs.Screen
         name="coach"
         options={{
-          title: 'Coach',
+          title: tabCoach,
           tabBarIcon: ({ focused }) => (
-            <TabIcon label="Coach" focused={focused} />
+            <TabIcon label={tabCoach} focused={focused} colors={colors} />
           ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profil',
+          title: tabProfile,
           tabBarIcon: ({ focused }) => (
-            <TabIcon label="Profil" focused={focused} />
+            <TabIcon label={tabProfile} focused={focused} colors={colors} />
           ),
         }}
       />
@@ -127,7 +139,7 @@ export default function TabLayout() {
 
   if (isDesktop) {
     return (
-      <View style={desktopStyles.wrapper}>
+      <View style={[desktopStyles.wrapper, { backgroundColor: colors.background }]}>
         <Sidebar />
         <View style={desktopStyles.content}>{tabs}</View>
       </View>
@@ -141,7 +153,6 @@ const desktopStyles = StyleSheet.create({
   wrapper: {
     flexDirection: 'row',
     flex: 1,
-    backgroundColor: colors.background,
   },
   content: {
     flex: 1,

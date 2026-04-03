@@ -1,7 +1,8 @@
 import React, { forwardRef } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { useT } from '../../i18n';
 
 interface ShareStreakCardProps {
   streak: number;
@@ -18,6 +19,8 @@ function getSlogan(streak: number): string {
 
 export const ShareStreakCard = forwardRef<View, ShareStreakCardProps>(
   ({ streak, score }, ref) => {
+    const styles = useStyles();
+    const { t } = useT();
     const slogan = getSlogan(streak);
 
     return (
@@ -38,7 +41,7 @@ export const ShareStreakCard = forwardRef<View, ShareStreakCardProps>(
           <View style={styles.centerBlock}>
             <Text style={styles.flame}>{'\uD83D\uDD25'}</Text>
             <Text style={styles.streakNumber}>{streak}</Text>
-            <Text style={styles.streakLabel}>jours de streak</Text>
+            <Text style={styles.streakLabel}>{t('daysStreak')}</Text>
           </View>
 
           {/* Slogan */}
@@ -61,7 +64,7 @@ export const ShareStreakCard = forwardRef<View, ShareStreakCardProps>(
 
 ShareStreakCard.displayName = 'ShareStreakCard';
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     width: 400,
     height: 300,
@@ -152,4 +155,4 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     flex: 1,
   },
-});
+}));

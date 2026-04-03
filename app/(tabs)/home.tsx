@@ -2,7 +2,6 @@ import React from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Pressable,
   ImageBackground,
@@ -14,8 +13,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useUserStore } from '../../src/store/userStore';
 import { useStreak } from '../../src/hooks/useStreak';
 import { StreakBadge } from '../../src/components/ui/StreakBadge';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
+import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
 import { useResponsive } from '../../src/hooks/useResponsive';
+import { useT } from '../../src/i18n';
 
 const CARD_IMAGES = {
   nutrition:
@@ -33,12 +33,14 @@ export default function HomeScreen() {
   const { contentMaxWidth } = useResponsive();
   const profile = useUserStore((s) => s.profile);
   const { currentStreak, isTodayValidated } = useStreak();
+  const styles = useStyles();
+  const { t } = useT();
 
   if (!profile) {
     return (
       <View style={[styles.wrapper, { paddingTop: insets.top }]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Chargement...</Text>
+          <Text style={styles.loadingText}>{t('loading')}</Text>
         </View>
       </View>
     );
@@ -46,9 +48,9 @@ export default function HomeScreen() {
 
   const hour = new Date().getHours();
   let greeting: string;
-  if (hour < 12) greeting = 'Bonjour';
-  else if (hour < 18) greeting = 'Bon apres-midi';
-  else greeting = 'Bonsoir';
+  if (hour < 12) greeting = t('greetingMorning');
+  else if (hour < 18) greeting = t('greetingAfternoon');
+  else greeting = t('greetingEvening');
 
   const firstName = profile.name.split(' ')[0];
 
@@ -68,7 +70,7 @@ export default function HomeScreen() {
             {greeting}, {firstName}
           </Text>
           <Text style={styles.subtitle}>
-            {isTodayValidated ? 'Continue comme ca !' : 'Pret a forger ta journee ?'}
+            {isTodayValidated ? t('keepItUp') : t('readyToForge')}
           </Text>
         </View>
         <StreakBadge streak={currentStreak} isActive={isTodayValidated} size="sm" />
@@ -85,9 +87,9 @@ export default function HomeScreen() {
             colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.75)']}
             style={styles.cardOverlay}
           >
-            <Text style={styles.cardTitle}>Nutrition</Text>
+            <Text style={styles.cardTitle}>{t('nutritionCard')}</Text>
             <Text style={styles.cardDesc}>
-              Score, macros, repas, coach, scanner
+              {t('nutritionCardSub')}
             </Text>
           </LinearGradient>
         </ImageBackground>
@@ -98,10 +100,10 @@ export default function HomeScreen() {
         style={styles.card}
         onPress={() => {
           if (Platform.OS === 'web') {
-            window.alert('Bientot disponible !');
+            window.alert(t('comingSoon'));
           } else {
             import('react-native').then(({ Alert }) => {
-              Alert.alert('FORGA', 'La section Entrainement arrive bientot !');
+              Alert.alert('FORGA', t('trainingSectionComingSoon'));
             });
           }
         }}
@@ -116,13 +118,13 @@ export default function HomeScreen() {
             style={styles.cardOverlay}
           >
             <View style={styles.cardTitleRow}>
-              <Text style={styles.cardTitle}>Entrainement</Text>
+              <Text style={styles.cardTitle}>{t('trainingCard')}</Text>
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>Bientot</Text>
+                <Text style={styles.badgeText}>{t('soon')}</Text>
               </View>
             </View>
             <Text style={styles.cardDesc}>
-              Programmes, seances et progression
+              {t('trainingCardSub')}
             </Text>
           </LinearGradient>
         </ImageBackground>
@@ -139,9 +141,9 @@ export default function HomeScreen() {
             colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.75)']}
             style={styles.cardOverlay}
           >
-            <Text style={styles.cardTitle}>Mon Espace</Text>
+            <Text style={styles.cardTitle}>{t('mySpace')}</Text>
             <Text style={styles.cardDesc}>
-              Profil, badges, reglages, notifications
+              {t('mySpaceSub')}
             </Text>
           </LinearGradient>
         </ImageBackground>
@@ -152,10 +154,10 @@ export default function HomeScreen() {
         style={styles.card}
         onPress={() => {
           if (Platform.OS === 'web') {
-            window.alert('Bientot disponible !');
+            window.alert(t('comingSoon'));
           } else {
             import('react-native').then(({ Alert }) => {
-              Alert.alert('FORGA', 'La Communaute arrive bientot !');
+              Alert.alert('FORGA', t('communityComingSoon'));
             });
           }
         }}
@@ -170,13 +172,13 @@ export default function HomeScreen() {
             style={styles.cardOverlay}
           >
             <View style={styles.cardTitleRow}>
-              <Text style={styles.cardTitle}>Communaute</Text>
+              <Text style={styles.cardTitle}>{t('communityCard')}</Text>
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>Bientot</Text>
+                <Text style={styles.badgeText}>{t('soon')}</Text>
               </View>
             </View>
             <Text style={styles.cardDesc}>
-              Echange avec les autres forgerons
+              {t('communityCardSub')}
             </Text>
           </LinearGradient>
         </ImageBackground>
@@ -187,7 +189,7 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrapper: {
     flex: 1,
     backgroundColor: colors.background,
@@ -282,4 +284,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.white,
   },
-});
+}));

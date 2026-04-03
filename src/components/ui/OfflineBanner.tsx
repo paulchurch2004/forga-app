@@ -1,20 +1,23 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { colors, fonts, fontSizes, spacing } from '../../theme';
+import { View, Text } from 'react-native';
+import { makeStyles, fonts, fontSizes, spacing } from '../../theme';
 import { useConnectivity } from '../../hooks/useConnectivity';
+import { useT } from '../../i18n';
 
 export function OfflineBanner() {
   const { isOnline } = useConnectivity();
+  const { t } = useT();
+  const styles = useStyles();
   if (isOnline) return null;
 
   return (
     <View style={styles.banner}>
-      <Text style={styles.text}>Mode hors-ligne</Text>
+      <Text style={styles.text}>{t('offlineMode')}</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   banner: {
     backgroundColor: colors.warning,
     paddingVertical: spacing.xs,
@@ -26,4 +29,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.background,
   },
-});
+}));

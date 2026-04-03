@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { Card } from '../ui/Card';
 import { MacroRing } from '../ui/MacroRing';
 import type { MacroType } from '../ui/MacroRing';
-import { colors, fonts, fontSizes, spacing } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing } from '../../theme';
+import { useT } from '../../i18n';
 
 interface MacroData {
   type: MacroType;
@@ -27,6 +28,8 @@ interface DailyMacrosProps {
 }
 
 export function DailyMacros({ consumed, target }: DailyMacrosProps) {
+  const { t } = useT();
+  const styles = useStyles();
   const macros: MacroData[] = [
     { type: 'calories', current: consumed.calories, target: target.calories },
     { type: 'protein', current: consumed.protein, target: target.protein },
@@ -37,7 +40,7 @@ export function DailyMacros({ consumed, target }: DailyMacrosProps) {
   const caloriesRemaining = Math.max(0, target.calories - consumed.calories);
 
   return (
-    <Card header="Macros du jour">
+    <Card header={t('dailyMacros')}>
       <View style={styles.ringRow}>
         {macros.map((macro) => (
           <View key={macro.type} style={styles.ringWrapper}>
@@ -52,7 +55,7 @@ export function DailyMacros({ consumed, target }: DailyMacrosProps) {
         ))}
       </View>
       <View style={styles.remainingRow}>
-        <Text style={styles.remainingLabel}>Restant</Text>
+        <Text style={styles.remainingLabel}>{t('remaining')}</Text>
         <Text style={styles.remainingValue}>
           {Math.round(caloriesRemaining)} kcal
         </Text>
@@ -61,7 +64,7 @@ export function DailyMacros({ consumed, target }: DailyMacrosProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   ringRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -91,6 +94,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
-});
+}));
 
 export default DailyMacros;

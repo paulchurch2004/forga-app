@@ -2,16 +2,15 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Pressable,
   TextInput,
   Alert,
 } from 'react-native';
 import { router } from 'expo-router';
-import { colors } from '../src/theme/colors';
-import { fontSizes } from '../src/theme/fonts';
-import { spacing, borderRadius } from '../src/theme/spacing';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../src/theme';
+import { useTheme } from '../src/context/ThemeContext';
+import { useT } from '../src/i18n';
 import { useUserStore } from '../src/store/userStore';
 import { calculateAdaptiveAdjustment } from '../src/engine/adaptiveEngine';
 import { calculateMacros } from '../src/engine/macros';
@@ -23,6 +22,9 @@ type Rating = 1 | 2 | 3 | 4 | 5;
 type SmallRating = 1 | 2 | 3 | 4;
 
 export default function CheckInScreen() {
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const profile = useUserStore((s) => s.profile);
   const updateProfile = useUserStore((s) => s.updateProfile);
   const addCheckIn = useUserStore((s) => s.addCheckIn);
@@ -41,7 +43,7 @@ export default function CheckInScreen() {
   const handleSubmit = async () => {
     const weightNum = parseFloat(weight.replace(',', '.'));
     if (isNaN(weightNum) || weightNum < 30 || weightNum > 300) {
-      Alert.alert('Erreur', 'Entre un poids valide.');
+      Alert.alert(t('error'), 'Entre un poids valide.');
       return;
     }
 
@@ -135,7 +137,7 @@ export default function CheckInScreen() {
         weight: weightNum,
       });
     } catch (e) {
-      // Silent fail — data is saved locally
+      // Silent fail -- data is saved locally
     }
 
     events.checkInCompleted();
@@ -147,7 +149,7 @@ export default function CheckInScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.resultContainer}>
-          <Text style={styles.resultTitle}>Check-in terminé</Text>
+          <Text style={styles.resultTitle}>Check-in termine</Text>
           <Text style={styles.resultReason}>{result.reason}</Text>
           {result.adjustment !== 0 && (
             <View style={styles.adjustmentCard}>
@@ -163,7 +165,7 @@ export default function CheckInScreen() {
             </View>
           )}
           <Pressable style={styles.doneButton} onPress={() => router.back()}>
-            <Text style={styles.doneButtonText}>Continuer</Text>
+            <Text style={styles.doneButtonText}>{t('confirm')}</Text>
           </Pressable>
         </View>
       </View>
@@ -174,11 +176,11 @@ export default function CheckInScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}>
-          <Text style={styles.backText}>Retour</Text>
+          <Text style={styles.backText}>{t('back')}</Text>
         </Pressable>
       </View>
 
-      <Text style={styles.title}>Check-in hebdo</Text>
+      <Text style={styles.title}>{t('weeklyCheckIn')}</Text>
       <Text style={styles.subtitle}>30 secondes. C'est parti.</Text>
 
       {/* Weight */}
@@ -196,29 +198,29 @@ export default function CheckInScreen() {
 
       {/* Energy */}
       <View style={styles.field}>
-        <Text style={styles.fieldLabel}>Niveau d'énergie</Text>
+        <Text style={styles.fieldLabel}>{t('energy')}</Text>
         <RatingSelector
           value={energy}
           onChange={(v) => setEnergy(v as Rating)}
           max={5}
-          labels={['Épuisé', 'Faible', 'Normal', 'Bien', 'Top']}
+          labels={[t('poor'), t('low'), t('average'), t('good'), t('excellent')]}
         />
       </View>
 
       {/* Hunger */}
       <View style={styles.field}>
-        <Text style={styles.fieldLabel}>Niveau de faim</Text>
+        <Text style={styles.fieldLabel}>{t('hunger')}</Text>
         <RatingSelector
           value={hunger}
           onChange={(v) => setHunger(v as Rating)}
           max={5}
-          labels={['Aucune', 'Léger', 'Normal', 'Souvent', 'Tout le temps']}
+          labels={['Aucune', t('low'), t('average'), 'Souvent', 'Tout le temps']}
         />
       </View>
 
       {/* Performance */}
       <View style={styles.field}>
-        <Text style={styles.fieldLabel}>Performances en salle</Text>
+        <Text style={styles.fieldLabel}>{t('performance')}</Text>
         <RatingSelector
           value={performance}
           onChange={(v) => setPerformance(v as SmallRating)}
@@ -229,12 +231,12 @@ export default function CheckInScreen() {
 
       {/* Sleep */}
       <View style={styles.field}>
-        <Text style={styles.fieldLabel}>Qualité du sommeil</Text>
+        <Text style={styles.fieldLabel}>{t('sleep')}</Text>
         <RatingSelector
           value={sleep}
           onChange={(v) => setSleep(v as SmallRating)}
           max={4}
-          labels={['Mauvais', 'Moyen', 'Bon', 'Excellent']}
+          labels={[t('poor'), t('average'), t('good'), t('excellent')]}
         />
       </View>
 
@@ -244,7 +246,7 @@ export default function CheckInScreen() {
         disabled={loading}
       >
         <Text style={styles.submitText}>
-          {loading ? 'Analyse en cours...' : 'Valider le check-in'}
+          {loading ? t('loading') : t('send')}
         </Text>
       </Pressable>
     </ScrollView>
@@ -262,6 +264,7 @@ function RatingSelector({
   max: number;
   labels: string[];
 }) {
+  const styles = useStyles();
   return (
     <View style={styles.ratingRow}>
       {Array.from({ length: max }, (_, i) => i + 1).map((v) => (
@@ -295,7 +298,7 @@ function RatingSelector({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -309,18 +312,18 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   backText: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.md,
     color: colors.primary,
   },
   title: {
-    fontFamily: 'Outfit',
+    fontFamily: fonts.display,
     fontSize: fontSizes['3xl'],
     fontWeight: '700',
     color: colors.text,
   },
   subtitle: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.lg,
     color: colors.textSecondary,
     marginTop: spacing.xs,
@@ -330,7 +333,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing['2xl'],
   },
   fieldLabel: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.md,
     fontWeight: '600',
     color: colors.text,
@@ -341,7 +344,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.lg,
-    fontFamily: 'JetBrainsMono',
+    fontFamily: fonts.data,
     fontSize: fontSizes['2xl'],
     color: colors.text,
     textAlign: 'center',
@@ -364,7 +367,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceHover,
   },
   ratingNumber: {
-    fontFamily: 'JetBrainsMono',
+    fontFamily: fonts.data,
     fontSize: fontSizes.lg,
     fontWeight: '700',
     color: colors.textSecondary,
@@ -373,7 +376,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   ratingLabel: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: 9,
     color: colors.textMuted,
     marginTop: 2,
@@ -393,7 +396,7 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   submitText: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.lg,
     fontWeight: '700',
     color: colors.white,
@@ -405,14 +408,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing['2xl'],
   },
   resultTitle: {
-    fontFamily: 'Outfit',
+    fontFamily: fonts.display,
     fontSize: fontSizes['3xl'],
     fontWeight: '700',
     color: colors.text,
     marginBottom: spacing.lg,
   },
   resultReason: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.lg,
     color: colors.textSecondary,
     textAlign: 'center',
@@ -428,13 +431,13 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   adjustmentLabel: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.sm,
     color: colors.textSecondary,
     marginBottom: spacing.sm,
   },
   adjustmentValue: {
-    fontFamily: 'JetBrainsMono',
+    fontFamily: fonts.data,
     fontSize: fontSizes['3xl'],
     fontWeight: '700',
   },
@@ -446,9 +449,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   doneButtonText: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.lg,
     fontWeight: '700',
     color: colors.white,
   },
-});
+}));

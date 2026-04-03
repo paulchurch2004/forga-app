@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Pressable,
   Platform,
@@ -30,8 +29,10 @@ import {
   type CoachContext,
   type QuickReply,
 } from '../../src/engine/coachChatEngine';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
+import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
+import { useTheme } from '../../src/context/ThemeContext';
 import { useResponsive } from '../../src/hooks/useResponsive';
+import { useT } from '../../src/i18n';
 import { router } from 'expo-router';
 
 // ──────────── TYPES ────────────
@@ -46,6 +47,8 @@ interface ChatMessage {
 // ──────────── COACH AVATAR ────────────
 
 function CoachAvatar() {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <View style={styles.avatar}>
       <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
@@ -59,6 +62,7 @@ function CoachAvatar() {
 // ──────────── TYPING INDICATOR ────────────
 
 function TypingIndicator() {
+  const styles = useStyles();
   const dot1 = useSharedValue(0.3);
   const dot2 = useSharedValue(0.3);
   const dot3 = useSharedValue(0.3);
@@ -99,6 +103,8 @@ function TypingIndicator() {
 // ──────────── MESSAGE BUBBLE ────────────
 
 function MessageBubble({ message }: { message: ChatMessage }) {
+  const styles = useStyles();
+
   if (message.isCoach) {
     return (
       <Animated.View entering={FadeIn.duration(300)} style={styles.coachRow}>
@@ -125,6 +131,9 @@ export default function CoachScreen() {
   const insets = useSafeAreaInsets();
   const { contentMaxWidth } = useResponsive();
   const scrollRef = useRef<ScrollView>(null);
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
 
   const profile = useUserStore((s) => s.profile);
   const { currentScore } = useScoreStore();
@@ -231,7 +240,7 @@ export default function CoachScreen() {
     return (
       <View style={[styles.container, { paddingTop: insets.top, maxWidth: contentMaxWidth }]}>
         <View style={styles.centerContainer}>
-          <Text style={styles.loadingText}>Chargement...</Text>
+          <Text style={styles.loadingText}>{t('loading')}</Text>
         </View>
       </View>
     );
@@ -251,8 +260,8 @@ export default function CoachScreen() {
           </Svg>
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.headerTitle}>Coach FORGA</Text>
-          <Text style={styles.headerSubtitle}>En ligne</Text>
+          <Text style={styles.headerTitle}>{t('coachForga')}</Text>
+          <Text style={styles.headerSubtitle}>{t('online')}</Text>
         </View>
       </View>
 
@@ -297,7 +306,7 @@ export default function CoachScreen() {
 
 // ──────────── STYLES ────────────
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -475,4 +484,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.primary,
   },
-});
+}));

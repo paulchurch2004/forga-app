@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, ImageBackground } from 'react-native';
+import { View, Text, Animated, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors } from '../../theme/colors';
-import { fonts, fontSizes } from '../../theme/fonts';
-import { spacing, borderRadius } from '../../theme/spacing';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
+import { useT } from '../../i18n';
+import type { TranslationKey } from '../../i18n';
 
-// Free fitness images (Unsplash Source — allows hotlinking)
+// Free fitness images (Unsplash Source -- allows hotlinking)
 const IMAGES = [
   'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=640&h=360&fit=crop&q=60',
   'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=640&h=360&fit=crop&q=60',
@@ -13,14 +14,17 @@ const IMAGES = [
   'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=640&h=360&fit=crop&q=60',
 ];
 
-const MOTIVATIONAL = [
-  'FORGE TON CORPS',
-  'CHAQUE REPAS COMPTE',
-  'LA RÉGULARITÉ PAIE',
-  'DÉPASSE TES LIMITES',
+const MOTIVATIONAL_KEYS: TranslationKey[] = [
+  'motivForgeBody',
+  'motivEveryMealCounts',
+  'motivConsistencyPays',
+  'motivExceedLimits',
 ];
 
 export function FitnessVideoBanner() {
+  const { colors } = useTheme();
+  const { t } = useT();
+  const styles = useStyles();
   const [index, setIndex] = useState(0);
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
@@ -58,16 +62,16 @@ export function FitnessVideoBanner() {
 
         {/* Motivational text */}
         <View style={styles.content}>
-          <Text style={styles.motivText}>{MOTIVATIONAL[index]}</Text>
+          <Text style={styles.motivText}>{t(MOTIVATIONAL_KEYS[index])}</Text>
           <View style={styles.divider} />
-          <Text style={styles.subText}>Chaque jour est une opportunité</Text>
+          <Text style={styles.subText}>{t('everyDayIsOpportunity')}</Text>
         </View>
       </ImageBackground>
     </Animated.View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     height: 180,
     borderRadius: borderRadius.lg,
@@ -79,10 +83,18 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
   },
   content: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     justifyContent: 'flex-end',
     padding: spacing.xl,
   },
@@ -105,4 +117,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.sm,
     color: 'rgba(255, 255, 255, 0.7)',
   },
-});
+}));

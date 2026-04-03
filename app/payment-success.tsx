@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, Pressable } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { colors } from '../src/theme/colors';
+import { makeStyles } from '../src/theme';
+import { useTheme } from '../src/context/ThemeContext';
+import { useT } from '../src/i18n';
 import { fontSizes } from '../src/theme/fonts';
 import { spacing, borderRadius } from '../src/theme/spacing';
 import { verifyCheckoutSession } from '../src/services/stripeWeb';
@@ -9,6 +11,9 @@ import { useUserStore } from '../src/store/userStore';
 import { events } from '../src/services/analytics';
 
 export default function PaymentSuccessScreen() {
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const { session_id } = useLocalSearchParams<{ session_id?: string }>();
   const updateProfile = useUserStore((s) => s.updateProfile);
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
@@ -17,7 +22,7 @@ export default function PaymentSuccessScreen() {
   useEffect(() => {
     if (!session_id) {
       setStatus('error');
-      setErrorMessage('Session manquante');
+      setErrorMessage(t('missingSession'));
       return;
     }
     verifyPayment(session_id);
@@ -35,11 +40,11 @@ export default function PaymentSuccessScreen() {
         setStatus('success');
       } else {
         setStatus('error');
-        setErrorMessage(result.error ?? 'Paiement non confirmé');
+        setErrorMessage(result.error ?? t('paymentNotConfirmed'));
       }
     } catch (error: any) {
       setStatus('error');
-      setErrorMessage(error.message ?? 'Erreur de vérification');
+      setErrorMessage(error.message ?? t('verificationError'));
     }
   };
 
@@ -48,25 +53,25 @@ export default function PaymentSuccessScreen() {
       {status === 'verifying' && (
         <>
           <ActivityIndicator color={colors.primary} size="large" />
-          <Text style={styles.text}>Vérification du paiement...</Text>
+          <Text style={styles.text}>{t("verifyingPayment")}</Text>
         </>
       )}
       {status === 'success' && (
         <>
           <Text style={styles.checkmark}>&#10003;</Text>
-          <Text style={styles.title}>Bienvenue en Premium !</Text>
-          <Text style={styles.text}>Ton abonnement FORGA PRO est maintenant actif.</Text>
+          <Text style={styles.title}>{t("welcomePremium")}</Text>
+          <Text style={styles.text}>{t("premiumActiveMessage")}</Text>
           <Pressable style={styles.button} onPress={() => router.replace('/(tabs)/home')}>
-            <Text style={styles.buttonText}>C'est parti</Text>
+            <Text style={styles.buttonText}>{t("letsGo")}</Text>
           </Pressable>
         </>
       )}
       {status === 'error' && (
         <>
-          <Text style={styles.title}>Oups...</Text>
+          <Text style={styles.title}>{t("oops")}</Text>
           <Text style={styles.text}>{errorMessage}</Text>
           <Pressable style={styles.button} onPress={() => router.replace('/paywall')}>
-            <Text style={styles.buttonText}>Réessayer</Text>
+            <Text style={styles.buttonText}>{t("tryAgain")}</Text>
           </Pressable>
         </>
       )}
@@ -74,7 +79,7 @@ export default function PaymentSuccessScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -114,4 +119,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.white,
   },
-});
+}));

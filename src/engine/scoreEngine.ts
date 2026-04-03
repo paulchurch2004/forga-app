@@ -106,5 +106,10 @@ function calculateDisciplineScore(input: ScoreInput): number {
   // A fait le check-in cette semaine (0-3)
   score += input.thisWeekCheckIn ? 3 : 0;
 
+  // Bonus hydratation : +2 si objectif eau atteint 5+/7 jours
+  if ((input.waterTargetDaysMet ?? 0) >= 5) {
+    score += 2;
+  }
+
   return Math.min(10, score);
 }

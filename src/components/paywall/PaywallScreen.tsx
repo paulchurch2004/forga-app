@@ -2,9 +2,10 @@
 // This file provides a reusable paywall trigger component
 
 import React from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
-import { colors } from '../../theme/colors';
+import { makeStyles } from '../../theme';
+import { useT } from '../../i18n';
 import { fontSizes } from '../../theme/fonts';
 import { spacing, borderRadius } from '../../theme/spacing';
 
@@ -17,6 +18,8 @@ interface PaywallTriggerProps {
  * Inline paywall trigger — shows a locked feature with CTA to open paywall
  */
 export function PaywallTrigger({ feature, trigger }: PaywallTriggerProps) {
+  const styles = useStyles();
+  const { t } = useT();
   return (
     <View style={styles.container}>
       <Text style={styles.lock}>PRO</Text>
@@ -25,13 +28,13 @@ export function PaywallTrigger({ feature, trigger }: PaywallTriggerProps) {
         style={styles.button}
         onPress={() => router.push('/paywall')}
       >
-        <Text style={styles.buttonText}>Débloquer</Text>
+        <Text style={styles.buttonText}>{t('unlock')}</Text>
       </Pressable>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
@@ -72,4 +75,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.white,
   },
-});
+}));

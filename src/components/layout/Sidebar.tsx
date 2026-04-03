@@ -1,19 +1,20 @@
 import React from 'react';
-import { View, Text, Pressable, Image, StyleSheet } from 'react-native';
+import { View, Text, Pressable, Image } from 'react-native';
 import { router, usePathname } from 'expo-router';
-import { colors } from '../../theme/colors';
-import { fonts, fontSizes } from '../../theme/fonts';
-import { spacing, borderRadius, SIDEBAR_WIDTH } from '../../theme/spacing';
-
-const NAV_ITEMS = [
-  { route: '/(tabs)/home', label: 'Accueil', icon: '\u2302' },
-  { route: '/(tabs)/meals', label: 'Repas', icon: '\u2615' },
-  { route: '/(tabs)/coach', label: 'Coach', icon: '\u2709' },
-  { route: '/(tabs)/profile', label: 'Profil', icon: '\u2603' },
-];
+import { makeStyles, fonts, fontSizes, spacing, borderRadius, SIDEBAR_WIDTH } from '../../theme';
+import { useT } from '../../i18n';
 
 export function Sidebar() {
+  const styles = useStyles();
   const pathname = usePathname();
+  const { t } = useT();
+
+  const NAV_ITEMS = [
+    { route: '/(tabs)/home', label: t('tabHome'), icon: '\u2302' },
+    { route: '/(tabs)/meals', label: t('tabMeals'), icon: '\u2615' },
+    { route: '/(tabs)/coach', label: t('tabCoach'), icon: '\u2709' },
+    { route: '/(tabs)/profile', label: t('tabProfile'), icon: '\u2603' },
+  ];
 
   return (
     <View style={styles.container}>
@@ -56,7 +57,7 @@ export function Sidebar() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     width: SIDEBAR_WIDTH,
     backgroundColor: colors.surface,
@@ -130,4 +131,4 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: '700',
   },
-});
+}));

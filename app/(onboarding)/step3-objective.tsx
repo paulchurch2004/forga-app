@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Pressable,
   ScrollView,
   Platform,
@@ -20,7 +19,9 @@ const triggerHaptic = (style: 'light' | 'medium' = 'light') => {
     Haptics.impactAsync(s);
   }).catch(() => {});
 };
-import { colors } from '../../src/theme/colors';
+import { makeStyles } from '../../src/theme';
+import { useTheme } from '../../src/context/ThemeContext';
+import { useT } from '../../src/i18n';
 import { fonts, fontSizes, fontWeights } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
 import type { Objective } from '../../src/types/user';
@@ -35,36 +36,26 @@ interface ObjectiveOption {
   icon: string;
 }
 
-const OBJECTIVES: ObjectiveOption[] = [
-  {
-    value: 'bulk',
-    label: 'Prise de masse',
-    description: 'Construire du muscle',
-    icon: '\u{1F4AA}',
-  },
-  {
-    value: 'cut',
-    label: 'Seche',
-    description: 'Perdre du gras, garder le muscle',
-    icon: '\u{1F525}',
-  },
-  {
-    value: 'maintain',
-    label: 'Maintien',
-    description: 'Rester ou tu es',
-    icon: '\u{2696}\u{FE0F}',
-  },
-  {
-    value: 'recomp',
-    label: 'Recomposition',
-    description: 'Perdre du gras + gagner du muscle',
-    icon: '\u{1F504}',
-  },
+interface ObjectiveOptionDef {
+  value: Objective;
+  labelKey: string;
+  descKey: string;
+  icon: string;
+}
+
+const OBJECTIVES_DEFS: ObjectiveOptionDef[] = [
+  { value: 'bulk', labelKey: 'objectiveBulk', descKey: 'objectiveBulkDesc', icon: '\u{1F4AA}' },
+  { value: 'cut', labelKey: 'objectiveCut', descKey: 'objectiveCutDesc', icon: '\u{1F525}' },
+  { value: 'maintain', labelKey: 'objectiveMaintain', descKey: 'objectiveMaintainDesc', icon: '\u{2696}\u{FE0F}' },
+  { value: 'recomp', labelKey: 'objectiveRecomp', descKey: 'objectiveRecompDesc', icon: '\u{1F504}' },
 ];
 
 export default function Step3Objective() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const onboardingData = useUserStore((s) => s.onboardingData);
   const setOnboardingData = useUserStore((s) => s.setOnboardingData);
 
@@ -95,7 +86,7 @@ export default function Step3Objective() {
     <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
       {/* Progress bar */}
       <View style={styles.progressContainer}>
-        <Pressable onPress={handleBack} hitSlop={12} accessibilityLabel="Retour">
+        <Pressable onPress={handleBack} hitSlop={12} accessibilityLabel={t('back')}>
           <Text style={styles.backArrow}>{'\u2190'}</Text>
         </Pressable>
         <View style={styles.progressTrack}>
@@ -117,15 +108,17 @@ export default function Step3Objective() {
         showsVerticalScrollIndicator={false}
       >
         {/* Title */}
-        <Text style={styles.title}>Quel est ton objectif ?</Text>
+        <Text style={styles.title}>{t('onboardingStep3Title')}</Text>
         <Text style={styles.subtitle}>
-          Choisis celui qui te correspond. On adapte tout en fonction.
+          {t('onboardingStep3Subtitle')}
         </Text>
 
         {/* Objective cards */}
         <View style={styles.cardsContainer}>
-          {OBJECTIVES.map((item) => {
+          {OBJECTIVES_DEFS.map((item) => {
             const isSelected = objective === item.value;
+            const label = t(item.labelKey as any);
+            const desc = t(item.descKey as any);
             return (
               <Pressable
                 key={item.value}
@@ -135,7 +128,7 @@ export default function Step3Objective() {
                 ]}
                 onPress={() => handleSelect(item.value)}
                 accessibilityRole="button"
-                accessibilityLabel={`${item.label}: ${item.description}`}
+                accessibilityLabel={`${label}: ${desc}`}
                 accessibilityState={{ selected: isSelected }}
               >
                 <Text style={styles.objectiveIcon}>{item.icon}</Text>
@@ -146,10 +139,10 @@ export default function Step3Objective() {
                       isSelected && styles.objectiveLabelSelected,
                     ]}
                   >
-                    {item.label}
+                    {label}
                   </Text>
                   <Text style={styles.objectiveDescription}>
-                    {item.description}
+                    {desc}
                   </Text>
                 </View>
                 <View
@@ -173,17 +166,17 @@ export default function Step3Objective() {
           onPress={handleNext}
           disabled={!canContinue}
           accessibilityRole="button"
-          accessibilityLabel="Suivant"
+          accessibilityLabel={t('next')}
           accessibilityState={{ disabled: !canContinue }}
         >
-          <Text style={styles.nextButtonText}>Suivant</Text>
+          <Text style={styles.nextButtonText}>{t('next')}</Text>
         </Pressable>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   flex: {
     flex: 1,
   },
@@ -318,4 +311,4 @@ const styles = StyleSheet.create({
     fontWeight: fontWeights.semibold,
     color: colors.white,
   },
-});
+}));

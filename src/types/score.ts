@@ -37,4 +37,7 @@ export interface ScoreInput {
   // Discipline
   activeDaysLast7: number; // jours actifs cette semaine (0-7)
   thisWeekCheckIn: boolean;
+
+  // Hydratation (optionnel)
+  waterTargetDaysMet?: number; // jours sur 7 où objectif eau atteint (0-7)
 }

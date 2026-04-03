@@ -18,8 +18,10 @@ import { useEngine } from '../../src/hooks/useEngine';
 import { useUserStore } from '../../src/store/userStore';
 import { useMealStore } from '../../src/store/mealStore';
 import { MealPhotoCard } from '../../src/components/meals/MealPhotoCard';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
+import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
+import { useTheme } from '../../src/context/ThemeContext';
 import { useResponsive } from '../../src/hooks/useResponsive';
+import { useT } from '../../src/i18n';
 import { MEAL_SLOT_LABELS, type MealSlot } from '../../src/types/meal';
 import type { Meal } from '../../src/types/meal';
 import type { Budget, Restriction } from '../../src/types/user';
@@ -31,22 +33,6 @@ const FREE_MAX_SUGGESTIONS = 2;
 type BudgetFilter = 'all' | 'eco' | 'premium';
 type RestrictionFilter = 'all' | Restriction;
 
-const BUDGET_FILTERS: { key: BudgetFilter; label: string }[] = [
-  { key: 'all', label: 'Tous' },
-  { key: 'eco', label: 'Eco' },
-  { key: 'premium', label: 'Premium' },
-];
-
-const RESTRICTION_FILTERS: { key: RestrictionFilter; label: string }[] = [
-  { key: 'all', label: 'Tous' },
-  { key: 'vegetarian', label: 'Végétarien' },
-  { key: 'vegan', label: 'Vegan' },
-  { key: 'gluten_free', label: 'Sans gluten' },
-  { key: 'lactose_free', label: 'Sans lactose' },
-  { key: 'halal', label: 'Halal' },
-  { key: 'pork_free', label: 'Sans porc' },
-];
-
 export default function MealsScreen() {
   const insets = useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
@@ -55,6 +41,25 @@ export default function MealsScreen() {
   const { isPremium } = usePremium();
   const engine = useEngine();
   const profile = useUserStore((s) => s.profile);
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const { t } = useT();
+
+  const BUDGET_FILTERS: { key: BudgetFilter; label: string }[] = [
+    { key: 'all', label: t('all') },
+    { key: 'eco', label: t('budgetEco') },
+    { key: 'premium', label: t('budgetPremium') },
+  ];
+
+  const RESTRICTION_FILTERS: { key: RestrictionFilter; label: string }[] = [
+    { key: 'all', label: t('all') },
+    { key: 'vegetarian', label: t('restrictionVegetarian') },
+    { key: 'vegan', label: t('restrictionVegan') },
+    { key: 'gluten_free', label: t('restrictionGlutenFree') },
+    { key: 'lactose_free', label: t('restrictionLactoseFree') },
+    { key: 'halal', label: t('restrictionHalal') },
+    { key: 'pork_free', label: t('restrictionPorkFree') },
+  ];
 
   const [budgetFilter, setBudgetFilter] = useState<BudgetFilter>('all');
   const [restrictionFilter, setRestrictionFilter] = useState<RestrictionFilter>('all');
@@ -187,13 +192,13 @@ export default function MealsScreen() {
               },
             ]}
           >
-            {item.budget === 'eco' ? 'eco' : 'premium'}
+            {item.budget === 'eco' ? t('budgetEco').toLowerCase() : t('budgetPremium').toLowerCase()}
           </Text>
         </View>
         <Text style={styles.textMealArrow}>{'\u203A'}</Text>
       </Pressable>
     ),
-    [handleMealPress]
+    [handleMealPress, styles, colors, t]
   );
 
   const keyExtractor = useCallback((item: Meal) => item.id, []);
@@ -203,14 +208,14 @@ export default function MealsScreen() {
       {/* Header */}
       <View style={[styles.header, { maxWidth: contentMaxWidth }]}>
         <Pressable onPress={() => router.push('/(tabs)/home')} hitSlop={16} style={styles.backRow}>
-          <Text style={styles.backArrow}>{'\u2039'} Accueil</Text>
+          <Text style={styles.backArrow}>{'\u2039'} {t('home')}</Text>
         </Pressable>
         <Text style={styles.headerTitle}>{currentSlotLabel}</Text>
         <View style={styles.headerMeta}>
           <Text style={styles.headerTime}>{currentSlotTime}</Text>
           <View style={styles.headerDot} />
           <Text style={styles.headerMacroTarget}>
-            {Math.round(slotTargetMacros.calories)} kcal cible
+            {t('kcalTarget', { count: Math.round(slotTargetMacros.calories) })}
           </Text>
         </View>
         <View style={styles.headerTargetRow}>
@@ -239,7 +244,7 @@ export default function MealsScreen() {
       <View style={[styles.searchContainer, { maxWidth: contentMaxWidth }]}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Rechercher un repas ou ingrédient..."
+          placeholder={t('searchMeal')}
           placeholderTextColor={colors.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}
@@ -329,7 +334,7 @@ export default function MealsScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                Aucun repas ne correspond à tes filtres.
+                {t('noMealsFound')}
               </Text>
             </View>
           }
@@ -346,7 +351,7 @@ export default function MealsScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>
-                Aucun repas ne correspond à tes filtres.
+                {t('noMealsFound')}
               </Text>
             </View>
           }
@@ -354,15 +359,14 @@ export default function MealsScreen() {
             remainingCount > 0 ? (
               <Pressable style={styles.paywallBanner} onPress={handlePaywall}>
                 <Text style={styles.paywallBannerTitle}>
-                  +{remainingCount} repas disponibles
+                  {t('moreMealsAvailable', { count: remainingCount })}
                 </Text>
                 <Text style={styles.paywallBannerSubtitle}>
-                  Passe a FORGA PRO pour toutes les suggestions,
-                  photos et recettes détaillées.
+                  {t('paywallProSubtitle')}
                 </Text>
                 <View style={styles.paywallButton}>
                   <Text style={styles.paywallButtonText}>
-                    Débloquer FORGA PRO
+                    {t('unlockPro')}
                   </Text>
                 </View>
               </Pressable>
@@ -417,7 +421,7 @@ const targetStyles = StyleSheet.create({
   },
 });
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -662,4 +666,4 @@ const styles = StyleSheet.create({
   favToggleTextActive: {
     color: colors.white,
   },
-});
+}));

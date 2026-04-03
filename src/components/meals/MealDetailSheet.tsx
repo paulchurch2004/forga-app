@@ -3,7 +3,6 @@ import {
   View,
   Text,
   Image,
-  StyleSheet,
   ScrollView,
   Pressable,
   useWindowDimensions,
@@ -11,7 +10,9 @@ import {
 import { IngredientRow } from './IngredientRow';
 import { RecipeSteps } from './RecipeSteps';
 import { Button } from '../ui/Button';
-import { colors, fonts, fontSizes, spacing, borderRadius, shadows, MAX_CONTENT_WIDTH } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius, shadows, MAX_CONTENT_WIDTH } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
+import { useT } from '../../i18n';
 import { useResponsive } from '../../hooks/useResponsive';
 import type { Meal, AdjustedIngredient } from '../../types/meal';
 import type { MacroTarget } from '../../types/engine';
@@ -46,26 +47,27 @@ function MacroBar({
   color,
   unit,
 }: MacroBarData) {
+  const mbStyles = useMacroBarStyles();
   const percent = target > 0 ? Math.min(100, (value / target) * 100) : 0;
 
   return (
-    <View style={macroBarStyles.container}>
-      <View style={macroBarStyles.header}>
-        <Text style={[macroBarStyles.label, { color }]}>{label}</Text>
-        <Text style={macroBarStyles.values}>
-          <Text style={[macroBarStyles.current, { color }]}>
+    <View style={mbStyles.container}>
+      <View style={mbStyles.header}>
+        <Text style={[mbStyles.label, { color }]}>{label}</Text>
+        <Text style={mbStyles.values}>
+          <Text style={[mbStyles.current, { color }]}>
             {Math.round(value)}
           </Text>
-          <Text style={macroBarStyles.separator}> / </Text>
-          <Text style={macroBarStyles.target}>
+          <Text style={mbStyles.separator}> / </Text>
+          <Text style={mbStyles.target}>
             {Math.round(target)}{unit}
           </Text>
         </Text>
       </View>
-      <View style={macroBarStyles.track}>
+      <View style={mbStyles.track}>
         <View
           style={[
-            macroBarStyles.fill,
+            mbStyles.fill,
             {
               width: `${percent}%`,
               backgroundColor: color,
@@ -91,6 +93,9 @@ export function MealDetailSheet({
   onShowPaywall,
   validating = false,
 }: MealDetailSheetProps) {
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const { width: windowWidth } = useWindowDimensions();
   const { contentMaxWidth } = useResponsive();
   const contentWidth = Math.min(windowWidth, contentMaxWidth);
@@ -99,35 +104,35 @@ export function MealDetailSheet({
   const macroBars: MacroBarData[] = useMemo(
     () => [
       {
-        label: 'Calories',
+        label: t('caloriesLabel'),
         value: adjustedMacros.calories,
         target: slotTargetMacros.calories,
         color: colors.calories,
         unit: 'kcal',
       },
       {
-        label: 'Protéines',
+        label: t('proteinLabel'),
         value: adjustedMacros.protein,
         target: slotTargetMacros.protein,
         color: colors.protein,
         unit: 'g',
       },
       {
-        label: 'Glucides',
+        label: t('carbsLabel'),
         value: adjustedMacros.carbs,
         target: slotTargetMacros.carbs,
         color: colors.carbs,
         unit: 'g',
       },
       {
-        label: 'Lipides',
+        label: t('fatLabel'),
         value: adjustedMacros.fat,
         target: slotTargetMacros.fat,
         color: colors.fat,
         unit: 'g',
       },
     ],
-    [adjustedMacros, slotTargetMacros]
+    [adjustedMacros, slotTargetMacros, colors, t]
   );
 
   const budgetLabel = meal.budget === 'eco' ? 'eco' : 'premium';
@@ -181,7 +186,7 @@ export function MealDetailSheet({
             <View style={styles.metaRow}>
               <View style={styles.metaChip}>
                 <Text style={styles.metaChipText}>
-                  {meal.prepTimeMin} min
+                  {meal.prepTimeMin} {t('minutes')}
                 </Text>
               </View>
               <View style={styles.metaChip}>
@@ -190,14 +195,14 @@ export function MealDetailSheet({
                     ? 'Facile'
                     : meal.difficulty === 2
                     ? 'Moyen'
-                    : 'Avancé'}
+                    : 'Avance'}
                 </Text>
               </View>
             </View>
 
             {/* Macro bars */}
             <View style={styles.macroSection}>
-              <Text style={styles.sectionTitle}>Macros personnalisées</Text>
+              <Text style={styles.sectionTitle}>{t('macrosPerPortion')}</Text>
               {macroBars.map((bar) => (
                 <MacroBar key={bar.label} {...bar} />
               ))}
@@ -206,7 +211,7 @@ export function MealDetailSheet({
             {/* Ingredients */}
             <View style={styles.ingredientSection}>
               <Text style={styles.sectionTitle}>
-                Ingrédients ({adjustedIngredients.length})
+                {t('ingredients')} ({adjustedIngredients.length})
               </Text>
               {adjustedIngredients.map((ing, index) => (
                 <IngredientRow
@@ -223,12 +228,12 @@ export function MealDetailSheet({
               <RecipeSteps steps={meal.recipeSteps} />
             ) : (
               <View style={styles.paywallSection}>
-                <Text style={styles.paywallTitle}>Recette détaillée</Text>
+                <Text style={styles.paywallTitle}>{t('recipe')}</Text>
                 <Text style={styles.paywallText}>
-                  La recette étape par étape est disponible pour les membres FORGA PRO.
+                  La recette etape par etape est disponible pour les membres FORGA PRO.
                 </Text>
                 <Button
-                  title="Débloquer avec FORGA PRO"
+                  title={t('unlockPro')}
                   variant="primary"
                   size="md"
                   fullWidth
@@ -244,11 +249,11 @@ export function MealDetailSheet({
       <View style={styles.bottomBar}>
         <View style={[styles.bottomActions, { maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center' as const, width: '100%' }]}>
           <Pressable style={styles.secondaryAction} onPress={onGoBack}>
-            <Text style={styles.secondaryActionText}>Voir un autre</Text>
+            <Text style={styles.secondaryActionText}>{t('seeAnother')}</Text>
           </Pressable>
           <View style={styles.primaryActionWrapper}>
             <Button
-              title="Valider ce repas"
+              title={t('validateMeal')}
               variant="primary"
               size="lg"
               fullWidth
@@ -262,7 +267,7 @@ export function MealDetailSheet({
   );
 }
 
-const macroBarStyles = StyleSheet.create({
+const useMacroBarStyles = makeStyles((colors) => ({
   container: {
     marginBottom: spacing.md,
   },
@@ -301,9 +306,9 @@ const macroBarStyles = StyleSheet.create({
     height: '100%',
     borderRadius: borderRadius.full,
   },
-});
+}));
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -326,7 +331,11 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   photoOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.2)',
   },
   closeButton: {
@@ -479,6 +488,6 @@ const styles = StyleSheet.create({
   primaryActionWrapper: {
     flex: 1,
   },
-});
+}));
 
 export default MealDetailSheet;

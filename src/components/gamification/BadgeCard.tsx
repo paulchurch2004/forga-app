@@ -1,6 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { View, Text } from 'react-native';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
 import { BADGE_INFO, type BadgeType } from '../../types/user';
 
 const BADGE_ICONS: Record<BadgeType, string> = {
@@ -11,14 +12,6 @@ const BADGE_ICONS: Record<BadgeType, string> = {
   month_of_forge: '\uD83C\uDFC6',
 };
 
-const BADGE_COLORS: Record<BadgeType, string> = {
-  first_meal: colors.success,
-  first_week: colors.primary,
-  first_kilo: colors.carbs,
-  forgeron: colors.fat,
-  month_of_forge: '#FFD700',
-};
-
 interface BadgeCardProps {
   type: BadgeType;
   unlocked: boolean;
@@ -26,8 +19,19 @@ interface BadgeCardProps {
 }
 
 export function BadgeCard({ type, unlocked, unlockedAt }: BadgeCardProps) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const info = BADGE_INFO[type];
   const icon = BADGE_ICONS[type];
+
+  const BADGE_COLORS: Record<BadgeType, string> = {
+    first_meal: colors.success,
+    first_week: colors.primary,
+    first_kilo: colors.carbs,
+    forgeron: colors.fat,
+    month_of_forge: '#FFD700',
+  };
+
   const color = unlocked ? BADGE_COLORS[type] : colors.textMuted;
 
   return (
@@ -49,7 +53,7 @@ export function BadgeCard({ type, unlocked, unlockedAt }: BadgeCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     flex: 1,
     alignItems: 'center',
@@ -93,4 +97,4 @@ const styles = StyleSheet.create({
   locked: {
     fontSize: 12,
   },
-});
+}));

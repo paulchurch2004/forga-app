@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
 import { getScoreColor, getScoreLabel } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
+import { useT } from '../../i18n';
 import { BADGE_INFO, type BadgeType } from '../../types/user';
 
 const BADGE_EMOJIS: Record<BadgeType, string> = {
@@ -37,6 +39,9 @@ type ShareCardProps =
   | { type: 'badge'; data: BadgeData };
 
 export function ShareCard(props: ShareCardProps) {
+  const styles = useStyles();
+  const { t } = useT();
+
   return (
     <View style={styles.card}>
       <LinearGradient
@@ -69,24 +74,28 @@ export function ShareCard(props: ShareCardProps) {
 }
 
 function ScoreContent({ data }: { data: ScoreData }) {
+  const styles = useStyles();
+  const { t } = useT();
+
   return (
     <>
       <Text style={[styles.bigNumber, { color: getScoreColor(data.total) }]}>
         {data.total}
       </Text>
       <Text style={styles.bigLabel}>{getScoreLabel(data.total)}</Text>
-      <Text style={styles.motivText}>Mon score FORGA</Text>
+      <Text style={styles.motivText}>{t('shareScore')}</Text>
       <View style={styles.scoreBars}>
-        <ScoreBar label="Nutrition" value={data.nutrition} max={40} />
-        <ScoreBar label="Régularité" value={data.consistency} max={30} />
-        <ScoreBar label="Progression" value={data.progression} max={20} />
-        <ScoreBar label="Discipline" value={data.discipline} max={10} />
+        <ScoreBar label={t('pillarNutrition')} value={data.nutrition} max={40} />
+        <ScoreBar label={t('pillarConsistency')} value={data.consistency} max={30} />
+        <ScoreBar label={t('pillarProgression')} value={data.progression} max={20} />
+        <ScoreBar label={t('pillarDiscipline')} value={data.discipline} max={10} />
       </View>
     </>
   );
 }
 
 function ScoreBar({ label, value, max }: { label: string; value: number; max: number }) {
+  const styles = useStyles();
   const pct = Math.min(100, (value / max) * 100);
   return (
     <View style={styles.barRow}>
@@ -100,18 +109,23 @@ function ScoreBar({ label, value, max }: { label: string; value: number; max: nu
 }
 
 function StreakContent({ data }: { data: StreakData }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
+
   return (
     <>
       <Text style={styles.streakEmoji}>{'\uD83D\uDD25'}</Text>
       <Text style={[styles.bigNumber, { color: colors.primary }]}>{data.current}</Text>
-      <Text style={styles.bigLabel}>jours de streak</Text>
-      <Text style={styles.motivText}>La régularité paie.</Text>
+      <Text style={styles.bigLabel}>{t('daysStreak')}</Text>
+      <Text style={styles.motivText}>La regularite paie.</Text>
       <Text style={styles.subStat}>Record personnel : {data.best} jours</Text>
     </>
   );
 }
 
 function BadgeContent({ data }: { data: BadgeData }) {
+  const styles = useStyles();
   const info = BADGE_INFO[data.type];
   const emoji = BADGE_EMOJIS[data.type];
   const date = new Date(data.unlockedAt).toLocaleDateString('fr-FR', {
@@ -125,14 +139,14 @@ function BadgeContent({ data }: { data: BadgeData }) {
       <Text style={styles.badgeEmoji}>{emoji}</Text>
       <Text style={styles.badgeName}>{info.name}</Text>
       <Text style={styles.badgeDesc}>{info.description}</Text>
-      <Text style={styles.motivText}>Badge débloqué !</Text>
+      <Text style={styles.motivText}>Badge debloque !</Text>
       <Text style={styles.badgeDate}>Obtenu le {date}</Text>
     </>
   );
 }
 
 // 9:16 story format (360x640, exported at 3x = 1080x1920)
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     width: 360,
     height: 640,
@@ -279,4 +293,4 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.3)',
     letterSpacing: 2,
   },
-});
+}));

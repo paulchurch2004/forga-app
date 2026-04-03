@@ -22,7 +22,9 @@ const triggerHaptic = (style: 'light' | 'medium' = 'light') => {
     Haptics.impactAsync(s);
   }).catch(() => {});
 };
-import { colors } from '../../src/theme/colors';
+import { makeStyles } from '../../src/theme';
+import { useTheme } from '../../src/context/ThemeContext';
+import { useT } from '../../src/i18n';
 import { fonts, fontSizes, fontWeights } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
 import type { Sex } from '../../src/types/user';
@@ -33,6 +35,9 @@ const TOTAL_STEPS = 7;
 export default function Step1Identity() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const onboardingData = useUserStore((s) => s.onboardingData);
   const setOnboardingData = useUserStore((s) => s.setOnboardingData);
 
@@ -85,11 +90,11 @@ export default function Step1Identity() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Title */}
-          <Text style={styles.title}>On commence.</Text>
-          <Text style={styles.subtitle}>Pas de blabla. Dis-nous qui tu es.</Text>
+          <Text style={styles.title}>{t('onboardingStep1Title')}</Text>
+          <Text style={styles.subtitle}>{t('onboardingStep1Subtitle')}</Text>
 
           {/* Sex selection */}
-          <Text style={styles.sectionLabel}>Ton sexe</Text>
+          <Text style={styles.sectionLabel}>{t('yourSex')}</Text>
           <View style={styles.sexRow}>
             <Pressable
               style={[
@@ -98,7 +103,7 @@ export default function Step1Identity() {
               ]}
               onPress={() => handleSexSelect('male')}
               accessibilityRole="button"
-              accessibilityLabel="Homme"
+              accessibilityLabel={t('male')}
               accessibilityState={{ selected: sex === 'male' }}
             >
               <Text style={styles.sexEmoji}>{'\u{1F4AA}'}</Text>
@@ -108,7 +113,7 @@ export default function Step1Identity() {
                   sex === 'male' && styles.sexLabelSelected,
                 ]}
               >
-                Homme
+                {t('male')}
               </Text>
             </Pressable>
 
@@ -119,7 +124,7 @@ export default function Step1Identity() {
               ]}
               onPress={() => handleSexSelect('female')}
               accessibilityRole="button"
-              accessibilityLabel="Femme"
+              accessibilityLabel={t('female')}
               accessibilityState={{ selected: sex === 'female' }}
             >
               <Text style={styles.sexEmoji}>{'\u{1F4AA}'}</Text>
@@ -129,13 +134,13 @@ export default function Step1Identity() {
                   sex === 'female' && styles.sexLabelSelected,
                 ]}
               >
-                Femme
+                {t('female')}
               </Text>
             </Pressable>
           </View>
 
           {/* Age input */}
-          <Text style={styles.sectionLabel}>Ton âge</Text>
+          <Text style={styles.sectionLabel}>{t('yourAge')}</Text>
           <View style={styles.ageInputContainer}>
             <TextInput
               style={styles.ageInput}
@@ -149,13 +154,13 @@ export default function Step1Identity() {
               keyboardType="number-pad"
               maxLength={2}
               returnKeyType="done"
-              accessibilityLabel="Age"
+              accessibilityLabel={t('age')}
             />
-            <Text style={styles.ageUnit}>ans</Text>
+            <Text style={styles.ageUnit}>{t('years')}</Text>
           </View>
           {age.length > 0 && !isAgeValid && (
             <Text style={styles.errorText}>
-              L'âge doit être entre 14 et 65 ans.
+              {t('ageError')}
             </Text>
           )}
         </ScrollView>
@@ -167,11 +172,11 @@ export default function Step1Identity() {
             onPress={handleNext}
             disabled={!canContinue}
             accessibilityRole="button"
-            accessibilityLabel="Suivant"
+            accessibilityLabel={t('next')}
             accessibilityState={{ disabled: !canContinue }}
           >
             <Text style={[styles.nextButtonText, !canContinue && styles.nextButtonTextDisabled]}>
-              Suivant
+              {t('next')}
             </Text>
           </Pressable>
         </View>
@@ -180,7 +185,7 @@ export default function Step1Identity() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   flex: {
     flex: 1,
   },
@@ -328,4 +333,4 @@ const styles = StyleSheet.create({
   nextButtonTextDisabled: {
     color: colors.white,
   },
-});
+}));

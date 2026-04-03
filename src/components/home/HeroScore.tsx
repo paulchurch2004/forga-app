@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import Svg, { Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import Animated, {
   useSharedValue,
@@ -11,8 +11,10 @@ import Animated, {
   FadeInDown,
 } from 'react-native-reanimated';
 import { ScoreDisplay } from '../ui/ScoreDisplay';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
 import { getScoreColor } from '../../theme/colors';
+import { useTheme } from '../../context/ThemeContext';
+import { useT } from '../../i18n';
 import type { ForgaScore } from '../../types/score';
 
 const EASE_OUT = Easing.out(Easing.cubic);
@@ -24,7 +26,7 @@ interface HeroScoreProps {
   target: { calories: number; protein: number; carbs: number; fat: number };
 }
 
-/* ── Macro Pill ── */
+/* -- Macro Pill -- */
 
 interface MacroPillProps {
   label: string;
@@ -35,6 +37,7 @@ interface MacroPillProps {
 }
 
 function MacroPill({ label, current, target, color, unit }: MacroPillProps) {
+  const pillS = usePillStyles();
   const progress = target > 0 ? Math.min(1, current / target) : 0;
   const animatedWidth = useSharedValue(0);
 
@@ -50,26 +53,29 @@ function MacroPill({ label, current, target, color, unit }: MacroPillProps) {
   }));
 
   return (
-    <View style={pillStyles.container}>
-      <View style={pillStyles.header}>
-        <View style={[pillStyles.dot, { backgroundColor: color }]} />
-        <Text style={[pillStyles.label, { color }]}>{label}</Text>
-        <Text style={pillStyles.values}>
+    <View style={pillS.container}>
+      <View style={pillS.header}>
+        <View style={[pillS.dot, { backgroundColor: color }]} />
+        <Text style={[pillS.label, { color }]}>{label}</Text>
+        <Text style={pillS.values}>
           {Math.round(current)}/{Math.round(target)}{unit}
         </Text>
       </View>
-      <View style={pillStyles.track}>
+      <View style={pillS.track}>
         <Animated.View
-          style={[pillStyles.fill, { backgroundColor: color }, fillStyle]}
+          style={[pillS.fill, { backgroundColor: color }, fillStyle]}
         />
       </View>
     </View>
   );
 }
 
-/* ── Hero Score ── */
+/* -- Hero Score -- */
 
 export function HeroScore({ score, weeklyChange, consumed, target }: HeroScoreProps) {
+  const { colors } = useTheme();
+  const { t } = useT();
+  const styles = useStyles();
   const scoreColor = getScoreColor(score.total);
   const changeColor = weeklyChange >= 0 ? colors.success : colors.error;
   const changePrefix = weeklyChange >= 0 ? '+' : '';
@@ -122,14 +128,14 @@ export function HeroScore({ score, weeklyChange, consumed, target }: HeroScorePr
       {/* Weekly change badge */}
       <Animated.View entering={FadeIn.delay(400).duration(300)} style={styles.changeBadge}>
         <Text style={[styles.changeText, { color: changeColor }]}>
-          {changePrefix}{weeklyChange} pts cette semaine
+          {t('ptsThisWeek', { change: `${changePrefix}${weeklyChange}` })}
         </Text>
       </Animated.View>
 
       {/* Calorie progress */}
       <Animated.View entering={FadeInDown.delay(600).duration(400)} style={styles.calorieSection}>
         <View style={styles.calorieHeader}>
-          <Text style={styles.calorieLabel}>Calories</Text>
+          <Text style={styles.calorieLabel}>{t('calories')}</Text>
           <Text style={styles.calorieValues}>
             <Text style={styles.calorieConsumed}>{Math.round(consumed.calories)}</Text>
             <Text style={styles.calorieSep}> / </Text>
@@ -140,7 +146,7 @@ export function HeroScore({ score, weeklyChange, consumed, target }: HeroScorePr
           <Animated.View style={[styles.calorieFill, calorieBarStyle]} />
         </View>
         <Text style={styles.calorieRemaining}>
-          {Math.round(caloriesRemaining)} kcal restant
+          {t('caloriesRemaining', { count: Math.round(caloriesRemaining) })}
         </Text>
       </Animated.View>
 
@@ -172,7 +178,7 @@ export function HeroScore({ score, weeklyChange, consumed, target }: HeroScorePr
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   hero: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.xl,
@@ -268,9 +274,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginTop: spacing.lg,
   },
-});
+}));
 
-const pillStyles = StyleSheet.create({
+const usePillStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
   },
@@ -310,6 +316,6 @@ const pillStyles = StyleSheet.create({
     left: 0,
     top: 0,
   },
-});
+}));
 
 export default HeroScore;

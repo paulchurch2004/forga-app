@@ -1,15 +1,32 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { ProgressCircle } from './ProgressCircle';
-import { colors, fonts, fontSizes, spacing } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
+import { useT } from '../../i18n';
+import type { TranslationKey } from '../../i18n';
 
 export type MacroType = 'protein' | 'carbs' | 'fat' | 'calories';
 
-const MACRO_CONFIG: Record<MacroType, { color: string; label: string; unit: string }> = {
-  protein: { color: colors.protein, label: 'Protéines', unit: 'g' },
-  carbs: { color: colors.carbs, label: 'Glucides', unit: 'g' },
-  fat: { color: colors.fat, label: 'Lipides', unit: 'g' },
-  calories: { color: colors.calories, label: 'Calories', unit: 'kcal' },
+const MACRO_LABEL_KEYS: Record<MacroType, TranslationKey> = {
+  protein: 'proteinLabel',
+  carbs: 'carbsLabel',
+  fat: 'fatLabel',
+  calories: 'caloriesLabel',
+};
+
+const MACRO_UNITS: Record<MacroType, string> = {
+  protein: 'g',
+  carbs: 'g',
+  fat: 'g',
+  calories: 'kcal',
+};
+
+const MACRO_COLOR_KEYS: Record<MacroType, 'protein' | 'carbs' | 'fat' | 'calories'> = {
+  protein: 'protein',
+  carbs: 'carbs',
+  fat: 'fat',
+  calories: 'calories',
 };
 
 export interface MacroRingProps {
@@ -32,7 +49,13 @@ export function MacroRing({
   size = 80,
   strokeWidth = 6,
 }: MacroRingProps) {
-  const config = MACRO_CONFIG[type];
+  const { colors } = useTheme();
+  const { t } = useT();
+  const styles = useStyles();
+
+  const color = colors[MACRO_COLOR_KEYS[type]];
+  const label = t(MACRO_LABEL_KEYS[type]);
+  const unit = MACRO_UNITS[type];
   const progress = target > 0 ? current / target : 0;
 
   const formatValue = (val: number): string => {
@@ -50,21 +73,21 @@ export function MacroRing({
         progress={progress}
         size={size}
         strokeWidth={strokeWidth}
-        color={config.color}
+        color={color}
         value={formatValue(current)}
         valueFontSize={size >= 80 ? fontSizes.lg : fontSizes.sm}
       />
-      <Text style={[styles.label, { color: config.color }]} numberOfLines={1}>
-        {config.label}
+      <Text style={[styles.label, { color }]} numberOfLines={1}>
+        {label}
       </Text>
       <Text style={styles.target} numberOfLines={1}>
-        {Math.round(current)}/{Math.round(target)}{config.unit}
+        {Math.round(current)}/{Math.round(target)}{unit}
       </Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     alignItems: 'center',
   },
@@ -80,6 +103,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
   },
-});
+}));
 
 export default MacroRing;

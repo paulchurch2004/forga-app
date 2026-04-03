@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Pressable,
   ScrollView,
   Platform,
@@ -20,7 +19,9 @@ const triggerHaptic = (style: 'light' | 'medium' = 'light') => {
     Haptics.impactAsync(s);
   }).catch(() => {});
 };
-import { colors } from '../../src/theme/colors';
+import { makeStyles } from '../../src/theme';
+import { useTheme } from '../../src/context/ThemeContext';
+import { useT } from '../../src/i18n';
 import { fonts, fontSizes, fontWeights } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
 import type { Budget, Restriction } from '../../src/types/user';
@@ -35,21 +36,9 @@ interface BudgetOption {
 }
 
 const BUDGET_OPTIONS: BudgetOption[] = [
-  {
-    value: 'eco',
-    label: 'Eco',
-    description: 'Courses a petit prix',
-  },
-  {
-    value: 'premium',
-    label: 'Premium',
-    description: 'Qualite avant tout',
-  },
-  {
-    value: 'both',
-    label: 'Les deux',
-    description: 'On s\'adapte',
-  },
+  { value: 'eco', label: 'budgetEco', description: 'budgetEcoDesc' },
+  { value: 'premium', label: 'budgetPremium', description: 'budgetPremiumDesc' },
+  { value: 'both', label: 'budgetBoth', description: 'budgetBothDesc' },
 ];
 
 interface RestrictionOption {
@@ -58,17 +47,20 @@ interface RestrictionOption {
 }
 
 const RESTRICTION_OPTIONS: RestrictionOption[] = [
-  { value: 'vegetarian', label: 'Vegetarien' },
-  { value: 'vegan', label: 'Vegan' },
-  { value: 'gluten_free', label: 'Sans gluten' },
-  { value: 'lactose_free', label: 'Sans lactose' },
-  { value: 'halal', label: 'Halal' },
-  { value: 'pork_free', label: 'Sans porc' },
+  { value: 'vegetarian', label: 'restrictionVegetarian' },
+  { value: 'vegan', label: 'restrictionVegan' },
+  { value: 'gluten_free', label: 'restrictionGlutenFree' },
+  { value: 'lactose_free', label: 'restrictionLactoseFree' },
+  { value: 'halal', label: 'restrictionHalal' },
+  { value: 'pork_free', label: 'restrictionPorkFree' },
 ];
 
 export default function Step6Preferences() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const onboardingData = useUserStore((s) => s.onboardingData);
   const setOnboardingData = useUserStore((s) => s.setOnboardingData);
 
@@ -110,7 +102,7 @@ export default function Step6Preferences() {
     <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
       {/* Progress bar */}
       <View style={styles.progressContainer}>
-        <Pressable onPress={handleBack} hitSlop={12} accessibilityLabel="Retour">
+        <Pressable onPress={handleBack} hitSlop={12} accessibilityLabel={t("back")}>
           <Text style={styles.backArrow}>{'\u2190'}</Text>
         </Pressable>
         <View style={styles.progressTrack}>
@@ -132,13 +124,13 @@ export default function Step6Preferences() {
         showsVerticalScrollIndicator={false}
       >
         {/* Title */}
-        <Text style={styles.title}>Tes preferences.</Text>
+        <Text style={styles.title}>{t("onboardingStep6Title")}</Text>
         <Text style={styles.subtitle}>
-          Optionnel, mais ca aide a personnaliser tes repas.
+          {t("onboardingStep6Subtitle")}
         </Text>
 
         {/* Budget selection */}
-        <Text style={styles.sectionLabel}>Budget courses</Text>
+        <Text style={styles.sectionLabel}>{t("shoppingBudget")}</Text>
         <View style={styles.budgetRow}>
           {BUDGET_OPTIONS.map((option) => {
             const isSelected = budget === option.value;
@@ -151,7 +143,7 @@ export default function Step6Preferences() {
                 ]}
                 onPress={() => handleBudgetSelect(option.value)}
                 accessibilityRole="button"
-                accessibilityLabel={`${option.label}: ${option.description}`}
+                accessibilityLabel={`${t(option.label as any)}: ${t(option.description as any)}`}
                 accessibilityState={{ selected: isSelected }}
               >
                 <Text
@@ -160,10 +152,10 @@ export default function Step6Preferences() {
                     isSelected && styles.budgetLabelSelected,
                   ]}
                 >
-                  {option.label}
+                  {t(option.label as any)}
                 </Text>
                 <Text style={styles.budgetDescription}>
-                  {option.description}
+                  {t(option.description as any)}
                 </Text>
               </Pressable>
             );
@@ -172,10 +164,10 @@ export default function Step6Preferences() {
 
         {/* Restrictions */}
         <Text style={[styles.sectionLabel, { marginTop: spacing['3xl'] }]}>
-          Restrictions alimentaires
+          {t("dietaryRestrictions")}
         </Text>
         <Text style={styles.restrictionHint}>
-          Selectionne si besoin. Rien n'est obligatoire.
+          {t("restrictionHint")}
         </Text>
         <View style={styles.chipsContainer}>
           {RESTRICTION_OPTIONS.map((option) => {
@@ -189,7 +181,7 @@ export default function Step6Preferences() {
                 ]}
                 onPress={() => handleRestrictionToggle(option.value)}
                 accessibilityRole="checkbox"
-                accessibilityLabel={option.label}
+                accessibilityLabel={t(option.label as any)}
                 accessibilityState={{ checked: isSelected }}
               >
                 <Text
@@ -198,7 +190,7 @@ export default function Step6Preferences() {
                     isSelected && styles.chipTextSelected,
                   ]}
                 >
-                  {option.label}
+                  {t(option.label as any)}
                 </Text>
               </Pressable>
             );
@@ -213,17 +205,17 @@ export default function Step6Preferences() {
           onPress={handleNext}
           disabled={!canContinue}
           accessibilityRole="button"
-          accessibilityLabel="Suivant"
+          accessibilityLabel={t("next")}
           accessibilityState={{ disabled: !canContinue }}
         >
-          <Text style={styles.nextButtonText}>Suivant</Text>
+          <Text style={styles.nextButtonText}>{t("next")}</Text>
         </Pressable>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   flex: {
     flex: 1,
   },
@@ -372,4 +364,4 @@ const styles = StyleSheet.create({
     fontWeight: fontWeights.semibold,
     color: colors.white,
   },
-});
+}));

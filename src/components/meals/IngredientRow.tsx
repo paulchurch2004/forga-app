@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import { colors, fonts, fontSizes, spacing } from '../../theme';
+import { View, Text } from 'react-native';
+import { makeStyles, fonts, fontSizes, spacing } from '../../theme';
 import type { AdjustedIngredient, MealIngredient } from '../../types/meal';
 
 interface IngredientRowProps {
@@ -20,6 +20,7 @@ export function IngredientRow({
   showAdjusted = true,
   index,
 }: IngredientRowProps) {
+  const styles = useStyles();
   const name = ingredient?.name ?? baseIngredient?.name ?? '';
   let quantity: string;
 
@@ -55,7 +56,7 @@ function formatBaseQuantity(qty: number, unit: 'g' | 'ml' | 'unit'): string {
   return `${Math.round(qty)}${unit}`;
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -91,6 +92,6 @@ const styles = StyleSheet.create({
     minWidth: 60,
     textAlign: 'right',
   },
-});
+}));
 
 export default IngredientRow;

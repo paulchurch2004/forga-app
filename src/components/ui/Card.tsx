@@ -3,7 +3,6 @@ import {
   View,
   Text,
   Pressable,
-  StyleSheet,
   type ViewStyle,
 } from 'react-native';
 import Animated, {
@@ -11,7 +10,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
 } from 'react-native-reanimated';
-import { colors, fonts, fontSizes, spacing, borderRadius, shadows } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius, shadows } from '../../theme';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -32,6 +31,7 @@ export function Card({
   style,
   noPadding = false,
 }: CardProps) {
+  const styles = useStyles();
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -83,7 +83,7 @@ export function Card({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
@@ -109,6 +109,6 @@ const styles = StyleSheet.create({
   body: {
     padding: spacing.lg,
   },
-});
+}));
 
 export default Card;

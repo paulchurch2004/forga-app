@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { View, Text, Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { getMealById } from '../../src/data/meals';
 import { useMealStore } from '../../src/store/mealStore';
@@ -11,7 +11,8 @@ import { useScore } from '../../src/hooks/useScore';
 import { useStreak } from '../../src/hooks/useStreak';
 import { calculatePortions } from '../../src/engine/portionCalculator';
 import { MealDetailSheet } from '../../src/components/meals/MealDetailSheet';
-import { colors, fonts, fontSizes } from '../../src/theme';
+import { makeStyles, fonts, fontSizes } from '../../src/theme';
+import { useT } from '../../src/i18n';
 
 function generateId(): string {
   return `dm_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -20,6 +21,8 @@ function generateId(): string {
 export default function MealDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [validating, setValidating] = useState(false);
+  const styles = useStyles();
+  const { t } = useT();
 
   const profile = useUserStore((s) => s.profile);
   const addValidatedMeal = useMealStore((s) => s.addValidatedMeal);
@@ -106,8 +109,8 @@ export default function MealDetailScreen() {
       }
     } catch (error) {
       Alert.alert(
-        'Erreur',
-        'Impossible de valider le repas. Réessaie.',
+        t('error'),
+        t('cannotValidateMeal'),
         [{ text: 'OK' }]
       );
     } finally {
@@ -123,6 +126,7 @@ export default function MealDetailScreen() {
     isTodayValidated,
     incrementStreak,
     recalculate,
+    t,
   ]);
 
   const handleGoBack = useCallback(() => {
@@ -176,7 +180,7 @@ export default function MealDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   errorContainer: {
     flex: 1,
     backgroundColor: colors.background,
@@ -188,4 +192,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.lg,
     color: colors.textSecondary,
   },
-});
+}));

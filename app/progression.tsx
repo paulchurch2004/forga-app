@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Pressable,
   useWindowDimensions,
@@ -13,29 +12,107 @@ import { useUserStore } from '../src/store/userStore';
 import { useScoreStore } from '../src/store/scoreStore';
 import { LineChart, type DataPoint } from '../src/components/charts/LineChart';
 import {
-  colors,
+  makeStyles,
   fonts,
   fontSizes,
   spacing,
   borderRadius,
   getScoreColor,
 } from '../src/theme';
+import { useTheme } from '../src/context/ThemeContext';
+import { useT } from '../src/i18n';
 import { useResponsive } from '../src/hooks/useResponsive';
 
 type TimeRange = '7d' | '30d' | '90d' | 'all';
 
 const TIME_RANGES: { key: TimeRange; label: string }[] = [
-  { key: '7d', label: '7j' },
-  { key: '30d', label: '30j' },
-  { key: '90d', label: '90j' },
-  { key: 'all', label: 'Tout' },
+  { key: '7d', label: 'period7d' },
+  { key: '30d', label: 'period30d' },
+  { key: '90d', label: 'period90d' },
+  { key: 'all', label: 'periodAll' },
 ];
 
 export default function ProgressionScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const { width: windowWidth } = useWindowDimensions();
   const { contentMaxWidth } = useResponsive();
   const [timeRange, setTimeRange] = useState<TimeRange>('30d');
+
+  function StatCard({
+    label,
+    value,
+    unit,
+    color,
+  }: {
+    label: string;
+    value: string;
+    unit: string;
+    color: string;
+  }) {
+    return (
+      <View style={styles.statCard}>
+        <Text style={styles.statLabel}>{label}</Text>
+        <Text style={[styles.statValue, { color }]}>
+          {value}
+          <Text style={styles.statUnit}> {unit}</Text>
+        </Text>
+      </View>
+    );
+  }
+
+  function GoalProgress({
+    currentWeight,
+    startWeight,
+    targetWeight,
+    objective,
+  }: {
+    currentWeight: number;
+    startWeight: number;
+    targetWeight: number;
+    objective: string;
+  }) {
+    const totalDiff = Math.abs(targetWeight - startWeight);
+    const currentDiff = Math.abs(currentWeight - startWeight);
+    const progress = totalDiff > 0 ? Math.min(1, currentDiff / totalDiff) : 0;
+
+    // Check if going in right direction
+    const isCorrectDirection =
+      (objective === 'cut' && currentWeight <= startWeight) ||
+      (objective === 'bulk' && currentWeight >= startWeight) ||
+      objective === 'recomp';
+
+    const effectiveProgress = isCorrectDirection ? progress : 0;
+    const progressPercent = Math.round(effectiveProgress * 100);
+
+    const remaining = Math.abs(targetWeight - currentWeight);
+
+    return (
+      <View style={styles.goalCard}>
+        <Text style={styles.goalTitle}>{t("goalTitle")}</Text>
+        <View style={styles.goalRow}>
+          <Text style={styles.goalWeight}>{startWeight} kg</Text>
+          <View style={styles.goalBarContainer}>
+            <View style={styles.goalBarBg}>
+              <View
+                style={[
+                  styles.goalBarFill,
+                  { width: `${progressPercent}%` },
+                ]}
+              />
+            </View>
+            <Text style={styles.goalPercent}>{progressPercent}%</Text>
+          </View>
+          <Text style={styles.goalWeight}>{targetWeight} kg</Text>
+        </View>
+        <Text style={styles.goalRemaining}>
+          {objective === 'cut' ? t('stillToLose', { remaining: remaining.toFixed(1) }) : t('stillToGain', { remaining: remaining.toFixed(1) })}
+        </Text>
+      </View>
+    );
+  }
 
   const weightLog = useUserStore((s) => s.weightLog);
   const profile = useUserStore((s) => s.profile);
@@ -124,9 +201,9 @@ export default function ProgressionScreen() {
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={16}>
-          <Text style={styles.backText}>Retour</Text>
+          <Text style={styles.backText}>{t("back")}</Text>
         </Pressable>
-        <Text style={styles.headerTitle}>Ma progression</Text>
+        <Text style={styles.headerTitle}>{t("myProgress")}</Text>
         <View style={{ width: 50 }} />
       </View>
 
@@ -147,7 +224,7 @@ export default function ProgressionScreen() {
                 timeRange === range.key && styles.timeRangeTextActive,
               ]}
             >
-              {range.label}
+              {t(range.label as any)}
             </Text>
           </Pressable>
         ))}
@@ -162,8 +239,8 @@ export default function ProgressionScreen() {
           lineColor={weightTrendColor}
           unit=" kg"
           formatValue={(v) => v.toFixed(1)}
-          title="Poids"
-          emptyMessage="Commence un check-in pour voir ta courbe"
+          title={t("weightLabel")}
+          emptyMessage={t("startCheckInForChart")}
         />
       </View>
 
@@ -171,19 +248,19 @@ export default function ProgressionScreen() {
       {weightStats && (
         <View style={styles.statsRow}>
           <StatCard
-            label="Variation"
+            label={t("statVariation")}
             value={`${weightStats.diff >= 0 ? '+' : ''}${weightStats.diff.toFixed(1)}`}
             unit="kg"
             color={weightTrendColor}
           />
           <StatCard
-            label="Min"
+            label={t("statMin")}
             value={weightStats.min.toFixed(1)}
             unit="kg"
             color={colors.textSecondary}
           />
           <StatCard
-            label="Max"
+            label={t("statMax")}
             value={weightStats.max.toFixed(1)}
             unit="kg"
             color={colors.textSecondary}
@@ -200,8 +277,8 @@ export default function ProgressionScreen() {
           lineColor={scoreData.length > 0 ? getScoreColor(scoreData[scoreData.length - 1].value) : colors.primary}
           unit=" pts"
           formatValue={(v) => Math.round(v).toString()}
-          title="Score FORGA"
-          emptyMessage="Ton score apparaîtra après quelques jours"
+          title={t("scoreForga2")}
+          emptyMessage={t("scoreChartEmptyMessage")}
         />
       </View>
 
@@ -209,19 +286,19 @@ export default function ProgressionScreen() {
       {scoreStats && (
         <View style={styles.statsRow}>
           <StatCard
-            label="Evolution"
+            label={t("statEvolution")}
             value={`${scoreStats.diff >= 0 ? '+' : ''}${scoreStats.diff}`}
             unit="pts"
             color={scoreStats.diff >= 0 ? colors.success : colors.error}
           />
           <StatCard
-            label="Moyenne"
+            label={t("statAverage")}
             value={scoreStats.avg.toString()}
             unit="pts"
             color={getScoreColor(scoreStats.avg)}
           />
           <StatCard
-            label="Entrées"
+            label={t("statEntries")}
             value={scoreStats.entries.toString()}
             unit=""
             color={colors.textSecondary}
@@ -244,80 +321,7 @@ export default function ProgressionScreen() {
   );
 }
 
-function StatCard({
-  label,
-  value,
-  unit,
-  color,
-}: {
-  label: string;
-  value: string;
-  unit: string;
-  color: string;
-}) {
-  return (
-    <View style={styles.statCard}>
-      <Text style={styles.statLabel}>{label}</Text>
-      <Text style={[styles.statValue, { color }]}>
-        {value}
-        <Text style={styles.statUnit}> {unit}</Text>
-      </Text>
-    </View>
-  );
-}
-
-function GoalProgress({
-  currentWeight,
-  startWeight,
-  targetWeight,
-  objective,
-}: {
-  currentWeight: number;
-  startWeight: number;
-  targetWeight: number;
-  objective: string;
-}) {
-  const totalDiff = Math.abs(targetWeight - startWeight);
-  const currentDiff = Math.abs(currentWeight - startWeight);
-  const progress = totalDiff > 0 ? Math.min(1, currentDiff / totalDiff) : 0;
-
-  // Check if going in right direction
-  const isCorrectDirection =
-    (objective === 'cut' && currentWeight <= startWeight) ||
-    (objective === 'bulk' && currentWeight >= startWeight) ||
-    objective === 'recomp';
-
-  const effectiveProgress = isCorrectDirection ? progress : 0;
-  const progressPercent = Math.round(effectiveProgress * 100);
-
-  const remaining = Math.abs(targetWeight - currentWeight);
-
-  return (
-    <View style={styles.goalCard}>
-      <Text style={styles.goalTitle}>Objectif</Text>
-      <View style={styles.goalRow}>
-        <Text style={styles.goalWeight}>{startWeight} kg</Text>
-        <View style={styles.goalBarContainer}>
-          <View style={styles.goalBarBg}>
-            <View
-              style={[
-                styles.goalBarFill,
-                { width: `${progressPercent}%` },
-              ]}
-            />
-          </View>
-          <Text style={styles.goalPercent}>{progressPercent}%</Text>
-        </View>
-        <Text style={styles.goalWeight}>{targetWeight} kg</Text>
-      </View>
-      <Text style={styles.goalRemaining}>
-        Encore {remaining.toFixed(1)} kg {objective === 'cut' ? 'à perdre' : 'à prendre'}
-      </Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -463,4 +467,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: spacing.md,
   },
-});
+}));

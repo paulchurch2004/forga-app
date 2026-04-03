@@ -22,7 +22,9 @@ import Animated, {
   withSpring,
   Easing,
 } from 'react-native-reanimated';
-import { colors } from '../../src/theme/colors';
+import { makeStyles } from '../../src/theme';
+import { useTheme } from '../../src/context/ThemeContext';
+import { useT } from '../../src/i18n';
 import { fonts, fontSizes } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
 import { supabase, isDemoMode } from '../../src/services/supabase';
@@ -57,6 +59,9 @@ function showError(title: string, message: string) {
 
 export default function RegisterScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -102,11 +107,11 @@ export default function RegisterScreen() {
 
   const handleRegister = async () => {
     if (!name || !email || !password) {
-      showError('Erreur', 'Remplis tous les champs.');
+      showError(t('error'), t('fillAllFields'));
       return;
     }
     if (password.length < 8) {
-      showError('Erreur', 'Le mot de passe doit faire au moins 8 caractères.');
+      showError(t('error'), t('passwordMinLength'));
       return;
     }
 
@@ -143,7 +148,7 @@ export default function RegisterScreen() {
     setLoading(false);
 
     if (error) {
-      showError('Erreur', error.message);
+      showError(t('error'), error.message);
       return;
     }
 
@@ -183,7 +188,7 @@ export default function RegisterScreen() {
         >
           {/* Back */}
           <Pressable onPress={() => router.back()} hitSlop={16} style={styles.backRow}>
-            <Text style={styles.backText}>{'\u2039'} Retour</Text>
+            <Text style={styles.backText}>{'\u2039'} {t('back')}</Text>
           </Pressable>
 
           {/* Brand */}
@@ -194,10 +199,10 @@ export default function RegisterScreen() {
 
           {/* Title */}
           <Animated.View style={titleStyle}>
-            <Text style={styles.title}>Inscription</Text>
+            <Text style={styles.title}>{t('register')}</Text>
           </Animated.View>
           <Animated.View style={subtitleStyle}>
-            <Text style={styles.subtitle}>On commence. Pas de blabla.</Text>
+            <Text style={styles.subtitle}>{t('registerSubtitle')}</Text>
           </Animated.View>
 
           {/* Form */}
@@ -205,11 +210,11 @@ export default function RegisterScreen() {
             <Animated.View style={nameInputStyle}>
               <View style={[styles.inputWrapper, nameFocused && styles.inputWrapperFocused]}>
                 <Text style={[styles.inputLabel, nameFocused && styles.inputLabelFocused]}>
-                  Prénom
+                  {t('name')}
                 </Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Ton prénom"
+                  placeholder={t('name')}
                   placeholderTextColor={colors.textMuted}
                   value={name}
                   onChangeText={setName}
@@ -223,7 +228,7 @@ export default function RegisterScreen() {
             <Animated.View style={emailInputStyle}>
               <View style={[styles.inputWrapper, emailFocused && styles.inputWrapperFocused]}>
                 <Text style={[styles.inputLabel, emailFocused && styles.inputLabelFocused]}>
-                  Email
+                  {t('email')}
                 </Text>
                 <TextInput
                   style={styles.input}
@@ -243,11 +248,11 @@ export default function RegisterScreen() {
             <Animated.View style={passwordInputStyle}>
               <View style={[styles.inputWrapper, passwordFocused && styles.inputWrapperFocused]}>
                 <Text style={[styles.inputLabel, passwordFocused && styles.inputLabelFocused]}>
-                  Mot de passe
+                  {t('password')}
                 </Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="8 caractères minimum"
+                  placeholder={t('passwordPlaceholder')}
                   placeholderTextColor={colors.textMuted}
                   value={password}
                   onChangeText={setPassword}
@@ -262,19 +267,19 @@ export default function RegisterScreen() {
             <Animated.View style={referralStyle}>
               {!showReferral ? (
                 <Pressable onPress={() => setShowReferral(true)}>
-                  <Text style={styles.referralLink}>Tu as un code parrain ?</Text>
+                  <Text style={styles.referralLink}>{t('referralCodeQuestion')}</Text>
                 </Pressable>
               ) : (
                 <View style={[styles.inputWrapper, referralFocused && styles.inputWrapperFocused]}>
                   <Text style={[styles.inputLabel, referralFocused && styles.inputLabelFocused]}>
-                    Code parrain
+                    {t('referralCodeLabel')}
                   </Text>
                   <TextInput
                     style={styles.input}
                     placeholder="Ex: FORGA-A3K9"
                     placeholderTextColor={colors.textMuted}
                     value={referralCode}
-                    onChangeText={(t) => setReferralCode(t.toUpperCase())}
+                    onChangeText={(val) => setReferralCode(val.toUpperCase())}
                     autoCapitalize="characters"
                     autoCorrect={false}
                     maxLength={9}
@@ -305,7 +310,7 @@ export default function RegisterScreen() {
                     {loading ? (
                       <ActivityIndicator color={colors.white} />
                     ) : (
-                      <Text style={styles.buttonText}>Créer mon compte</Text>
+                      <Text style={styles.buttonText}>{t('createAccount')}</Text>
                     )}
                   </LinearGradient>
                 </Pressable>
@@ -316,7 +321,7 @@ export default function RegisterScreen() {
           {/* Divider */}
           <Animated.View style={[styles.divider, dividerStyle]}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>ou</Text>
+            <Text style={styles.dividerText}>{t('or')}</Text>
             <View style={styles.dividerLine} />
           </Animated.View>
 
@@ -324,26 +329,26 @@ export default function RegisterScreen() {
           <Animated.View style={socialStyle}>
             <Pressable style={styles.socialButton} disabled>
               <Text style={styles.socialIcon}>{'\uF8FF'}</Text>
-              <Text style={styles.socialButtonText}>Continuer avec Apple</Text>
+              <Text style={styles.socialButtonText}>{t('continueWithApple')}</Text>
               <View style={styles.soonBadge}>
-                <Text style={styles.soonBadgeText}>Bientôt</Text>
+                <Text style={styles.soonBadgeText}>{t('soon')}</Text>
               </View>
             </Pressable>
 
             <Pressable style={styles.socialButton} disabled>
               <Text style={styles.socialIcon}>G</Text>
-              <Text style={styles.socialButtonText}>Continuer avec Google</Text>
+              <Text style={styles.socialButtonText}>{t('continueWithGoogle')}</Text>
               <View style={styles.soonBadge}>
-                <Text style={styles.soonBadgeText}>Bientôt</Text>
+                <Text style={styles.soonBadgeText}>{t('soon')}</Text>
               </View>
             </Pressable>
           </Animated.View>
 
           {/* Bottom link */}
           <Animated.View style={[styles.bottomLink, bottomStyle]}>
-            <Text style={styles.bottomText}>Déjà un compte ? </Text>
+            <Text style={styles.bottomText}>{t('haveAccount')} </Text>
             <Pressable onPress={() => router.replace('/(auth)/login')}>
-              <Text style={styles.bottomAction}>Se connecter</Text>
+              <Text style={styles.bottomAction}>{t('signIn')}</Text>
             </Pressable>
           </Animated.View>
         </ScrollView>
@@ -352,7 +357,7 @@ export default function RegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -556,4 +561,4 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontWeight: '700',
   },
-});
+}));

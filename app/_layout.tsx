@@ -22,6 +22,7 @@ import {
 } from '@expo-google-fonts/jetbrains-mono';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { colors } from '../src/theme/colors';
+import { ThemeProvider, useTheme } from '../src/context/ThemeContext';
 import { isDemoMode, supabase } from '../src/services/supabase';
 import { useAuthStore } from '../src/store/authStore';
 import { loadProfileFromSupabase } from '../src/services/profile';
@@ -217,11 +218,13 @@ function RootLayoutInner() {
     );
   }
 
+  const { colors: themeColors, isDark } = useTheme();
+
   return (
     <QueryClientProvider client={queryClient}>
-      <StatusBar style="light" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <OfflineBanner />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }} />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeColors.background } }} />
     </QueryClientProvider>
   );
 }
@@ -229,7 +232,9 @@ function RootLayoutInner() {
 export default function RootLayout() {
   return (
     <ErrorBoundary>
-      <RootLayoutInner />
+      <ThemeProvider>
+        <RootLayoutInner />
+      </ThemeProvider>
     </ErrorBoundary>
   );
 }

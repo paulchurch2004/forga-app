@@ -2,7 +2,6 @@ import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Pressable,
   TextInput,
   ScrollView,
@@ -12,7 +11,9 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
-import { colors } from '../../src/theme/colors';
+import { makeStyles } from '../../src/theme';
+import { useTheme } from '../../src/context/ThemeContext';
+import { useT } from '../../src/i18n';
 import { fonts, fontSizes, fontWeights } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
 
@@ -31,10 +32,10 @@ const TOTAL_STEPS = 7;
 
 type Timeline = '3' | '6' | '12';
 
-const TIMELINE_OPTIONS: { value: Timeline; label: string }[] = [
-  { value: '3', label: '3 mois' },
-  { value: '6', label: '6 mois' },
-  { value: '12', label: '12 mois' },
+const TIMELINE_OPTIONS: { value: Timeline; labelKey: string }[] = [
+  { value: '3', labelKey: 'threeMonths' },
+  { value: '6', labelKey: 'sixMonths' },
+  { value: '12', labelKey: 'twelveMonths' },
 ];
 
 function getDeadlineDate(months: number): string {
@@ -46,6 +47,9 @@ function getDeadlineDate(months: number): string {
 export default function Step4Target() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const onboardingData = useUserStore((s) => s.onboardingData);
   const setOnboardingData = useUserStore((s) => s.setOnboardingData);
 
@@ -97,9 +101,9 @@ export default function Step4Target() {
 
   const getDeltaLabel = (): string => {
     if (!isTargetValid) return '';
-    if (delta > 0) return `+${delta.toFixed(1)} kg a prendre`;
-    if (delta < 0) return `${delta.toFixed(1)} kg a perdre`;
-    return 'Maintien du poids';
+    if (delta > 0) return t('weightToGain', { delta: `+${delta.toFixed(1)}` });
+    if (delta < 0) return t('weightToLose', { delta: delta.toFixed(1) });
+    return t('weightMaintain');
   };
 
   const getDeltaColor = (): string => {
@@ -137,7 +141,7 @@ export default function Step4Target() {
       <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
         {/* Progress bar */}
         <View style={styles.progressContainer}>
-          <Pressable onPress={handleBack} hitSlop={12} accessibilityLabel="Retour">
+          <Pressable onPress={handleBack} hitSlop={12} accessibilityLabel={t("back")}>
             <Text style={styles.backArrow}>{'\u2190'}</Text>
           </Pressable>
           <View style={styles.progressTrack}>
@@ -160,19 +164,19 @@ export default function Step4Target() {
           keyboardShouldPersistTaps="handled"
         >
           {/* Title */}
-          <Text style={styles.title}>Ton objectif chiffre.</Text>
+          <Text style={styles.title}>{t("onboardingStep4Title")}</Text>
           <Text style={styles.subtitle}>
-            Ou tu veux aller, et en combien de temps.
+            {t("onboardingStep4Subtitle")}
           </Text>
 
           {/* Current weight reminder */}
           <View style={styles.currentWeightRow}>
-            <Text style={styles.currentWeightLabel}>Poids actuel</Text>
+            <Text style={styles.currentWeightLabel}>{t("currentWeightLabel")}</Text>
             <Text style={styles.currentWeightValue}>{currentWeight} kg</Text>
           </View>
 
           {/* Target weight input */}
-          <Text style={styles.sectionLabel}>Poids cible</Text>
+          <Text style={styles.sectionLabel}>{t("targetWeightLabel")}</Text>
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.numericInput}
@@ -192,7 +196,7 @@ export default function Step4Target() {
               keyboardType="decimal-pad"
               maxLength={5}
               returnKeyType="done"
-              accessibilityLabel="Poids cible en kilogrammes"
+              accessibilityLabel={t("targetWeightLabel")}
             />
             <Text style={styles.inputUnit}>kg</Text>
           </View>
@@ -210,20 +214,20 @@ export default function Step4Target() {
                     !isRateHealthy() && styles.rateWarning,
                   ]}
                 >
-                  ~{weeklyRate} kg/semaine
+                  {t("weeklyRate", { rate: weeklyRate })}
                 </Text>
               )}
               {!isRateHealthy() && delta !== 0 && (
                 <Text style={styles.rateWarningText}>
-                  Ce rythme est ambitieux. On te recommande d'allonger le delai.
+                  {t("rateWarning")}
                 </Text>
               )}
             </View>
           )}
 
           {/* Timeline selector */}
-          <Text style={[styles.sectionLabel, { marginTop: spacing['2xl'] }]}>
-            Delai
+          <Text style={[styles.sectionLabel, { marginTop: spacing["2xl"] }]}>
+            {t("deadline")}
           </Text>
           <View style={styles.timelineRow}>
             {TIMELINE_OPTIONS.map((option) => {
@@ -240,7 +244,7 @@ export default function Step4Target() {
                     setTimeline(option.value);
                   }}
                   accessibilityRole="button"
-                  accessibilityLabel={option.label}
+                  accessibilityLabel={t(option.labelKey as any)}
                   accessibilityState={{ selected: isSelected }}
                 >
                   <Text
@@ -249,7 +253,7 @@ export default function Step4Target() {
                       isSelected && styles.timelineChipTextSelected,
                     ]}
                   >
-                    {option.label}
+                    {t(option.labelKey as any)}
                   </Text>
                 </Pressable>
               );
@@ -264,10 +268,10 @@ export default function Step4Target() {
             onPress={handleNext}
             disabled={!canContinue}
             accessibilityRole="button"
-            accessibilityLabel="Suivant"
+            accessibilityLabel={t("next")}
             accessibilityState={{ disabled: !canContinue }}
           >
-            <Text style={styles.nextButtonText}>Suivant</Text>
+            <Text style={styles.nextButtonText}>{t("next")}</Text>
           </Pressable>
         </View>
       </View>
@@ -275,7 +279,7 @@ export default function Step4Target() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   flex: {
     flex: 1,
   },
@@ -461,4 +465,4 @@ const styles = StyleSheet.create({
     fontWeight: fontWeights.semibold,
     color: colors.white,
   },
-});
+}));

@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import { Card } from '../ui/Card';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { useT } from '../../i18n';
 import { MEAL_SLOT_LABELS, type MealSlot, type MealSlotStatus } from '../../types/meal';
 
 interface SlotItem {
@@ -17,6 +18,8 @@ interface MealSlotListProps {
 }
 
 function StatusIcon({ status }: { status: MealSlotStatus }) {
+  const styles = useStyles();
+
   if (status === 'done') {
     return (
       <View style={[styles.statusCircle, styles.statusDone]}>
@@ -39,6 +42,8 @@ function StatusIcon({ status }: { status: MealSlotStatus }) {
 }
 
 function SlotRow({ item }: { item: SlotItem }) {
+  const { t } = useT();
+  const styles = useStyles();
   const label = MEAL_SLOT_LABELS[item.slot];
 
   const handleChoose = () => {
@@ -65,15 +70,15 @@ function SlotRow({ item }: { item: SlotItem }) {
       </View>
       <View style={styles.slotAction}>
         {item.status === 'done' && (
-          <Text style={styles.validatedText}>Fait</Text>
+          <Text style={styles.validatedText}>{t('mealDone')}</Text>
         )}
         {item.status === 'current' && (
           <View style={styles.actionRow}>
             <Pressable style={styles.customButton} onPress={handleCustom}>
-              <Text style={styles.customButtonText}>LIBRE</Text>
+              <Text style={styles.customButtonText}>{t('mealFree')}</Text>
             </Pressable>
             <Pressable style={styles.chooseButton} onPress={handleChoose}>
-              <Text style={styles.chooseButtonText}>CHOISIR</Text>
+              <Text style={styles.chooseButtonText}>{t('mealChoose')}</Text>
             </Pressable>
           </View>
         )}
@@ -88,8 +93,11 @@ function SlotRow({ item }: { item: SlotItem }) {
 }
 
 export function MealSlotList({ slots }: MealSlotListProps) {
+  const { t } = useT();
+  const styles = useStyles();
+
   return (
-    <Card header="Repas du jour" noPadding>
+    <Card header={t('mealsOfTheDay')} noPadding>
       <View style={styles.listContainer}>
         {slots.map((item, index) => (
           <React.Fragment key={item.slot}>
@@ -102,7 +110,7 @@ export function MealSlotList({ slots }: MealSlotListProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   listContainer: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
@@ -215,6 +223,6 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: colors.border,
   },
-});
+}));
 
 export default MealSlotList;

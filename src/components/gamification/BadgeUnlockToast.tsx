@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, View, Text, StyleSheet } from 'react-native';
-import { colors, fonts, fontSizes, spacing, borderRadius, shadows } from '../../theme';
+import { Animated, View, Text } from 'react-native';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius, shadows } from '../../theme';
 import { BADGE_INFO, type BadgeType } from '../../types/user';
 
 const BADGE_ICONS: Record<BadgeType, string> = {
@@ -17,6 +17,7 @@ interface BadgeUnlockToastProps {
 }
 
 export function BadgeUnlockToast({ badgeType, onHide }: BadgeUnlockToastProps) {
+  const styles = useStyles();
   const translateY = useRef(new Animated.Value(-100)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -78,7 +79,7 @@ export function BadgeUnlockToast({ badgeType, onHide }: BadgeUnlockToastProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     position: 'absolute',
     top: 60,
@@ -122,4 +123,4 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
   },
-});
+}));

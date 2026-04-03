@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Pressable,
 } from 'react-native';
@@ -12,11 +11,14 @@ import { useMealStore } from '../src/store/mealStore';
 import { getMealById } from '../src/data/meals';
 import { MEAL_SLOT_LABELS } from '../src/types/meal';
 import { CalendarGrid } from '../src/components/ui/CalendarGrid';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../src/theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../src/theme';
+import { useT } from '../src/i18n';
 import { useResponsive } from '../src/hooks/useResponsive';
 
 export default function MealHistoryScreen() {
   const insets = useSafeAreaInsets();
+  const styles = useStyles();
+  const { t } = useT();
   const { contentMaxWidth } = useResponsive();
 
   const mealHistory = useMealStore((s) => s.mealHistory);
@@ -66,9 +68,9 @@ export default function MealHistoryScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={16}>
-            <Text style={styles.backText}>Retour</Text>
+            <Text style={styles.backText}>{t('back')}</Text>
           </Pressable>
-          <Text style={styles.headerTitle}>Historique</Text>
+          <Text style={styles.headerTitle}>{t('history')}</Text>
           <View style={{ width: 50 }} />
         </View>
 
@@ -124,9 +126,9 @@ export default function MealHistoryScreen() {
               )}
             </>
           ) : selectedDate ? (
-            <Text style={styles.emptyText}>Aucun repas validé ce jour</Text>
+            <Text style={styles.emptyText}>Aucun repas valide ce jour</Text>
           ) : (
-            <Text style={styles.emptyText}>Sélectionne un jour pour voir tes repas</Text>
+            <Text style={styles.emptyText}>Selectionne un jour pour voir tes repas</Text>
           )}
         </View>
 
@@ -138,11 +140,11 @@ export default function MealHistoryScreen() {
 
 function formatDisplayDate(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number);
-  const months = ['jan.', 'fév.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  const months = ['jan.', 'fev.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aout', 'sept.', 'oct.', 'nov.', 'dec.'];
   return `${d} ${months[m - 1]} ${y}`;
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -248,4 +250,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: spacing['3xl'],
   },
-});
+}));

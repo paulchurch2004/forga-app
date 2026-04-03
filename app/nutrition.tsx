@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   RefreshControl,
   Modal,
@@ -22,12 +21,14 @@ import { MealSlotList } from '../src/components/home/MealSlotList';
 import { StreakBadge } from '../src/components/ui/StreakBadge';
 import { CoachCard } from '../src/components/home/CoachCard';
 import { getCoachMessage, type CoachInput } from '../src/engine/coachEngine';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../src/theme';
+import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../src/theme';
 import { useResponsive } from '../src/hooks/useResponsive';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ShareStreakCard } from '../src/components/gamification/ShareStreakCard';
+import { WaterCard } from '../src/components/hydration/WaterCard';
 import { useShareCard } from '../src/hooks/useShareCard';
 import { BadgeUnlockToast } from '../src/components/gamification/BadgeUnlockToast';
+import { useT } from '../src/i18n';
 import type { BadgeType } from '../src/types/user';
 
 export default function NutritionScreen() {
@@ -37,6 +38,8 @@ export default function NutritionScreen() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [toastBadge, setToastBadge] = useState<BadgeType | null>(null);
   const { cardRef, share } = useShareCard();
+  const styles = useStyles();
+  const { t } = useT();
 
   const profile = useUserStore((s) => s.profile);
   const checkIns = useUserStore((s) => s.checkIns);
@@ -130,7 +133,7 @@ export default function NutritionScreen() {
     return (
       <View style={[styles.container, { paddingTop: insets.top }]}>
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Chargement...</Text>
+          <Text style={styles.loadingText}>{t('loading')}</Text>
         </View>
       </View>
     );
@@ -138,9 +141,9 @@ export default function NutritionScreen() {
 
   const hour = new Date().getHours();
   let greeting: string;
-  if (hour < 12) greeting = 'Bonjour';
-  else if (hour < 18) greeting = 'Bon apres-midi';
-  else greeting = 'Bonsoir';
+  if (hour < 12) greeting = t('greetingMorning');
+  else if (hour < 18) greeting = t('greetingAfternoon');
+  else greeting = t('greetingEvening');
 
   const firstName = profile.name.split(' ')[0];
 
@@ -157,21 +160,21 @@ export default function NutritionScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={colors.primary}
-            colors={[colors.primary]}
-            progressBackgroundColor={colors.surface}
+            tintColor={styles.backText.color}
+            colors={[styles.backText.color]}
+            progressBackgroundColor={styles.objectiveCard.backgroundColor}
           />
         }
       >
         {/* Back + Header */}
         <View style={styles.headerRow}>
           <Pressable onPress={() => router.back()} hitSlop={16}>
-            <Text style={styles.backText}>{'\u2039'} Accueil</Text>
+            <Text style={styles.backText}>{'\u2039'} {t('home')}</Text>
           </Pressable>
           <StreakBadge streak={currentStreak} isActive={isTodayValidated} size="sm" />
         </View>
 
-        <Text style={styles.pageTitle}>Nutrition</Text>
+        <Text style={styles.pageTitle}>{t('nutrition')}</Text>
         <Text style={styles.pageSubtitle}>
           {greeting}, {firstName}
         </Text>
@@ -181,7 +184,7 @@ export default function NutritionScreen() {
             style={styles.shareStreakBtn}
             onPress={() => setShowShareModal(true)}
           >
-            <Text style={styles.shareStreakBtnText}>{'\uD83D\uDD25'} Partager mon streak</Text>
+            <Text style={styles.shareStreakBtnText}>{'\uD83D\uDD25'} {t('shareMyStreak')}</Text>
           </Pressable>
         )}
 
@@ -197,10 +200,10 @@ export default function NutritionScreen() {
               <ShareStreakCard ref={cardRef} streak={currentStreak} score={currentScore.total} />
               <View style={styles.modalActions}>
                 <Pressable style={styles.modalShareBtn} onPress={share}>
-                  <Text style={styles.modalShareBtnText}>Partager</Text>
+                  <Text style={styles.modalShareBtnText}>{t('share')}</Text>
                 </Pressable>
                 <Pressable style={styles.modalCancelBtn} onPress={() => setShowShareModal(false)}>
-                  <Text style={styles.modalCancelBtnText}>Fermer</Text>
+                  <Text style={styles.modalCancelBtnText}>{t('close')}</Text>
                 </Pressable>
               </View>
             </View>
@@ -212,8 +215,8 @@ export default function NutritionScreen() {
           <Pressable style={styles.checkInBanner} onPress={() => router.push('/checkin')}>
             <Text style={styles.checkInBannerIcon}>{'\uD83D\uDDD3'}</Text>
             <View style={styles.checkInBannerText}>
-              <Text style={styles.checkInBannerTitle}>Check-in de la semaine</Text>
-              <Text style={styles.checkInBannerSub}>2 min pour affiner ton plan</Text>
+              <Text style={styles.checkInBannerTitle}>{t('checkInTitle')}</Text>
+              <Text style={styles.checkInBannerSub}>{t('checkInSub')}</Text>
             </View>
             <Text style={styles.checkInBannerArrow}>{'\u203A'}</Text>
           </Pressable>
@@ -223,7 +226,7 @@ export default function NutritionScreen() {
         {lastCalorieAdjustment && (
           <View style={styles.adjustedMacros}>
             <Text style={styles.adjustedMacrosText}>
-              {'\u26A1'} Plan ajuste {lastCalorieAdjustment.calorieAdjustment > 0 ? '+' : ''}{lastCalorieAdjustment.calorieAdjustment} kcal
+              {'\u26A1'} {t('planAdjusted', { adjustment: (lastCalorieAdjustment.calorieAdjustment > 0 ? '+' : '') + lastCalorieAdjustment.calorieAdjustment })}
             </Text>
           </View>
         )}
@@ -236,61 +239,66 @@ export default function NutritionScreen() {
           target={targetMacros}
         />
 
+        {/* Water tracking */}
+        <Animated.View entering={FadeInDown.delay(150).duration(400)}>
+          <WaterCard />
+        </Animated.View>
+
         {/* Coach Card */}
         {coachMessage && (
-          <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+          <Animated.View entering={FadeInDown.delay(300).duration(400)}>
             <CoachCard message={coachMessage} />
           </Animated.View>
         )}
 
         {/* Objective */}
-        <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+        <Animated.View entering={FadeInDown.delay(400).duration(400)}>
           <View style={styles.objectiveCard}>
             <Text style={styles.objectiveIcon}>{'\u2691'}</Text>
             <Text style={styles.objectiveText}>
-              Objectif : {profile.targetWeight}kg
-              {monthsToGoal > 0 ? ` - dans ~${monthsToGoal} mois` : ' - atteint !'}
+              {t('objectiveLabel', { weight: profile.targetWeight })}
+              {monthsToGoal > 0 ? ` - ${t('objectiveMonths', { months: monthsToGoal })}` : ` - ${t('objectiveReached')}`}
             </Text>
           </View>
         </Animated.View>
 
         {/* Meal Slots */}
-        <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+        <Animated.View entering={FadeInDown.delay(500).duration(400)}>
           <View style={styles.section}>
             <MealSlotList slots={slots} />
           </View>
         </Animated.View>
 
         {/* Scan actions */}
-        <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+        <Animated.View entering={FadeInDown.delay(600).duration(400)}>
           <View style={styles.scanActions}>
             <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/barcode')}>
               <Text style={styles.scanActionIcon}>{'\uD83D\uDCF7'}</Text>
               <View>
-                <Text style={styles.scanActionTitle}>Scanner</Text>
-                <Text style={styles.scanActionSub}>Code-barres</Text>
+                <Text style={styles.scanActionTitle}>{t('scanner')}</Text>
+                <Text style={styles.scanActionSub}>{t('barcode')}</Text>
               </View>
             </Pressable>
             <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/photo')}>
               <Text style={styles.scanActionIcon}>{'\uD83E\uDD16'}</Text>
               <View>
-                <Text style={styles.scanActionTitle}>Photo IA</Text>
-                <Text style={styles.scanActionSub}>Identifier un plat</Text>
+                <Text style={styles.scanActionTitle}>{t('photoAI')}</Text>
+                <Text style={styles.scanActionSub}>{t('identifyDish')}</Text>
               </View>
             </Pressable>
           </View>
         </Animated.View>
 
         {/* Quick actions */}
-        <Animated.View entering={FadeInDown.delay(600).duration(400)}>
+        <Animated.View entering={FadeInDown.delay(700).duration(400)}>
           <View style={styles.quickActions}>
             <Pressable style={styles.quickActionBtn} onPress={() => router.push('/weekly-plan')}>
               <Text style={styles.quickActionIcon}>{'\uD83D\uDCCB'}</Text>
-              <Text style={styles.quickActionText}>Plan & Courses</Text>
+              <Text style={styles.quickActionText}>{t('planAndShopping')}</Text>
             </Pressable>
             <Pressable style={styles.quickActionBtn} onPress={() => router.push('/meal-history')}>
               <Text style={styles.quickActionIcon}>{'\uD83D\uDCC5'}</Text>
-              <Text style={styles.quickActionText}>Historique</Text>
+              <Text style={styles.quickActionText}>{t('history')}</Text>
             </Pressable>
           </View>
         </Animated.View>
@@ -302,7 +310,7 @@ export default function NutritionScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   wrapper: {
     flex: 1,
     backgroundColor: colors.background,
@@ -540,4 +548,4 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.carbs,
   },
-});
+}));

@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  StyleSheet,
   Pressable,
   KeyboardAvoidingView,
   Platform,
@@ -11,9 +10,9 @@ import {
   Alert,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { colors } from '../../src/theme/colors';
-import { fonts, fontSizes } from '../../src/theme/fonts';
-import { spacing, borderRadius, MAX_CONTENT_WIDTH, shadows } from '../../src/theme/spacing';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius, MAX_CONTENT_WIDTH, shadows } from '../../src/theme';
+import { useTheme } from '../../src/context/ThemeContext';
+import { useT } from '../../src/i18n';
 import { useMealStore } from '../../src/store/mealStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { MEAL_SLOT_LABELS, type MealSlot } from '../../src/types/meal';
@@ -28,6 +27,9 @@ const SLOTS: MealSlot[] = [
 ];
 
 export default function CustomMealScreen() {
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const params = useLocalSearchParams<{
     slot?: string;
     name?: string;
@@ -50,7 +52,7 @@ export default function CustomMealScreen() {
 
   const handleValidate = () => {
     if (!name.trim()) {
-      Alert.alert('Erreur', 'Donne un nom a ton repas.');
+      Alert.alert(t('error'), 'Donne un nom a ton repas.');
       return;
     }
     const cal = parseFloat(calories) || 0;
@@ -59,7 +61,7 @@ export default function CustomMealScreen() {
     const lip = parseFloat(fat) || 0;
 
     if (cal === 0 && prot === 0 && carb === 0 && lip === 0) {
-      Alert.alert('Erreur', 'Entre au moins une valeur nutritionnelle.');
+      Alert.alert(t('error'), 'Entre au moins une valeur nutritionnelle.');
       return;
     }
 
@@ -92,7 +94,7 @@ export default function CustomMealScreen() {
     >
       <View style={styles.header}>
         <Pressable onPress={() => router.back()}>
-          <Text style={styles.backText}>{'\u2190'} Retour</Text>
+          <Text style={styles.backText}>{'\u2190'} {t('back')}</Text>
         </Pressable>
       </View>
 
@@ -101,9 +103,9 @@ export default function CustomMealScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.title}>Saisie libre</Text>
+        <Text style={styles.title}>{t('addCustomMeal')}</Text>
         <Text style={styles.subtitle}>
-          Tu as mangé autre chose ? Entre les infos ici.
+          Tu as mange autre chose ? Entre les infos ici.
         </Text>
 
         {/* Slot selector */}
@@ -150,28 +152,28 @@ export default function CustomMealScreen() {
         <Text style={styles.fieldLabel}>Macros (approximatif)</Text>
         <View style={styles.macroGrid}>
           <MacroInput
-            label="Calories"
+            label={t('caloriesLabel')}
             unit="kcal"
             value={calories}
             onChangeText={setCalories}
             color={colors.calories}
           />
           <MacroInput
-            label="Protéines"
+            label={t('proteinLabel')}
             unit="g"
             value={protein}
             onChangeText={setProtein}
             color={colors.protein}
           />
           <MacroInput
-            label="Glucides"
+            label={t('carbsLabel')}
             unit="g"
             value={carbs}
             onChangeText={setCarbs}
             color={colors.carbs}
           />
           <MacroInput
-            label="Lipides"
+            label={t('fatLabel')}
             unit="g"
             value={fat}
             onChangeText={setFat}
@@ -180,12 +182,12 @@ export default function CustomMealScreen() {
         </View>
 
         <Text style={styles.hint}>
-          Pas besoin d'être exact — une estimation suffit pour garder ton suivi.
+          Pas besoin d'etre exact -- une estimation suffit pour garder ton suivi.
         </Text>
 
         {/* Validate */}
         <Pressable style={styles.validateButton} onPress={handleValidate}>
-          <Text style={styles.validateButtonText}>Valider le repas</Text>
+          <Text style={styles.validateButtonText}>{t('validateMeal')}</Text>
         </Pressable>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -205,6 +207,8 @@ function MacroInput({
   onChangeText: (text: string) => void;
   color: string;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   return (
     <View style={styles.macroInputContainer}>
       <View style={[styles.macroColorDot, { backgroundColor: color }]} />
@@ -224,7 +228,7 @@ function MacroInput({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -376,4 +380,4 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.white,
   },
-});
+}));

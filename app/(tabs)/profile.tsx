@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   ScrollView,
   Pressable,
   Alert,
@@ -13,14 +12,16 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../../src/theme/colors';
-import { fontSizes } from '../../src/theme/fonts';
-import { spacing, borderRadius } from '../../src/theme/spacing';
-import { useResponsive } from '../../src/hooks/useResponsive';
+import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
 import { getScoreColor, getScoreLabel } from '../../src/theme/colors';
+import { useTheme } from '../../src/context/ThemeContext';
+import { useT } from '../../src/i18n';
+import { useResponsive } from '../../src/hooks/useResponsive';
 import { useUserStore } from '../../src/store/userStore';
 import { useScoreStore } from '../../src/store/scoreStore';
 import { useMealStore } from '../../src/store/mealStore';
+import { useWaterStore } from '../../src/store/waterStore';
+import { useSettingsStore, type ThemeMode, type Locale } from '../../src/store/settingsStore';
 import { useStreak } from '../../src/hooks/useStreak';
 import { usePremium } from '../../src/hooks/usePremium';
 import { supabase } from '../../src/services/supabase';
@@ -33,6 +34,10 @@ import { events } from '../../src/services/analytics';
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { contentMaxWidth } = useResponsive();
+  const { colors } = useTheme();
+  const { t, locale } = useT();
+  const styles = useStyles();
+
   const profile = useUserStore((s) => s.profile);
   const badges = useUserStore((s) => s.badges);
   const score = useScoreStore((s) => s.currentScore);
@@ -40,10 +45,12 @@ export default function ProfileScreen() {
   const { isPremium } = usePremium();
   const checkIns = useUserStore((s) => s.checkIns);
   const { isEnabled: notifEnabled, toggle: toggleNotif } = useNotifications();
+  const themeMode = useSettingsStore((s) => s.themeMode);
+  const setThemeMode = useSettingsStore((s) => s.setThemeMode);
+  const setLocale = useSettingsStore((s) => s.setLocale);
   const [exporting, setExporting] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
 
-  // Last non-zero calorie adjustment
   const lastAdjustment = [...checkIns]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .find((c) => c.calorieAdjustment !== 0);
@@ -94,7 +101,6 @@ export default function ProfileScreen() {
       const json = JSON.stringify(data, null, 2);
 
       if (Platform.OS === 'web') {
-        // Download as file on web
         const blob = new Blob([json], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -103,14 +109,10 @@ export default function ProfileScreen() {
         a.click();
         URL.revokeObjectURL(url);
       } else {
-        // Share as text on native
-        await Share.share({
-          message: json,
-          title: 'Export FORGA',
-        });
+        await Share.share({ message: json, title: 'Export FORGA' });
       }
     } catch {
-      Alert.alert('Erreur', "Impossible d'exporter tes donnees.");
+      Alert.alert(t('error'), t('cannotExportData'));
     } finally {
       setExporting(false);
     }
@@ -118,15 +120,14 @@ export default function ProfileScreen() {
 
   const handleDeleteAccount = () => {
     Alert.alert(
-      'Supprimer ton compte',
-      'Cette action est irréversible. Toutes tes données seront supprimées.',
+      t('deleteAccount'),
+      t('deleteAccountConfirm'),
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t('cancel'), style: 'cancel' },
         {
-          text: 'Supprimer',
+          text: t('delete'),
           style: 'destructive',
           onPress: async () => {
-            // Delete user data from Supabase
             const userId = profile.id;
             await supabase.from('daily_meals').delete().eq('user_id', userId);
             await supabase.from('weekly_checkins').delete().eq('user_id', userId);
@@ -140,6 +141,7 @@ export default function ProfileScreen() {
             useMealStore.getState().reset();
             useScoreStore.getState().reset();
             useAuthStore.getState().reset();
+            useWaterStore.getState().reset();
           },
         },
       ],
@@ -152,10 +154,9 @@ export default function ProfileScreen() {
     } else if (Platform.OS === 'android') {
       await Linking.openURL('https://play.google.com/store/account/subscriptions');
     } else {
-      // Web: redirect to Stripe customer portal or show info
       Alert.alert(
-        'Abonnement',
-        'Pour gérer ton abonnement, contacte-nous à support@forga.fr ou consulte ton email de confirmation.',
+        t('manageSubscription'),
+        t('contactSupport'),
       );
     }
   };
@@ -166,20 +167,32 @@ export default function ProfileScreen() {
     useMealStore.getState().reset();
     useScoreStore.getState().reset();
     useAuthStore.getState().reset();
+    useWaterStore.getState().reset();
   };
 
-  const objectiveLabels = {
-    bulk: 'Prise de masse',
-    cut: 'Sèche',
-    maintain: 'Maintien',
-    recomp: 'Recomposition',
+  const objectiveLabels: Record<string, string> = {
+    bulk: t('objectiveBulk'),
+    cut: t('objectiveCut'),
+    maintain: t('objectiveMaintain'),
+    recomp: t('objectiveRecomp'),
   };
+
+  const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
+    { value: 'dark', label: t('themeDark') },
+    { value: 'light', label: t('themeLight') },
+    { value: 'system', label: t('themeSystem') },
+  ];
+
+  const LOCALE_OPTIONS: { value: Locale; label: string }[] = [
+    { value: 'fr', label: t('languageFr') },
+    { value: 'en', label: t('languageEn') },
+  ];
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md, maxWidth: contentMaxWidth }]}>
       {/* Back button */}
       <Pressable onPress={() => router.push('/(tabs)/home')} hitSlop={16} style={styles.backRow}>
-        <Text style={styles.backText}>{'\u2039'} Accueil</Text>
+        <Text style={styles.backText}>{'\u2039'} {t('home')}</Text>
       </Pressable>
 
       {/* Header */}
@@ -199,27 +212,27 @@ export default function ProfileScreen() {
           <Text style={[styles.statValue, { color: getScoreColor(score.total) }]}>
             {score.total}
           </Text>
-          <Text style={styles.statLabel}>{getScoreLabel(score.total)}</Text>
-          <Text style={styles.shareHint}>Partager</Text>
+          <Text style={styles.statLabel}>{getScoreLabel(score.total, locale)}</Text>
+          <Text style={styles.shareHint}>{t('share')}</Text>
         </Pressable>
         <Pressable style={styles.statCard} onPress={() => router.push('/share?type=streak')}>
           <Text style={[styles.statValue, { color: colors.primary }]}>
             {currentStreak}
           </Text>
-          <Text style={styles.statLabel}>jours de streak</Text>
-          <Text style={styles.shareHint}>Partager</Text>
+          <Text style={styles.statLabel}>{t('daysStreak')}</Text>
+          <Text style={styles.shareHint}>{t('share')}</Text>
         </Pressable>
         <View style={styles.statCard}>
           <Text style={[styles.statValue, { color: colors.textSecondary }]}>
             {bestStreak}
           </Text>
-          <Text style={styles.statLabel}>meilleur streak</Text>
+          <Text style={styles.statLabel}>{t('bestStreak')}</Text>
         </View>
       </View>
 
       {/* Badges */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Mes badges</Text>
+        <Text style={styles.sectionTitle}>{t('myBadges')}</Text>
         <View style={styles.badgeGrid}>
           {(Object.keys(BADGE_INFO) as BadgeType[]).map((type) => {
             const unlockedBadge = badges.find((b) => b.type === type);
@@ -235,7 +248,7 @@ export default function ProfileScreen() {
                     style={styles.badgeShareBtn}
                     onPress={() => router.push(`/share?type=badge&badgeType=${type}`)}
                   >
-                    <Text style={styles.badgeShareText}>Partager</Text>
+                    <Text style={styles.badgeShareText}>{t('share')}</Text>
                   </Pressable>
                 )}
               </View>
@@ -247,32 +260,24 @@ export default function ProfileScreen() {
       {/* Referral */}
       {profile.referralCode && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Parrainage</Text>
+          <Text style={styles.sectionTitle}>{t('referral')}</Text>
           <View style={styles.referralCard}>
-            <Text style={styles.referralLabel}>Ton code parrain</Text>
+            <Text style={styles.referralLabel}>{t('yourReferralCode')}</Text>
             <Text style={styles.referralCode}>{profile.referralCode}</Text>
-            <Text style={styles.referralReward}>
-              1 semaine offerte par ami invite
-            </Text>
+            <Text style={styles.referralReward}>{t('referralReward')}</Text>
             <View style={styles.referralButtons}>
-              <Pressable
-                style={styles.referralCopyBtn}
-                onPress={handleCopyCode}
-              >
+              <Pressable style={styles.referralCopyBtn} onPress={handleCopyCode}>
                 <Text style={styles.referralCopyText}>
-                  {codeCopied ? 'Copie !' : 'Copier'}
+                  {codeCopied ? t('copied') : t('copy')}
                 </Text>
               </Pressable>
-              <Pressable
-                style={styles.referralShareBtn}
-                onPress={handleShareCode}
-              >
-                <Text style={styles.referralShareText}>Partager</Text>
+              <Pressable style={styles.referralShareBtn} onPress={handleShareCode}>
+                <Text style={styles.referralShareText}>{t('share')}</Text>
               </Pressable>
             </View>
             {(profile.referralCount ?? 0) > 0 && (
               <Text style={styles.referralStats}>
-                {profile.referralCount} ami{(profile.referralCount ?? 0) > 1 ? 's' : ''} parraine{(profile.referralCount ?? 0) > 1 ? 's' : ''}
+                {t('friendsReferred', { count: profile.referralCount ?? 0 })}
               </Text>
             )}
           </View>
@@ -288,10 +293,8 @@ export default function ProfileScreen() {
           <View style={styles.progressionLeft}>
             <Text style={styles.progressionIcon}>{'\uD83D\uDCCA'}</Text>
             <View>
-              <Text style={styles.progressionTitle}>Check-in hebdo</Text>
-              <Text style={styles.progressionSubtitle}>
-                Poids + ressentis → plan ajuste
-              </Text>
+              <Text style={styles.progressionTitle}>{t('weeklyCheckIn')}</Text>
+              <Text style={styles.progressionSubtitle}>{t('checkInSubtitle')}</Text>
             </View>
           </View>
           <Text style={styles.progressionArrow}>{'\u203A'}</Text>
@@ -303,10 +306,8 @@ export default function ProfileScreen() {
           <View style={styles.progressionLeft}>
             <Text style={styles.progressionIcon}>{'\u2197'}</Text>
             <View>
-              <Text style={styles.progressionTitle}>Ma progression</Text>
-              <Text style={styles.progressionSubtitle}>
-                Courbes de poids et score FORGA
-              </Text>
+              <Text style={styles.progressionTitle}>{t('myProgress')}</Text>
+              <Text style={styles.progressionSubtitle}>{t('progressSubtitle')}</Text>
             </View>
           </View>
           <Text style={styles.progressionArrow}>{'\u203A'}</Text>
@@ -316,50 +317,82 @@ export default function ProfileScreen() {
       {/* Infos */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Mon profil</Text>
+          <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>{t('myProfile')}</Text>
           <Pressable onPress={() => router.push('/settings')}>
-            <Text style={styles.editLink}>Modifier</Text>
+            <Text style={styles.editLink}>{t('edit')}</Text>
           </Pressable>
         </View>
-        <ProfileRow label="Objectif" value={objectiveLabels[profile.objective]} />
-        <ProfileRow label="Poids actuel" value={`${profile.currentWeight} kg`} />
-        <ProfileRow label="Poids cible" value={`${profile.targetWeight} kg`} />
-        <ProfileRow label="Calories/jour" value={`${profile.dailyCalories} kcal`} />
-        <ProfileRow label="Protéines" value={`${profile.dailyProtein}g`} />
-        <ProfileRow label="Glucides" value={`${profile.dailyCarbs}g`} />
-        <ProfileRow label="Lipides" value={`${profile.dailyFat}g`} />
+        <ProfileRow label={t('objective')} value={objectiveLabels[profile.objective]} styles={styles} />
+        <ProfileRow label={t('currentWeight')} value={`${profile.currentWeight} kg`} styles={styles} />
+        <ProfileRow label={t('targetWeight')} value={`${profile.targetWeight} kg`} styles={styles} />
+        <ProfileRow label={`${t('caloriesLabel')}/jour`} value={`${profile.dailyCalories} kcal`} styles={styles} />
+        <ProfileRow label={t('proteinLabel')} value={`${profile.dailyProtein}g`} styles={styles} />
+        <ProfileRow label={t('carbsLabel')} value={`${profile.dailyCarbs}g`} styles={styles} />
+        <ProfileRow label={t('fatLabel')} value={`${profile.dailyFat}g`} styles={styles} />
         {lastAdjustment && (
           <View style={styles.adjustmentRow}>
             <Text style={styles.adjustmentIcon}>{'\u26A1'}</Text>
             <Text style={styles.adjustmentText}>
-              Ajusté {lastAdjustment.calorieAdjustment > 0 ? '+' : ''}{lastAdjustment.calorieAdjustment} kcal
-              {' '}(check-in du{' '}
-              {new Date(lastAdjustment.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })})
+              {t('planAdjusted', { adjustment: `${lastAdjustment.calorieAdjustment > 0 ? '+' : ''}${lastAdjustment.calorieAdjustment}` })}
+              {' '}({new Date(lastAdjustment.createdAt).toLocaleDateString(locale === 'en' ? 'en-US' : 'fr-FR', { day: 'numeric', month: 'short' })})
             </Text>
           </View>
         )}
       </View>
 
+      {/* Appearance */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t('appearance')}</Text>
+        <View style={styles.chipRow}>
+          {THEME_OPTIONS.map((opt) => (
+            <Pressable
+              key={opt.value}
+              style={[styles.chip, themeMode === opt.value && styles.chipActive]}
+              onPress={() => setThemeMode(opt.value)}
+            >
+              <Text style={[styles.chipText, themeMode === opt.value && styles.chipTextActive]}>
+                {opt.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      {/* Language */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t('language')}</Text>
+        <View style={styles.chipRow}>
+          {LOCALE_OPTIONS.map((opt) => (
+            <Pressable
+              key={opt.value}
+              style={[styles.chip, locale === opt.value && styles.chipActive]}
+              onPress={() => setLocale(opt.value)}
+            >
+              <Text style={[styles.chipText, locale === opt.value && styles.chipTextActive]}>
+                {opt.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
       {/* Actions */}
       <View style={styles.section}>
         {!isPremium && (
-          <Pressable
-            style={styles.upgradeButton}
-            onPress={() => router.push('/paywall')}
-          >
-            <Text style={styles.upgradeText}>Passer à FORGA PRO</Text>
+          <Pressable style={styles.upgradeButton} onPress={() => router.push('/paywall')}>
+            <Text style={styles.upgradeText}>{t('upgradeToForga')}</Text>
           </Pressable>
         )}
 
         {isPremium && (
           <Pressable style={styles.actionRow} onPress={handleManageSubscription}>
-            <Text style={styles.actionText}>Gérer mon abonnement</Text>
+            <Text style={styles.actionText}>{t('manageSubscription')}</Text>
           </Pressable>
         )}
 
         {Platform.OS !== 'web' && (
           <View style={styles.actionRow}>
-            <Text style={styles.actionText}>Notifications</Text>
+            <Text style={styles.actionText}>{t('notifications')}</Text>
             <Switch
               value={notifEnabled}
               onValueChange={() => toggleNotif(currentStreak)}
@@ -370,34 +403,30 @@ export default function ProfileScreen() {
         )}
 
         <Pressable style={styles.actionRow} onPress={() => router.push('/tdee-calculator')}>
-          <Text style={styles.actionText}>Recalculer mes besoins (TDEE)</Text>
+          <Text style={styles.actionText}>{t('recalculateTDEE')}</Text>
         </Pressable>
 
         <Pressable style={styles.actionRow} onPress={handleExportData}>
-          <Text style={styles.actionText}>Exporter mes données (RGPD)</Text>
+          <Text style={styles.actionText}>{t('exportData')}</Text>
         </Pressable>
 
         <Pressable style={styles.actionRow} onPress={handleSignOut}>
-          <Text style={styles.actionText}>Se déconnecter</Text>
+          <Text style={styles.actionText}>{t('signOut')}</Text>
         </Pressable>
 
         <Pressable style={styles.actionRow} onPress={handleDeleteAccount}>
           <Text style={[styles.actionText, { color: colors.error }]}>
-            Supprimer mon compte
+            {t('deleteAccount')}
           </Text>
         </Pressable>
       </View>
 
       {/* Legal */}
       <View style={styles.legal}>
-        <Text style={styles.legalText}>
-          FORGA est un outil éducatif et informatif. Il ne remplace en aucun cas l'avis
-          d'un médecin, nutritionniste ou professionnel de santé. Consulte un professionnel
-          avant tout changement alimentaire significatif.
-        </Text>
+        <Text style={styles.legalText}>{t('legalDisclaimer')}</Text>
         <Pressable onPress={() => router.push('/privacy')}>
           <Text style={[styles.legalText, { color: colors.primary, marginTop: spacing.sm }]}>
-            Politique de confidentialité
+            {t('privacyPolicy')}
           </Text>
         </Pressable>
         <Text style={[styles.legalText, { marginTop: spacing.lg }]}>
@@ -408,7 +437,7 @@ export default function ProfileScreen() {
   );
 }
 
-function ProfileRow({ label, value }: { label: string; value: string }) {
+function ProfileRow({ label, value, styles }: { label: string; value: string; styles: any }) {
   return (
     <View style={styles.profileRow}>
       <Text style={styles.profileLabel}>{label}</Text>
@@ -417,7 +446,7 @@ function ProfileRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -432,7 +461,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   backText: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.lg,
     color: colors.primary,
     fontWeight: '600',
@@ -442,13 +471,13 @@ const styles = StyleSheet.create({
     marginBottom: spacing['2xl'],
   },
   name: {
-    fontFamily: 'Outfit',
+    fontFamily: fonts.display,
     fontSize: fontSizes['2xl'],
     fontWeight: '700',
     color: colors.text,
   },
   email: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.sm,
     color: colors.textSecondary,
     marginTop: spacing.xs,
@@ -461,7 +490,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
   premiumText: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.xs,
     fontWeight: '700',
     color: colors.white,
@@ -479,19 +508,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statValue: {
-    fontFamily: 'JetBrainsMono',
+    fontFamily: fonts.data,
     fontSize: fontSizes['2xl'],
     fontWeight: '700',
   },
   statLabel: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.xs,
     color: colors.textSecondary,
     marginTop: spacing.xs,
     textAlign: 'center',
   },
   shareHint: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: 10,
     color: colors.primary,
     marginTop: spacing.xs,
@@ -503,7 +532,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   badgeShareText: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: 10,
     color: colors.primary,
     fontWeight: '600',
@@ -512,7 +541,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing['2xl'],
   },
   sectionTitle: {
-    fontFamily: 'Outfit',
+    fontFamily: fonts.display,
     fontSize: fontSizes.xl,
     fontWeight: '700',
     color: colors.text,
@@ -523,35 +552,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  badge: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    padding: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  badgeLocked: {
-    opacity: 0.4,
-  },
-  badgeName: {
-    fontFamily: 'DMSans',
-    fontSize: fontSizes.md,
-    fontWeight: '600',
-    color: colors.text,
-    flex: 1,
-  },
-  badgeDesc: {
-    fontFamily: 'DMSans',
-    fontSize: fontSizes.xs,
-    color: colors.textSecondary,
-    flex: 2,
-  },
-  badgeCheck: {
-    fontFamily: 'DMSans',
-    fontSize: fontSizes.sm,
-    fontWeight: '700',
-    color: colors.success,
-  },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -559,7 +559,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   editLink: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.md,
     fontWeight: '600',
     color: colors.primary,
@@ -572,14 +572,40 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   profileLabel: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.md,
     color: colors.textSecondary,
   },
   profileValue: {
-    fontFamily: 'JetBrainsMono',
+    fontFamily: fonts.data,
     fontSize: fontSizes.md,
     color: colors.text,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  chip: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+  },
+  chipActive: {
+    borderColor: colors.primary,
+    backgroundColor: `${colors.primary}18`,
+  },
+  chipText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  chipTextActive: {
+    color: colors.primary,
   },
   upgradeButton: {
     backgroundColor: colors.primary,
@@ -589,7 +615,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   upgradeText: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.lg,
     fontWeight: '700',
     color: colors.white,
@@ -603,7 +629,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   actionText: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.md,
     color: colors.text,
   },
@@ -621,7 +647,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   adjustmentText: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.xs,
     color: colors.primary,
     flex: 1,
@@ -633,7 +659,7 @@ const styles = StyleSheet.create({
     borderTopColor: colors.border,
   },
   legalText: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.xs,
     color: colors.textMuted,
     lineHeight: 18,
@@ -647,13 +673,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   referralLabel: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.sm,
     color: colors.textSecondary,
     marginBottom: spacing.sm,
   },
   referralCode: {
-    fontFamily: 'JetBrainsMono',
+    fontFamily: fonts.data,
     fontSize: fontSizes['2xl'],
     fontWeight: '700',
     color: colors.primary,
@@ -661,7 +687,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
   referralReward: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.xs,
     color: colors.success,
     marginBottom: spacing.lg,
@@ -679,7 +705,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   referralCopyText: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.sm,
     fontWeight: '600',
     color: colors.text,
@@ -692,13 +718,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   referralShareText: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.sm,
     fontWeight: '600',
     color: colors.white,
   },
   referralStats: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.sm,
     color: colors.textSecondary,
     marginTop: spacing.md,
@@ -724,20 +750,20 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   progressionTitle: {
-    fontFamily: 'Outfit',
+    fontFamily: fonts.display,
     fontSize: fontSizes.lg,
     fontWeight: '700',
     color: colors.text,
   },
   progressionSubtitle: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes.xs,
     color: colors.textSecondary,
     marginTop: 2,
   },
   progressionArrow: {
-    fontFamily: 'DMSans',
+    fontFamily: fonts.body,
     fontSize: fontSizes['2xl'],
     color: colors.primary,
   },
-});
+}));

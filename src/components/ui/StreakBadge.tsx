@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,7 +10,9 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
+import { useT } from '../../i18n';
 
 export interface StreakBadgeProps {
   /** Number of consecutive days */
@@ -42,6 +44,9 @@ export function StreakBadge({
   isActive = true,
   size = 'md',
 }: StreakBadgeProps) {
+  const { colors } = useTheme();
+  const { t } = useT();
+  const styles = useStyles();
   const config = SIZE_CONFIG[size];
   const pulseScale = useSharedValue(1);
   const glowOpacity = useSharedValue(0.6);
@@ -92,9 +97,9 @@ export function StreakBadge({
         : colors.textMuted;
 
   const formatStreak = (days: number): string => {
-    if (days === 0) return '0 jour';
-    if (days === 1) return '1 jour';
-    return `${days} jours`;
+    if (days === 0) return t('streakDayZero');
+    if (days === 1) return t('streakDaySingular');
+    return t('streakDayPlural', { count: days });
   };
 
   return (
@@ -124,7 +129,7 @@ export function StreakBadge({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -137,6 +142,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.data,
     fontWeight: '700',
   },
-});
+}));
 
 export default StreakBadge;

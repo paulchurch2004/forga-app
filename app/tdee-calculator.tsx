@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  StyleSheet,
   ScrollView,
   Pressable,
   Platform,
@@ -18,7 +17,9 @@ import { calculateMacros } from '../src/engine/macros';
 import { determineMealCount } from '../src/engine/mealPlanner';
 import { CALORIE_ADJUSTMENTS } from '../src/engine/constants';
 import { supabase, isDemoMode } from '../src/services/supabase';
-import { colors } from '../src/theme/colors';
+import { makeStyles } from '../src/theme';
+import { useTheme } from '../src/context/ThemeContext';
+import { useT } from '../src/i18n';
 import { fonts, fontSizes, fontWeights } from '../src/theme/fonts';
 import { spacing, borderRadius } from '../src/theme/spacing';
 import type { Sex, Objective, ActivityLevel } from '../src/types/user';
@@ -31,22 +32,25 @@ const triggerHaptic = () => {
 };
 
 const ACTIVITY_OPTIONS: { key: ActivityLevel; label: string; desc: string }[] = [
-  { key: 'sedentary', label: 'Sédentaire', desc: 'Peu ou pas d\'exercice' },
-  { key: 'light', label: 'Léger', desc: '1-3 jours/semaine' },
-  { key: 'moderate', label: 'Modéré', desc: '3-5 jours/semaine' },
-  { key: 'active', label: 'Actif', desc: '6-7 jours/semaine' },
-  { key: 'very_active', label: 'Très actif', desc: 'Intense + travail physique' },
+  { key: 'sedentary', label: 'activitySedentary', desc: 'activitySedentaryDesc' },
+  { key: 'light', label: 'activityLight', desc: 'activityLightDesc' },
+  { key: 'moderate', label: 'activityModerate', desc: 'activityModerateDesc' },
+  { key: 'active', label: 'activityActive', desc: 'activityActiveDesc' },
+  { key: 'very_active', label: 'activityVeryActive', desc: 'activityVeryActiveDesc' },
 ];
 
 const OBJECTIVE_OPTIONS: { key: Objective; label: string; desc: string; adj: string }[] = [
-  { key: 'bulk', label: 'Prise de masse', desc: 'Surplus calorique pour gagner du muscle', adj: '+300 kcal' },
-  { key: 'cut', label: 'Sèche', desc: 'Déficit pour perdre du gras', adj: '-400 kcal' },
-  { key: 'maintain', label: 'Maintien', desc: 'Garder ton poids actuel', adj: '±0 kcal' },
-  { key: 'recomp', label: 'Recomposition', desc: 'Perdre du gras + gagner du muscle', adj: '-100 kcal' },
+  { key: 'bulk', label: 'objectiveBulk', desc: 'objectiveBulkDesc', adj: '+300 kcal' },
+  { key: 'cut', label: 'objectiveCut', desc: 'objectiveCutDesc', adj: '-400 kcal' },
+  { key: 'maintain', label: 'objectiveMaintain', desc: 'objectiveMaintainDesc', adj: '±0 kcal' },
+  { key: 'recomp', label: 'objectiveRecomp', desc: 'objectiveRecompDesc', adj: '-100 kcal' },
 ];
 
 export default function TDEECalculator() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const { contentMaxWidth } = useResponsive();
   const session = useAuthStore((s) => s.session);
   const profile = useUserStore((s) => s.profile);
@@ -166,21 +170,20 @@ export default function TDEECalculator() {
         {/* Header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={16}>
-            <Text style={styles.backText}>{'\u2190'} Retour</Text>
+            <Text style={styles.backText}>{'←'} {t("back")}</Text>
           </Pressable>
         </View>
 
         {/* Hero */}
-        <Text style={styles.h1}>Calculateur TDEE</Text>
+        <Text style={styles.h1}>{t("tdeeCalculator")}</Text>
         <Text style={styles.subtitle}>
-          Calcule tes besoins caloriques et ta répartition en macronutriments.
-          Gratuit, basé sur la formule scientifique Mifflin-St Jeor.
+          {t("tdeeSubtitle")}
         </Text>
 
         {/* ──── FORM ──── */}
 
         {/* Sex */}
-        <Text style={styles.label}>Sexe</Text>
+        <Text style={styles.label}>{t("sex")}</Text>
         <View style={styles.rowTwo}>
           {(['male', 'female'] as Sex[]).map((s) => (
             <Pressable
@@ -189,7 +192,7 @@ export default function TDEECalculator() {
               onPress={() => { triggerHaptic(); setSex(s); }}
             >
               <Text style={[styles.choiceLabel, sex === s && styles.choiceLabelActive]}>
-                {s === 'male' ? 'Homme' : 'Femme'}
+                {s === 'male' ? t('male') : t('female')}
               </Text>
             </Pressable>
           ))}
@@ -198,7 +201,7 @@ export default function TDEECalculator() {
         {/* Age, Height, Weight */}
         <View style={styles.rowThree}>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Âge</Text>
+            <Text style={styles.label}>{t("age")}</Text>
             <TextInput
               style={styles.textInput}
               value={ageStr}
@@ -210,7 +213,7 @@ export default function TDEECalculator() {
             />
           </View>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Taille (cm)</Text>
+            <Text style={styles.label}>{t("height")}</Text>
             <TextInput
               style={styles.textInput}
               value={heightStr}
@@ -222,7 +225,7 @@ export default function TDEECalculator() {
             />
           </View>
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Poids (kg)</Text>
+            <Text style={styles.label}>{t("currentWeight")}</Text>
             <TextInput
               style={styles.textInput}
               value={weightStr}
@@ -236,7 +239,7 @@ export default function TDEECalculator() {
         </View>
 
         {/* Activity */}
-        <Text style={styles.label}>Niveau d'activité</Text>
+        <Text style={styles.label}>{t("activityLevel")}</Text>
         <View style={styles.optionList}>
           {ACTIVITY_OPTIONS.map((opt) => (
             <Pressable
@@ -245,15 +248,15 @@ export default function TDEECalculator() {
               onPress={() => { triggerHaptic(); setActivity(opt.key); }}
             >
               <Text style={[styles.optionLabel, activity === opt.key && styles.optionLabelActive]}>
-                {opt.label}
+                {t(opt.label as any)}
               </Text>
-              <Text style={styles.optionDesc}>{opt.desc}</Text>
+              <Text style={styles.optionDesc}>{t(opt.desc as any)}</Text>
             </Pressable>
           ))}
         </View>
 
         {/* Objective */}
-        <Text style={styles.label}>Objectif</Text>
+        <Text style={styles.label}>{t("objective")}</Text>
         <View style={styles.optionList}>
           {OBJECTIVE_OPTIONS.map((opt) => (
             <Pressable
@@ -264,9 +267,9 @@ export default function TDEECalculator() {
               <View style={styles.optionRow}>
                 <View style={styles.optionTextCol}>
                   <Text style={[styles.optionLabel, objective === opt.key && styles.optionLabelActive]}>
-                    {opt.label}
+                    {t(opt.label as any)}
                   </Text>
-                  <Text style={styles.optionDesc}>{opt.desc}</Text>
+                  <Text style={styles.optionDesc}>{t(opt.desc as any)}</Text>
                 </View>
                 <Text style={[styles.adjBadge, objective === opt.key && styles.adjBadgeActive]}>
                   {opt.adj}
@@ -279,31 +282,31 @@ export default function TDEECalculator() {
         {/* ──── RESULTS ──── */}
         {results && (
           <View style={styles.resultsSection}>
-            <Text style={styles.resultsTitle}>Tes résultats</Text>
+            <Text style={styles.resultsTitle}>{t("yourResults")}</Text>
 
             {/* BMR & TDEE */}
             <View style={styles.resultRow}>
               <View style={styles.resultCard}>
-                <Text style={styles.resultLabel}>Métabolisme de base (BMR)</Text>
+                <Text style={styles.resultLabel}>{t("bmrLabel")}</Text>
                 <Text style={styles.resultValue}>{results.bmr}</Text>
-                <Text style={styles.resultUnit}>kcal/jour</Text>
+                <Text style={styles.resultUnit}>{t("kcalPerDay")}</Text>
               </View>
               <View style={styles.resultCard}>
-                <Text style={styles.resultLabel}>TDEE</Text>
+                <Text style={styles.resultLabel}>{t("tdeeLabel")}</Text>
                 <Text style={styles.resultValue}>{results.tdee}</Text>
-                <Text style={styles.resultUnit}>kcal/jour</Text>
+                <Text style={styles.resultUnit}>{t("kcalPerDay")}</Text>
               </View>
             </View>
 
             {/* Adjusted Calories */}
             <View style={styles.caloriesCard}>
-              <Text style={styles.caloriesTitle}>Calories quotidiennes</Text>
+              <Text style={styles.caloriesTitle}>{t("dailyCalories")}</Text>
               <Text style={styles.caloriesValue}>{results.calories}</Text>
-              <Text style={styles.caloriesUnit}>kcal/jour</Text>
+              <Text style={styles.caloriesUnit}>{t("kcalPerDay")}</Text>
               {results.adjustment !== 0 && (
                 <Text style={styles.adjustmentNote}>
                   TDEE {results.adjustment > 0 ? '+' : ''}{results.adjustment} kcal ({
-                    results.adjustment > 0 ? 'surplus' : 'déficit'
+                    results.adjustment > 0 ? t('surplus') : t('deficit')
                   })
                 </Text>
               )}
@@ -311,13 +314,13 @@ export default function TDEECalculator() {
 
             {/* Macros */}
             <View style={styles.macrosCard}>
-              <Text style={styles.macrosTitle}>Répartition macros</Text>
+              <Text style={styles.macrosTitle}>{t("macroDistribution")}</Text>
 
               {/* Protein */}
               <View style={styles.macroRow}>
                 <View style={styles.macroInfo}>
                   <View style={[styles.macroDot, { backgroundColor: colors.protein }]} />
-                  <Text style={styles.macroName}>Protéines</Text>
+                  <Text style={styles.macroName}>{t("proteinLabel")}</Text>
                 </View>
                 <Text style={styles.macroGrams}>{results.protein}g</Text>
               </View>
@@ -334,7 +337,7 @@ export default function TDEECalculator() {
               <View style={styles.macroRow}>
                 <View style={styles.macroInfo}>
                   <View style={[styles.macroDot, { backgroundColor: colors.carbs }]} />
-                  <Text style={styles.macroName}>Glucides</Text>
+                  <Text style={styles.macroName}>{t("carbsLabel")}</Text>
                 </View>
                 <Text style={styles.macroGrams}>{results.carbs}g</Text>
               </View>
@@ -351,7 +354,7 @@ export default function TDEECalculator() {
               <View style={styles.macroRow}>
                 <View style={styles.macroInfo}>
                   <View style={[styles.macroDot, { backgroundColor: colors.fat }]} />
-                  <Text style={styles.macroName}>Lipides</Text>
+                  <Text style={styles.macroName}>{t("fatLabel")}</Text>
                 </View>
                 <Text style={styles.macroGrams}>{results.fat}g</Text>
               </View>
@@ -367,7 +370,7 @@ export default function TDEECalculator() {
 
             {/* Meals per day */}
             <View style={styles.mealsCard}>
-              <Text style={styles.mealsLabel}>Repas recommandés par jour</Text>
+              <Text style={styles.mealsLabel}>{t("recommendedMealsPerDay")}</Text>
               <Text style={styles.mealsValue}>{results.mealsPerDay}</Text>
             </View>
 
@@ -378,16 +381,16 @@ export default function TDEECalculator() {
             >
               <Text style={styles.ctaBtnText}>
                 {applied
-                  ? 'Profil mis à jour !'
+                  ? t('profileUpdated')
                   : session
-                    ? 'Appliquer à mon profil'
-                    : 'Crée ton plan nutrition sur FORGA'}
+                    ? t('applyToProfile')
+                    : t('createNutritionPlan')}
               </Text>
             </Pressable>
 
             {!session && (
               <Text style={styles.ctaHint}>
-                Inscription gratuite — Plan nutrition personnalisé en 2 minutes
+                {t("signUpFreeHint")}
               </Text>
             )}
           </View>
@@ -395,31 +398,21 @@ export default function TDEECalculator() {
 
         {/* ──── SEO CONTENT ──── */}
         <View style={styles.seoSection}>
-          <Text style={styles.seoTitle}>Comment ça marche ?</Text>
+          <Text style={styles.seoTitle}>{t("howItWorks")}</Text>
           <Text style={styles.seoText}>
-            Le TDEE (Total Daily Energy Expenditure) représente la quantité totale de calories
-            que ton corps brûle chaque jour. Il est calculé à partir de ton métabolisme de base (BMR)
-            multiplié par ton niveau d'activité physique.
+            {t("tdeeSeoText1")}
           </Text>
           <Text style={styles.seoText}>
-            Nous utilisons la formule de Mifflin-St Jeor, reconnue comme la plus fiable par
-            la communauté scientifique :{'\n'}
-            Homme : (10 × poids) + (6.25 × taille) - (5 × âge) + 5{'\n'}
-            Femme : (10 × poids) + (6.25 × taille) - (5 × âge) - 161
+            {t("tdeeSeoText2")}
           </Text>
           <Text style={styles.seoText}>
-            La répartition des macronutriments suit les recommandations de l'ISSN
-            (International Society of Sports Nutrition), avec des ratios adaptés à ton objectif :
-            plus de protéines en sèche pour préserver le muscle, plus de glucides en prise de masse
-            pour soutenir l'entraînement.
+            {t("tdeeSeoText3")}
           </Text>
         </View>
 
         {/* Disclaimer */}
         <Text style={styles.disclaimer}>
-          FORGA est un outil d'aide à la nutrition. Les calculs sont des estimations basées
-          sur des formules scientifiques reconnues. Consulte un professionnel de santé pour
-          des besoins spécifiques.
+          {t("onboardingDisclaimer")}
         </Text>
 
         <View style={{ height: insets.bottom + spacing['3xl'] }} />
@@ -428,7 +421,7 @@ export default function TDEECalculator() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -795,4 +788,4 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
     paddingHorizontal: spacing.md,
   },
-});
+}));

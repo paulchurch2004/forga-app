@@ -7,7 +7,8 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
-import { colors, fonts, fontSizes } from '../../theme';
+import { makeStyles, fonts, fontSizes } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -36,13 +37,18 @@ export function ProgressCircle({
   progress,
   size = 100,
   strokeWidth = 8,
-  color = colors.primary,
+  color,
   label,
   value,
   valueFontSize,
-  trackColor = colors.surfaceHover,
+  trackColor,
   animationDuration = 800,
 }: ProgressCircleProps) {
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const resolvedColor = color ?? colors.primary;
+  const resolvedTrackColor = trackColor ?? colors.surfaceHover;
+
   const clampedProgress = Math.min(1, Math.max(0, progress));
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -71,7 +77,7 @@ export function ProgressCircle({
           cx={center}
           cy={center}
           r={radius}
-          stroke={trackColor}
+          stroke={resolvedTrackColor}
           strokeWidth={strokeWidth}
           fill="none"
         />
@@ -80,7 +86,7 @@ export function ProgressCircle({
           cx={center}
           cy={center}
           r={radius}
-          stroke={color}
+          stroke={resolvedColor}
           strokeWidth={strokeWidth}
           fill="none"
           strokeDasharray={circumference}
@@ -97,7 +103,7 @@ export function ProgressCircle({
               styles.valueText,
               {
                 fontSize: computedValueFontSize,
-                color: color,
+                color: resolvedColor,
               },
             ]}
             numberOfLines={1}
@@ -115,7 +121,7 @@ export function ProgressCircle({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -135,6 +141,6 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: 2,
   },
-});
+}));
 
 export default ProgressCircle;

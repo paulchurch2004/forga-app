@@ -2,7 +2,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Pressable,
   Platform,
   Image,
@@ -12,7 +11,9 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { colors } from '../src/theme/colors';
+import { makeStyles } from '../src/theme';
+import { useTheme } from '../src/context/ThemeContext';
+import { useT } from '../src/i18n';
 import { fonts, fontSizes } from '../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../src/theme/spacing';
 
@@ -38,6 +39,7 @@ function isStandalone(): boolean {
 // ──────────── TAP FINGER ANIMATION ────────────
 
 function TapFinger({ x, y, delay = 0 }: { x: number; y: number; delay?: number }) {
+  const tapStyles = useTapStyles();
   const scale = useRef(new RNAnimated.Value(0)).current;
   const opacity = useRef(new RNAnimated.Value(0)).current;
   const ripple = useRef(new RNAnimated.Value(0)).current;
@@ -104,7 +106,7 @@ function TapFinger({ x, y, delay = 0 }: { x: number; y: number; delay?: number }
   );
 }
 
-const tapStyles = StyleSheet.create({
+const useTapStyles = makeStyles((colors) => ({
   container: {
     position: 'absolute',
     width: 40,
@@ -128,11 +130,12 @@ const tapStyles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: colors.primary,
   },
-});
+}));
 
 // ──────────── PULSE RING ────────────
 
 function PulseRing({ x, y, size = 40 }: { x: number; y: number; size?: number }) {
+  const { colors } = useTheme();
   const scale = useRef(new RNAnimated.Value(1)).current;
   const opacity = useRef(new RNAnimated.Value(0.6)).current;
 
@@ -176,6 +179,9 @@ function PulseRing({ x, y, size = 40 }: { x: number; y: number; size?: number })
 // ──────────── iOS SAFARI DEMO ────────────
 
 function IOSDemo() {
+  const demoStyles = useDemoStyles();
+  const { colors } = useTheme();
+  const { t } = useT();
   const [step, setStep] = useState(0);
   const menuSlide = useRef(new RNAnimated.Value(200)).current;
   const menuOpacity = useRef(new RNAnimated.Value(0)).current;
@@ -270,7 +276,7 @@ function IOSDemo() {
               <RNAnimated.View style={[demoStyles.checkBadge, { transform: [{ scale: checkScale }] }]}>
                 <Text style={demoStyles.checkText}>OK</Text>
               </RNAnimated.View>
-              <Text style={demoStyles.installedText}>Installe !</Text>
+              <Text style={demoStyles.installedText}>{t("installed")}</Text>
             </View>
           )}
         </View>
@@ -332,6 +338,9 @@ function IOSDemo() {
 // ──────────── ANDROID CHROME DEMO ────────────
 
 function AndroidDemo() {
+  const demoStyles = useDemoStyles();
+  const { colors } = useTheme();
+  const { t } = useT();
   const [step, setStep] = useState(0);
   const menuSlide = useRef(new RNAnimated.Value(-100)).current;
   const menuOpacity = useRef(new RNAnimated.Value(0)).current;
@@ -418,7 +427,7 @@ function AndroidDemo() {
               <RNAnimated.View style={[demoStyles.checkBadge, { transform: [{ scale: checkScale }] }]}>
                 <Text style={demoStyles.checkText}>OK</Text>
               </RNAnimated.View>
-              <Text style={demoStyles.installedText}>Installe !</Text>
+              <Text style={demoStyles.installedText}>{t("installed")}</Text>
             </View>
           )}
         </View>
@@ -465,24 +474,13 @@ function AndroidDemo() {
   );
 }
 
-// ──────────── STEP TEXT LABELS ────────────
-
-const IOS_STEPS = [
-  "Tape sur l'icone Partager en bas de Safari",
-  "Fais defiler et tape \"Sur l'ecran d'accueil\"",
-  "Tape \"Ajouter\" et c'est bon !",
-];
-
-const ANDROID_STEPS = [
-  "Tape sur les 3 points en haut a droite",
-  "Tape \"Ajouter a l'ecran d'accueil\"",
-  "Confirme et c'est bon !",
-];
-
 // ──────────── MAIN SCREEN ────────────
 
 export default function InstallGuideScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const [device, setDevice] = useState<DeviceType>('ios');
 
   useEffect(() => {
@@ -502,7 +500,9 @@ export default function InstallGuideScreen() {
     setDevice(detected);
   }, []);
 
-  const steps = device === 'ios' ? IOS_STEPS : ANDROID_STEPS;
+  const steps = device === 'ios'
+    ? [t('iosStep1'), t('iosStep2'), t('iosStep3')]
+    : [t('androidStep1'), t('androidStep2'), t('androidStep3')];
 
   return (
     <View
@@ -519,9 +519,9 @@ export default function InstallGuideScreen() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={styles.title}>Installe FORGA</Text>
+          <Text style={styles.title}>{t("installForga")}</Text>
           <Text style={styles.subtitle}>
-            Ajoute FORGA sur ton ecran d'accueil pour y acceder comme une vraie app.
+            {t("installSubtitle")}
           </Text>
         </Animated.View>
 
@@ -548,10 +548,10 @@ export default function InstallGuideScreen() {
         {/* Buttons */}
         <Animated.View entering={FadeInDown.delay(600).duration(400)} style={styles.buttonsContainer}>
           <Pressable style={styles.doneButton} onPress={() => router.replace('/(tabs)/home')}>
-            <Text style={styles.doneButtonText}>C'est fait !</Text>
+            <Text style={styles.doneButtonText}>{t("iosDone")}</Text>
           </Pressable>
           <Pressable style={styles.skipButton} onPress={() => router.replace('/(tabs)/home')}>
-            <Text style={styles.skipButtonText}>Plus tard</Text>
+            <Text style={styles.skipButtonText}>{t("later")}</Text>
           </Pressable>
         </Animated.View>
       </View>
@@ -561,7 +561,7 @@ export default function InstallGuideScreen() {
 
 // ──────────── DEMO STYLES ────────────
 
-const demoStyles = StyleSheet.create({
+const useDemoStyles = makeStyles((colors) => ({
   phone: {
     width: 280,
     height: 310,
@@ -808,11 +808,11 @@ const demoStyles = StyleSheet.create({
   dotActive: {
     backgroundColor: colors.primary,
   },
-});
+}));
 
 // ──────────── MAIN STYLES ────────────
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -902,4 +902,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     color: colors.textSecondary,
   },
-});
+}));

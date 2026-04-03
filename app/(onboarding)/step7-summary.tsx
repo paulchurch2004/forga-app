@@ -2,7 +2,6 @@ import React, { useMemo, useState, useCallback } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Pressable,
   ScrollView,
   Alert,
@@ -21,7 +20,9 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
 import { useAuthStore } from '../../src/store/authStore';
-import { colors } from '../../src/theme/colors';
+import { makeStyles } from '../../src/theme';
+import { useTheme } from '../../src/context/ThemeContext';
+import { useT } from '../../src/i18n';
 import { fonts, fontSizes, fontWeights } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
 import { calculateTDEE } from '../../src/engine/tdee';
@@ -46,39 +47,42 @@ const triggerHaptic = (type: 'light' | 'success' = 'light') => {
 const STEP = 7;
 const TOTAL_STEPS = 7;
 
-const OBJECTIVE_LABELS: Record<Objective, string> = {
-  bulk: 'Prise de masse',
-  cut: 'Sèche',
-  maintain: 'Maintien',
-  recomp: 'Recomposition',
+const OBJECTIVE_LABEL_KEYS: Record<Objective, string> = {
+  bulk: 'objectiveBulk',
+  cut: 'objectiveCut',
+  maintain: 'objectiveMaintain',
+  recomp: 'objectiveRecomp',
 };
 
-const ACTIVITY_LABELS: Record<ActivityLevel, string> = {
-  sedentary: 'Sédentaire',
-  light: 'Léger',
-  moderate: 'Modéré',
-  active: 'Actif',
-  very_active: 'Très actif',
+const ACTIVITY_LABEL_KEYS: Record<ActivityLevel, string> = {
+  sedentary: 'activitySedentary',
+  light: 'activityLight',
+  moderate: 'activityModerate',
+  active: 'activityActive',
+  very_active: 'activityVeryActive',
 };
 
-const BUDGET_LABELS: Record<string, string> = {
-  eco: 'Eco',
-  premium: 'Premium',
-  both: 'Les deux',
+const BUDGET_LABEL_KEYS: Record<string, string> = {
+  eco: 'budgetEco',
+  premium: 'budgetPremium',
+  both: 'budgetBoth',
 };
 
-const RESTRICTION_LABELS: Record<string, string> = {
-  vegetarian: 'Végétarien',
-  vegan: 'Vegan',
-  gluten_free: 'Sans gluten',
-  lactose_free: 'Sans lactose',
-  halal: 'Halal',
-  pork_free: 'Sans porc',
+const RESTRICTION_LABEL_KEYS: Record<string, string> = {
+  vegetarian: 'restrictionVegetarian',
+  vegan: 'restrictionVegan',
+  gluten_free: 'restrictionGlutenFree',
+  lactose_free: 'restrictionLactoseFree',
+  halal: 'restrictionHalal',
+  pork_free: 'restrictionPorkFree',
 };
 
 export default function Step7Summary() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const onboardingData = useUserStore((s) => s.onboardingData);
   const setOnboardingData = useUserStore((s) => s.setOnboardingData);
   const setProfile = useUserStore((s) => s.setProfile);
@@ -140,7 +144,7 @@ export default function Step7Summary() {
     try {
       const userId = user?.id;
       if (!userId) {
-        throw new Error('Utilisateur non connecte.');
+        throw new Error(t('userNotConnected'));
       }
 
       const now = new Date().toISOString();
@@ -244,11 +248,11 @@ export default function Step7Summary() {
         router.replace('/');
       }
     } catch (err: any) {
-      const message = err?.message ?? 'Une erreur est survenue.';
+      const message = err?.message ?? t('errorOccurred');
       if (Platform.OS === 'web') {
         alert(message);
       } else {
-        Alert.alert('Erreur', message);
+        Alert.alert(t('error'), message);
       }
     } finally {
       setIsLoading(false);
@@ -287,7 +291,7 @@ export default function Step7Summary() {
     <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
       {/* Progress bar */}
       <View style={styles.progressContainer}>
-        <Pressable onPress={handleBack} hitSlop={12} accessibilityLabel="Retour">
+        <Pressable onPress={handleBack} hitSlop={12} accessibilityLabel={t("back")}>
           <Text style={styles.backArrow}>{'\u2190'}</Text>
         </Pressable>
         <View style={styles.progressTrack}>
@@ -309,22 +313,22 @@ export default function Step7Summary() {
         showsVerticalScrollIndicator={false}
       >
         {/* Title */}
-        <Text style={styles.title}>Ton plan est prêt.</Text>
+        <Text style={styles.title}>{t("onboardingStep7Title")}</Text>
         <Text style={styles.subtitle}>
-          Voilà ce que FORGA a calculé pour toi.
+          {t("onboardingStep7Subtitle")}
         </Text>
 
         {/* Objective card */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Objectif</Text>
+            <Text style={styles.summaryLabel}>{t("objective")}</Text>
             <Text style={styles.summaryValue}>
-              {OBJECTIVE_LABELS[objective]}
+              {t(OBJECTIVE_LABEL_KEYS[objective] as any)}
             </Text>
           </View>
           {delta !== 0 && (
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Variation</Text>
+              <Text style={styles.summaryLabel}>{t("variation")}</Text>
               <Text
                 style={[
                   styles.summaryValue,
@@ -336,18 +340,18 @@ export default function Step7Summary() {
             </View>
           )}
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Activité</Text>
+            <Text style={styles.summaryLabel}>{t("activity")}</Text>
             <Text style={styles.summaryValue}>
-              {ACTIVITY_LABELS[onboardingData.activityLevel ?? 'moderate']}
+              {t(ACTIVITY_LABEL_KEYS[onboardingData.activityLevel ?? 'moderate'] as any)}
             </Text>
           </View>
         </View>
 
         {/* Calories card */}
         <View style={styles.caloriesCard}>
-          <Text style={styles.caloriesTitle}>Calories quotidiennes</Text>
+          <Text style={styles.caloriesTitle}>{t("dailyCalories")}</Text>
           <Text style={styles.caloriesValue}>{computed.calories}</Text>
-          <Text style={styles.caloriesUnit}>kcal/jour</Text>
+          <Text style={styles.caloriesUnit}>{t("kcalPerDay")}</Text>
 
           <View style={styles.macroDivider} />
 
@@ -356,24 +360,24 @@ export default function Step7Summary() {
             <View style={styles.macroItem}>
               <View style={[styles.macroDot, { backgroundColor: colors.protein }]} />
               <Text style={styles.macroValue}>{computed.protein}g</Text>
-              <Text style={styles.macroLabel}>Protéines</Text>
+              <Text style={styles.macroLabel}>{t("proteinLabel")}</Text>
             </View>
             <View style={styles.macroItem}>
               <View style={[styles.macroDot, { backgroundColor: colors.carbs }]} />
               <Text style={styles.macroValue}>{computed.carbs}g</Text>
-              <Text style={styles.macroLabel}>Glucides</Text>
+              <Text style={styles.macroLabel}>{t("carbsLabel")}</Text>
             </View>
             <View style={styles.macroItem}>
               <View style={[styles.macroDot, { backgroundColor: colors.fat }]} />
               <Text style={styles.macroValue}>{computed.fat}g</Text>
-              <Text style={styles.macroLabel}>Lipides</Text>
+              <Text style={styles.macroLabel}>{t("fatLabel")}</Text>
             </View>
           </View>
         </View>
 
         {/* Meals per day */}
         <View style={styles.mealsCard}>
-          <Text style={styles.mealsLabel}>Repas par jour</Text>
+          <Text style={styles.mealsLabel}>{t("mealsPerDayLabel")}</Text>
           <Text style={styles.mealsValue}>{computed.mealsPerDay}</Text>
         </View>
 
@@ -382,20 +386,20 @@ export default function Step7Summary() {
           <View style={styles.summaryCard}>
             {onboardingData.budget && (
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Budget</Text>
+                <Text style={styles.summaryLabel}>{t("budget")}</Text>
                 <Text style={styles.summaryValue}>
-                  {BUDGET_LABELS[onboardingData.budget] ?? onboardingData.budget}
+                  {t(BUDGET_LABEL_KEYS[onboardingData.budget!] as any) ?? onboardingData.budget}
                 </Text>
               </View>
             )}
             {onboardingData.restrictions && onboardingData.restrictions.length > 0 && (
               <View style={styles.restrictionsRow}>
-                <Text style={styles.summaryLabel}>Restrictions</Text>
+                <Text style={styles.summaryLabel}>{t("restrictions")}</Text>
                 <View style={styles.restrictionChips}>
                   {onboardingData.restrictions.map((r) => (
                     <View key={r} style={styles.restrictionChip}>
                       <Text style={styles.restrictionChipText}>
-                        {RESTRICTION_LABELS[r] ?? r}
+                        {t(RESTRICTION_LABEL_KEYS[r] as any) ?? r}
                       </Text>
                     </View>
                   ))}
@@ -407,21 +411,16 @@ export default function Step7Summary() {
 
         {/* Score FORGA intro */}
         <View style={styles.scoreCard}>
-          <Text style={styles.scoreTitle}>Score FORGA</Text>
+          <Text style={styles.scoreTitle}>{t("scoreForga")}</Text>
           <Text style={styles.scoreBigNumber}>0</Text>
           <Text style={styles.scoreDescription}>
-            Ton Score FORGA démarre à 0. Chaque jour que tu valides, il monte.
-            Chaque jour que tu rates, il descend. À toi de jouer.
-          </Text>
+              {t("scoreIntroDesc")}
+            </Text>
         </View>
 
         {/* Disclaimer */}
         <Text style={styles.disclaimer}>
-          FORGA est un outil d'aide à la nutrition. Il ne remplace pas l'avis
-          d'un professionnel de santé. Les calculs sont basés sur des formules
-          scientifiques reconnues (Mifflin-St Jeor, ISSN) mais restent des
-          estimations. Consulte un médecin ou un diététicien si tu as des
-          besoins spécifiques.
+          {t("onboardingDisclaimer")}
         </Text>
       </ScrollView>
 
@@ -432,13 +431,13 @@ export default function Step7Summary() {
           onPress={handleFinish}
           disabled={isLoading}
           accessibilityRole="button"
-          accessibilityLabel="Commencer"
+          accessibilityLabel={t("begin")}
           accessibilityState={{ disabled: isLoading, busy: isLoading }}
         >
           {isLoading ? (
             <ActivityIndicator size="small" color={colors.white} />
           ) : (
-            <Text style={styles.startButtonText}>Commencer</Text>
+            <Text style={styles.startButtonText}>{t("begin")}</Text>
           )}
         </Pressable>
       </View>
@@ -452,15 +451,15 @@ export default function Step7Summary() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>Activer les rappels ?</Text>
+            <Text style={styles.modalTitle}>{t("notifPromptTitle")}</Text>
             <Text style={styles.modalBody}>
-              FORGA peut t'envoyer des rappels pour tes repas et check-ins hebdomadaires.
+              {t("notifPromptBody")}
             </Text>
             <Pressable style={styles.modalBtnPrimary} onPress={handleEnableNotifs}>
-              <Text style={styles.modalBtnPrimaryText}>Activer</Text>
+              <Text style={styles.modalBtnPrimaryText}>{t("enable")}</Text>
             </Pressable>
             <Pressable style={styles.modalBtnSecondary} onPress={handleSkipNotifs}>
-              <Text style={styles.modalBtnSecondaryText}>Plus tard</Text>
+              <Text style={styles.modalBtnSecondaryText}>{t("later")}</Text>
             </Pressable>
           </View>
         </View>
@@ -469,7 +468,7 @@ export default function Step7Summary() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   flex: {
     flex: 1,
   },
@@ -774,4 +773,4 @@ const styles = StyleSheet.create({
     fontSize: fontSizes.md,
     color: colors.textSecondary,
   },
-});
+}));

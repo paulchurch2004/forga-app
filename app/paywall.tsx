@@ -2,14 +2,15 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
   Pressable,
   ActivityIndicator,
   Alert,
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
-import { colors } from '../src/theme/colors';
+import { makeStyles } from '../src/theme';
+import { useTheme } from '../src/context/ThemeContext';
+import { useT } from '../src/i18n';
 import { fontSizes } from '../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../src/theme/spacing';
 import { getOfferings, purchasePackage, restorePurchases } from '../src/services/revenueCat';
@@ -28,17 +29,20 @@ const showAlert = (title: string, message: string) => {
   }
 };
 
-const FEATURES = [
-  'Photos des plats + 12 choix par repas',
-  'Grammages personnalisés au gramme',
-  'Recettes détaillées pas-à-pas',
-  'Streak Freeze (protège ta série)',
-  'Score FORGA détaillé',
-  'Ajustement automatique de ton plan',
-  'Zéro pub',
+const FEATURE_KEYS = [
+  'premiumFeature1',
+  'premiumFeature2',
+  'premiumFeature3',
+  'premiumFeature4',
+  'premiumFeature5',
+  'premiumFeature6',
+  'premiumFeature7',
 ];
 
 export default function PaywallScreen() {
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const [packages, setPackages] = useState<any[]>([]);
   const [selectedPlan, setSelectedPlan] = useState<'annual' | 'monthly'>('annual');
   const [loading, setLoading] = useState(false);
@@ -77,7 +81,7 @@ export default function PaywallScreen() {
     );
 
     if (!pkg) {
-      showAlert('RevenueCat non configuré', 'Configure tes produits dans RevenueCat pour activer les achats.');
+      showAlert(t('error'), 'RevenueCat not configured');
       return;
     }
 
@@ -92,7 +96,7 @@ export default function PaywallScreen() {
         router.back();
       }
     } catch (error: any) {
-      showAlert('Erreur', error.message ?? 'Erreur lors de l\'achat.');
+      showAlert(t('error'), error.message ?? t('errorOccurred'));
     } finally {
       setLoading(false);
     }
@@ -109,7 +113,7 @@ export default function PaywallScreen() {
         const premiumUntil = calculatePremiumUntil(undefined, weeks);
         updateProfile({ isPremium: true, premiumUntil });
         events.purchaseCompleted(selectedPlan);
-        showAlert('Mode Démo', 'Premium activé en mode démo !');
+        showAlert(t('demoMode'), t('demoPremiumActivated'));
         router.back();
         return;
       }
@@ -119,10 +123,10 @@ export default function PaywallScreen() {
         // Redirect to Stripe Checkout
         window.location.href = result.url;
       } else {
-        showAlert('Erreur', 'Impossible de créer la session de paiement.');
+        showAlert(t('error'), t('errorOccurred'));
       }
     } catch (error: any) {
-      showAlert('Erreur', error.message ?? 'Erreur lors du paiement.');
+      showAlert(t('error'), error.message ?? t('errorOccurred'));
     } finally {
       setLoading(false);
     }
@@ -130,7 +134,7 @@ export default function PaywallScreen() {
 
   const handleRestore = async () => {
     if (Platform.OS === 'web') {
-      showAlert('Déjà abonné ?', 'Contacte le support à support@forga.fr pour restaurer ton abonnement web.');
+      showAlert(t('alreadySubscribed'), t('contactSupport'));
       return;
     }
     setLoading(true);
@@ -138,13 +142,13 @@ export default function PaywallScreen() {
       const info = await restorePurchases();
       if (info?.entitlements?.active?.['premium']) {
         updateProfile({ isPremium: true });
-        showAlert('Restauré', 'Ton abonnement a été restauré.');
+        showAlert(t('restore'), t('restoreSuccess'));
         router.back();
       } else {
-        showAlert('Aucun achat', 'Aucun abonnement actif trouvé.');
+        showAlert(t('error'), t('noActiveSubscription'));
       }
     } catch (error: any) {
-      showAlert('Erreur', error.message ?? 'Erreur lors de la restauration.');
+      showAlert(t('error'), error.message ?? t('errorOccurred'));
     } finally {
       setLoading(false);
     }
@@ -157,20 +161,20 @@ export default function PaywallScreen() {
         events.paywallDismissed();
         router.back();
       }}>
-        <Text style={styles.closeText}>Non merci</Text>
+        <Text style={styles.closeText}>{t("noThanks")}</Text>
       </Pressable>
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Tu passes à côté de :</Text>
+        <Text style={styles.title}>{t("youAreMissingOut")}</Text>
       </View>
 
       {/* Features */}
       <View style={styles.features}>
-        {FEATURES.map((feature, i) => (
+        {FEATURE_KEYS.map((key, i) => (
           <View key={i} style={styles.featureRow}>
             <Text style={styles.featureCross}>x</Text>
-            <Text style={styles.featureText}>{feature}</Text>
+            <Text style={styles.featureText}>{t(key as any)}</Text>
           </View>
         ))}
       </View>
@@ -185,10 +189,10 @@ export default function PaywallScreen() {
           onPress={() => setSelectedPlan('annual')}
         >
           <View style={styles.planBadge}>
-            <Text style={styles.planBadgeText}>RECOMMANDÉ</Text>
+            <Text style={styles.planBadgeText}>{t("recommended")}</Text>
           </View>
-          <Text style={styles.planPrice}>14,99€/an</Text>
-          <Text style={styles.planDetail}>1,25€/mois</Text>
+          <Text style={styles.planPrice}>{t("annualPrice")}</Text>
+          <Text style={styles.planDetail}>{t("annualDetail")}</Text>
         </Pressable>
 
         <Pressable
@@ -198,8 +202,8 @@ export default function PaywallScreen() {
           ]}
           onPress={() => setSelectedPlan('monthly')}
         >
-          <Text style={styles.planPrice}>2,99€/mois</Text>
-          <Text style={styles.planDetail}>Mensuel</Text>
+          <Text style={styles.planPrice}>{t("monthlyPrice")}</Text>
+          <Text style={styles.planDetail}>{t("monthlyLabel")}</Text>
         </Pressable>
       </View>
 
@@ -213,23 +217,23 @@ export default function PaywallScreen() {
           <ActivityIndicator color={colors.white} />
         ) : (
           <Text style={styles.ctaText}>
-            Commencer l'essai gratuit 7 jours
+            {t("startFreeTrial")}
           </Text>
         )}
       </Pressable>
 
       <Text style={styles.cancelText}>
-        Annule quand tu veux. Aucun engagement.
+        {t("cancelAnytime")}
       </Text>
 
       <Pressable onPress={handleRestore}>
-        <Text style={styles.restoreText}>Restaurer un achat</Text>
+        <Text style={styles.restoreText}>{t("restorePurchase")}</Text>
       </Pressable>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -357,4 +361,4 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     textDecorationLine: 'underline',
   },
-});
+}));

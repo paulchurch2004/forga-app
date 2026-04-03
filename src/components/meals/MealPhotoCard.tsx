@@ -4,7 +4,6 @@ import {
   Text,
   Image,
   Pressable,
-  StyleSheet,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -13,7 +12,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { colors, fonts, fontSizes, spacing, borderRadius, shadows } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius, shadows } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
 import { useMealStore } from '../../store/mealStore';
 import type { Meal } from '../../types/meal';
 
@@ -25,6 +25,8 @@ interface MealPhotoCardProps {
 }
 
 export function MealPhotoCard({ meal, cardWidth }: MealPhotoCardProps) {
+  const { colors } = useTheme();
+  const styles = useStyles();
   const favorites = useMealStore((s) => s.favorites);
   const toggleFavorite = useMealStore((s) => s.toggleFavorite);
   const likedMeals = useMealStore((s) => s.likedMeals);
@@ -124,7 +126,7 @@ export function MealPhotoCard({ meal, cardWidth }: MealPhotoCardProps) {
               ? 'Facile'
               : meal.difficulty === 2
               ? 'Moyen'
-              : 'Avancé'}
+              : 'Avance'}
           </Text>
           <View style={styles.feedbackRow}>
             <Pressable
@@ -165,6 +167,7 @@ function MacroChip({
   unit: string;
   color: string;
 }) {
+  const styles = useStyles();
   return (
     <View style={[styles.macroChip, { borderColor: color }]}>
       <Text style={[styles.macroChipValue, { color }]}>
@@ -175,7 +178,7 @@ function MacroChip({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   card: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
@@ -193,7 +196,11 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   gradient: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.15)',
   },
   budgetTag: {
@@ -287,6 +294,6 @@ const styles = StyleSheet.create({
   feedbackBtn: {
     padding: 2,
   },
-});
+}));
 
 export default MealPhotoCard;

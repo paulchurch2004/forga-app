@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../src/store/userStore';
@@ -7,12 +7,17 @@ import { useScoreStore } from '../src/store/scoreStore';
 import { useStreak } from '../src/hooks/useStreak';
 import { useShareCard } from '../src/hooks/useShareCard';
 import { ShareCard } from '../src/components/social/ShareCard';
-import { colors, fonts, fontSizes, spacing, borderRadius } from '../src/theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../src/theme';
+import { useTheme } from '../src/context/ThemeContext';
+import { useT } from '../src/i18n';
 import { useResponsive } from '../src/hooks/useResponsive';
 import type { BadgeType } from '../src/types/user';
 
 export default function ShareScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const { contentMaxWidth } = useResponsive();
   const { type, badgeType } = useLocalSearchParams<{ type: string; badgeType?: string }>();
 
@@ -40,9 +45,9 @@ export default function ShareScreen() {
         {/* Header */}
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} hitSlop={16}>
-            <Text style={styles.backText}>Retour</Text>
+            <Text style={styles.backText}>{t("back")}</Text>
           </Pressable>
-          <Text style={styles.headerTitle}>Partager</Text>
+          <Text style={styles.headerTitle}>{t("share")}</Text>
           <View style={{ width: 60 }} />
         </View>
 
@@ -60,16 +65,16 @@ export default function ShareScreen() {
         </View>
 
         <Text style={styles.formatHint}>
-          Format story 9:16 — Prêt pour Instagram, WhatsApp, Snapchat
+          {t("shareFormatHint")}
         </Text>
 
         {/* Share button inside scroll so everything is reachable */}
         <Pressable style={styles.shareBtn} onPress={share}>
-          <Text style={styles.shareBtnText}>Partager</Text>
+          <Text style={styles.shareBtnText}>{t("share")}</Text>
         </Pressable>
 
         <Text style={styles.hint}>
-          L'image sera exportée en HD (1080×1920) pour un rendu net.
+          {t("shareHDExport")}
         </Text>
 
         <View style={{ height: insets.bottom + spacing['3xl'] }} />
@@ -78,7 +83,7 @@ export default function ShareScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
@@ -137,4 +142,4 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
     fontStyle: 'italic',
   },
-});
+}));

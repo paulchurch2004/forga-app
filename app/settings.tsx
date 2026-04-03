@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  StyleSheet,
   Pressable,
   ScrollView,
   Platform,
@@ -12,9 +11,9 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../src/theme/colors';
-import { fonts, fontSizes, fontWeights } from '../src/theme/fonts';
-import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../src/theme/spacing';
+import { makeStyles, fonts, fontSizes, fontWeights, spacing, borderRadius, MAX_CONTENT_WIDTH } from '../src/theme';
+import { useTheme } from '../src/context/ThemeContext';
+import { useT } from '../src/i18n';
 import { useUserStore } from '../src/store/userStore';
 import { useAuthStore } from '../src/store/authStore';
 import { supabase, isDemoMode } from '../src/services/supabase';
@@ -22,36 +21,6 @@ import { calculateTDEE } from '../src/engine/tdee';
 import { calculateMacros } from '../src/engine/macros';
 import { determineMealCount } from '../src/engine/mealPlanner';
 import type { Sex, Objective, ActivityLevel, Budget, Restriction } from '../src/types/user';
-
-const OBJECTIVE_OPTIONS: { value: Objective; label: string }[] = [
-  { value: 'bulk', label: 'Prise de masse' },
-  { value: 'cut', label: 'Sèche' },
-  { value: 'maintain', label: 'Maintien' },
-  { value: 'recomp', label: 'Recomposition' },
-];
-
-const ACTIVITY_OPTIONS: { value: ActivityLevel; label: string }[] = [
-  { value: 'sedentary', label: 'Sédentaire' },
-  { value: 'light', label: 'Léger' },
-  { value: 'moderate', label: 'Modéré' },
-  { value: 'active', label: 'Actif' },
-  { value: 'very_active', label: 'Très actif' },
-];
-
-const BUDGET_OPTIONS: { value: Budget; label: string }[] = [
-  { value: 'eco', label: 'Eco' },
-  { value: 'premium', label: 'Premium' },
-  { value: 'both', label: 'Les deux' },
-];
-
-const RESTRICTION_OPTIONS: { value: Restriction; label: string }[] = [
-  { value: 'vegetarian', label: 'Végétarien' },
-  { value: 'vegan', label: 'Vegan' },
-  { value: 'gluten_free', label: 'Sans gluten' },
-  { value: 'lactose_free', label: 'Sans lactose' },
-  { value: 'halal', label: 'Halal' },
-  { value: 'pork_free', label: 'Sans porc' },
-];
 
 const showMessage = (title: string, message: string) => {
   if (Platform.OS === 'web') {
@@ -63,9 +32,42 @@ const showMessage = (title: string, message: string) => {
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const profile = useUserStore((s) => s.profile);
   const setProfile = useUserStore((s) => s.setProfile);
   const user = useAuthStore((s) => s.user);
+
+  const OBJECTIVE_OPTIONS: { value: Objective; label: string }[] = [
+    { value: 'bulk', label: t('objectiveBulk') },
+    { value: 'cut', label: t('objectiveCut') },
+    { value: 'maintain', label: t('objectiveMaintain') },
+    { value: 'recomp', label: t('objectiveRecomp') },
+  ];
+
+  const ACTIVITY_OPTIONS: { value: ActivityLevel; label: string }[] = [
+    { value: 'sedentary', label: t('activitySedentary') },
+    { value: 'light', label: t('activityLight') },
+    { value: 'moderate', label: t('activityModerate') },
+    { value: 'active', label: t('activityActive') },
+    { value: 'very_active', label: t('activityVeryActive') },
+  ];
+
+  const BUDGET_OPTIONS: { value: Budget; label: string }[] = [
+    { value: 'eco', label: t('budgetEco') },
+    { value: 'premium', label: t('budgetPremium') },
+    { value: 'both', label: t('budgetBoth') },
+  ];
+
+  const RESTRICTION_OPTIONS: { value: Restriction; label: string }[] = [
+    { value: 'vegetarian', label: t('restrictionVegetarian') },
+    { value: 'vegan', label: t('restrictionVegan') },
+    { value: 'gluten_free', label: t('restrictionGlutenFree') },
+    { value: 'lactose_free', label: t('restrictionLactoseFree') },
+    { value: 'halal', label: t('restrictionHalal') },
+    { value: 'pork_free', label: t('restrictionPorkFree') },
+  ];
 
   const [sex, setSex] = useState<Sex>(profile?.sex ?? 'male');
   const [age, setAge] = useState(String(profile?.age ?? 25));
@@ -118,19 +120,19 @@ export default function SettingsScreen() {
     const targetNum = parseFloat(targetWeight);
 
     if (!ageNum || ageNum < 14 || ageNum > 65) {
-      showMessage('Erreur', 'Age entre 14 et 65 ans.');
+      showMessage(t('error'), 'Age entre 14 et 65 ans.');
       return;
     }
     if (!heightNum || heightNum < 120 || heightNum > 220) {
-      showMessage('Erreur', 'Taille entre 120 et 220 cm.');
+      showMessage(t('error'), 'Taille entre 120 et 220 cm.');
       return;
     }
     if (!weightNum || weightNum < 30 || weightNum > 250) {
-      showMessage('Erreur', 'Poids entre 30 et 250 kg.');
+      showMessage(t('error'), 'Poids entre 30 et 250 kg.');
       return;
     }
     if (!targetNum || targetNum < 30 || targetNum > 250) {
-      showMessage('Erreur', 'Poids cible entre 30 et 250 kg.');
+      showMessage(t('error'), 'Poids cible entre 30 et 250 kg.');
       return;
     }
 
@@ -190,7 +192,7 @@ export default function SettingsScreen() {
 
       router.back();
     } catch (err: any) {
-      showMessage('Erreur', err?.message ?? 'Une erreur est survenue.');
+      showMessage(t('error'), err?.message ?? t('errorOccurred'));
     } finally {
       setSaving(false);
     }
@@ -200,9 +202,9 @@ export default function SettingsScreen() {
     <View style={[styles.container, { paddingTop: insets.top + spacing.lg }]}>
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} hitSlop={12}>
-          <Text style={styles.backText}>{'\u2190'} Retour</Text>
+          <Text style={styles.backText}>{'\u2190'} {t('back')}</Text>
         </Pressable>
-        <Text style={styles.title}>Réglages</Text>
+        <Text style={styles.title}>{t('settings')}</Text>
       </View>
 
       <ScrollView
@@ -211,7 +213,7 @@ export default function SettingsScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Sexe */}
-        <Text style={styles.sectionTitle}>Sexe</Text>
+        <Text style={styles.sectionTitle}>{t('sex')}</Text>
         <View style={styles.chipRow}>
           {(['male', 'female'] as Sex[]).map((s) => (
             <Pressable
@@ -220,14 +222,14 @@ export default function SettingsScreen() {
               onPress={() => setSex(s)}
             >
               <Text style={[styles.chipText, sex === s && styles.chipTextActive]}>
-                {s === 'male' ? 'Homme' : 'Femme'}
+                {s === 'male' ? t('male') : t('female')}
               </Text>
             </Pressable>
           ))}
         </View>
 
         {/* Age */}
-        <Text style={styles.sectionTitle}>Age</Text>
+        <Text style={styles.sectionTitle}>{t('age')}</Text>
         <TextInput
           style={styles.input}
           value={age}
@@ -238,7 +240,7 @@ export default function SettingsScreen() {
         />
 
         {/* Taille */}
-        <Text style={styles.sectionTitle}>Taille (cm)</Text>
+        <Text style={styles.sectionTitle}>{t('height')}</Text>
         <TextInput
           style={styles.input}
           value={heightCm}
@@ -249,7 +251,7 @@ export default function SettingsScreen() {
         />
 
         {/* Poids actuel */}
-        <Text style={styles.sectionTitle}>Poids actuel (kg)</Text>
+        <Text style={styles.sectionTitle}>{t('currentWeight')}</Text>
         <TextInput
           style={styles.input}
           value={currentWeight}
@@ -260,7 +262,7 @@ export default function SettingsScreen() {
         />
 
         {/* Poids cible */}
-        <Text style={styles.sectionTitle}>Poids cible (kg)</Text>
+        <Text style={styles.sectionTitle}>{t('targetWeight')}</Text>
         <TextInput
           style={styles.input}
           value={targetWeight}
@@ -271,7 +273,7 @@ export default function SettingsScreen() {
         />
 
         {/* Objectif */}
-        <Text style={styles.sectionTitle}>Objectif</Text>
+        <Text style={styles.sectionTitle}>{t('objective')}</Text>
         <View style={styles.chipRow}>
           {OBJECTIVE_OPTIONS.map((o) => (
             <Pressable
@@ -287,7 +289,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Activite */}
-        <Text style={styles.sectionTitle}>Niveau d'activité</Text>
+        <Text style={styles.sectionTitle}>{t('activityLevel')}</Text>
         <View style={styles.chipRow}>
           {ACTIVITY_OPTIONS.map((a) => (
             <Pressable
@@ -303,7 +305,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Budget */}
-        <Text style={styles.sectionTitle}>Budget</Text>
+        <Text style={styles.sectionTitle}>{t('budget')}</Text>
         <View style={styles.chipRow}>
           {BUDGET_OPTIONS.map((b) => (
             <Pressable
@@ -319,7 +321,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Restrictions */}
-        <Text style={styles.sectionTitle}>Restrictions alimentaires</Text>
+        <Text style={styles.sectionTitle}>{t('dietaryRestrictions')}</Text>
         <View style={styles.chipRow}>
           {RESTRICTION_OPTIONS.map((r) => (
             <Pressable
@@ -336,25 +338,25 @@ export default function SettingsScreen() {
 
         {/* Preview macros */}
         <View style={styles.previewCard}>
-          <Text style={styles.previewTitle}>Ton nouveau plan</Text>
+          <Text style={styles.previewTitle}>{t('yourNewPlan')}</Text>
           <View style={styles.previewRow}>
-            <Text style={styles.previewLabel}>Calories</Text>
+            <Text style={styles.previewLabel}>{t('caloriesLabel')}</Text>
             <Text style={styles.previewValue}>{computed.calories} kcal</Text>
           </View>
           <View style={styles.previewRow}>
-            <Text style={styles.previewLabel}>Protéines</Text>
+            <Text style={styles.previewLabel}>{t('proteinLabel')}</Text>
             <Text style={styles.previewValue}>{computed.protein}g</Text>
           </View>
           <View style={styles.previewRow}>
-            <Text style={styles.previewLabel}>Glucides</Text>
+            <Text style={styles.previewLabel}>{t('carbsLabel')}</Text>
             <Text style={styles.previewValue}>{computed.carbs}g</Text>
           </View>
           <View style={styles.previewRow}>
-            <Text style={styles.previewLabel}>Lipides</Text>
+            <Text style={styles.previewLabel}>{t('fatLabel')}</Text>
             <Text style={styles.previewValue}>{computed.fat}g</Text>
           </View>
           <View style={styles.previewRow}>
-            <Text style={styles.previewLabel}>Repas/jour</Text>
+            <Text style={styles.previewLabel}>{t('mealsPerDay')}</Text>
             <Text style={styles.previewValue}>{computed.mealsPerDay}</Text>
           </View>
         </View>
@@ -370,7 +372,7 @@ export default function SettingsScreen() {
           {saving ? (
             <ActivityIndicator size="small" color={colors.white} />
           ) : (
-            <Text style={styles.saveButtonText}>Enregistrer</Text>
+            <Text style={styles.saveButtonText}>{t('save')}</Text>
           )}
         </Pressable>
       </View>
@@ -378,7 +380,7 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   flex: { flex: 1 },
   container: {
     flex: 1,
@@ -502,4 +504,4 @@ const styles = StyleSheet.create({
     fontWeight: fontWeights.bold,
     color: colors.white,
   },
-});
+}));

@@ -27,7 +27,9 @@ import Animated, {
   type SharedValue,
 } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
-import { colors } from '../../src/theme/colors';
+import { makeStyles } from '../../src/theme';
+import { useTheme } from '../../src/context/ThemeContext';
+import { useT } from '../../src/i18n';
 import { fonts, fontSizes } from '../../src/theme/fonts';
 import { spacing, borderRadius, shadows } from '../../src/theme/spacing';
 
@@ -50,50 +52,50 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 /* ═══════════ SVG ICONS ═══════════ */
 
-function IconPlate() {
+function IconPlate({ color }: { color: string }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0Zm9-5a5 5 0 1 1 0 10 5 5 0 0 1 0-10Z" stroke={colors.primary} strokeWidth={1.8} />
+      <Path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0Zm9-5a5 5 0 1 1 0 10 5 5 0 0 1 0-10Z" stroke={color} strokeWidth={1.8} />
     </Svg>
   );
 }
 
-function IconStar() {
+function IconStar({ color }: { color: string }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path d="m12 2 3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2Z" stroke={colors.primary} strokeWidth={1.8} strokeLinejoin="round" />
+      <Path d="m12 2 3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2Z" stroke={color} strokeWidth={1.8} strokeLinejoin="round" />
     </Svg>
   );
 }
 
-function IconFlame() {
+function IconFlame({ color }: { color: string }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 22c4.97 0 8-3.58 8-8 0-3.5-2-6.5-4-8-.5-.4-1.2 0-1.1.6.3 1.4-.2 3.4-1.9 4.4 0-3-1.5-5.5-4-7.5-.5-.4-1.3 0-1.1.6C8.5 6.5 7 8 6 9.5 4.5 11.5 4 13.5 4 14c0 4.42 3.03 8 8 8Z" stroke={colors.primary} strokeWidth={1.8} />
+      <Path d="M12 22c4.97 0 8-3.58 8-8 0-3.5-2-6.5-4-8-.5-.4-1.2 0-1.1.6.3 1.4-.2 3.4-1.9 4.4 0-3-1.5-5.5-4-7.5-.5-.4-1.3 0-1.1.6C8.5 6.5 7 8 6 9.5 4.5 11.5 4 13.5 4 14c0 4.42 3.03 8 8 8Z" stroke={color} strokeWidth={1.8} />
     </Svg>
   );
 }
 
-function IconSliders() {
+function IconSliders({ color }: { color: string }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M2 14h4m4-4h4m4 6h4" stroke={colors.primary} strokeWidth={1.8} strokeLinecap="round" />
+      <Path d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M2 14h4m4-4h4m4 6h4" stroke={color} strokeWidth={1.8} strokeLinecap="round" />
     </Svg>
   );
 }
 
-function IconChart() {
+function IconChart({ color }: { color: string }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path d="m3 17 6-6 4 4 8-10" stroke={colors.primary} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="m3 17 6-6 4 4 8-10" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
 
-function IconCheck() {
+function IconCheck({ color }: { color: string }) {
   return (
     <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Path d="M9 12l2 2 4-4m5 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke={colors.primary} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <Path d="M9 12l2 2 4-4m5 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -213,6 +215,9 @@ function useEntrance(delay: number = 0) {
 
 export default function WelcomeScreen() {
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const isWide = windowWidth >= 600;
   const scrollY = useSharedValue(0);
 
@@ -256,7 +261,7 @@ export default function WelcomeScreen() {
             style={styles.floatingNavButton}
             onPress={() => router.push('/(auth)/register')}
           >
-            <Text style={styles.floatingNavButtonText}>Commencer</Text>
+            <Text style={styles.floatingNavButtonText}>{t('welcomeNavStart')}</Text>
           </Pressable>
         </View>
       </Animated.View>
@@ -286,10 +291,10 @@ export default function WelcomeScreen() {
           <Animated.View style={[styles.heroContent, { maxWidth: LANDING_MAX_WIDTH }, heroDissolveStyle]}>
             <Animated.Image source={require('../../assets/logo/logo_sans_fond.png')} style={[styles.logo, isWide && styles.logoWide, logoStyle]} resizeMode="contain" />
             <Animated.Text style={[styles.heroTagline, isWide && styles.heroTaglineWide, taglineStyle]}>
-              FORGE TON CORPS.
+              {t('welcomeHeroTagline')}
             </Animated.Text>
             <Animated.Text style={[styles.heroSubtitle, subtitleStyle]}>
-              L'app nutrition qui te donne un plan, pas des excuses.
+              {t('welcomeHeroSubtitle')}
             </Animated.Text>
 
             <Animated.View style={[styles.heroCTAs, ctaStyle]}>
@@ -303,23 +308,23 @@ export default function WelcomeScreen() {
                   end={{ x: 1, y: 1 }}
                   style={styles.gradientButton}
                 >
-                  <Text style={styles.primaryButtonText}>Commencer gratuitement</Text>
+                  <Text style={styles.primaryButtonText}>{t('welcomeStartFree')}</Text>
                 </LinearGradient>
               </Pressable>
               <Pressable
                 style={styles.ghostButton}
                 onPress={() => router.push('/(auth)/login')}
               >
-                <Text style={styles.ghostButtonText}>J'ai deja un compte</Text>
+                <Text style={styles.ghostButtonText}>{t('welcomeHaveAccount')}</Text>
               </Pressable>
             </Animated.View>
 
             <Animated.View style={[styles.socialProof, isWide && styles.socialProofWide, socialStyle]}>
-              <SocialStat value="70+" label="recettes" />
+              <SocialStat value="70+" label={t('welcomeSocialRecipes')} />
               <View style={styles.socialDivider} />
-              <SocialStat value="6" label="repas/jour" />
+              <SocialStat value="6" label={t('welcomeSocialMealsPerDay')} />
               <View style={styles.socialDivider} />
-              <SocialStat value="100%" label="personnalise" />
+              <SocialStat value="100%" label={t('welcomeSocialPersonalized')} />
             </Animated.View>
           </Animated.View>
         </View>
@@ -327,8 +332,8 @@ export default function WelcomeScreen() {
         {/* ═══════════ IMAGE BREAK 1 ═══════════ */}
         <ImageBreak
           imageUri={IMAGES.break1}
-          label="LA DISCIPLINE"
-          quote="Chaque repas est une repetition."
+          label={t('welcomeBreak1Label')}
+          quote={t('welcomeBreak1Quote')}
           height={isWide ? 380 : 280}
           scrollY={scrollY}
           offset={windowHeight * 0.9}
@@ -339,26 +344,26 @@ export default function WelcomeScreen() {
         <ScrollReveal scrollY={scrollY} windowHeight={windowHeight} style={styles.section}>
           <View style={[styles.sectionInner, { maxWidth: LANDING_MAX_WIDTH }]}>
             <View style={styles.sectionAccentBar} />
-            <Text style={styles.sectionLabel}>LE PROBLEME</Text>
+            <Text style={styles.sectionLabel}>{t('welcomeProblemLabel')}</Text>
             <Text style={[styles.sectionTitle, isWide && styles.sectionTitleWide]}>
-              Tu veux changer, mais...
+              {t('welcomeProblemTitle')}
             </Text>
 
             <View style={[styles.painGrid, isWide && styles.painGridWide]}>
               <PainCard
                 icon="question"
-                title="Tu sais pas quoi manger"
-                description="Tu perds du temps a chercher des recettes qui correspondent a tes objectifs et ton budget."
+                title={t('welcomePain1Title')}
+                description={t('welcomePain1Desc')}
               />
               <PainCard
                 icon="timer"
-                title="Tu laches au bout d'1 semaine"
-                description="Sans suivi ni motivation, tu abandonnes tes objectifs avant de voir les premiers resultats."
+                title={t('welcomePain2Title')}
+                description={t('welcomePain2Desc')}
               />
               <PainCard
                 icon="gear"
-                title="Les apps sont trop compliquees"
-                description="Scanner chaque aliment, peser au gramme pres... Tu veux manger, pas devenir comptable."
+                title={t('welcomePain3Title')}
+                description={t('welcomePain3Desc')}
               />
             </View>
           </View>
@@ -368,7 +373,7 @@ export default function WelcomeScreen() {
         <ImageBreak
           imageUri={IMAGES.break2}
           label=""
-          quote="Et si c'etait plus simple ?"
+          quote={t('welcomeBreak2Quote')}
           height={isWide ? 320 : 240}
           scrollY={scrollY}
           offset={windowHeight * 2}
@@ -379,15 +384,15 @@ export default function WelcomeScreen() {
         <ScrollReveal scrollY={scrollY} windowHeight={windowHeight} style={[styles.section, styles.sectionDark]}>
           <View style={[styles.sectionInner, { maxWidth: LANDING_MAX_WIDTH }]}>
             <View style={styles.sectionAccentBar} />
-            <Text style={styles.sectionLabel}>LA SOLUTION</Text>
+            <Text style={styles.sectionLabel}>{t('welcomeSolutionLabel')}</Text>
             <Text style={[styles.sectionTitle, isWide && styles.sectionTitleWide]}>
-              FORGA fait le travail pour toi
+              {t('welcomeSolutionTitle')}
             </Text>
 
             <View style={[styles.stepsContainer, isWide && styles.stepsContainerWide]}>
-              <StepCard number="1" title="Dis-nous ton objectif" description="Prise de masse, seche, maintien ou recomp. On s'adapte a toi, ton budget et tes restrictions." />
-              <StepCard number="2" title="On te forge un plan" description="Repas personnalises avec les bonnes quantites. Chaque grammage est calcule pour toi." />
-              <StepCard number="3" title="Tu suis, tu progresses" description="Score FORGA, streak, ajustements automatiques chaque semaine. Tu vois tes resultats." />
+              <StepCard number="1" title={t('welcomeStep1Title')} description={t('welcomeStep1Desc')} />
+              <StepCard number="2" title={t('welcomeStep2Title')} description={t('welcomeStep2Desc')} />
+              <StepCard number="3" title={t('welcomeStep3Title')} description={t('welcomeStep3Desc')} />
             </View>
           </View>
         </ScrollReveal>
@@ -396,19 +401,19 @@ export default function WelcomeScreen() {
         <ScrollReveal scrollY={scrollY} windowHeight={windowHeight} style={styles.section}>
           <View style={[styles.sectionInner, { maxWidth: LANDING_MAX_WIDTH }]}>
             <View style={styles.sectionAccentBar} />
-            <Text style={styles.sectionLabel}>FONCTIONNALITES</Text>
+            <Text style={styles.sectionLabel}>{t('welcomeFeaturesLabel')}</Text>
             <Text style={[styles.sectionTitle, isWide && styles.sectionTitleWide]}>
-              Tout ce qu'il te faut
+              {t('welcomeFeaturesTitle')}
             </Text>
 
             <View style={[styles.featureGrid, isWide && styles.featureGridWide]}>
-              <FeatureCard icon={<IconPlate />} title="Repas personnalises" description="70+ recettes eco ou premium, adaptees a chaque moment de la journee." wide={isWide} />
-              <FeatureCard icon={<IconStar />} title="Score FORGA" description="Un score de 0 a 100 qui mesure ta nutrition, constance, progression et discipline." wide={isWide} />
-              <FeatureCard icon={<IconFlame />} title="Streak & gamification" description="Garde ta motivation avec les streaks quotidiens et les badges a debloquer." wide={isWide} />
-              <FeatureCard icon={<IconSliders />} title="Ajustement automatique" description="Chaque semaine, tes macros s'adaptent selon tes ressentis et ta progression." wide={isWide} />
-              <FeatureCard icon={<IconChart />} title="Graphiques de progression" description="Suis ta courbe de poids et l'evolution de ton score au fil du temps." wide={isWide} />
-              <FeatureCard icon={<IconCheck />} title="Toutes restrictions" description="Vegetarien, vegan, sans gluten, sans lactose, halal, sans porc." wide={isWide} />
-              <FeatureCard icon={<IconChart />} title="Calculateur TDEE" description="Calcule tes besoins caloriques et ta repartition en macros gratuitement." wide={isWide} />
+              <FeatureCard icon={<IconPlate color={colors.primary} />} title={t('welcomeFeatureMeals')} description={t('welcomeFeatureMealsDesc')} wide={isWide} />
+              <FeatureCard icon={<IconStar color={colors.primary} />} title={t('welcomeFeatureScore')} description={t('welcomeFeatureScoreDesc')} wide={isWide} />
+              <FeatureCard icon={<IconFlame color={colors.primary} />} title={t('welcomeFeatureStreak')} description={t('welcomeFeatureStreakDesc')} wide={isWide} />
+              <FeatureCard icon={<IconSliders color={colors.primary} />} title={t('welcomeFeatureAdjust')} description={t('welcomeFeatureAdjustDesc')} wide={isWide} />
+              <FeatureCard icon={<IconChart color={colors.primary} />} title={t('welcomeFeatureCharts')} description={t('welcomeFeatureChartsDesc')} wide={isWide} />
+              <FeatureCard icon={<IconCheck color={colors.primary} />} title={t('welcomeFeatureRestrictions')} description={t('welcomeFeatureRestrictionsDesc')} wide={isWide} />
+              <FeatureCard icon={<IconChart color={colors.primary} />} title={t('welcomeFeatureTDEE')} description={t('welcomeFeatureTDEEDesc')} wide={isWide} />
             </View>
 
             <Pressable
@@ -416,7 +421,7 @@ export default function WelcomeScreen() {
               onPress={() => router.push('/tdee-calculator')}
             >
               <Text style={styles.tdeeLinkText}>
-                Essayer le calculateur TDEE gratuit {'\u2192'}
+                {t('welcomeTryTDEE')} {'\u2192'}
               </Text>
             </Pressable>
           </View>
@@ -435,46 +440,46 @@ export default function WelcomeScreen() {
         <ScrollReveal scrollY={scrollY} windowHeight={windowHeight} style={[styles.section, styles.sectionDark]}>
           <View style={[styles.sectionInner, { maxWidth: LANDING_MAX_WIDTH }]}>
             <View style={styles.sectionAccentBar} />
-            <Text style={styles.sectionLabel}>TARIFS</Text>
+            <Text style={styles.sectionLabel}>{t('welcomePricingLabel')}</Text>
             <Text style={[styles.sectionTitle, isWide && styles.sectionTitleWide]}>
-              Commence gratuitement
+              {t('welcomePricingTitle')}
             </Text>
 
             <View style={[styles.pricingGrid, isWide && styles.pricingGridWide]}>
               {/* Free */}
               <View style={styles.pricingCard}>
-                <Text style={styles.pricingPlan}>Gratuit</Text>
-                <Text style={styles.pricingPrice}>0{'\u20AC'}</Text>
-                <Text style={styles.pricingPeriod}>pour toujours</Text>
+                <Text style={styles.pricingPlan}>{t('welcomeFreeTitle')}</Text>
+                <Text style={styles.pricingPrice}>{t('welcomeFreePrice')}{'\u20AC'}</Text>
+                <Text style={styles.pricingPeriod}>{t('welcomeFreePeriod')}</Text>
                 <View style={styles.pricingFeatures}>
-                  <PricingFeature text="2 suggestions de repas par slot" />
-                  <PricingFeature text="Macros personnalisees" />
-                  <PricingFeature text="Streak et score FORGA" />
-                  <PricingFeature text="Check-in hebdomadaire" />
-                  <PricingFeature text="Ajustements automatiques" />
+                  <PricingFeature text={t('welcomeFreeFeat1')} />
+                  <PricingFeature text={t('welcomeFreeFeat2')} />
+                  <PricingFeature text={t('welcomeFreeFeat3')} />
+                  <PricingFeature text={t('welcomeFreeFeat4')} />
+                  <PricingFeature text={t('welcomeFreeFeat5')} />
                 </View>
                 <Pressable
                   style={styles.pricingButtonFree}
                   onPress={() => router.push('/(auth)/register')}
                 >
-                  <Text style={styles.pricingButtonFreeText}>Commencer</Text>
+                  <Text style={styles.pricingButtonFreeText}>{t('welcomeNavStart')}</Text>
                 </Pressable>
               </View>
 
               {/* PRO */}
               <View style={[styles.pricingCard, styles.pricingCardPro]}>
                 <ProBadge />
-                <Text style={styles.pricingPlan}>FORGA PRO</Text>
+                <Text style={styles.pricingPlan}>{t('welcomeProTitle')}</Text>
                 <Text style={[styles.pricingPrice, { color: colors.primary }]}>
-                  4,99{'\u20AC'}
+                  {t('welcomeProPrice')}{'\u20AC'}
                 </Text>
-                <Text style={styles.pricingPeriod}>par mois</Text>
+                <Text style={styles.pricingPeriod}>{t('welcomeProPeriod')}</Text>
                 <View style={styles.pricingFeatures}>
-                  <PricingFeature text="Catalogue complet (70+ repas)" highlight />
-                  <PricingFeature text="Photos et recettes detaillees" highlight />
-                  <PricingFeature text="Streak Freeze (1x/semaine)" highlight />
-                  <PricingFeature text="Tout le plan gratuit inclus" />
-                  <PricingFeature text="Support prioritaire" />
+                  <PricingFeature text={t('welcomeProFeat1')} highlight />
+                  <PricingFeature text={t('welcomeProFeat2')} highlight />
+                  <PricingFeature text={t('welcomeProFeat3')} highlight />
+                  <PricingFeature text={t('welcomeProFeat4')} />
+                  <PricingFeature text={t('welcomeProFeat5')} />
                 </View>
                 <Pressable
                   style={styles.pricingButtonPro}
@@ -486,7 +491,7 @@ export default function WelcomeScreen() {
                     end={{ x: 1, y: 1 }}
                     style={styles.gradientButton}
                   >
-                    <Text style={styles.pricingButtonProText}>Essayer FORGA PRO</Text>
+                    <Text style={styles.pricingButtonProText}>{t('welcomeTryPro')}</Text>
                   </LinearGradient>
                 </Pressable>
               </View>
@@ -504,10 +509,10 @@ export default function WelcomeScreen() {
           />
           <View style={styles.ctaContent}>
             <Text style={[styles.ctaTitle, isWide && styles.ctaTitleWide]}>
-              Pret a forger ton corps ?
+              {t('welcomeCtaTitle')}
             </Text>
             <Text style={styles.ctaSubtitle}>
-              Rejoins FORGA et commence ta transformation des aujourd'hui.
+              {t('welcomeCtaSubtitle')}
             </Text>
             <GlowButton onPress={() => router.push('/(auth)/register')} />
           </View>
@@ -519,17 +524,15 @@ export default function WelcomeScreen() {
             <Image source={require('../../assets/logo/logo_sans_fond.png')} style={styles.footerLogo} resizeMode="contain" />
             <View style={styles.footerDivider} />
             <Text style={styles.footerDisclaimer}>
-              FORGA est un outil educatif et informatif. Il ne remplace en aucun cas
-              l'avis d'un medecin, nutritionniste ou professionnel de sante.
-              Consulte un professionnel avant tout changement alimentaire significatif.
+              {t('welcomeFooterDisclaimer')}
             </Text>
             <View style={styles.footerLinks}>
               <Pressable>
-                <Text style={styles.footerLink}>Conditions d'utilisation</Text>
+                <Text style={styles.footerLink}>{t('welcomeFooterTerms')}</Text>
               </Pressable>
               <Text style={styles.footerDot}>{'\u00B7'}</Text>
               <Pressable>
-                <Text style={styles.footerLink}>Politique de confidentialite</Text>
+                <Text style={styles.footerLink}>{t('welcomeFooterPrivacy')}</Text>
               </Pressable>
             </View>
             <Text style={styles.footerVersion}>FORGA v1.0.0</Text>
@@ -543,6 +546,7 @@ export default function WelcomeScreen() {
 /* ═══════════ SUB-COMPONENTS ═══════════ */
 
 function SocialStat({ value, label }: { value: string; label: string }) {
+  const styles = useStyles();
   return (
     <View style={styles.socialStatContainer}>
       <Text style={styles.socialStatValue}>{value}</Text>
@@ -568,6 +572,8 @@ function ImageBreak({
   offset: number;
   windowHeight: number;
 }) {
+  const styles = useStyles();
+
   /* Parallax + zoom on image */
   const imageStyle = useAnimatedStyle(() => ({
     transform: [
@@ -637,6 +643,9 @@ function ImageBreakWithCounter({
   offset: number;
   windowHeight: number;
 }) {
+  const styles = useStyles();
+  const { t } = useT();
+
   const imageStyle = useAnimatedStyle(() => ({
     transform: [
       {
@@ -682,7 +691,7 @@ function ImageBreakWithCounter({
       />
       <Animated.View style={[styles.imageBreakContent, textStyle]}>
         <View style={styles.imageBreakLine} />
-        <Text style={styles.imageBreakLabel}>CATALOGUE</Text>
+        <Text style={styles.imageBreakLabel}>{t('welcomeCatalogueLabel')}</Text>
         <AnimatedCounter
           target={70}
           suffix="+"
@@ -691,7 +700,7 @@ function ImageBreakWithCounter({
           windowHeight={windowHeight}
           style={styles.counterText}
         />
-        <Text style={styles.imageBreakSubQuote}>recettes forgees pour toi</Text>
+        <Text style={styles.imageBreakSubQuote}>{t('welcomeCatalogueSubQuote')}</Text>
         <View style={styles.imageBreakLine} />
       </Animated.View>
     </View>
@@ -707,6 +716,9 @@ function PainCard({
   title: string;
   description: string;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
+
   const iconMap: Record<string, React.ReactNode> = {
     question: (
       <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
@@ -747,6 +759,9 @@ function StepCard({
   title: string;
   description: string;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
+
   return (
     <View style={styles.stepCard}>
       <LinearGradient
@@ -772,6 +787,8 @@ function FeatureCard({
   description: string;
   wide?: boolean;
 }) {
+  const styles = useStyles();
+
   return (
     <View style={[styles.featureCard, wide && styles.featureCardWide]}>
       <View style={styles.featureIconContainer}>
@@ -790,6 +807,9 @@ function PricingFeature({
   text: string;
   highlight?: boolean;
 }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
+
   return (
     <View style={styles.pricingFeatureRow}>
       <Text style={[styles.pricingCheck, highlight && { color: colors.primary }]}>
@@ -803,6 +823,8 @@ function PricingFeature({
 }
 
 function ProBadge() {
+  const styles = useStyles();
+  const { t } = useT();
   const scale = useSharedValue(1);
 
   useEffect(() => {
@@ -822,12 +844,15 @@ function ProBadge() {
 
   return (
     <Animated.View style={[styles.proBadge, animStyle]}>
-      <Text style={styles.proBadgeText}>POPULAIRE</Text>
+      <Text style={styles.proBadgeText}>{t('welcomeProBadge')}</Text>
     </Animated.View>
   );
 }
 
 function GlowButton({ onPress }: { onPress: () => void }) {
+  const { colors } = useTheme();
+  const styles = useStyles();
+  const { t } = useT();
   const glowOpacity = useSharedValue(0.3);
   const pressScale = useSharedValue(1);
 
@@ -860,7 +885,7 @@ function GlowButton({ onPress }: { onPress: () => void }) {
         end={{ x: 1, y: 1 }}
         style={styles.gradientButtonLarge}
       >
-        <Text style={styles.glowButtonText}>Creer mon compte gratuit</Text>
+        <Text style={styles.glowButtonText}>{t('welcomeCtaButton')}</Text>
       </LinearGradient>
     </AnimatedPressable>
   );
@@ -875,7 +900,7 @@ const webBlur = Platform.select({
   default: {},
 });
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((colors) => ({
   root: {
     flex: 1,
     backgroundColor: colors.background,
@@ -887,7 +912,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
 
-  /* ── Floating Nav ── */
+  /* -- Floating Nav -- */
   floatingNav: {
     position: 'absolute',
     top: 0,
@@ -925,7 +950,7 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
 
-  /* ── Hero ── */
+  /* -- Hero -- */
   heroSection: {
     justifyContent: 'flex-end',
     paddingBottom: 50,
@@ -1007,7 +1032,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
 
-  /* ── Social proof ── */
+  /* -- Social proof -- */
   socialProof: {
     flexDirection: 'row',
     marginTop: spacing['4xl'],
@@ -1045,7 +1070,7 @@ const styles = StyleSheet.create({
     backgroundColor: glassBorder,
   },
 
-  /* ── Image Breaks ── */
+  /* -- Image Breaks -- */
   imageBreak: {
     width: '100%',
     overflow: 'hidden',
@@ -1098,7 +1123,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 20,
   },
 
-  /* ── Sections ── */
+  /* -- Sections -- */
   section: {
     paddingVertical: spacing['5xl'],
     paddingHorizontal: spacing['2xl'],
@@ -1138,7 +1163,7 @@ const styles = StyleSheet.create({
     fontSize: fontSizes['4xl'],
   },
 
-  /* ── Pain cards ── */
+  /* -- Pain cards -- */
   painGrid: {
     gap: spacing.lg,
     width: '100%',
@@ -1188,7 +1213,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  /* ── Steps ── */
+  /* -- Steps -- */
   stepsContainer: {
     gap: spacing.xl,
     width: '100%',
@@ -1241,7 +1266,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
 
-  /* ── Features ── */
+  /* -- Features -- */
   featureGrid: {
     gap: spacing.lg,
     width: '100%',
@@ -1299,7 +1324,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
 
-  /* ── Pricing ── */
+  /* -- Pricing -- */
   pricingGrid: {
     gap: spacing.lg,
     width: '100%',
@@ -1405,7 +1430,7 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
 
-  /* ── CTA Final ── */
+  /* -- CTA Final -- */
   ctaSection: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -1451,7 +1476,7 @@ const styles = StyleSheet.create({
     color: colors.white,
   },
 
-  /* ── Footer ── */
+  /* -- Footer -- */
   footer: {
     paddingVertical: spacing['3xl'],
     paddingHorizontal: spacing['2xl'],
@@ -1498,4 +1523,4 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     marginTop: spacing.md,
   },
-});
+}));
