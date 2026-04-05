@@ -743,6 +743,7 @@ export const fr = {
   checkinComplete: 'Check-in termine',
   checkinAdjustment: 'Ajustement',
   kcalPerDayUnit: 'kcal/jour',
+  invalidCode: 'Code invalide',
   invalidWeight: 'Entre un poids valide.',
   hungerNone: 'Aucune',
   hungerOften: 'Souvent',

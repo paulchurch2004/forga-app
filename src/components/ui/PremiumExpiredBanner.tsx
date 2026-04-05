@@ -41,7 +41,7 @@ export function PremiumExpiredBanner({ onDismiss }: PremiumExpiredBannerProps) {
         updateProfile({ isPremium: true, premiumUntil: newUntil });
         onDismiss?.();
       } else {
-        const msg = 'Code invalide';
+        const msg = t('invalidCode');
         if (Platform.OS === 'web') {
           window.alert(msg);
         } else {

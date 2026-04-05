@@ -70,7 +70,7 @@ export const en: Record<TranslationKey, string> = {
   waterThu: 'T',
   waterFri: 'F',
   waterSat: 'S',
-  waterSun: 'D',
+  waterSun: 'S',
 
   // Scan
   scanner: 'Scan',
@@ -745,6 +745,7 @@ export const en: Record<TranslationKey, string> = {
   checkinComplete: 'Check-in complete',
   checkinAdjustment: 'Adjustment',
   kcalPerDayUnit: 'kcal/day',
+  invalidCode: 'Invalid code',
   invalidWeight: 'Enter a valid weight.',
   hungerNone: 'None',
   hungerOften: 'Often',

@@ -22,11 +22,6 @@ export function usePremium() {
   const isTrialActive = isPremium && daysLeft !== null && daysLeft > 0;
   const isTrialExpired = daysLeft !== null && daysLeft <= 0 && !profile?.stripeSubscriptionId;
 
-  // Check premium status on mount
-  useEffect(() => {
-    refreshPremiumStatus();
-  }, []);
-
   const refreshPremiumStatus = useCallback(async () => {
     setIsChecking(true);
     try {
@@ -55,6 +50,11 @@ export function usePremium() {
       setIsChecking(false);
     }
   }, [updateProfile, profile]);
+
+  // Check premium status on mount and when profile changes
+  useEffect(() => {
+    refreshPremiumStatus();
+  }, [refreshPremiumStatus]);
 
   // Gate a feature behind premium
   const requirePremium = useCallback(

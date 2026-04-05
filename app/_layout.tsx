@@ -101,6 +101,7 @@ function RootLayoutInner() {
   });
 
   const { isLoading, setSession, setLoading, setOnboarded } = useAuthStore();
+  const { colors: themeColors, isDark } = useTheme();
 
   useEffect(() => {
     initSentry();
@@ -250,8 +251,6 @@ function RootLayoutInner() {
       </View>
     );
   }
-
-  const { colors: themeColors, isDark } = useTheme();
 
   return (
     <QueryClientProvider client={queryClient}>
