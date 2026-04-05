@@ -1,8 +1,17 @@
-import { useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { AppState } from 'react-native';
 import { useWaterStore } from '../store/waterStore';
 import { useUserStore } from '../store/userStore';
 
 const WATER_ML_PER_KG = 33;
+
+function getToday(): string {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
 export function useWater() {
   const profile = useUserStore((s) => s.profile);
@@ -14,7 +23,28 @@ export function useWater() {
   const getTodayTotal = useWaterStore((s) => s.getTodayTotal);
   const getWeekHistory = useWaterStore((s) => s.getWeekHistory);
 
-  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+  // Reactive date: updates on app foreground + midnight timer
+  const [today, setToday] = useState(getToday);
+
+  useEffect(() => {
+    // Update date when app comes back to foreground
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        setToday(getToday());
+      }
+    });
+
+    // Timer to update at midnight
+    const now = new Date();
+    const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const msUntilMidnight = tomorrow.getTime() - now.getTime();
+    const timer = setTimeout(() => setToday(getToday()), msUntilMidnight + 500);
+
+    return () => {
+      sub.remove();
+      clearTimeout(timer);
+    };
+  }, [today]); // re-schedule when today changes
 
   // Recalculate target from weight
   const computedTarget = useMemo(() => {

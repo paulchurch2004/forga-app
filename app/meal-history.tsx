@@ -13,6 +13,7 @@ import { MEAL_SLOT_LABELS } from '../src/types/meal';
 import { CalendarGrid } from '../src/components/ui/CalendarGrid';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../src/theme';
 import { useT } from '../src/i18n';
+import { EmptyState } from '../src/components/ui/EmptyState';
 import { useResponsive } from '../src/hooks/useResponsive';
 
 export default function MealHistoryScreen() {
@@ -126,9 +127,9 @@ export default function MealHistoryScreen() {
               )}
             </>
           ) : selectedDate ? (
-            <Text style={styles.emptyText}>Aucun repas valide ce jour</Text>
+            <EmptyState icon={'\uD83D\uDCCB'} title={t('emptyHistoryTitle')} subtitle={t('emptyHistorySubtitle')} />
           ) : (
-            <Text style={styles.emptyText}>Selectionne un jour pour voir tes repas</Text>
+            <EmptyState icon={'\uD83D\uDCC5'} title={t('emptyHistorySelect')} />
           )}
         </View>
 
@@ -242,12 +243,5 @@ const useStyles = makeStyles((colors) => ({
   macroDot: {
     color: colors.textMuted,
     fontSize: fontSizes.sm,
-  },
-  emptyText: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.md,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    paddingVertical: spacing['3xl'],
   },
 }));

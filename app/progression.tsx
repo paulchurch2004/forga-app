@@ -21,6 +21,7 @@ import {
 } from '../src/theme';
 import { useTheme } from '../src/context/ThemeContext';
 import { useT } from '../src/i18n';
+import { EmptyState } from '../src/components/ui/EmptyState';
 import { useResponsive } from '../src/hooks/useResponsive';
 
 type TimeRange = '7d' | '30d' | '90d' | 'all';
@@ -230,90 +231,96 @@ export default function ProgressionScreen() {
         ))}
       </View>
 
-      {/* Weight Chart */}
-      <View style={styles.section}>
-        <LineChart
-          data={weightData}
-          width={chartWidth}
-          height={220}
-          lineColor={weightTrendColor}
-          unit=" kg"
-          formatValue={(v) => v.toFixed(1)}
-          title={t("weightLabel")}
-          emptyMessage={t("startCheckInForChart")}
-        />
-      </View>
+      {weightData.length === 0 && scoreData.length === 0 ? (
+        <EmptyState icon={'\uD83D\uDCC8'} title={t('emptyProgressTitle')} subtitle={t('emptyProgressSubtitle')} actionLabel={t('emptyProgressAction')} onAction={() => router.push('/checkin')} />
+      ) : (
+        <>
+          {/* Weight Chart */}
+          <View style={styles.section}>
+            <LineChart
+              data={weightData}
+              width={chartWidth}
+              height={220}
+              lineColor={weightTrendColor}
+              unit=" kg"
+              formatValue={(v) => v.toFixed(1)}
+              title={t("weightLabel")}
+              emptyMessage={t("startCheckInForChart")}
+            />
+          </View>
 
-      {/* Weight Stats */}
-      {weightStats && (
-        <View style={styles.statsRow}>
-          <StatCard
-            label={t("statVariation")}
-            value={`${weightStats.diff >= 0 ? '+' : ''}${weightStats.diff.toFixed(1)}`}
-            unit="kg"
-            color={weightTrendColor}
-          />
-          <StatCard
-            label={t("statMin")}
-            value={weightStats.min.toFixed(1)}
-            unit="kg"
-            color={colors.textSecondary}
-          />
-          <StatCard
-            label={t("statMax")}
-            value={weightStats.max.toFixed(1)}
-            unit="kg"
-            color={colors.textSecondary}
-          />
-        </View>
-      )}
+          {/* Weight Stats */}
+          {weightStats && (
+            <View style={styles.statsRow}>
+              <StatCard
+                label={t("statVariation")}
+                value={`${weightStats.diff >= 0 ? '+' : ''}${weightStats.diff.toFixed(1)}`}
+                unit="kg"
+                color={weightTrendColor}
+              />
+              <StatCard
+                label={t("statMin")}
+                value={weightStats.min.toFixed(1)}
+                unit="kg"
+                color={colors.textSecondary}
+              />
+              <StatCard
+                label={t("statMax")}
+                value={weightStats.max.toFixed(1)}
+                unit="kg"
+                color={colors.textSecondary}
+              />
+            </View>
+          )}
 
-      {/* Score Chart */}
-      <View style={styles.section}>
-        <LineChart
-          data={scoreData}
-          width={chartWidth}
-          height={220}
-          lineColor={scoreData.length > 0 ? getScoreColor(scoreData[scoreData.length - 1].value) : colors.primary}
-          unit=" pts"
-          formatValue={(v) => Math.round(v).toString()}
-          title={t("scoreForga2")}
-          emptyMessage={t("scoreChartEmptyMessage")}
-        />
-      </View>
+          {/* Score Chart */}
+          <View style={styles.section}>
+            <LineChart
+              data={scoreData}
+              width={chartWidth}
+              height={220}
+              lineColor={scoreData.length > 0 ? getScoreColor(scoreData[scoreData.length - 1].value) : colors.primary}
+              unit=" pts"
+              formatValue={(v) => Math.round(v).toString()}
+              title={t("scoreForga2")}
+              emptyMessage={t("scoreChartEmptyMessage")}
+            />
+          </View>
 
-      {/* Score Stats */}
-      {scoreStats && (
-        <View style={styles.statsRow}>
-          <StatCard
-            label={t("statEvolution")}
-            value={`${scoreStats.diff >= 0 ? '+' : ''}${scoreStats.diff}`}
-            unit="pts"
-            color={scoreStats.diff >= 0 ? colors.success : colors.error}
-          />
-          <StatCard
-            label={t("statAverage")}
-            value={scoreStats.avg.toString()}
-            unit="pts"
-            color={getScoreColor(scoreStats.avg)}
-          />
-          <StatCard
-            label={t("statEntries")}
-            value={scoreStats.entries.toString()}
-            unit=""
-            color={colors.textSecondary}
-          />
-        </View>
-      )}
+          {/* Score Stats */}
+          {scoreStats && (
+            <View style={styles.statsRow}>
+              <StatCard
+                label={t("statEvolution")}
+                value={`${scoreStats.diff >= 0 ? '+' : ''}${scoreStats.diff}`}
+                unit="pts"
+                color={scoreStats.diff >= 0 ? colors.success : colors.error}
+              />
+              <StatCard
+                label={t("statAverage")}
+                value={scoreStats.avg.toString()}
+                unit="pts"
+                color={getScoreColor(scoreStats.avg)}
+              />
+              <StatCard
+                label={t("statEntries")}
+                value={scoreStats.entries.toString()}
+                unit=""
+                color={colors.textSecondary}
+              />
+            </View>
+          )}
 
-      {/* Goal Progress */}
-      {profile && profile.objective !== 'maintain' && (
-        <GoalProgress
-          currentWeight={weightData.length > 0 ? weightData[weightData.length - 1].value : profile.currentWeight}
-          startWeight={profile.currentWeight}
-          targetWeight={profile.targetWeight}
-          objective={profile.objective}
-        />
+          {/* Goal Progress */}
+          {profile && profile.objective !== 'maintain' && (
+            <GoalProgress
+              currentWeight={weightData.length > 0 ? weightData[weightData.length - 1].value : profile.currentWeight}
+              startWeight={profile.currentWeight}
+              targetWeight={profile.targetWeight}
+              objective={profile.objective}
+            />
+          )}
+        </>
       )}
 
       <View style={{ height: spacing['5xl'] }} />

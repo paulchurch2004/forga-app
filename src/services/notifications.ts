@@ -1,7 +1,9 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import type { MealSlot } from '../types/meal';
-import { MEAL_SLOT_LABELS, MEAL_SLOT_TIMES } from '../types/meal';
+import { MEAL_SLOT_TIMES } from '../types/meal';
+import { getTranslation } from '../i18n';
+import { useSettingsStore } from '../store/settingsStore';
 
 // Configuration des notifications
 Notifications.setNotificationHandler({
@@ -11,6 +13,11 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
   }),
 });
+
+function t(key: Parameters<ReturnType<typeof getTranslation>>[0], vars?: Record<string, string | number>) {
+  const locale = useSettingsStore.getState().locale;
+  return getTranslation(locale)(key, vars);
+}
 
 export async function requestPermissions(): Promise<boolean> {
   const { status: existing } = await Notifications.getPermissionsAsync();
@@ -36,16 +43,26 @@ export async function requestPermissions(): Promise<boolean> {
   return true;
 }
 
+// Slot key mapping for i18n
+const SLOT_I18N_KEY: Record<MealSlot, Parameters<ReturnType<typeof getTranslation>>[0]> = {
+  breakfast: 'slotBreakfast',
+  morning_snack: 'slotMorningSnack',
+  lunch: 'slotLunch',
+  afternoon_snack: 'slotAfternoonSnack',
+  dinner: 'slotDinner',
+  bedtime: 'slotBedtime',
+};
+
 // ─── Rappel repas ───
 export async function scheduleMealReminder(slot: MealSlot): Promise<string> {
   const time = MEAL_SLOT_TIMES[slot];
   const [hours, minutes] = time.split(':').map(Number);
-  const label = MEAL_SLOT_LABELS[slot];
+  const slotLabel = t(SLOT_I18N_KEY[slot]).toLowerCase();
 
   const id = await Notifications.scheduleNotificationAsync({
     content: {
       title: 'FORGA',
-      body: `C'est l'heure de ton ${label.toLowerCase()}. Choisis ton repas.`,
+      body: t('notifMealReminder', { slot: slotLabel }),
       data: { type: 'meal_reminder', slot },
     },
     trigger: {
@@ -63,7 +80,7 @@ export async function scheduleStreakDanger(streakDays: number): Promise<string> 
   const id = await Notifications.scheduleNotificationAsync({
     content: {
       title: 'FORGA',
-      body: `Ta série de ${streakDays} jours est en danger. Valide tes repas.`,
+      body: t('notifStreakDanger', { days: streakDays }),
       data: { type: 'streak_danger' },
     },
     trigger: {
@@ -81,12 +98,12 @@ export async function scheduleWeeklyCheckIn(): Promise<string> {
   const id = await Notifications.scheduleNotificationAsync({
     content: {
       title: 'FORGA',
-      body: 'Check-in hebdo : 30 secondes pour mettre à jour ton plan.',
+      body: t('notifWeeklyCheckIn'),
       data: { type: 'weekly_checkin' },
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-      weekday: 1, // Dimanche
+      weekday: 1,
       hour: 20,
       minute: 0,
     },
@@ -99,29 +116,29 @@ export async function scheduleWeeklyCheckIn(): Promise<string> {
 export async function sendBadgeNotification(badgeName: string): Promise<void> {
   await Notifications.scheduleNotificationAsync({
     content: {
-      title: 'Badge débloqué !',
-      body: `Tu as obtenu le badge "${badgeName}". Continue comme ça.`,
+      title: t('notifBadgeTitle'),
+      body: t('notifBadgeBody', { name: badgeName }),
       data: { type: 'badge_unlocked' },
     },
-    trigger: null, // Immédiat
+    trigger: null,
   });
 }
 
 // ─── Réactivation ───
 export async function scheduleReactivation(daysSinceLastActivity: number): Promise<void> {
-  const messages: Record<number, string> = {
-    2: 'Ton score baisse. Reviens.',
-    3: 'Ta série va se casser.',
-    5: 'Ton plan t\'attend. 10 secondes pour reprendre.',
+  const messageKey: Record<number, Parameters<ReturnType<typeof getTranslation>>[0]> = {
+    2: 'notifReactivation2',
+    3: 'notifReactivation3',
+    5: 'notifReactivation5',
   };
 
-  const message = messages[daysSinceLastActivity];
-  if (!message) return;
+  const key = messageKey[daysSinceLastActivity];
+  if (!key) return;
 
   await Notifications.scheduleNotificationAsync({
     content: {
       title: 'FORGA',
-      body: message,
+      body: t(key),
       data: { type: 'reactivation' },
     },
     trigger: null,

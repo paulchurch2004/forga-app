@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,10 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUserStore } from '../../src/store/userStore';
+import { useSettingsStore } from '../../src/store/settingsStore';
 import { useStreak } from '../../src/hooks/useStreak';
 import { StreakBadge } from '../../src/components/ui/StreakBadge';
+import { TutorialOverlay } from '../../src/components/ui/TutorialOverlay';
 import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useT } from '../../src/i18n';
@@ -33,8 +35,18 @@ export default function HomeScreen() {
   const { contentMaxWidth } = useResponsive();
   const profile = useUserStore((s) => s.profile);
   const { currentStreak, isTodayValidated } = useStreak();
+  const tutorialStep = useSettingsStore((s) => s.tutorialStep);
+  const setTutorialStep = useSettingsStore((s) => s.setTutorialStep);
   const styles = useStyles();
   const { t } = useT();
+
+  // Auto-start tutorial on first visit after onboarding
+  useEffect(() => {
+    if (profile && tutorialStep === 0) {
+      const timer = setTimeout(() => setTutorialStep(1), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [profile, tutorialStep, setTutorialStep]);
 
   if (!profile) {
     return (
@@ -185,6 +197,9 @@ export default function HomeScreen() {
       </Pressable>
 
       <View style={{ height: spacing['3xl'] }} />
+
+      {/* Tutorial overlay */}
+      <TutorialOverlay step={tutorialStep} />
     </ScrollView>
   );
 }

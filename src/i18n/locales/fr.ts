@@ -60,6 +60,15 @@ export const fr = {
   waterTargetReached: 'Objectif atteint !',
   waterDailyTarget: 'Objectif : {target}L / jour',
   waterLabel: 'eau',
+  waterWeekTitle: 'Cette semaine',
+  waterDaysOk: '{count}/{total} jours objectif atteint',
+  waterMon: 'L',
+  waterTue: 'M',
+  waterWed: 'M',
+  waterThu: 'J',
+  waterFri: 'V',
+  waterSat: 'S',
+  waterSun: 'D',
 
   // Scan
   scanner: 'Scanner',
@@ -674,6 +683,49 @@ export const fr = {
   // Food name placeholder
   foodName: "Nom de l'aliment",
   retry: 'Reessayer',
+
+  // Tutorial tooltips
+  tutorialScoreTitle: 'Ton Score FORGA',
+  tutorialScoreBody: 'Il combine nutrition, regularite et progression. Vise 70+ pour etre un vrai forgeron !',
+  tutorialMealsTitle: '500+ Repas',
+  tutorialMealsBody: 'Decouvre des repas adaptes a ton objectif et ton budget. Filtre, cherche, savoure.',
+  tutorialMacrosTitle: 'Tes Macros',
+  tutorialMacrosBody: 'Suis tes proteines, glucides et lipides pour atteindre ton objectif.',
+  tutorialWaterTitle: 'Hydratation',
+  tutorialWaterBody: 'Ajoute ton eau chaque jour pour booster ton score discipline.',
+  tutorialCoachTitle: 'Ton Coach IA',
+  tutorialCoachBody: 'Il t\'accompagne chaque jour avec des conseils personnalises.',
+  tutorialNext: 'Suivant',
+  tutorialFinish: 'C\'est parti !',
+  tutorialSkip: 'Passer',
+  tutorialStepOf: '{current} / {total}',
+
+  // Notifications
+  notifMealReminder: 'C\'est l\'heure de ton {slot}. Choisis ton repas.',
+  notifStreakDanger: 'Ta serie de {days} jours est en danger. Valide tes repas.',
+  notifWeeklyCheckIn: 'Check-in hebdo : 30 secondes pour mettre a jour ton plan.',
+  notifBadgeTitle: 'Badge debloque !',
+  notifBadgeBody: 'Tu as obtenu le badge "{name}". Continue comme ca.',
+  notifReactivation2: 'Ton score baisse. Reviens.',
+  notifReactivation3: 'Ta serie va se casser.',
+  notifReactivation5: 'Ton plan t\'attend. 10 secondes pour reprendre.',
+
+  // Empty states
+  emptyMealsTitle: 'Aucun repas trouve',
+  emptyMealsSubtitle: 'Essaie un autre mot-cle ou change les filtres',
+  emptyHistoryTitle: 'Pas encore d\'historique',
+  emptyHistorySubtitle: 'Tes repas valides apparaitront ici',
+  emptyHistorySelect: 'Selectionne un jour pour voir tes repas',
+  emptyPlanTitle: 'Aucun plan genere',
+  emptyPlanSubtitle: 'Genere un plan pour voir tes repas et ta liste de courses',
+  emptyNutritionTitle: 'Aucun repas aujourd\'hui',
+  emptyNutritionSubtitle: 'Choisis ton premier repas pour commencer a tracker',
+  emptyNutritionAction: 'Choisir un repas',
+  emptyProgressTitle: 'Pas encore de donnees',
+  emptyProgressSubtitle: 'Fais ton premier check-in pour voir ta progression',
+  emptyProgressAction: 'Faire un check-in',
+  emptyCoachTitle: 'Ton coach arrive',
+  emptyCoachSubtitle: 'Complete ton profil pour activer le coaching personnalise',
 } as const;
 
 export type TranslationKey = keyof typeof fr;

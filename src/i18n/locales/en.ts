@@ -62,6 +62,15 @@ export const en: Record<TranslationKey, string> = {
   waterTargetReached: 'Target reached!',
   waterDailyTarget: 'Goal: {target}L / day',
   waterLabel: 'water',
+  waterWeekTitle: 'This week',
+  waterDaysOk: '{count}/{total} days goal reached',
+  waterMon: 'M',
+  waterTue: 'T',
+  waterWed: 'W',
+  waterThu: 'T',
+  waterFri: 'F',
+  waterSat: 'S',
+  waterSun: 'D',
 
   // Scan
   scanner: 'Scan',
@@ -676,4 +685,47 @@ export const en: Record<TranslationKey, string> = {
   // Food name placeholder
   foodName: 'Food name',
   retry: 'Retry',
+
+  // Tutorial tooltips
+  tutorialScoreTitle: 'Your FORGA Score',
+  tutorialScoreBody: 'It combines nutrition, consistency and progression. Aim for 70+ to become a true blacksmith!',
+  tutorialMealsTitle: '500+ Meals',
+  tutorialMealsBody: 'Discover meals tailored to your goal and budget. Filter, search, enjoy.',
+  tutorialMacrosTitle: 'Your Macros',
+  tutorialMacrosBody: 'Track your protein, carbs and fat to reach your goal.',
+  tutorialWaterTitle: 'Hydration',
+  tutorialWaterBody: 'Log your water daily to boost your discipline score.',
+  tutorialCoachTitle: 'Your AI Coach',
+  tutorialCoachBody: 'Get personalized daily tips and guidance.',
+  tutorialNext: 'Next',
+  tutorialFinish: 'Let\'s go!',
+  tutorialSkip: 'Skip',
+  tutorialStepOf: '{current} / {total}',
+
+  // Notifications
+  notifMealReminder: 'Time for your {slot}. Choose your meal.',
+  notifStreakDanger: 'Your {days}-day streak is at risk. Log your meals.',
+  notifWeeklyCheckIn: 'Weekly check-in: 30 seconds to update your plan.',
+  notifBadgeTitle: 'Badge unlocked!',
+  notifBadgeBody: 'You earned the "{name}" badge. Keep it up.',
+  notifReactivation2: 'Your score is dropping. Come back.',
+  notifReactivation3: 'Your streak is about to break.',
+  notifReactivation5: 'Your plan is waiting. 10 seconds to get back on track.',
+
+  // Empty states
+  emptyMealsTitle: 'No meals found',
+  emptyMealsSubtitle: 'Try another keyword or change your filters',
+  emptyHistoryTitle: 'No history yet',
+  emptyHistorySubtitle: 'Your logged meals will appear here',
+  emptyHistorySelect: 'Select a day to see your meals',
+  emptyPlanTitle: 'No plan generated',
+  emptyPlanSubtitle: 'Generate a plan to see your meals and shopping list',
+  emptyNutritionTitle: 'No meals today',
+  emptyNutritionSubtitle: 'Pick your first meal to start tracking',
+  emptyNutritionAction: 'Choose a meal',
+  emptyProgressTitle: 'No data yet',
+  emptyProgressSubtitle: 'Complete your first check-in to see your progress',
+  emptyProgressAction: 'Start check-in',
+  emptyCoachTitle: 'Your coach is coming',
+  emptyCoachSubtitle: 'Complete your profile to unlock personalized coaching',
 };

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Fuse from 'fuse.js';
 import { ALL_MEALS, getMealsBySlotAndBudget } from '../../src/data/meals';
 import { useMealSlot } from '../../src/hooks/useMealSlot';
 import { usePremium } from '../../src/hooks/usePremium';
@@ -22,6 +23,7 @@ import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/t
 import { useTheme } from '../../src/context/ThemeContext';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useT } from '../../src/i18n';
+import { EmptyState } from '../../src/components/ui/EmptyState';
 import { MEAL_SLOT_LABELS, type MealSlot } from '../../src/types/meal';
 import type { Meal } from '../../src/types/meal';
 import type { Budget, Restriction } from '../../src/types/user';
@@ -103,16 +105,14 @@ export default function MealsScreen() {
       );
     }
 
-    // Apply search filter
+    // Apply fuzzy search filter
     if (searchQuery.trim()) {
-      const query = searchQuery.trim().toLowerCase();
-      meals = meals.filter(
-        (meal) =>
-          meal.name.toLowerCase().includes(query) ||
-          meal.description.toLowerCase().includes(query) ||
-          meal.tags.some((tag) => tag.toLowerCase().includes(query)) ||
-          meal.ingredients.some((i) => i.name.toLowerCase().includes(query))
-      );
+      const fuse = new Fuse(meals, {
+        keys: ['name', 'description', 'tags', 'ingredients.name'],
+        threshold: 0.35,
+        ignoreLocation: true,
+      });
+      meals = fuse.search(searchQuery.trim()).map((r) => r.item);
     }
 
     // Apply favorites filter
@@ -332,11 +332,7 @@ export default function MealsScreen() {
           contentContainerStyle={[styles.gridContent, { maxWidth: contentMaxWidth, alignSelf: 'center' as const, width: '100%' }]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
-                {t('noMealsFound')}
-              </Text>
-            </View>
+            <EmptyState icon={'\uD83D\uDD0D'} title={t('emptyMealsTitle')} subtitle={t('emptyMealsSubtitle')} />
           }
         />
       ) : (
@@ -349,11 +345,7 @@ export default function MealsScreen() {
           contentContainerStyle={[styles.listContent, { maxWidth: contentMaxWidth, alignSelf: 'center' as const, width: '100%' }]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
-                {t('noMealsFound')}
-              </Text>
-            </View>
+            <EmptyState icon={'\uD83D\uDD0D'} title={t('emptyMealsTitle')} subtitle={t('emptyMealsSubtitle')} />
           }
           ListFooterComponent={
             remainingCount > 0 ? (
@@ -577,16 +569,6 @@ const useStyles = makeStyles((colors) => ({
     fontFamily: fonts.body,
     fontSize: fontSizes.xl,
     color: colors.textMuted,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingTop: spacing['5xl'],
-  },
-  emptyText: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.md,
-    color: colors.textSecondary,
-    textAlign: 'center',
   },
   paywallBanner: {
     backgroundColor: colors.surface,

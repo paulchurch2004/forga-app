@@ -21,6 +21,7 @@ import { useEngine } from '../src/hooks/useEngine';
 import { MEAL_SLOT_LABELS, type MealSlot } from '../src/types/meal';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../src/theme';
 import { useT } from '../src/i18n';
+import { EmptyState } from '../src/components/ui/EmptyState';
 import { useResponsive } from '../src/hooks/useResponsive';
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
@@ -270,16 +271,7 @@ export default function WeeklyPlanScreen() {
         )}
 
         {days.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>{'\uD83D\uDCCB'}</Text>
-            <Text style={styles.emptyTitle}>Aucun plan genere</Text>
-            <Text style={styles.emptySubtitle}>
-              Genere un plan pour voir tes repas et ta liste de courses.
-            </Text>
-            <Pressable style={styles.generateBtn} onPress={handleGenerate}>
-              <Text style={styles.generateBtnText}>{t('generatePlan')}</Text>
-            </Pressable>
-          </View>
+          <EmptyState icon={'\uD83D\uDCCB'} title={t('emptyPlanTitle')} subtitle={t('emptyPlanSubtitle')} actionLabel={t('generatePlan')} onAction={handleGenerate} />
         ) : activeTab === 'plan' ? (
           <>
             {/* Day selector */}
@@ -599,44 +591,10 @@ const useStyles = makeStyles((colors) => ({
   },
 
   // Empty state
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: spacing['5xl'],
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: spacing.lg,
-  },
-  emptyTitle: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes.xl,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  emptySubtitle: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.md,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: spacing.xl,
-  },
   emptyText: {
     fontFamily: fonts.body,
     fontSize: fontSizes.md,
     color: colors.textSecondary,
-  },
-  generateBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.md,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing['2xl'],
-  },
-  generateBtnText: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes.md,
-    fontWeight: '700',
-    color: colors.white,
   },
 
   // Day total
