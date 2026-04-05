@@ -8,8 +8,14 @@ const REWARD_DAYS = 7; // 1 week premium per referral
 export function generateReferralCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no I/O/0/1 for readability
   let code = '';
-  for (let i = 0; i < 4; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
+  const randomBytes = new Uint8Array(8);
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(randomBytes);
+  } else {
+    for (let i = 0; i < 8; i++) randomBytes[i] = Math.floor(Math.random() * 256);
+  }
+  for (let i = 0; i < 8; i++) {
+    code += chars[randomBytes[i] % chars.length];
   }
   return `FORGA-${code}`;
 }
@@ -18,7 +24,7 @@ export function generateReferralCode(): string {
  * Validate a referral code format
  */
 export function isValidReferralCode(code: string): boolean {
-  return /^FORGA-[A-Z0-9]{4}$/i.test(code.trim());
+  return /^FORGA-[A-Z0-9]{4,8}$/i.test(code.trim());
 }
 
 /**
@@ -31,13 +37,11 @@ export async function lookupReferralCode(code: string): Promise<string | null> {
     return isValidReferralCode(code) ? 'demo-referrer' : null;
   }
 
+  // Use RPC function (security definer) to bypass RLS safely
   const { data } = await supabase
-    .from('users')
-    .select('id')
-    .eq('referral_code', code.trim().toUpperCase())
-    .single();
+    .rpc('lookup_referral_code', { code: code.trim().toUpperCase() });
 
-  return data?.id ?? null;
+  return data ?? null;
 }
 
 /**
@@ -50,7 +54,7 @@ export async function applyReferral(
   referralCode: string,
 ): Promise<boolean> {
   if (isDemoMode) {
-    console.log('[Referral] Demo mode — referral applied locally');
+    if (__DEV__) console.log('[Referral] Demo mode — referral applied locally');
     return true;
   }
 
@@ -98,7 +102,7 @@ export async function applyReferral(
 
     return true;
   } catch (error) {
-    console.error('[Referral] Error applying referral:', error);
+    if (__DEV__) console.error('[Referral] Error applying referral:', error);
     return false;
   }
 }

@@ -11,7 +11,7 @@ async function getPurchases() {
     const mod = await import('react-native-purchases');
     Purchases = mod.default;
   } catch {
-    console.warn('[RevenueCat] Failed to load react-native-purchases');
+    if (__DEV__) console.warn('[RevenueCat] Failed to load react-native-purchases');
   }
   return Purchases;
 }
@@ -26,7 +26,7 @@ export async function initRevenueCat(userId?: string): Promise<void> {
 
   const apiKey = Platform.OS === 'ios' ? API_KEY_IOS : API_KEY_ANDROID;
   if (!apiKey) {
-    console.warn('[RevenueCat] No API key configured');
+    if (__DEV__) console.warn('[RevenueCat] No API key configured');
     return;
   }
 
@@ -45,7 +45,7 @@ export async function getOfferings(): Promise<any[]> {
     }
     return [];
   } catch (error) {
-    console.error('[RevenueCat] getOfferings error:', error);
+    if (__DEV__) console.error('[RevenueCat] getOfferings error:', error);
     return [];
   }
 }

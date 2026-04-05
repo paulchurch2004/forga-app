@@ -28,7 +28,7 @@ export async function initSentry() {
     isInitialized = true;
   } catch {
     // @sentry/react-native not installed — silent fallback
-    console.log('[FORGA] Sentry non installe — crash reporting desactive');
+    if (__DEV__) console.log('[FORGA] Sentry non installe — crash reporting desactive');
   }
 }
 

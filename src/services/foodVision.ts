@@ -1,3 +1,5 @@
+import { supabase, isDemoMode } from './supabase';
+
 export interface FoodAnalysisResult {
   name: string;
   calories: number;
@@ -6,67 +8,37 @@ export interface FoodAnalysisResult {
   fat: number;
 }
 
-const OPENAI_KEY = process.env.EXPO_PUBLIC_OPENAI_KEY;
-
-const SYSTEM_PROMPT = `Tu es un nutritionniste expert francais. Analyse cette photo d'aliment ou de plat.
-Reponds UNIQUEMENT avec un objet JSON valide, sans markdown, sans explication :
-{ "name": "nom du plat", "calories": nombre, "protein": nombre, "carbs": nombre, "fat": nombre }
-Les macros (calories en kcal, protein/carbs/fat en grammes) sont pour la portion visible sur la photo.
-Si tu ne peux pas identifier l'aliment, reponds : { "error": "non_identifie" }`;
+const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 
 export async function analyzeFoodPhoto(
   base64Image: string,
 ): Promise<FoodAnalysisResult | null> {
-  if (!OPENAI_KEY) return null;
+  if (isDemoMode || !SUPABASE_URL) return null;
 
   try {
-    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return null;
+
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/analyze-food`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${OPENAI_KEY}`,
+        Authorization: `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          {
-            role: 'user',
-            content: [
-              {
-                type: 'image_url',
-                image_url: {
-                  url: `data:image/jpeg;base64,${base64Image}`,
-                  detail: 'low',
-                },
-              },
-              { type: 'text', text: 'Analyse cet aliment.' },
-            ],
-          },
-        ],
-        max_tokens: 200,
-        temperature: 0.3,
-      }),
+      body: JSON.stringify({ base64Image }),
     });
 
     if (!res.ok) return null;
 
     const data = await res.json();
-    const content = data.choices?.[0]?.message?.content?.trim();
-    if (!content) return null;
-
-    // Extract JSON from possible markdown code block
-    const jsonStr = content.replace(/```json?\s*/g, '').replace(/```/g, '').trim();
-    const parsed = JSON.parse(jsonStr);
-
-    if (parsed.error) return null;
+    if (data.error) return null;
 
     return {
-      name: parsed.name || 'Aliment',
-      calories: Math.round(parsed.calories || 0),
-      protein: Math.round(parsed.protein || 0),
-      carbs: Math.round(parsed.carbs || 0),
-      fat: Math.round(parsed.fat || 0),
+      name: data.name || 'Aliment',
+      calories: Math.round(data.calories || 0),
+      protein: Math.round(data.protein || 0),
+      carbs: Math.round(data.carbs || 0),
+      fat: Math.round(data.fat || 0),
     };
   } catch {
     return null;
@@ -74,5 +46,5 @@ export async function analyzeFoodPhoto(
 }
 
 export function isVisionAvailable(): boolean {
-  return !!OPENAI_KEY;
+  return !isDemoMode && !!SUPABASE_URL;
 }

@@ -26,7 +26,7 @@ export function PremiumExpiredBanner({ onDismiss }: PremiumExpiredBannerProps) {
     try {
       if (isDemoMode) {
         // Demo: accept any valid format code
-        if (/^FORGA-[A-Z0-9]{4}$/i.test(code.trim())) {
+        if (/^FORGA-[A-Z0-9]{4,8}$/i.test(code.trim())) {
           const newUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
           updateProfile({ isPremium: true, premiumUntil: newUntil });
           onDismiss?.();
