@@ -6,11 +6,14 @@ import type { ForgaScore, ScoreHistory } from '../types/score';
 interface ScoreState {
   currentScore: ForgaScore;
   history: ScoreHistory[];
+  scoreHistory: Record<string, ForgaScore>; // keyed by YYYY-MM-DD
   weeklyChange: number; // points gained/lost this week
 
   setCurrentScore: (score: ForgaScore) => void;
   setHistory: (history: ScoreHistory[]) => void;
   setWeeklyChange: (change: number) => void;
+  saveDailyScore: (date: string, score: ForgaScore) => void;
+  getDailyScore: (date: string) => ForgaScore | undefined;
   reset: () => void;
 }
 
@@ -24,15 +27,21 @@ const defaultScore: ForgaScore = {
 
 export const useScoreStore = create<ScoreState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       currentScore: defaultScore,
       history: [],
+      scoreHistory: {},
       weeklyChange: 0,
 
       setCurrentScore: (currentScore) => set({ currentScore }),
       setHistory: (history) => set({ history }),
       setWeeklyChange: (weeklyChange) => set({ weeklyChange }),
-      reset: () => set({ currentScore: defaultScore, history: [], weeklyChange: 0 }),
+      saveDailyScore: (date, score) =>
+        set((state) => ({
+          scoreHistory: { ...state.scoreHistory, [date]: score },
+        })),
+      getDailyScore: (date) => get().scoreHistory[date],
+      reset: () => set({ currentScore: defaultScore, history: [], scoreHistory: {}, weeklyChange: 0 }),
     }),
     {
       name: 'forga-score-store',
@@ -40,6 +49,7 @@ export const useScoreStore = create<ScoreState>()(
       partialize: (state) => ({
         currentScore: state.currentScore,
         history: state.history,
+        scoreHistory: state.scoreHistory,
         weeklyChange: state.weeklyChange,
       }),
     }

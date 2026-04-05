@@ -17,6 +17,28 @@ export const MEAL_SLOT_LABELS: Record<MealSlot, string> = {
   bedtime: 'Avant dodo',
 };
 
+export function getMealSlotLabel(slot: MealSlot, locale: string = 'fr'): string {
+  const labels: Record<string, Record<MealSlot, string>> = {
+    fr: {
+      breakfast: 'Petit-déjeuner',
+      morning_snack: 'Collation matin',
+      lunch: 'Déjeuner',
+      afternoon_snack: 'Goûter',
+      dinner: 'Dîner',
+      bedtime: 'Avant dodo',
+    },
+    en: {
+      breakfast: 'Breakfast',
+      morning_snack: 'Morning snack',
+      lunch: 'Lunch',
+      afternoon_snack: 'Afternoon snack',
+      dinner: 'Dinner',
+      bedtime: 'Bedtime snack',
+    },
+  };
+  return (labels[locale] ?? labels.fr)[slot];
+}
+
 export const MEAL_SLOT_TIMES: Record<MealSlot, string> = {
   breakfast: '07:30',
   morning_snack: '10:00',

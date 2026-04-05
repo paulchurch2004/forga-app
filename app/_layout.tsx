@@ -1,4 +1,4 @@
-import React, { useEffect, Component } from 'react';
+import React, { useEffect, useRef, Component } from 'react';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -27,7 +27,7 @@ import { isDemoMode, supabase } from '../src/services/supabase';
 import { useAuthStore } from '../src/store/authStore';
 import { loadProfileFromSupabase } from '../src/services/profile';
 import { initSentry, captureException } from '../src/services/sentry';
-import { View, Text, ActivityIndicator, ScrollView, Platform } from 'react-native';
+import { View, Text, ActivityIndicator, ScrollView, Platform, AppState } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
@@ -38,6 +38,8 @@ import {
   scheduleReactivation,
 } from '../src/services/notifications';
 import { useUserStore } from '../src/store/userStore';
+import { useSettingsStore } from '../src/store/settingsStore';
+import { getTranslation } from '../src/i18n';
 import { useMealStore } from '../src/store/mealStore';
 import type { MealSlot } from '../src/types/meal';
 import { OfflineBanner } from '../src/components/ui/OfflineBanner';
@@ -66,7 +68,7 @@ class ErrorBoundary extends Component<
       return (
         <ScrollView style={{ flex: 1, backgroundColor: '#1a0000', padding: 20 }}>
           <Text style={{ color: '#ff4444', fontSize: 24, fontWeight: 'bold', marginTop: 40 }}>
-            FORGA — Erreur
+            {getTranslation(useSettingsStore.getState().locale)('forgaError')}
           </Text>
           <Text style={{ color: '#ff8888', fontSize: 14, marginTop: 16 }}>
             {this.state.error?.message}
@@ -184,14 +186,45 @@ function RootLayoutInner() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Sync queue: process pending actions when coming back online
+  // Sync queue: process pending actions on startup, when coming back
+  // online (web), and when the app returns to foreground (native).
+  // All calls are guarded by a valid auth session check.
+  const appStateRef = useRef(AppState.currentState);
+
   useEffect(() => {
-    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
-    const handleOnline = () => {
+    const flush = () => {
+      const session = useAuthStore.getState().session;
+      if (!session) return;
       processQueue().catch(() => {});
     };
-    window.addEventListener('online', handleOnline);
-    return () => window.removeEventListener('online', handleOnline);
+
+    // 1. Process at app startup (all platforms)
+    flush();
+
+    // 2. Web: process when the browser goes back online
+    let handleOnline: (() => void) | undefined;
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      handleOnline = () => flush();
+      window.addEventListener('online', handleOnline);
+    }
+
+    // 3. Native: process when the app comes back to foreground
+    let appStateSub: ReturnType<typeof AppState.addEventListener> | undefined;
+    if (Platform.OS !== 'web') {
+      appStateSub = AppState.addEventListener('change', (nextState) => {
+        if (appStateRef.current.match(/inactive|background/) && nextState === 'active') {
+          flush();
+        }
+        appStateRef.current = nextState;
+      });
+    }
+
+    return () => {
+      if (handleOnline && typeof window !== 'undefined') {
+        window.removeEventListener('online', handleOnline);
+      }
+      appStateSub?.remove();
+    };
   }, []);
 
   // Cacher le splash screen quand tout est prêt
@@ -213,7 +246,7 @@ function RootLayoutInner() {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
         <ActivityIndicator color={colors.primary} size="large" />
-        <Text style={{ color: colors.textSecondary, marginTop: 16 }}>Chargement...</Text>
+        <Text style={{ color: colors.textSecondary, marginTop: 16 }}>{getTranslation(useSettingsStore.getState().locale)('loading')}</Text>
       </View>
     );
   }

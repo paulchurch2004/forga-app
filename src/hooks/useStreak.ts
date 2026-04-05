@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
-import { Platform } from 'react-native';
+import { useCallback, useEffect, useRef } from 'react';
+import { AppState, Platform } from 'react-native';
 import { useUserStore } from '../store/userStore';
 import { useMealStore } from '../store/mealStore';
 import { useScoreStore } from '../store/scoreStore';
@@ -26,6 +26,62 @@ export function useStreak() {
 
   // Check if today is validated (at least 1 meal)
   const isTodayValidated = todayMeals.length > 0;
+
+  // Break streak
+  const breakStreak = useCallback(() => {
+    if (!profile) return;
+    updateProfile({ currentStreak: 0 });
+  }, [profile, updateProfile]);
+
+  const streakCheckedRef = useRef(false);
+
+  // Auto-check streak on mount and app foreground
+  useEffect(() => {
+    const checkStreakReset = () => {
+      if (!profile || profile.currentStreak === 0) return;
+      if (isTodayValidated) return; // Today has meals, streak is safe
+
+      // Find last date with validated meals
+      const mealHistory = useMealStore.getState().mealHistory;
+      const dates = Object.keys(mealHistory).filter(d => mealHistory[d].length > 0).sort();
+      if (dates.length === 0) {
+        // No meal history at all but has streak? Reset it
+        breakStreak();
+        return;
+      }
+
+      const lastDate = dates[dates.length - 1];
+      const today = new Date();
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+      if (lastDate === todayStr) return; // Today has meals in history
+
+      // Check if yesterday had meals
+      const yesterday = new Date(today);
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+      if (lastDate < yesterdayStr) {
+        // Last meal was before yesterday -> streak is broken
+        breakStreak();
+      }
+    };
+
+    // Check on mount (only once)
+    if (!streakCheckedRef.current) {
+      streakCheckedRef.current = true;
+      checkStreakReset();
+    }
+
+    // Check on app foreground
+    if (Platform.OS === 'web') return;
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        checkStreakReset();
+      }
+    });
+    return () => sub.remove();
+  }, [profile?.currentStreak, isTodayValidated, breakStreak]);
 
   const hasBadge = useCallback(
     (type: BadgeType) => badges.some((b) => b.type === type),
@@ -94,12 +150,6 @@ export function useStreak() {
       scheduleStreakDanger(newStreak).catch(() => {});
     }
   }, [profile, updateProfile, checkAndUnlockBadges]);
-
-  // Break streak
-  const breakStreak = useCallback(() => {
-    if (!profile) return;
-    updateProfile({ currentStreak: 0 });
-  }, [profile, updateProfile]);
 
   // Use streak freeze
   const useStreakFreeze = useCallback((): boolean => {

@@ -93,7 +93,7 @@ export async function scheduleStreakDanger(streakDays: number): Promise<string> 
   return id;
 }
 
-// ─── Check-in hebdomadaire ───
+// ─── Check-in hebdomadaire (dimanche / Sunday at 20:00) ───
 export async function scheduleWeeklyCheckIn(): Promise<string> {
   const id = await Notifications.scheduleNotificationAsync({
     content: {
@@ -103,7 +103,8 @@ export async function scheduleWeeklyCheckIn(): Promise<string> {
     },
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-      weekday: 1,
+      // Expo weekday: 1 = Sunday, 2 = Monday, ..., 7 = Saturday
+      weekday: 1, // Sunday
       hour: 20,
       minute: 0,
     },

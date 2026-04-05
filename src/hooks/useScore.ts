@@ -7,7 +7,7 @@ import { useWaterStore } from '../store/waterStore';
 import type { ScoreInput } from '../types/score';
 
 export function useScore() {
-  const { currentScore, weeklyChange, setCurrentScore, setWeeklyChange } = useScoreStore();
+  const { currentScore, weeklyChange, scoreHistory, setCurrentScore, setWeeklyChange, saveDailyScore } = useScoreStore();
   const profile = useUserStore((s) => s.profile);
   const checkIns = useUserStore((s) => s.checkIns);
   const todayMeals = useMealStore((s) => s.todayMeals);
@@ -93,19 +93,27 @@ export function useScore() {
     const change = newScore.total - currentScore.total;
     setCurrentScore(newScore);
     setWeeklyChange(weeklyChange + change);
+
+    // Auto-save today's score to history if not already persisted
+    if (!scoreHistory[todayDate]) {
+      saveDailyScore(todayDate, newScore);
+    }
   }, [
     profile,
     checkIns,
     todayMeals,
     currentScore.total,
     weeklyChange,
+    scoreHistory,
     setCurrentScore,
     setWeeklyChange,
+    saveDailyScore,
   ]);
 
   return {
     score: currentScore,
     weeklyChange,
+    scoreHistory,
     recalculate,
   };
 }

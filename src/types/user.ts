@@ -104,3 +104,23 @@ export const BADGE_INFO: Record<BadgeType, { name: string; description: string }
   forgeron: { name: 'Forgeron', description: 'Score FORGA > 70' },
   month_of_forge: { name: 'Mois de Forge', description: '30 jours de streak' },
 };
+
+export function getBadgeInfo(type: BadgeType, locale: string = 'fr'): { name: string; description: string } {
+  const info: Record<string, Record<BadgeType, { name: string; description: string }>> = {
+    fr: {
+      first_meal: { name: 'Premier Repas', description: 'Valider son premier repas' },
+      first_week: { name: 'Première Semaine', description: '7 jours de streak' },
+      first_kilo: { name: 'Premier Kilo', description: '1 kg de progression vers l\'objectif' },
+      forgeron: { name: 'Forgeron', description: 'Score FORGA > 70' },
+      month_of_forge: { name: 'Mois de Forge', description: '30 jours de streak' },
+    },
+    en: {
+      first_meal: { name: 'First Meal', description: 'Validate your first meal' },
+      first_week: { name: 'First Week', description: '7-day streak' },
+      first_kilo: { name: 'First Kilo', description: '1 kg progress toward goal' },
+      forgeron: { name: 'Forger', description: 'FORGA Score > 70' },
+      month_of_forge: { name: 'Month of Forge', description: '30-day streak' },
+    },
+  };
+  return (info[locale] ?? info.fr)[type];
+}

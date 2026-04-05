@@ -16,6 +16,7 @@ import Animated, {
   FadeIn,
 } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
+import { useSettingsStore } from '../../src/store/settingsStore';
 import { useUserStore } from '../../src/store/userStore';
 import { useScoreStore } from '../../src/store/scoreStore';
 import { useMealStore } from '../../src/store/mealStore';
@@ -134,6 +135,7 @@ export default function CoachScreen() {
   const { colors } = useTheme();
   const styles = useStyles();
   const { t } = useT();
+  const locale = useSettingsStore((s) => s.locale);
 
   const profile = useUserStore((s) => s.profile);
   const { currentScore } = useScoreStore();
@@ -222,7 +224,7 @@ export default function CoachScreen() {
     // Add user message
     const userMsg: ChatMessage = {
       id: String(++messageIdRef.current),
-      text: QUESTION_LABELS[type],
+      text: (QUESTION_LABELS[locale] ?? QUESTION_LABELS.fr)[type],
       isCoach: false,
       timestamp: Date.now(),
     };

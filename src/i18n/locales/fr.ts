@@ -726,6 +726,45 @@ export const fr = {
   emptyProgressAction: 'Faire un check-in',
   emptyCoachTitle: 'Ton coach arrive',
   emptyCoachSubtitle: 'Complete ton profil pour activer le coaching personnalise',
+
+  // Premium trial
+  premiumTrialActive: 'PRO gratuit — {days}j restants',
+  premiumExpiredTitle: 'Ton mois gratuit est termine',
+  premiumExpiredMessage: 'Entre un code parrainage pour continuer a profiter de FORGA PRO, ou abonne-toi.',
+  premiumEnterCode: 'Entrer un code',
+  premiumExpiredOr: 'ou',
+
+  // Referral share
+  shareReferralMessage: 'Rejoins FORGA et commence ta transformation ! Utilise mon code parrain {code} a l\'inscription. Telecharge l\'app : https://forga.fr',
+
+  // Check-in (additional)
+  checkinSubtitle: 'C\'est parti.',
+  checkinWeightLabel: 'Ton poids cette semaine',
+  checkinComplete: 'Check-in termine',
+  checkinAdjustment: 'Ajustement',
+  kcalPerDayUnit: 'kcal/jour',
+  invalidWeight: 'Entre un poids valide.',
+  hungerNone: 'Aucune',
+  hungerOften: 'Souvent',
+  hungerAlways: 'Tout le temps',
+  perfDeclining: 'En baisse',
+  perfStagnant: 'Stagnation',
+  perfStable: 'Stable',
+  perfImproving: 'En hausse',
+
+  // Adaptive engine
+  adaptivePlanOk: 'Ton plan est bien calibre. On continue comme ca.',
+  adaptiveBulkSlow: 'Tu ne prends pas assez de poids.',
+  adaptiveBulkFast: 'Tu prends trop vite, on reduit legerement.',
+  adaptiveCutSlow: 'La perte est trop lente, on ajuste.',
+  adaptiveCutFast: 'Tu perds trop vite, on ralentit pour preserver le muscle.',
+  adaptiveMaintainDrift: 'Ton poids derive, on corrige.',
+  adaptiveRecompExcess: 'Legere prise excessive, on ajuste.',
+  adaptiveRecompLoss: 'Tu perds trop, on remonte les calories.',
+  adaptiveLowEnergy: 'Ton energie est basse.',
+  adaptiveHungry: 'Tu as trop faim.',
+  adaptivePerfDown: 'Tes perfs en salle baissent.',
+  adaptiveSleepBad: 'Ton sommeil est impacte.',
 } as const;
 
 export type TranslationKey = keyof typeof fr;

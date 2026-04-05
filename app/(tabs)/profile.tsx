@@ -42,7 +42,7 @@ export default function ProfileScreen() {
   const badges = useUserStore((s) => s.badges);
   const score = useScoreStore((s) => s.currentScore);
   const { currentStreak, bestStreak } = useStreak();
-  const { isPremium } = usePremium();
+  const { isPremium, isTrialActive, isTrialExpired, daysLeft } = usePremium();
   const checkIns = useUserStore((s) => s.checkIns);
   const { isEnabled: notifEnabled, toggle: toggleNotif } = useNotifications();
   const themeMode = useSettingsStore((s) => s.themeMode);
@@ -73,7 +73,7 @@ export default function ProfileScreen() {
     if (!code) return;
     try {
       await Share.share({
-        message: `Rejoins FORGA et commence ta transformation ! Utilise mon code parrain ${code} à l'inscription. Télécharge l'app : https://forga.fr`,
+        message: t('shareReferralMessage', { code }),
       });
       events.referralCodeShared('share');
     } catch {}
@@ -201,7 +201,9 @@ export default function ProfileScreen() {
         <Text style={styles.email}>{profile.email}</Text>
         {isPremium && (
           <View style={styles.premiumBadge}>
-            <Text style={styles.premiumText}>FORGA PRO</Text>
+            <Text style={styles.premiumText}>
+              {isTrialActive ? t('premiumTrialActive', { days: daysLeft }) : 'FORGA PRO'}
+            </Text>
           </View>
         )}
       </View>

@@ -1,6 +1,13 @@
 // NutrEngine™ — Système adaptatif avec feedback (check-in hebdomadaire)
 import { ADAPTIVE_LIMITS } from './constants';
 import type { AdaptiveInput, AdaptiveResult } from '../types/engine';
+import { useSettingsStore } from '../store/settingsStore';
+import { getTranslation } from '../i18n';
+
+function t(key: string): string {
+  const locale = useSettingsStore.getState().locale;
+  return getTranslation(locale)(key as any);
+}
 
 /**
  * Calcule l'ajustement calorique basé sur le check-in hebdomadaire.
@@ -29,7 +36,7 @@ export function calculateAdaptiveAdjustment(input: AdaptiveInput): AdaptiveResul
   if (Math.abs(adjustment) < minAdjustmentThreshold) {
     return {
       calorieAdjustment: 0,
-      reason: 'Ton plan est bien calibré. On continue comme ça.',
+      reason: t('adaptivePlanOk'),
       newDailyCalories: currentCalories,
     };
   }
@@ -59,37 +66,37 @@ function getWeightTrendAdjustment(
   if (objective === 'bulk') {
     if (trend < 0.1) {
       adj = +100;
-      reasons.push('Tu ne prends pas assez de poids.');
+      reasons.push(t('adaptiveBulkSlow'));
     } else if (trend > 0.7) {
       adj = -100;
-      reasons.push('Tu prends trop vite, on réduit légèrement.');
+      reasons.push(t('adaptiveBulkFast'));
     }
   }
 
   if (objective === 'cut') {
     if (trend > -0.2) {
       adj = -100;
-      reasons.push('La perte est trop lente, on ajuste.');
+      reasons.push(t('adaptiveCutSlow'));
     } else if (trend < -1.0) {
       adj = +100;
-      reasons.push('Tu perds trop vite, on ralentit pour préserver le muscle.');
+      reasons.push(t('adaptiveCutFast'));
     }
   }
 
   if (objective === 'maintain') {
     if (Math.abs(trend) > 0.3) {
       adj = trend > 0 ? -75 : +75;
-      reasons.push('Ton poids dérive, on corrige.');
+      reasons.push(t('adaptiveMaintainDrift'));
     }
   }
 
   if (objective === 'recomp') {
     if (trend > 0.3) {
       adj = -75;
-      reasons.push('Légère prise excessive, on ajuste.');
+      reasons.push(t('adaptiveRecompExcess'));
     } else if (trend < -0.5) {
       adj = +75;
-      reasons.push('Tu perds trop, on remonte les calories.');
+      reasons.push(t('adaptiveRecompLoss'));
     }
   }
 
@@ -109,25 +116,25 @@ function getSubjectiveAdjustment(
   // Énergie basse (1-2/5) → probablement sous-alimenté
   if (energy <= 2) {
     adj += 50;
-    reasons.push('Ton énergie est basse.');
+    reasons.push(t('adaptiveLowEnergy'));
   }
 
   // Faim excessive (4-5/5) en cut → augmenter un peu
   if (hunger >= 4 && (objective === 'cut' || objective === 'recomp')) {
     adj += 50;
-    reasons.push('Tu as trop faim.');
+    reasons.push(t('adaptiveHungry'));
   }
 
   // Performances en baisse (1-2/4)
   if (performance <= 2) {
     adj += 50;
-    reasons.push('Tes perfs en salle baissent.');
+    reasons.push(t('adaptivePerfDown'));
   }
 
   // Mauvais sommeil (1-2/4) → le stress peut être lié au déficit
   if (sleep <= 2 && objective === 'cut') {
     adj += 25;
-    reasons.push('Ton sommeil est impacté.');
+    reasons.push(t('adaptiveSleepBad'));
   }
 
   return adj;

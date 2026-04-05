@@ -28,6 +28,8 @@ import { ShareStreakCard } from '../src/components/gamification/ShareStreakCard'
 import { WaterCard } from '../src/components/hydration/WaterCard';
 import { useShareCard } from '../src/hooks/useShareCard';
 import { BadgeUnlockToast } from '../src/components/gamification/BadgeUnlockToast';
+import { PremiumExpiredBanner } from '../src/components/ui/PremiumExpiredBanner';
+import { usePremium } from '../src/hooks/usePremium';
 import { useT } from '../src/i18n';
 import type { BadgeType } from '../src/types/user';
 
@@ -50,6 +52,7 @@ export default function NutritionScreen() {
   const { currentStreak, isTodayValidated } = useStreak();
   const { recalculate } = useScore();
   const badges = useUserStore((s) => s.badges);
+  const { isTrialExpired } = usePremium();
   const prevBadgeCount = useRef(badges.length);
 
   useEffect(() => {
@@ -93,12 +96,16 @@ export default function NutritionScreen() {
   }, [profile]);
 
   const showCheckInBanner = useMemo(() => {
-    if (checkIns.length === 0) return true;
+    const now = new Date();
+    const isSunday = now.getDay() === 0; // 0 = Sunday in JS
+    if (checkIns.length === 0) return isSunday;
     const lastCheckIn = [...checkIns].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )[0];
     const daysSince = (Date.now() - new Date(lastCheckIn.createdAt).getTime()) / (1000 * 60 * 60 * 24);
-    return daysSince > 6;
+    // Show on Sunday if no check-in this week, or any day if overdue (> 6 days)
+    const noCheckInThisWeek = daysSince > 6;
+    return (isSunday && noCheckInThisWeek) || daysSince > 13;
   }, [checkIns]);
 
   const lastCalorieAdjustment = useMemo(() => {
@@ -187,6 +194,8 @@ export default function NutritionScreen() {
             <Text style={styles.shareStreakBtnText}>{'\uD83D\uDD25'} {t('shareMyStreak')}</Text>
           </Pressable>
         )}
+
+        {isTrialExpired && <PremiumExpiredBanner />}
 
         {/* Share Streak Modal */}
         <Modal

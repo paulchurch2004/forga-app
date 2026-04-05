@@ -10,6 +10,18 @@ export function usePremium() {
 
   const isPremium = profile?.isPremium ?? false;
 
+  // Calculate days left for trial
+  const daysLeft = (() => {
+    if (!profile?.premiumUntil) return null;
+    const until = new Date(profile.premiumUntil);
+    const now = new Date();
+    const diff = Math.ceil((until.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return Math.max(0, diff);
+  })();
+
+  const isTrialActive = isPremium && daysLeft !== null && daysLeft > 0;
+  const isTrialExpired = daysLeft !== null && daysLeft <= 0 && !profile?.stripeSubscriptionId;
+
   // Check premium status on mount
   useEffect(() => {
     refreshPremiumStatus();
@@ -18,18 +30,24 @@ export function usePremium() {
   const refreshPremiumStatus = useCallback(async () => {
     setIsChecking(true);
     try {
-      if (Platform.OS === 'web') {
-        // On web, check premiumUntil expiry (Stripe / referral rewards)
-        if (profile?.premiumUntil) {
-          const now = new Date();
-          const until = new Date(profile.premiumUntil);
-          if (until <= now && profile.isPremium) {
+      // Check premiumUntil expiry (works on all platforms for trial/referral)
+      if (profile?.premiumUntil) {
+        const now = new Date();
+        const until = new Date(profile.premiumUntil);
+        if (until <= now && profile.isPremium) {
+          // Don't expire if user has an active Stripe subscription
+          if (!profile.stripeSubscriptionId) {
             updateProfile({ isPremium: false });
           }
         }
-      } else {
+      }
+
+      // On native, also check RevenueCat for store subscriptions
+      if (Platform.OS !== 'web') {
         const premium = await checkPremiumStatus();
-        updateProfile({ isPremium: premium });
+        if (premium) {
+          updateProfile({ isPremium: true });
+        }
       }
     } catch {
       // Keep current status on error
@@ -53,6 +71,9 @@ export function usePremium() {
   return {
     isPremium,
     isChecking,
+    isTrialActive,
+    isTrialExpired,
+    daysLeft,
     refreshPremiumStatus,
     requirePremium,
   };

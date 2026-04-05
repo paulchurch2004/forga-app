@@ -43,7 +43,7 @@ export default function CheckInScreen() {
   const handleSubmit = async () => {
     const weightNum = parseFloat(weight.replace(',', '.'));
     if (isNaN(weightNum) || weightNum < 30 || weightNum > 300) {
-      Alert.alert(t('error'), 'Entre un poids valide.');
+      Alert.alert(t('error'), t('invalidWeight'));
       return;
     }
 
@@ -149,18 +149,18 @@ export default function CheckInScreen() {
     return (
       <View style={styles.container}>
         <View style={styles.resultContainer}>
-          <Text style={styles.resultTitle}>Check-in termine</Text>
+          <Text style={styles.resultTitle}>{t('checkinComplete')}</Text>
           <Text style={styles.resultReason}>{result.reason}</Text>
           {result.adjustment !== 0 && (
             <View style={styles.adjustmentCard}>
-              <Text style={styles.adjustmentLabel}>Ajustement</Text>
+              <Text style={styles.adjustmentLabel}>{t('checkinAdjustment')}</Text>
               <Text
                 style={[
                   styles.adjustmentValue,
                   { color: result.adjustment > 0 ? colors.success : colors.primary },
                 ]}
               >
-                {result.adjustment > 0 ? '+' : ''}{result.adjustment} kcal/jour
+                {result.adjustment > 0 ? '+' : ''}{result.adjustment} {t('kcalPerDayUnit')}
               </Text>
             </View>
           )}
@@ -181,11 +181,11 @@ export default function CheckInScreen() {
       </View>
 
       <Text style={styles.title}>{t('weeklyCheckIn')}</Text>
-      <Text style={styles.subtitle}>30 secondes. C'est parti.</Text>
+      <Text style={styles.subtitle}>{t('checkinSubtitle')}</Text>
 
       {/* Weight */}
       <View style={styles.field}>
-        <Text style={styles.fieldLabel}>Ton poids cette semaine</Text>
+        <Text style={styles.fieldLabel}>{t('checkinWeightLabel')}</Text>
         <TextInput
           style={styles.weightInput}
           value={weight}
@@ -214,7 +214,7 @@ export default function CheckInScreen() {
           value={hunger}
           onChange={(v) => setHunger(v as Rating)}
           max={5}
-          labels={['Aucune', t('low'), t('average'), 'Souvent', 'Tout le temps']}
+          labels={[t('hungerNone'), t('low'), t('average'), t('hungerOften'), t('hungerAlways')]}
         />
       </View>
 
@@ -225,7 +225,7 @@ export default function CheckInScreen() {
           value={performance}
           onChange={(v) => setPerformance(v as SmallRating)}
           max={4}
-          labels={['En baisse', 'Stagnation', 'Stable', 'En hausse']}
+          labels={[t('perfDeclining'), t('perfStagnant'), t('perfStable'), t('perfImproving')]}
         />
       </View>
 
