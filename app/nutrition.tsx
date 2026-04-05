@@ -63,6 +63,11 @@ export default function NutritionScreen() {
     prevBadgeCount.current = badges.length;
   }, [badges]);
 
+  // Recalculate score on mount and when meals/streak change
+  useEffect(() => {
+    recalculate();
+  }, [todayMeals.length, currentStreak]);
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     recalculate();
