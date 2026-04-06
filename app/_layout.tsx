@@ -39,6 +39,7 @@ import {
 } from '../src/services/notifications';
 import { useUserStore } from '../src/store/userStore';
 import { useSettingsStore } from '../src/store/settingsStore';
+import { useScoreStore } from '../src/store/scoreStore';
 import { getTranslation } from '../src/i18n';
 import { useMealStore } from '../src/store/mealStore';
 import type { MealSlot } from '../src/types/meal';
@@ -193,13 +194,21 @@ function RootLayoutInner() {
   const appStateRef = useRef(AppState.currentState);
 
   useEffect(() => {
+    const checkDayReset = () => {
+      useMealStore.getState().checkDayReset();
+      useScoreStore.getState().checkDayReset();
+    };
+
     const flush = () => {
       const session = useAuthStore.getState().session;
       if (!session) return;
       processQueue().catch(() => {});
     };
 
-    // 1. Process at app startup (all platforms)
+    // 1. Reset daily data if date changed (all platforms)
+    checkDayReset();
+
+    // 2. Process sync queue at app startup (all platforms)
     flush();
 
     // 2. Web: process when the browser goes back online
@@ -214,6 +223,7 @@ function RootLayoutInner() {
     if (Platform.OS !== 'web') {
       appStateSub = AppState.addEventListener('change', (nextState) => {
         if (appStateRef.current.match(/inactive|background/) && nextState === 'active') {
+          checkDayReset();
           flush();
         }
         appStateRef.current = nextState;

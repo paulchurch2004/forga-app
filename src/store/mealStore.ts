@@ -5,6 +5,7 @@ import type { DailyMeal, MealSlot, DayPlan } from '../types/meal';
 
 interface MealState {
   todayMeals: DailyMeal[];
+  lastMealDate: string; // 'YYYY-MM-DD' — tracks which day todayMeals belongs to
   dayPlan: DayPlan | null;
   favorites: string[]; // meal IDs
   likedMeals: string[]; // meal IDs
@@ -24,6 +25,7 @@ interface MealState {
   getMealForSlot: (slot: MealSlot) => DailyMeal | undefined;
   getValidatedCount: () => number;
   getHistoryForDate: (date: string) => DailyMeal[];
+  checkDayReset: () => void;
   reset: () => void;
 }
 
@@ -31,6 +33,7 @@ export const useMealStore = create<MealState>()(
   persist(
     (set, get) => ({
       todayMeals: [],
+      lastMealDate: new Date().toISOString().split('T')[0],
       dayPlan: null,
       favorites: [],
       likedMeals: [],
@@ -91,7 +94,21 @@ export const useMealStore = create<MealState>()(
       getMealForSlot: (slot) => get().todayMeals.find((m) => m.slot === slot),
       getValidatedCount: () => get().todayMeals.length,
       getHistoryForDate: (date) => get().mealHistory[date] ?? [],
-      reset: () => set({ todayMeals: [], dayPlan: null, favorites: [], likedMeals: [], dislikedMeals: [], mealHistory: {} }),
+      checkDayReset: () => {
+        const today = new Date().toISOString().split('T')[0];
+        const { lastMealDate, todayMeals, mealHistory } = get();
+        if (lastMealDate && lastMealDate !== today) {
+          // Archive yesterday's meals to history if not already there
+          const archived = { ...mealHistory };
+          if (todayMeals.length > 0 && !(lastMealDate in archived)) {
+            archived[lastMealDate] = todayMeals;
+          }
+          set({ todayMeals: [], dayPlan: null, lastMealDate: today, mealHistory: archived });
+        } else if (!lastMealDate) {
+          set({ lastMealDate: today });
+        }
+      },
+      reset: () => set({ todayMeals: [], lastMealDate: new Date().toISOString().split('T')[0], dayPlan: null, favorites: [], likedMeals: [], dislikedMeals: [], mealHistory: {} }),
     }),
     {
       name: 'forga-meal-store',
@@ -101,6 +118,7 @@ export const useMealStore = create<MealState>()(
         likedMeals: state.likedMeals,
         dislikedMeals: state.dislikedMeals,
         todayMeals: state.todayMeals,
+        lastMealDate: state.lastMealDate,
         dayPlan: state.dayPlan,
         mealHistory: state.mealHistory,
       }),
