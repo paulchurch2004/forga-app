@@ -40,6 +40,7 @@ import {
 import { useUserStore } from '../src/store/userStore';
 import { useSettingsStore } from '../src/store/settingsStore';
 import { useScoreStore } from '../src/store/scoreStore';
+import { useTrainingStore } from '../src/store/trainingStore';
 import { getTranslation } from '../src/i18n';
 import { useMealStore } from '../src/store/mealStore';
 import type { MealSlot } from '../src/types/meal';
@@ -197,6 +198,7 @@ function RootLayoutInner() {
     const checkDayReset = () => {
       useMealStore.getState().checkDayReset();
       useScoreStore.getState().checkDayReset();
+      useTrainingStore.getState().checkDayReset();
     };
 
     const flush = () => {

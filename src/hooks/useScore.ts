@@ -4,6 +4,7 @@ import { useScoreStore } from '../store/scoreStore';
 import { useUserStore } from '../store/userStore';
 import { useMealStore } from '../store/mealStore';
 import { useWaterStore } from '../store/waterStore';
+import { useTrainingStore } from '../store/trainingStore';
 import type { ScoreInput } from '../types/score';
 
 export function useScore() {
@@ -84,7 +85,7 @@ export function useScore() {
       weightTrendPerWeek: weightTrend,
       objective: profile.objective,
       goalProgressPercent,
-      activeDaysLast7: Math.min(7, profile.currentStreak),
+      activeDaysLast7: useTrainingStore.getState().getActiveDaysLast7(todayDate),
       thisWeekCheckIn,
       waterTargetDaysMet: waterDaysMet,
     };

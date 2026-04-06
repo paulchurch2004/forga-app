@@ -17,6 +17,8 @@ function TabIcon({ label, focused, colors }: { label: string; focused: boolean; 
     Profil: { active: '\u2603', inactive: '\u2603' },
     Home: { active: '\u2302', inactive: '\u2302' },
     Meals: { active: '\u2615', inactive: '\u2615' },
+    Training: { active: '\uD83C\uDFCB', inactive: '\uD83C\uDFCB' },
+    Entrainement: { active: '\uD83C\uDFCB', inactive: '\uD83C\uDFCB' },
     Profile: { active: '\u2603', inactive: '\u2603' },
   };
 
@@ -72,6 +74,7 @@ export default function TabLayout() {
 
   const tabHome = t('tabHome');
   const tabMeals = t('tabMeals');
+  const tabTraining = t('trainingTitle');
   const tabCoach = t('tabCoach');
   const tabProfile = t('tabProfile');
 
@@ -113,6 +116,15 @@ export default function TabLayout() {
           title: tabMeals,
           tabBarIcon: ({ focused }) => (
             <TabIcon label={tabMeals} focused={focused} colors={colors} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="training"
+        options={{
+          title: tabTraining,
+          tabBarIcon: ({ focused }) => (
+            <TabIcon label={tabTraining} focused={focused} colors={colors} />
           ),
         }}
       />

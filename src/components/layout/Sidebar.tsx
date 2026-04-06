@@ -12,6 +12,7 @@ export function Sidebar() {
   const NAV_ITEMS = [
     { route: '/(tabs)/home', label: t('tabHome'), icon: '\u2302' },
     { route: '/(tabs)/meals', label: t('tabMeals'), icon: '\u2615' },
+    { route: '/(tabs)/training', label: t('trainingTitle'), icon: '\uD83C\uDFCB' },
     { route: '/(tabs)/coach', label: t('tabCoach'), icon: '\u2709' },
     { route: '/(tabs)/profile', label: t('tabProfile'), icon: '\u2603' },
   ];

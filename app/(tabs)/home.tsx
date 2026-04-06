@@ -110,15 +110,7 @@ export default function HomeScreen() {
       {/* ── ENTRAÎNEMENT ── */}
       <Pressable
         style={styles.card}
-        onPress={() => {
-          if (Platform.OS === 'web') {
-            window.alert(t('comingSoon'));
-          } else {
-            import('react-native').then(({ Alert }) => {
-              Alert.alert('FORGA', t('trainingSectionComingSoon'));
-            });
-          }
-        }}
+        onPress={() => router.push('/(tabs)/training')}
       >
         <ImageBackground
           source={{ uri: CARD_IMAGES.training }}
@@ -129,12 +121,7 @@ export default function HomeScreen() {
             colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.75)']}
             style={styles.cardOverlay}
           >
-            <View style={styles.cardTitleRow}>
-              <Text style={styles.cardTitle}>{t('trainingCard')}</Text>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{t('soon')}</Text>
-              </View>
-            </View>
+            <Text style={styles.cardTitle}>{t('trainingCard')}</Text>
             <Text style={styles.cardDesc}>
               {t('trainingCardSub')}
             </Text>
