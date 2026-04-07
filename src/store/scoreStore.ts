@@ -75,6 +75,10 @@ export const useScoreStore = create<ScoreState>()(
         scoreHistory: state.scoreHistory,
         weeklyChange: state.weeklyChange,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Run AFTER persist has loaded data from AsyncStorage
+        if (state) state.checkDayReset();
+      },
     }
   )
 );

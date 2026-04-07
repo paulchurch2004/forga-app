@@ -122,6 +122,10 @@ export const useMealStore = create<MealState>()(
         dayPlan: state.dayPlan,
         mealHistory: state.mealHistory,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Run AFTER persist has loaded data from AsyncStorage
+        if (state) state.checkDayReset();
+      },
     }
   )
 );

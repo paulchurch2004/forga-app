@@ -161,6 +161,10 @@ export const useTrainingStore = create<TrainingState>()(
         workouts: state.workouts,
         lastWorkoutDate: state.lastWorkoutDate,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Run AFTER persist has loaded data from AsyncStorage
+        if (state) state.checkDayReset();
+      },
     }
   )
 );
