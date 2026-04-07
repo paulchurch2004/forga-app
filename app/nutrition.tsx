@@ -21,7 +21,7 @@ import { MealSlotList } from '../src/components/home/MealSlotList';
 import { StreakBadge } from '../src/components/ui/StreakBadge';
 import { CoachCard } from '../src/components/home/CoachCard';
 import { getCoachMessage, type CoachInput } from '../src/engine/coachEngine';
-import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../src/theme';
+import { fonts, fontSizes, spacing, makeStyles } from '../src/theme';
 import { useResponsive } from '../src/hooks/useResponsive';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ShareStreakCard } from '../src/components/gamification/ShareStreakCard';
@@ -196,7 +196,7 @@ export default function NutritionScreen() {
             style={styles.shareStreakBtn}
             onPress={() => setShowShareModal(true)}
           >
-            <Text style={styles.shareStreakBtnText}>{'\uD83D\uDD25'} {t('shareMyStreak')}</Text>
+            <Text style={styles.shareStreakBtnText}>STREAK {'\u2192'}</Text>
           </Pressable>
         )}
 
@@ -227,7 +227,6 @@ export default function NutritionScreen() {
         {/* Check-in banner */}
         {showCheckInBanner && (
           <Pressable style={styles.checkInBanner} onPress={() => router.push('/checkin')}>
-            <Text style={styles.checkInBannerIcon}>{'\uD83D\uDDD3'}</Text>
             <View style={styles.checkInBannerText}>
               <Text style={styles.checkInBannerTitle}>{t('checkInTitle')}</Text>
               <Text style={styles.checkInBannerSub}>{t('checkInSub')}</Text>
@@ -240,7 +239,7 @@ export default function NutritionScreen() {
         {lastCalorieAdjustment && (
           <View style={styles.adjustedMacros}>
             <Text style={styles.adjustedMacrosText}>
-              {'\u26A1'} {t('planAdjusted', { adjustment: (lastCalorieAdjustment.calorieAdjustment > 0 ? '+' : '') + lastCalorieAdjustment.calorieAdjustment })}
+              {t('planAdjusted', { adjustment: (lastCalorieAdjustment.calorieAdjustment > 0 ? '+' : '') + lastCalorieAdjustment.calorieAdjustment })}
             </Text>
           </View>
         )}
@@ -253,66 +252,61 @@ export default function NutritionScreen() {
           target={targetMacros}
         />
 
+        {/* Objective */}
+        <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+          <View style={styles.objectiveCard}>
+            <Text style={styles.objectiveText}>
+              {t('objectiveLabel', { weight: profile.targetWeight })}
+              {monthsToGoal > 0 ? ` \u2014 ${t('objectiveMonths', { months: monthsToGoal })}` : ` \u2014 ${t('objectiveReached')}`}
+            </Text>
+          </View>
+        </Animated.View>
+
         {/* Water tracking */}
-        <Animated.View entering={FadeInDown.delay(150).duration(400)}>
+        <Animated.View entering={FadeInDown.delay(200).duration(400)}>
+          <Text style={styles.sectionLabel}>HYDRATATION</Text>
           <WaterCard />
         </Animated.View>
 
         {/* Coach Card */}
         {coachMessage && (
           <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+            <Text style={styles.sectionLabel}>COACH</Text>
             <CoachCard message={coachMessage} />
           </Animated.View>
         )}
 
-        {/* Objective */}
-        <Animated.View entering={FadeInDown.delay(400).duration(400)}>
-          <View style={styles.objectiveCard}>
-            <Text style={styles.objectiveIcon}>{'\u2691'}</Text>
-            <Text style={styles.objectiveText}>
-              {t('objectiveLabel', { weight: profile.targetWeight })}
-              {monthsToGoal > 0 ? ` - ${t('objectiveMonths', { months: monthsToGoal })}` : ` - ${t('objectiveReached')}`}
-            </Text>
-          </View>
-        </Animated.View>
-
         {/* Meal Slots */}
-        <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+        <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+          <Text style={styles.sectionLabel}>REPAS DU JOUR</Text>
           <View style={styles.section}>
             <MealSlotList slots={slots} />
           </View>
         </Animated.View>
 
         {/* Scan actions */}
-        <Animated.View entering={FadeInDown.delay(600).duration(400)}>
+        <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+          <Text style={styles.sectionLabel}>AJOUTER UN REPAS</Text>
           <View style={styles.scanActions}>
             <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/barcode')}>
-              <Text style={styles.scanActionIcon}>{'\uD83D\uDCF7'}</Text>
-              <View>
-                <Text style={styles.scanActionTitle}>{t('scanner')}</Text>
-                <Text style={styles.scanActionSub}>{t('barcode')}</Text>
-              </View>
+              <Text style={styles.scanActionTitle}>SCAN</Text>
+              <Text style={styles.scanActionSub}>{t('barcode')}</Text>
             </Pressable>
             <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/photo')}>
-              <Text style={styles.scanActionIcon}>{'\uD83E\uDD16'}</Text>
-              <View>
-                <Text style={styles.scanActionTitle}>{t('photoAI')}</Text>
-                <Text style={styles.scanActionSub}>{t('identifyDish')}</Text>
-              </View>
+              <Text style={styles.scanActionTitle}>PHOTO</Text>
+              <Text style={styles.scanActionSub}>{t('identifyDish')}</Text>
             </Pressable>
           </View>
         </Animated.View>
 
         {/* Quick actions */}
-        <Animated.View entering={FadeInDown.delay(700).duration(400)}>
+        <Animated.View entering={FadeInDown.delay(600).duration(400)}>
           <View style={styles.quickActions}>
             <Pressable style={styles.quickActionBtn} onPress={() => router.push('/weekly-plan')}>
-              <Text style={styles.quickActionIcon}>{'\uD83D\uDCCB'}</Text>
-              <Text style={styles.quickActionText}>{t('planAndShopping')}</Text>
+              <Text style={styles.quickActionText}>PLAN HEBDO</Text>
             </Pressable>
             <Pressable style={styles.quickActionBtn} onPress={() => router.push('/meal-history')}>
-              <Text style={styles.quickActionIcon}>{'\uD83D\uDCC5'}</Text>
-              <Text style={styles.quickActionText}>{t('history')}</Text>
+              <Text style={styles.quickActionText}>HISTORIQUE</Text>
             </Pressable>
           </View>
         </Animated.View>
@@ -362,9 +356,11 @@ const useStyles = makeStyles((colors) => ({
   },
   pageTitle: {
     fontFamily: fonts.display,
-    fontSize: fontSizes['2xl'],
-    fontWeight: '700',
+    fontSize: fontSizes['3xl'],
+    fontWeight: '800',
+    letterSpacing: -1,
     color: colors.text,
+    textTransform: 'uppercase',
   },
   pageSubtitle: {
     fontFamily: fonts.body,
@@ -373,42 +369,47 @@ const useStyles = makeStyles((colors) => ({
     marginTop: spacing.xs,
     marginBottom: spacing.lg,
   },
+  sectionLabel: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    color: colors.textSecondary,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+  },
   shareStreakBtn: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.full,
-    borderWidth: 1,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
+    borderWidth: 2,
     borderColor: colors.primary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     marginBottom: spacing.lg,
   },
   shareStreakBtnText: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.xs,
-    fontWeight: '600',
+    fontFamily: fonts.display,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.5,
     color: colors.primary,
   },
   objectiveCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.lg,
+    borderRadius: 0,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     marginBottom: spacing.lg,
-  },
-  objectiveIcon: {
-    fontSize: 18,
-    color: colors.primary,
-    marginRight: spacing.sm,
   },
   objectiveText: {
     fontFamily: fonts.body,
     fontSize: fontSizes.sm,
-    color: colors.textSecondary,
+    fontWeight: '600',
+    color: colors.text,
     flex: 1,
   },
   section: {
@@ -424,28 +425,28 @@ const useStyles = makeStyles((colors) => ({
   },
   scanActionBtn: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
+    borderWidth: 2,
     borderColor: colors.primary,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
     paddingHorizontal: spacing.md,
-  },
-  scanActionIcon: {
-    fontSize: 22,
+    alignItems: 'center',
+    gap: spacing.xs,
   },
   scanActionTitle: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.sm,
-    fontWeight: '700',
-    color: colors.text,
+    fontFamily: fonts.display,
+    fontSize: fontSizes.lg,
+    fontWeight: '800',
+    letterSpacing: 2,
+    color: colors.primary,
   },
   scanActionSub: {
     fontFamily: fonts.body,
     fontSize: fontSizes.xs,
+    fontWeight: '600',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
     color: colors.textSecondary,
   },
   quickActions: {
@@ -455,22 +456,19 @@ const useStyles = makeStyles((colors) => ({
   },
   quickActionBtn: {
     flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
     borderWidth: 1,
     borderColor: colors.border,
     paddingVertical: spacing.md,
     alignItems: 'center',
-    gap: spacing.xs,
-  },
-  quickActionIcon: {
-    fontSize: 20,
   },
   quickActionText: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.xs,
-    fontWeight: '600',
-    color: colors.textSecondary,
+    fontFamily: fonts.display,
+    fontSize: fontSizes.sm,
+    fontWeight: '800',
+    letterSpacing: 1.5,
+    color: colors.text,
     textAlign: 'center',
   },
   modalOverlay: {
@@ -490,52 +488,55 @@ const useStyles = makeStyles((colors) => ({
   },
   modalShareBtn: {
     backgroundColor: colors.primary,
-    borderRadius: borderRadius.md,
+    borderRadius: 0,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
   },
   modalShareBtnText: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.display,
     fontSize: fontSizes.md,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
     color: colors.white,
   },
   modalCancelBtn: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.md,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
     borderWidth: 1,
     borderColor: colors.border,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
   },
   modalCancelBtnText: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.display,
     fontSize: fontSizes.md,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
     color: colors.textSecondary,
   },
   checkInBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-    backgroundColor: `${colors.primary}18`,
-    borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: `${colors.primary}40`,
+    backgroundColor: `${colors.primary}10`,
+    borderRadius: 0,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginBottom: spacing.md,
-  },
-  checkInBannerIcon: {
-    fontSize: 20,
   },
   checkInBannerText: {
     flex: 1,
   },
   checkInBannerTitle: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.display,
     fontSize: fontSizes.sm,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
     color: colors.primary,
   },
   checkInBannerSub: {
@@ -549,17 +550,20 @@ const useStyles = makeStyles((colors) => ({
     color: colors.primary,
   },
   adjustedMacros: {
-    backgroundColor: `${colors.carbs}15`,
-    borderRadius: borderRadius.sm,
-    paddingHorizontal: spacing.md,
+    backgroundColor: 'transparent',
+    borderLeftWidth: 2,
+    borderLeftColor: colors.carbs,
+    borderRadius: 0,
+    paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     marginBottom: spacing.sm,
     alignSelf: 'flex-start',
   },
   adjustedMacrosText: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.xs,
-    fontWeight: '600',
+    fontFamily: fonts.data,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.5,
     color: colors.carbs,
   },
 }));

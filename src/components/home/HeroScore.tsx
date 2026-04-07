@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { View, Text } from 'react-native';
-import Svg, { Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -8,10 +7,8 @@ import Animated, {
   withDelay,
   Easing,
   FadeIn,
-  FadeInDown,
 } from 'react-native-reanimated';
-import { ScoreDisplay } from '../ui/ScoreDisplay';
-import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing } from '../../theme';
 import { getScoreColor } from '../../theme/colors';
 import { useTheme } from '../../context/ThemeContext';
 import { useT } from '../../i18n';
@@ -26,25 +23,25 @@ interface HeroScoreProps {
   target: { calories: number; protein: number; carbs: number; fat: number };
 }
 
-/* -- Macro Pill -- */
+/* -- Macro column (brutalist, no pill) -- */
 
-interface MacroPillProps {
+interface MacroColProps {
   label: string;
   current: number;
   target: number;
   color: string;
-  unit: string;
+  withDivider?: boolean;
 }
 
-function MacroPill({ label, current, target, color, unit }: MacroPillProps) {
-  const pillS = usePillStyles();
+function MacroCol({ label, current, target, color, withDivider }: MacroColProps) {
+  const styles = useMacroStyles();
   const progress = target > 0 ? Math.min(1, current / target) : 0;
   const animatedWidth = useSharedValue(0);
 
   useEffect(() => {
     animatedWidth.value = withDelay(
-      800,
-      withTiming(progress * 100, { duration: 1000, easing: EASE_OUT })
+      600,
+      withTiming(progress * 100, { duration: 900, easing: EASE_OUT })
     );
   }, [progress]);
 
@@ -53,24 +50,18 @@ function MacroPill({ label, current, target, color, unit }: MacroPillProps) {
   }));
 
   return (
-    <View style={pillS.container}>
-      <View style={pillS.header}>
-        <View style={[pillS.dot, { backgroundColor: color }]} />
-        <Text style={[pillS.label, { color }]}>{label}</Text>
-        <Text style={pillS.values}>
-          {Math.round(current)}/{Math.round(target)}{unit}
-        </Text>
-      </View>
-      <View style={pillS.track}>
-        <Animated.View
-          style={[pillS.fill, { backgroundColor: color }, fillStyle]}
-        />
+    <View style={[styles.col, withDivider && styles.colDivider]}>
+      <Text style={[styles.label, { color }]}>{label}</Text>
+      <Text style={styles.value}>{Math.round(current)}</Text>
+      <Text style={styles.target}>/{Math.round(target)} G</Text>
+      <View style={styles.track}>
+        <Animated.View style={[styles.fill, { backgroundColor: color }, fillStyle]} />
       </View>
     </View>
   );
 }
 
-/* -- Hero Score -- */
+/* -- Hero Score (brutalist) -- */
 
 export function HeroScore({ score, weeklyChange, consumed, target }: HeroScoreProps) {
   const { colors } = useTheme();
@@ -89,8 +80,8 @@ export function HeroScore({ score, weeklyChange, consumed, target }: HeroScorePr
 
   useEffect(() => {
     calorieBarWidth.value = withDelay(
-      400,
-      withTiming(caloriePct * 100, { duration: 1000, easing: EASE_OUT })
+      300,
+      withTiming(caloriePct * 100, { duration: 900, easing: EASE_OUT })
     );
   }, [caloriePct]);
 
@@ -100,80 +91,65 @@ export function HeroScore({ score, weeklyChange, consumed, target }: HeroScorePr
 
   return (
     <View style={styles.hero}>
-      {/* Radial glow behind score */}
-      <View style={styles.glowWrapper} pointerEvents="none">
-        <Svg width={260} height={260} style={styles.glowSvg}>
-          <Defs>
-            <RadialGradient id="scoreGlow" cx="50%" cy="50%" r="50%">
-              <Stop offset="0%" stopColor={scoreColor} stopOpacity={0.2} />
-              <Stop offset="70%" stopColor={scoreColor} stopOpacity={0.05} />
-              <Stop offset="100%" stopColor={scoreColor} stopOpacity={0} />
-            </RadialGradient>
-          </Defs>
-          <Rect x={0} y={0} width={260} height={260} fill="url(#scoreGlow)" />
-        </Svg>
-      </View>
-
-      {/* Score circle */}
-      <View style={styles.scoreSection}>
-        <ScoreDisplay
-          score={score}
-          size={180}
-          strokeWidth={14}
-          animationDuration={1200}
-          showPillars={false}
-        />
-      </View>
-
-      {/* Weekly change badge */}
-      <Animated.View entering={FadeIn.delay(400).duration(300)} style={styles.changeBadge}>
-        <Text style={[styles.changeText, { color: changeColor }]}>
-          {t('ptsThisWeek', { change: `${changePrefix}${weeklyChange}` })}
-        </Text>
-      </Animated.View>
-
-      {/* Calorie progress */}
-      <Animated.View entering={FadeInDown.delay(600).duration(400)} style={styles.calorieSection}>
-        <View style={styles.calorieHeader}>
-          <Text style={styles.calorieLabel}>{t('calories')}</Text>
-          <Text style={styles.calorieValues}>
-            <Text style={styles.calorieConsumed}>{Math.round(consumed.calories)}</Text>
-            <Text style={styles.calorieSep}> / </Text>
-            <Text style={styles.calorieTarget}>{Math.round(target.calories)} kcal</Text>
+      {/* === SCORE BLOCK === */}
+      <Text style={styles.blockLabel}>FORGA SCORE</Text>
+      <View style={styles.scoreRow}>
+        <View style={styles.scoreNumberRow}>
+          <Text style={[styles.scoreNumber, { color: scoreColor }]}>
+            {Math.round(score.total)}
           </Text>
+          <Text style={styles.scoreSlash}>/100</Text>
         </View>
-        <View style={styles.calorieTrack}>
-          <Animated.View style={[styles.calorieFill, calorieBarStyle]} />
-        </View>
-        <Text style={styles.calorieRemaining}>
-          {t('caloriesRemaining', { count: Math.round(caloriesRemaining) })}
-        </Text>
-      </Animated.View>
+        <Animated.View entering={FadeIn.delay(400).duration(300)}>
+          <Text style={[styles.changeText, { color: changeColor }]}>
+            {changePrefix}{weeklyChange} PTS / SEM
+          </Text>
+        </Animated.View>
+      </View>
 
-      {/* Macro pills */}
-      <Animated.View entering={FadeInDown.delay(800).duration(400)} style={styles.macroPillsRow}>
-        <MacroPill
-          label="P"
+      <View style={styles.divider} />
+
+      {/* === CALORIES BLOCK === */}
+      <Text style={styles.blockLabel}>{t('calories').toUpperCase()}</Text>
+      <View style={styles.calorieRow}>
+        <Text style={styles.calorieNumber}>{Math.round(consumed.calories)}</Text>
+        <Text style={styles.calorieTarget}>
+          /{Math.round(target.calories)} KCAL
+        </Text>
+      </View>
+      <View style={styles.calorieTrack}>
+        <Animated.View style={[styles.calorieFill, calorieBarStyle]} />
+      </View>
+      <Text style={styles.calorieRemaining}>
+        {Math.round(caloriesRemaining)} KCAL RESTANTES
+      </Text>
+
+      <View style={styles.divider} />
+
+      {/* === MACROS BLOCK === */}
+      <Text style={styles.blockLabel}>MACROS</Text>
+      <View style={styles.macrosRow}>
+        <MacroCol
+          label="PROT"
           current={consumed.protein}
           target={target.protein}
           color={colors.protein}
-          unit="g"
         />
-        <MacroPill
-          label="G"
+        <MacroCol
+          label="GLUC"
           current={consumed.carbs}
           target={target.carbs}
           color={colors.carbs}
-          unit="g"
+          withDivider
         />
-        <MacroPill
-          label="L"
+        <MacroCol
+          label="LIPID"
           current={consumed.fat}
           target={target.fat}
           color={colors.fat}
-          unit="g"
+          withDivider
         />
-      </Animated.View>
+      </View>
     </View>
   );
 }
@@ -181,137 +157,146 @@ export function HeroScore({ score, weeklyChange, consumed, target }: HeroScorePr
 const useStyles = makeStyles((colors) => ({
   hero: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.xl,
-    borderWidth: 1,
+    borderRadius: 0,
+    borderTopWidth: 2,
+    borderBottomWidth: 2,
     borderColor: colors.border,
-    paddingVertical: spacing['2xl'],
+    paddingVertical: spacing.xl,
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.lg,
-    overflow: 'hidden',
-    position: 'relative',
   },
-  glowWrapper: {
-    position: 'absolute',
-    top: -30,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
+  blockLabel: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 2,
+    color: colors.textSecondary,
+    marginBottom: spacing.sm,
   },
-  glowSvg: {
-    opacity: 0.8,
+  scoreRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
   },
-  scoreSection: {
-    alignItems: 'center',
-    zIndex: 1,
+  scoreNumberRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
   },
-  changeBadge: {
-    alignSelf: 'center',
-    backgroundColor: colors.surfaceHover,
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-    marginTop: spacing.md,
+  scoreNumber: {
+    fontFamily: fonts.display,
+    fontSize: 96,
+    fontWeight: '800',
+    letterSpacing: -4,
+    lineHeight: 96,
+    includeFontPadding: false,
+  },
+  scoreSlash: {
+    fontFamily: fonts.data,
+    fontSize: 18,
+    color: colors.textSecondary,
+    marginLeft: spacing.xs,
+    marginBottom: spacing.md,
   },
   changeText: {
     fontFamily: fonts.data,
-    fontSize: fontSizes.xs,
-    fontWeight: '600',
-  },
-  calorieSection: {
-    marginTop: spacing.xl,
-    width: '100%',
-  },
-  calorieHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: spacing.sm,
-  },
-  calorieLabel: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.sm,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  calorieValues: {
-    fontFamily: fonts.data,
-    fontSize: fontSizes.sm,
-  },
-  calorieConsumed: {
-    color: colors.calories,
+    fontSize: 11,
     fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: spacing.md,
   },
-  calorieSep: {
-    color: colors.textSecondary,
+  divider: {
+    height: 2,
+    backgroundColor: colors.border,
+    marginVertical: spacing.lg,
+  },
+  calorieRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
+  calorieNumber: {
+    fontFamily: fonts.display,
+    fontSize: 64,
+    fontWeight: '800',
+    letterSpacing: -2,
+    color: colors.calories,
+    lineHeight: 64,
+    includeFontPadding: false,
   },
   calorieTarget: {
+    fontFamily: fonts.data,
+    fontSize: 14,
     color: colors.textSecondary,
+    marginLeft: spacing.sm,
+    marginBottom: spacing.sm,
   },
   calorieTrack: {
-    height: 8,
+    height: 6,
     backgroundColor: colors.surfaceHover,
-    borderRadius: borderRadius.full,
+    borderRadius: 0,
     overflow: 'hidden',
-    position: 'relative',
+    marginTop: spacing.md,
   },
   calorieFill: {
     height: '100%',
     backgroundColor: colors.calories,
-    borderRadius: borderRadius.full,
+    borderRadius: 0,
     position: 'absolute',
     left: 0,
     top: 0,
   },
   calorieRemaining: {
     fontFamily: fonts.data,
-    fontSize: fontSizes.xs,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
     color: colors.textMuted,
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
     textAlign: 'right',
   },
-  macroPillsRow: {
+  macrosRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.lg,
   },
 }));
 
-const usePillStyles = makeStyles((colors) => ({
-  container: {
+const useMacroStyles = makeStyles((colors) => ({
+  col: {
     flex: 1,
+    paddingHorizontal: spacing.sm,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    marginBottom: spacing.xs,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
+  colDivider: {
+    borderLeftWidth: 1,
+    borderLeftColor: colors.border,
   },
   label: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes.xs,
+    fontFamily: fonts.body,
+    fontSize: 11,
     fontWeight: '700',
+    letterSpacing: 1.5,
+    marginBottom: spacing.xs,
   },
-  values: {
+  value: {
+    fontFamily: fonts.display,
+    fontSize: 32,
+    fontWeight: '800',
+    letterSpacing: -1,
+    color: colors.text,
+    lineHeight: 34,
+    includeFontPadding: false,
+  },
+  target: {
     fontFamily: fonts.data,
-    fontSize: fontSizes.xs,
+    fontSize: 11,
     color: colors.textSecondary,
-    marginLeft: 'auto',
+    marginTop: 2,
   },
   track: {
-    height: 4,
+    height: 2,
     backgroundColor: colors.surfaceHover,
-    borderRadius: borderRadius.full,
+    marginTop: spacing.xs,
     overflow: 'hidden',
-    position: 'relative',
   },
   fill: {
     height: '100%',
-    borderRadius: borderRadius.full,
     position: 'absolute',
     left: 0,
     top: 0,

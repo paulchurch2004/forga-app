@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, Platform } from 'react-native';
 import { ProgressCircle } from '../ui/ProgressCircle';
-import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing } from '../../theme';
 import { useWater } from '../../hooks/useWater';
 import { useT } from '../../i18n';
 import { useTheme } from '../../context/ThemeContext';
@@ -11,8 +11,8 @@ import type { TranslationKey } from '../../i18n/locales/fr';
 const WATER_COLOR = '#00BFFF';
 
 const QUICK_AMOUNTS = [
-  { label: '250 ml', amount: 250, icon: '\uD83E\uDD43' },
-  { label: '500 ml', amount: 500, icon: '\uD83E\uDED9' },
+  { label: '250 ML', amount: 250 },
+  { label: '500 ML', amount: 500 },
 ];
 
 const DAY_KEYS: TranslationKey[] = [
@@ -52,7 +52,7 @@ export function WaterCard() {
         />
 
         <View style={styles.info}>
-          <Text style={styles.title}>{'\uD83D\uDCA7'} {t('hydration')}</Text>
+          <Text style={styles.title}>{t('hydration').toUpperCase()}</Text>
           <Text style={styles.subtitle}>
             {remaining > 0
               ? t('waterRemaining', { amount: remaining })
@@ -72,7 +72,6 @@ export function WaterCard() {
             style={styles.addBtn}
             onPress={() => handleAdd(q.amount)}
           >
-            <Text style={styles.addBtnIcon}>{q.icon}</Text>
             <Text style={styles.addBtnText}>+ {q.label}</Text>
           </Pressable>
         ))}
@@ -140,9 +139,10 @@ export function WaterCard() {
 const useStyles = makeStyles((colors) => ({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: 0,
     padding: spacing.lg,
-    borderWidth: 1,
+    borderTopWidth: 2,
+    borderBottomWidth: 2,
     borderColor: colors.border,
     marginBottom: spacing.lg,
   },
@@ -157,7 +157,8 @@ const useStyles = makeStyles((colors) => ({
   title: {
     fontFamily: fonts.display,
     fontSize: fontSizes.lg,
-    fontWeight: '700' as const,
+    fontWeight: '800' as const,
+    letterSpacing: 1,
     color: colors.text,
   },
   subtitle: {
@@ -179,24 +180,20 @@ const useStyles = makeStyles((colors) => ({
   },
   addBtn: {
     flex: 1,
-    flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
-    gap: spacing.xs,
-    backgroundColor: 'rgba(0, 191, 255, 0.1)',
-    borderRadius: borderRadius.md,
+    backgroundColor: 'transparent',
+    borderRadius: 0,
     borderWidth: 1,
-    borderColor: 'rgba(0, 191, 255, 0.3)',
+    borderColor: WATER_COLOR,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
   },
-  addBtnIcon: {
-    fontSize: 16,
-  },
   addBtnText: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.display,
     fontSize: fontSizes.sm,
-    fontWeight: '600' as const,
+    fontWeight: '800' as const,
+    letterSpacing: 1,
     color: WATER_COLOR,
   },
   // Weekly recap
@@ -250,7 +247,7 @@ const useStyles = makeStyles((colors) => ({
   },
   bar: {
     width: '60%' as const,
-    borderRadius: 4,
+    borderRadius: 0,
     minHeight: 3,
   },
   dayLabel: {

@@ -3,7 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, withTiming, useAnimatedStyle, Easing } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
-import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing } from '../../theme';
 import { useTheme } from '../../context/ThemeContext';
 import { useT } from '../../i18n';
 import type { CoachMessage, CoachMood } from '../../engine/coachEngine';
@@ -113,10 +113,10 @@ export function CoachCard({ message }: CoachCardProps) {
 const useStyles = makeStyles((colors) => ({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: 0,
     padding: spacing.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
     marginBottom: spacing.lg,
   },
   row: {
@@ -160,27 +160,31 @@ const useStyles = makeStyles((colors) => ({
     alignSelf: 'flex-start',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    borderRadius: borderRadius.sm,
-    borderWidth: 1,
+    borderRadius: 0,
+    borderWidth: 2,
     borderColor: colors.primary,
   },
   actionText: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.display,
     fontSize: fontSizes.sm,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
     color: colors.primary,
   },
   chatButton: {
     alignSelf: 'flex-start',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    borderRadius: borderRadius.sm,
+    borderRadius: 0,
     backgroundColor: colors.primary,
   },
   chatButtonText: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.display,
     fontSize: fontSizes.sm,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
     color: colors.white,
   },
 }));
