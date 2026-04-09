@@ -36,7 +36,7 @@ export default function PaymentSuccessScreen() {
           isPremium: true,
           premiumUntil: result.premiumUntil,
         });
-        events.purchaseCompleted('monthly');
+        events.purchaseCompleted('weekly');
         setStatus('success');
       } else {
         setStatus('error');

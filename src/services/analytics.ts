@@ -74,9 +74,9 @@ export const events = {
     trackEvent('paywall_shown', { trigger }),
   paywallDismissed: () =>
     trackEvent('paywall_dismissed'),
-  purchaseStarted: (plan: 'monthly' | 'annual') =>
+  purchaseStarted: (plan: 'weekly' | 'annual') =>
     trackEvent('purchase_started', { plan }),
-  purchaseCompleted: (plan: 'monthly' | 'annual') =>
+  purchaseCompleted: (plan: 'weekly' | 'annual') =>
     trackEvent('purchase_completed', { plan }),
 
   // Referral

@@ -7,7 +7,7 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
 });
 
 const PRICES: Record<string, string> = {
-  monthly: Deno.env.get('STRIPE_PRICE_MONTHLY')!,
+  weekly: Deno.env.get('STRIPE_PRICE_WEEKLY')!,
   annual: Deno.env.get('STRIPE_PRICE_ANNUAL')!,
 };
 

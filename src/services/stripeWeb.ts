@@ -31,7 +31,7 @@ export interface VerifyResult {
  * Web only. Returns null on mobile or in demo mode.
  */
 export async function createCheckoutSession(
-  plan: 'monthly' | 'annual',
+  plan: 'weekly' | 'annual',
   userId: string,
 ): Promise<CheckoutResult | null> {
   if (!isWeb) return null;
