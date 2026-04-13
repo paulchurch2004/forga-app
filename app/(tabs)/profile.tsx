@@ -10,9 +10,11 @@ import {
   Switch,
   Linking,
   useWindowDimensions,
+  ImageBackground,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
 import { getScoreColor, getScoreLabel } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
@@ -33,6 +35,9 @@ import { LineChart, type DataPoint } from '../../src/components/charts/LineChart
 import { EmptyState } from '../../src/components/ui/EmptyState';
 import { useNotifications } from '../../src/hooks/useNotifications';
 import { events } from '../../src/services/analytics';
+
+const PROFILE_HEADER_IMAGE =
+  'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&q=60';
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
@@ -209,24 +214,31 @@ export default function ProfileScreen() {
   ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md, maxWidth: contentMaxWidth }]}>
-      {/* Back button */}
-      <Pressable onPress={() => router.back()} hitSlop={16} style={styles.backRow}>
-        <Text style={styles.backText}>{'\u2039'} {t('home')}</Text>
-      </Pressable>
-
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.name}>{profile.name}</Text>
-        <Text style={styles.email}>{profile.email}</Text>
-        {isPremium && (
-          <View style={styles.premiumBadge}>
-            <Text style={styles.premiumText}>
-              {isTrialActive ? t('premiumTrialActive', { days: daysLeft }) : 'FORGA PRO'}
-            </Text>
-          </View>
-        )}
-      </View>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top, maxWidth: contentMaxWidth }]}>
+      {/* Hero Header */}
+      <ImageBackground
+        source={{ uri: PROFILE_HEADER_IMAGE }}
+        style={styles.heroImage}
+        imageStyle={styles.heroImageInner}
+      >
+        <LinearGradient
+          colors={['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.75)']}
+          style={styles.heroOverlay}
+        >
+          <Pressable onPress={() => router.back()} hitSlop={16} style={styles.backRow}>
+            <Text style={styles.backText}>{'\u2039'} {t('home')}</Text>
+          </Pressable>
+          <Text style={styles.name}>{profile.name}</Text>
+          <Text style={styles.email}>{profile.email}</Text>
+          {isPremium && (
+            <View style={styles.premiumBadge}>
+              <Text style={styles.premiumText}>
+                {isTrialActive ? t('premiumTrialActive', { days: daysLeft }) : 'FORGA PRO'}
+              </Text>
+            </View>
+          )}
+        </LinearGradient>
+      </ImageBackground>
 
       {/* Score + Streak */}
       <View style={styles.statsRow}>
@@ -507,34 +519,47 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: colors.background,
   },
   content: {
-    paddingHorizontal: spacing['2xl'],
     paddingBottom: spacing['5xl'],
     alignSelf: 'center',
     width: '100%',
   },
+  heroImage: {
+    width: '100%',
+    height: 180,
+    marginBottom: spacing.xl,
+  },
+  heroImageInner: {
+    borderBottomLeftRadius: borderRadius.xl,
+    borderBottomRightRadius: borderRadius.xl,
+  },
+  heroOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: spacing.xl,
+    borderBottomLeftRadius: borderRadius.xl,
+    borderBottomRightRadius: borderRadius.xl,
+  },
   backRow: {
-    marginBottom: spacing.md,
+    position: 'absolute',
+    top: spacing.md,
+    left: spacing.xl,
   },
   backText: {
     fontFamily: fonts.body,
     fontSize: fontSizes.lg,
-    color: colors.primary,
+    color: colors.white,
     fontWeight: '600',
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: spacing['2xl'],
   },
   name: {
     fontFamily: fonts.display,
     fontSize: fontSizes['2xl'],
     fontWeight: '700',
-    color: colors.text,
+    color: colors.white,
   },
   email: {
     fontFamily: fonts.body,
     fontSize: fontSizes.sm,
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.75)',
     marginTop: spacing.xs,
   },
   premiumBadge: {
@@ -554,6 +579,7 @@ const useStyles = makeStyles((colors) => ({
     flexDirection: 'row',
     gap: spacing.sm,
     marginBottom: spacing['2xl'],
+    paddingHorizontal: spacing['2xl'],
   },
   statCard: {
     flex: 1,
@@ -600,7 +626,8 @@ const useStyles = makeStyles((colors) => ({
     fontWeight: '600',
   },
   section: {
-    marginBottom: spacing['2xl'],
+    marginBottom: spacing['3xl'],
+    paddingHorizontal: spacing['2xl'],
   },
   sectionTitle: {
     fontFamily: fonts.display,
@@ -631,7 +658,7 @@ const useStyles = makeStyles((colors) => ({
     justifyContent: 'space-between',
     paddingVertical: spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: `${colors.border}80`,
   },
   profileLabel: {
     fontFamily: fonts.body,
@@ -651,12 +678,11 @@ const useStyles = makeStyles((colors) => ({
     flex: 1,
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     paddingVertical: spacing.md,
     alignItems: 'center',
   },
   chipActive: {
+    borderWidth: 1,
     borderColor: colors.primary,
     backgroundColor: `${colors.primary}18`,
   },
@@ -685,7 +711,7 @@ const useStyles = makeStyles((colors) => ({
   actionRow: {
     paddingVertical: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: `${colors.border}80`,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -717,8 +743,9 @@ const useStyles = makeStyles((colors) => ({
   legal: {
     marginTop: spacing.lg,
     paddingTop: spacing.lg,
+    paddingHorizontal: spacing['2xl'],
     borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopColor: `${colors.border}80`,
   },
   legalText: {
     fontFamily: fonts.body,
@@ -729,8 +756,8 @@ const useStyles = makeStyles((colors) => ({
   referralCard: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.primary,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
     padding: spacing.xl,
     alignItems: 'center',
   },
@@ -794,8 +821,8 @@ const useStyles = makeStyles((colors) => ({
   progressionButton: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.primary,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
     padding: spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',

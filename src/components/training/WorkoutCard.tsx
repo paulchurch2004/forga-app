@@ -50,8 +50,6 @@ const useStyles = makeStyles((colors) => ({
     alignItems: 'center' as const,
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     padding: spacing.md,
     marginBottom: spacing.sm,
     gap: spacing.md,

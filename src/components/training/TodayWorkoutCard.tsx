@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, Platform } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
 import { useT } from '../../i18n';
 import { useTheme } from '../../context/ThemeContext';
@@ -37,8 +38,10 @@ export function TodayWorkoutCard({ todayPlan, programDay, onStartWorkout }: Prop
   if (isRest) {
     return (
       <Animated.View entering={FadeInDown.delay(200).duration(400)} style={styles.card}>
-        <Text style={styles.dayName}>{t('restDayTitle')}</Text>
-        <Text style={styles.restTip}>{t('restDayTip')}</Text>
+        <View style={styles.innerContent}>
+          <Text style={styles.dayName}>{t('restDayTitle')}</Text>
+          <Text style={styles.restTip}>{t('restDayTip')}</Text>
+        </View>
       </Animated.View>
     );
   }
@@ -50,113 +53,124 @@ export function TodayWorkoutCard({ todayPlan, programDay, onStartWorkout }: Prop
 
   return (
     <Animated.View entering={FadeInDown.delay(200).duration(400)} style={styles.card}>
-      <View style={styles.header}>
-        <Text style={styles.sectionLabel}>{t('todayWorkout')}</Text>
-        {isCompleted && (
-          <View style={styles.completedBadge}>
-            <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
-              <Path
-                d="M20 6L9 17l-5-5"
-                stroke={colors.success}
-                strokeWidth={3}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
-            <Text style={styles.completedText}>{t('workoutCompleted')}</Text>
-          </View>
-        )}
-      </View>
-
-      <Text style={styles.dayName}>{t(programDay.nameKey as any)}</Text>
-
-      <Text style={styles.meta}>
-        {t('estimatedDuration', { minutes: duration })}
-        {'  ·  '}
-        {isCardio
-          ? (programDay.cardio?.intensity ?? 'moderate')
-          : t('exerciseCountPreview', { count: programDay.exercises.length })}
-      </Text>
-
-      {/* Exercise list for muscu */}
-      {!isCardio && (
-        <View style={styles.exerciseList}>
-          {programDay.exercises.map((ex) => (
-            <View key={ex.exerciseId} style={styles.exerciseRow}>
-              <Text style={styles.exerciseName}>
-                {t((EXERCISES[ex.exerciseId]?.nameKey ?? ex.exerciseId) as any)}
-              </Text>
-              <View style={styles.exerciseRowRight}>
-                {hasTutorial(ex.exerciseId) && (
-                  <Pressable
-                    onPress={() => {
-                      triggerHaptic();
-                      setTutorialExerciseId(ex.exerciseId);
-                    }}
-                    hitSlop={8}
-                    style={styles.infoBtn}
-                  >
-                    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-                      <Path
-                        d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 5a1 1 0 110 2 1 1 0 010-2zm-1 4h2v6h-2v-6z"
-                        fill={colors.textMuted}
-                      />
-                    </Svg>
-                  </Pressable>
-                )}
-                <Text style={styles.exerciseSets}>
-                  {ex.targetSets}x{ex.targetReps}
-                </Text>
+      <LinearGradient
+        colors={[`${colors.primary}12`, colors.surface, colors.surface]}
+        locations={[0, 0.3, 1]}
+        style={styles.gradient}
+      >
+        <View style={styles.innerContent}>
+          <View style={styles.header}>
+            <Text style={styles.sectionLabel}>{t('todayWorkout')}</Text>
+            {isCompleted && (
+              <View style={styles.completedBadge}>
+                <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M20 6L9 17l-5-5"
+                    stroke={colors.success}
+                    strokeWidth={3}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+                <Text style={styles.completedText}>{t('workoutCompleted')}</Text>
               </View>
-            </View>
-          ))}
-        </View>
-      )}
+            )}
+          </View>
 
-      {/* Cardio info */}
-      {isCardio && programDay.cardio && (
-        <View style={styles.cardioInfo}>
-          <Text style={styles.cardioDetail}>
-            {t((EXERCISES[programDay.cardio.exerciseId]?.nameKey ?? programDay.cardio.exerciseId) as any)}
+          <Text style={styles.dayName}>{t(programDay.nameKey as any)}</Text>
+
+          <Text style={styles.meta}>
+            {t('estimatedDuration', { minutes: duration })}
             {'  ·  '}
-            {programDay.cardio.durationMinutes} min
+            {isCardio
+              ? (programDay.cardio?.intensity ?? 'moderate')
+              : t('exerciseCountPreview', { count: programDay.exercises.length })}
           </Text>
+
+          {/* Exercise list for muscu */}
+          {!isCardio && (
+            <View style={styles.exerciseList}>
+              {programDay.exercises.map((ex) => (
+                <View key={ex.exerciseId} style={styles.exerciseRow}>
+                  <Text style={styles.exerciseName}>
+                    {t((EXERCISES[ex.exerciseId]?.nameKey ?? ex.exerciseId) as any)}
+                  </Text>
+                  <View style={styles.exerciseRowRight}>
+                    {hasTutorial(ex.exerciseId) && (
+                      <Pressable
+                        onPress={() => {
+                          triggerHaptic();
+                          setTutorialExerciseId(ex.exerciseId);
+                        }}
+                        hitSlop={8}
+                        style={styles.infoBtn}
+                      >
+                        <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                          <Path
+                            d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 5a1 1 0 110 2 1 1 0 010-2zm-1 4h2v6h-2v-6z"
+                            fill={colors.textMuted}
+                          />
+                        </Svg>
+                      </Pressable>
+                    )}
+                    <Text style={styles.exerciseSets}>
+                      {ex.targetSets}x{ex.targetReps}
+                    </Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Cardio info */}
+          {isCardio && programDay.cardio && (
+            <View style={styles.cardioInfo}>
+              <Text style={styles.cardioDetail}>
+                {t((EXERCISES[programDay.cardio.exerciseId]?.nameKey ?? programDay.cardio.exerciseId) as any)}
+                {'  ·  '}
+                {programDay.cardio.durationMinutes} min
+              </Text>
+            </View>
+          )}
+
+          {/* Start button */}
+          {!isCompleted && (
+            <Pressable
+              style={styles.startBtn}
+              onPress={() => {
+                triggerHaptic();
+                onStartWorkout();
+              }}
+            >
+              <Text style={styles.startBtnText}>
+                {isCardio ? t('cardioSessionStart') : t('startWorkout')}
+              </Text>
+            </Pressable>
+          )}
+
+          {/* Exercise tutorial modal */}
+          <ExerciseTutorialModal
+            visible={tutorialExerciseId !== null}
+            exerciseId={tutorialExerciseId}
+            onClose={() => setTutorialExerciseId(null)}
+          />
         </View>
-      )}
-
-      {/* Start button */}
-      {!isCompleted && (
-        <Pressable
-          style={styles.startBtn}
-          onPress={() => {
-            triggerHaptic();
-            onStartWorkout();
-          }}
-        >
-          <Text style={styles.startBtnText}>
-            {isCardio ? t('cardioSessionStart') : t('startWorkout')}
-          </Text>
-        </Pressable>
-      )}
-
-      {/* Exercise tutorial modal */}
-      <ExerciseTutorialModal
-        visible={tutorialExerciseId !== null}
-        exerciseId={tutorialExerciseId}
-        onClose={() => setTutorialExerciseId(null)}
-      />
+      </LinearGradient>
     </Animated.View>
   );
 }
 
 const useStyles = makeStyles((colors) => ({
   card: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.xl,
+    overflow: 'hidden' as const,
     marginBottom: spacing.lg,
+  },
+  gradient: {
+    borderRadius: borderRadius.lg,
+  },
+  innerContent: {
+    padding: spacing.xl,
   },
   header: {
     flexDirection: 'row' as const,
@@ -209,7 +223,7 @@ const useStyles = makeStyles((colors) => ({
     alignItems: 'center' as const,
     paddingVertical: spacing.xs,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: `${colors.border}80`,
   },
   exerciseName: {
     fontFamily: fonts.body,

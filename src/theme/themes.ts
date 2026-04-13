@@ -23,6 +23,8 @@ export interface ThemeColors {
   transparent: string;
   white: string;
   black: string;
+  surfaceGradientStart: string;
+  surfaceGradientEnd: string;
 }
 
 export const darkColors: ThemeColors = {
@@ -50,6 +52,8 @@ export const darkColors: ThemeColors = {
   transparent: 'transparent',
   white: '#FFFFFF',
   black: '#000000',
+  surfaceGradientStart: '#1A1A38',
+  surfaceGradientEnd: '#13132B',
 };
 
 export const lightColors: ThemeColors = {
@@ -77,4 +81,6 @@ export const lightColors: ThemeColors = {
   transparent: 'transparent',
   white: '#FFFFFF',
   black: '#000000',
+  surfaceGradientStart: '#FFFFFF',
+  surfaceGradientEnd: '#F8F8FF',
 };

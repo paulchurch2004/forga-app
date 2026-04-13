@@ -99,8 +99,8 @@ const useStyles = makeStyles((colors) => ({
   container: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
     padding: spacing.lg,
     marginBottom: spacing.lg,
   },

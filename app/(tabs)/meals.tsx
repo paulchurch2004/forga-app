@@ -455,8 +455,6 @@ const useStyles = makeStyles((colors) => ({
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
     alignSelf: 'center',
     width: '100%',
   },
@@ -496,8 +494,6 @@ const useStyles = makeStyles((colors) => ({
   },
   filtersContainer: {
     paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
   },
   filterChips: {
     paddingHorizontal: spacing.lg,
@@ -508,14 +504,11 @@ const useStyles = makeStyles((colors) => ({
   filterChip: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.full,
-    borderWidth: 1,
-    borderColor: colors.border,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
   filterChipActive: {
     backgroundColor: colors.primary,
-    borderColor: colors.primary,
   },
   filterChipText: {
     fontFamily: fonts.body,
@@ -551,11 +544,9 @@ const useStyles = makeStyles((colors) => ({
     alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   textMealInfo: {
     flex: 1,
@@ -611,8 +602,8 @@ const useStyles = makeStyles((colors) => ({
   paywallBanner: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.primary,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
     padding: spacing.xl,
     marginTop: spacing.lg,
     alignItems: 'center',
@@ -657,8 +648,6 @@ const useStyles = makeStyles((colors) => ({
     flex: 1,
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     fontFamily: fonts.body,
@@ -670,14 +659,11 @@ const useStyles = makeStyles((colors) => ({
     height: 40,
     borderRadius: borderRadius.md,
     backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
     alignItems: 'center',
     justifyContent: 'center',
   },
   favToggleActive: {
     backgroundColor: colors.primary,
-    borderColor: colors.primary,
   },
   favToggleText: {
     fontSize: 20,

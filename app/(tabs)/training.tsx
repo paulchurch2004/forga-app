@@ -1,13 +1,15 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable, Platform } from 'react-native';
+import { View, Text, ScrollView, Pressable, Platform, ImageBackground } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useTraining } from '../../src/hooks/useTraining';
 import { useProgram } from '../../src/hooks/useProgram';
 import { useUserStore } from '../../src/store/userStore';
+import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
 import { ProgramSelector } from '../../src/components/training/ProgramSelector';
 import { ProgramCard } from '../../src/components/training/ProgramCard';
@@ -15,6 +17,9 @@ import { WeeklyPlanCalendar } from '../../src/components/training/WeeklyPlanCale
 import { TodayWorkoutCard } from '../../src/components/training/TodayWorkoutCard';
 import { WorkoutCard } from '../../src/components/training/WorkoutCard';
 import { QuickStats } from '../../src/components/training/QuickStats';
+
+const TRAINING_HEADER_IMAGE =
+  'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=60';
 
 const triggerHaptic = () => {
   if (Platform.OS === 'web') return;
@@ -28,6 +33,7 @@ export default function TrainingScreen() {
   const { contentMaxWidth } = useResponsive();
   const { t } = useT();
   const styles = useStyles();
+  const { colors } = useTheme();
   const profile = useUserStore((s) => s.profile);
   const {
     recentWorkouts,
@@ -68,19 +74,30 @@ export default function TrainingScreen() {
       style={styles.container}
       contentContainerStyle={[
         styles.content,
-        { paddingTop: insets.top + spacing.md, maxWidth: contentMaxWidth },
+        { paddingTop: insets.top, maxWidth: contentMaxWidth },
       ]}
       showsVerticalScrollIndicator={false}
     >
-      {/* Header */}
-      <View style={styles.headerRow}>
-        <Text style={styles.pageTitle}>{t('trainingTitle')}</Text>
-        {hasActivePlan && !isPlanExpired && (
-          <Text style={styles.weekBadge}>
-            {t('weekLabel', { current: currentWeek })}
-          </Text>
-        )}
-      </View>
+      {/* Hero Header */}
+      <ImageBackground
+        source={{ uri: TRAINING_HEADER_IMAGE }}
+        style={styles.headerBg}
+        imageStyle={styles.headerBgImage}
+      >
+        <LinearGradient
+          colors={['rgba(0,0,0,0.3)', colors.background]}
+          style={styles.headerOverlay}
+        >
+          <View style={styles.headerRow}>
+            <Text style={styles.pageTitle}>{t('trainingTitle')}</Text>
+            {hasActivePlan && !isPlanExpired && (
+              <Text style={styles.weekBadge}>
+                {t('weekLabel', { current: currentWeek })}
+              </Text>
+            )}
+          </View>
+        </LinearGradient>
+      </ImageBackground>
 
       {!hasActivePlan || isPlanExpired ? (
         /* ── Mode A: Program Selection ── */
@@ -199,30 +216,43 @@ const useStyles = makeStyles((colors) => ({
     alignSelf: 'center' as const,
     width: '100%' as any,
   },
+  headerBg: {
+    width: '100%',
+    height: 140,
+    marginBottom: spacing.lg,
+  },
+  headerBgImage: {
+    borderRadius: borderRadius.xl,
+  },
+  headerOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end' as const,
+    padding: spacing.xl,
+    borderRadius: borderRadius.xl,
+  },
   headerRow: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
-    marginBottom: spacing.xl,
   },
   pageTitle: {
     fontFamily: fonts.display,
     fontSize: fontSizes['2xl'],
     fontWeight: '700' as const,
-    color: colors.text,
+    color: colors.white,
   },
   weekBadge: {
     fontFamily: fonts.data,
     fontSize: fontSizes.sm,
     fontWeight: '700' as const,
-    color: colors.primary,
+    color: colors.white,
     letterSpacing: 1,
   },
   expiredBanner: {
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    borderWidth: 2,
-    borderColor: colors.primary,
+    borderLeftWidth: 3,
+    borderLeftColor: colors.primary,
     padding: spacing.xl,
     marginBottom: spacing.xl,
   },

@@ -45,8 +45,6 @@ const useStyles = makeStyles((colors) => ({
     flex: 1,
     backgroundColor: colors.surface,
     borderRadius: borderRadius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     paddingVertical: spacing.md,
     alignItems: 'center' as const,
     gap: 2,

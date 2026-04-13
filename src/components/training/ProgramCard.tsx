@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, Pressable, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { useTheme } from '../../context/ThemeContext';
 import { useT } from '../../i18n';
 import type { TrainingProgram } from '../../types/program';
 
@@ -19,40 +21,48 @@ interface Props {
 export function ProgramCard({ program, onChangePress }: Props) {
   const styles = useStyles();
   const { t } = useT();
+  const { colors } = useTheme();
 
   return (
     <View style={styles.card}>
-      <View style={styles.row}>
-        <View style={styles.info}>
-          <Text style={styles.name}>{t(program.nameKey as any)}</Text>
-          <Text style={styles.meta}>
-            {t('daysPerWeek', { count: program.daysPerWeek })}
-            {'  '}
-            {t(program.levelKey as any)}
-          </Text>
+      <LinearGradient
+        colors={[`${colors.primary}15`, colors.surface]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.gradient}
+      >
+        <View style={styles.row}>
+          <View style={styles.info}>
+            <Text style={styles.name}>{t(program.nameKey as any)}</Text>
+            <Text style={styles.meta}>
+              {t('daysPerWeek', { count: program.daysPerWeek })}
+              {'  '}
+              {t(program.levelKey as any)}
+            </Text>
+          </View>
+          <Pressable
+            onPress={() => {
+              triggerHaptic();
+              onChangePress();
+            }}
+            hitSlop={12}
+          >
+            <Text style={styles.changeBtn}>{t('changeProgram')}</Text>
+          </Pressable>
         </View>
-        <Pressable
-          onPress={() => {
-            triggerHaptic();
-            onChangePress();
-          }}
-          hitSlop={12}
-        >
-          <Text style={styles.changeBtn}>{t('changeProgram')}</Text>
-        </Pressable>
-      </View>
+      </LinearGradient>
     </View>
   );
 }
 
 const useStyles = makeStyles((colors) => ({
   card: {
-    backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing.lg,
+    overflow: 'hidden' as const,
     marginBottom: spacing.lg,
+  },
+  gradient: {
+    padding: spacing.lg,
   },
   row: {
     flexDirection: 'row' as const,
