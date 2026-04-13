@@ -43,7 +43,6 @@ export default function NutritionScreen() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [toastBadge, setToastBadge] = useState<BadgeType | null>(null);
   const [undoSlot, setUndoSlot] = useState<string | null>(null);
-  const prevMealCountRef = useRef(todayMeals.length);
   const { cardRef, share } = useShareCard();
   const styles = useStyles();
   const { t } = useT();
@@ -52,6 +51,7 @@ export default function NutritionScreen() {
   const checkIns = useUserStore((s) => s.checkIns);
   const { currentScore, weeklyChange } = useScoreStore();
   const todayMeals = useMealStore((s) => s.todayMeals);
+  const prevMealCountRef = useRef(todayMeals.length);
   const engine = useEngine();
   const { slots, currentSlot } = useMealSlot();
   const { currentStreak, isTodayValidated } = useStreak();
