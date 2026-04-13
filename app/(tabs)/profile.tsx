@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Platform,
   Switch,
   Linking,
+  useWindowDimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,6 +29,8 @@ import { supabase } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/store/authStore';
 import { BADGE_INFO, type BadgeType } from '../../src/types/user';
 import { BadgeCard } from '../../src/components/gamification/BadgeCard';
+import { LineChart, type DataPoint } from '../../src/components/charts/LineChart';
+import { EmptyState } from '../../src/components/ui/EmptyState';
 import { useNotifications } from '../../src/hooks/useNotifications';
 import { events } from '../../src/services/analytics';
 
@@ -44,12 +47,29 @@ export default function ProfileScreen() {
   const { currentStreak, bestStreak, streakFreezeUsedThisWeek } = useStreak();
   const { isPremium, isTrialActive, isTrialExpired, daysLeft } = usePremium();
   const checkIns = useUserStore((s) => s.checkIns);
+  const weightLog = useUserStore((s) => s.weightLog);
   const { isEnabled: notifEnabled, toggle: toggleNotif } = useNotifications();
+  const { width: screenWidth } = useWindowDimensions();
   const themeMode = useSettingsStore((s) => s.themeMode);
   const setThemeMode = useSettingsStore((s) => s.setThemeMode);
   const setLocale = useSettingsStore((s) => s.setLocale);
   const [exporting, setExporting] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+
+  const chartWidth = Math.min(screenWidth - spacing['2xl'] * 2, contentMaxWidth) - spacing.md * 2;
+
+  const weightChartData: DataPoint[] = useMemo(() => {
+    if (weightLog.length === 0) return [];
+    const sorted = [...weightLog].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+    );
+    // Last 30 days
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    const recent = sorted.filter((e) => new Date(e.date) >= cutoff);
+    const data = recent.length >= 2 ? recent : sorted.slice(-10);
+    return data.map((e) => ({ date: e.date, value: e.weight }));
+  }, [weightLog]);
 
   const lastAdjustment = [...checkIns]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -319,6 +339,34 @@ export default function ProfileScreen() {
           </View>
           <Text style={styles.progressionArrow}>{'\u203A'}</Text>
         </Pressable>
+      </View>
+
+      {/* Weight chart */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t('weightEvolution')}</Text>
+        {weightChartData.length >= 2 ? (
+          <>
+            <LineChart
+              data={weightChartData}
+              width={chartWidth}
+              height={160}
+              unit=" kg"
+              formatValue={(v) => v.toFixed(1)}
+            />
+            <Pressable
+              style={styles.seeAllBtn}
+              onPress={() => router.push('/progression')}
+            >
+              <Text style={styles.seeAllText}>{t('weightSeeAll')} {'\u2192'}</Text>
+            </Pressable>
+          </>
+        ) : (
+          <EmptyState
+            icon={'\u2696'}
+            title={t('weightFirstEntry')}
+            subtitle={t('startCheckInForChart')}
+          />
+        )}
       </View>
 
       {/* Infos */}
@@ -779,5 +827,19 @@ const useStyles = makeStyles((colors) => ({
     fontFamily: fonts.body,
     fontSize: fontSizes['2xl'],
     color: colors.primary,
+  },
+  seeAllBtn: {
+    alignSelf: 'center',
+    marginTop: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.lg,
+  },
+  seeAllText: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+    color: colors.primary,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
 }));

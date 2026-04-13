@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,8 +12,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useUserStore } from '../../src/store/userStore';
 import { useSettingsStore } from '../../src/store/settingsStore';
 import { useStreak } from '../../src/hooks/useStreak';
+import { useWeightPrompt } from '../../src/hooks/useWeightPrompt';
 import { StreakBadge } from '../../src/components/ui/StreakBadge';
 import { TutorialOverlay } from '../../src/components/ui/TutorialOverlay';
+import { WeightPromptModal } from '../../src/components/ui/WeightPromptModal';
 import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useT } from '../../src/i18n';
@@ -36,6 +38,8 @@ export default function HomeScreen() {
   const { currentStreak, isTodayValidated } = useStreak();
   const tutorialStep = useSettingsStore((s) => s.tutorialStep);
   const setTutorialStep = useSettingsStore((s) => s.setTutorialStep);
+  const { shouldPrompt, daysSinceLastWeighIn } = useWeightPrompt();
+  const [showWeightModal, setShowWeightModal] = useState(false);
   const styles = useStyles();
   const { t } = useT();
 
@@ -46,6 +50,14 @@ export default function HomeScreen() {
       return () => clearTimeout(timer);
     }
   }, [profile, tutorialStep, setTutorialStep]);
+
+  // Show weight prompt after 10+ days without weigh-in
+  useEffect(() => {
+    if (shouldPrompt && profile && tutorialStep === -1) {
+      const timer = setTimeout(() => setShowWeightModal(true), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldPrompt, profile, tutorialStep]);
 
   if (!profile) {
     return (
@@ -173,6 +185,13 @@ export default function HomeScreen() {
 
       {/* Tutorial overlay */}
       <TutorialOverlay step={tutorialStep} />
+
+      {/* Weight prompt modal */}
+      <WeightPromptModal
+        visible={showWeightModal}
+        daysSinceLastWeighIn={daysSinceLastWeighIn}
+        onClose={() => setShowWeightModal(false)}
+      />
     </ScrollView>
   );
 }

@@ -13,6 +13,7 @@ interface SettingsState {
   themeMode: ThemeMode;
   locale: Locale;
   tutorialStep: number; // 0 = not started, 1-5 = current step, -1 = completed
+  weightPromptDismissedDate: string | null;
 
   setNotificationsEnabled: (enabled: boolean) => void;
   setMealReminders: (enabled: boolean) => void;
@@ -21,6 +22,7 @@ interface SettingsState {
   setThemeMode: (mode: ThemeMode) => void;
   setLocale: (locale: Locale) => void;
   setTutorialStep: (step: number) => void;
+  setWeightPromptDismissedDate: (date: string | null) => void;
   reset: () => void;
 }
 
@@ -34,6 +36,7 @@ export const useSettingsStore = create<SettingsState>()(
       themeMode: 'dark' as ThemeMode,
       locale: 'fr' as Locale,
       tutorialStep: 0,
+      weightPromptDismissedDate: null,
 
       setNotificationsEnabled: (notificationsEnabled) => set({ notificationsEnabled }),
       setMealReminders: (mealReminders) => set({ mealReminders }),
@@ -42,6 +45,7 @@ export const useSettingsStore = create<SettingsState>()(
       setThemeMode: (themeMode) => set({ themeMode }),
       setLocale: (locale) => set({ locale }),
       setTutorialStep: (tutorialStep) => set({ tutorialStep }),
+      setWeightPromptDismissedDate: (weightPromptDismissedDate) => set({ weightPromptDismissedDate }),
       reset: () =>
         set({
           notificationsEnabled: true,
@@ -51,6 +55,7 @@ export const useSettingsStore = create<SettingsState>()(
           themeMode: 'dark' as ThemeMode,
           locale: 'fr' as Locale,
           tutorialStep: 0,
+          weightPromptDismissedDate: null,
         }),
     }),
     {
@@ -64,6 +69,7 @@ export const useSettingsStore = create<SettingsState>()(
         streakAlerts: state.streakAlerts,
         weeklyCheckInReminder: state.weeklyCheckInReminder,
         tutorialStep: state.tutorialStep,
+        weightPromptDismissedDate: state.weightPromptDismissedDate,
       }),
     }
   )
