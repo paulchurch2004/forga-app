@@ -604,6 +604,26 @@ export const en: Record<TranslationKey, string> = {
   // Paywall trigger
   unlock: 'Unlock',
 
+  // UX improvements
+  mealsShowingFree: '{shown} of {total} meals available',
+  mealAdded: 'Meal added',
+  undo: 'Undo',
+  streakFreezeAvailable: '1 freeze available',
+  streakFreezeUsed: 'Freeze used this week',
+  streakFreezePremiumOnly: 'PRO only',
+  searchNoResultsFor: 'No results for "{query}"',
+  searchTryAnother: 'Try another term or create a custom meal',
+  typeMessage: 'Type a message...',
+  sendMessage: 'Send',
+  yourStats: 'Your stats',
+  validationAgeError: 'Between 14 and 65',
+  validationHeightError: 'Between 120 and 220',
+  validationWeightError: 'Between 30 and 250',
+  validationOk: 'OK',
+  sectionBody: 'BODY METRICS',
+  sectionGoals: 'GOALS',
+  sectionPreferences: 'PREFERENCES',
+
   // Welcome / Landing page
   welcomeHeroTagline: 'FORGE YOUR BODY.',
   welcomeHeroSubtitle: 'The nutrition app that gives you a plan, not excuses.',

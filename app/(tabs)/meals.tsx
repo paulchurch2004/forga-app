@@ -332,7 +332,15 @@ export default function MealsScreen() {
           contentContainerStyle={[styles.gridContent, { maxWidth: contentMaxWidth, alignSelf: 'center' as const, width: '100%' }]}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
-            <EmptyState icon={'\uD83D\uDD0D'} title={t('emptyMealsTitle')} subtitle={t('emptyMealsSubtitle')} />
+            searchQuery.trim() ? (
+              <EmptyState
+                icon={'\u2715'}
+                title={t('searchNoResultsFor', { query: searchQuery.trim() })}
+                subtitle={t('searchTryAnother')}
+              />
+            ) : (
+              <EmptyState icon={'\u2014'} title={t('emptyMealsTitle')} subtitle={t('emptyMealsSubtitle')} />
+            )
           }
         />
       ) : (
@@ -344,8 +352,25 @@ export default function MealsScreen() {
           keyExtractor={keyExtractor}
           contentContainerStyle={[styles.listContent, { maxWidth: contentMaxWidth, alignSelf: 'center' as const, width: '100%' }]}
           showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            filteredMeals.length > 0 ? (
+              <View style={styles.freeCountHeader}>
+                <Text style={styles.freeCountText}>
+                  {t('mealsShowingFree', { shown: displayedMeals.length, total: filteredMeals.length })}
+                </Text>
+              </View>
+            ) : null
+          }
           ListEmptyComponent={
-            <EmptyState icon={'\uD83D\uDD0D'} title={t('emptyMealsTitle')} subtitle={t('emptyMealsSubtitle')} />
+            searchQuery.trim() ? (
+              <EmptyState
+                icon={'\u2715'}
+                title={t('searchNoResultsFor', { query: searchQuery.trim() })}
+                subtitle={t('searchTryAnother')}
+              />
+            ) : (
+              <EmptyState icon={'\u2014'} title={t('emptyMealsTitle')} subtitle={t('emptyMealsSubtitle')} />
+            )
           }
           ListFooterComponent={
             remainingCount > 0 ? (
@@ -569,6 +594,19 @@ const useStyles = makeStyles((colors) => ({
     fontFamily: fonts.body,
     fontSize: fontSizes.xl,
     color: colors.textMuted,
+  },
+  freeCountHeader: {
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    marginBottom: spacing.sm,
+  },
+  freeCountText: {
+    fontFamily: fonts.data,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    color: colors.textSecondary,
+    textTransform: 'uppercase',
   },
   paywallBanner: {
     backgroundColor: colors.surface,

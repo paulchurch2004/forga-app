@@ -8,6 +8,7 @@ import {
   Platform,
 } from 'react-native';
 import { router } from 'expo-router';
+import Svg, { Path } from 'react-native-svg';
 import { makeStyles } from '../src/theme';
 import { useTheme } from '../src/context/ThemeContext';
 import { useT } from '../src/i18n';
@@ -160,8 +161,10 @@ export default function PaywallScreen() {
       <Pressable style={styles.closeButton} onPress={() => {
         events.paywallDismissed();
         router.back();
-      }}>
-        <Text style={styles.closeText}>{t("noThanks")}</Text>
+      }} hitSlop={16}>
+        <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+          <Path d="M18 6L6 18M6 6l12 12" stroke={colors.text} strokeWidth={2.5} strokeLinecap="round" />
+        </Svg>
       </Pressable>
 
       {/* Header */}
@@ -249,11 +252,14 @@ const useStyles = makeStyles((colors) => ({
     top: 60,
     right: spacing['2xl'],
     zIndex: 10,
-  },
-  closeText: {
-    fontFamily: 'DMSans',
-    fontSize: fontSizes.sm,
-    color: colors.textMuted,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   header: {
     marginTop: spacing['4xl'],

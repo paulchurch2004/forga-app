@@ -41,7 +41,7 @@ export default function ProfileScreen() {
   const profile = useUserStore((s) => s.profile);
   const badges = useUserStore((s) => s.badges);
   const score = useScoreStore((s) => s.currentScore);
-  const { currentStreak, bestStreak } = useStreak();
+  const { currentStreak, bestStreak, streakFreezeUsedThisWeek } = useStreak();
   const { isPremium, isTrialActive, isTrialExpired, daysLeft } = usePremium();
   const checkIns = useUserStore((s) => s.checkIns);
   const { isEnabled: notifEnabled, toggle: toggleNotif } = useNotifications();
@@ -191,7 +191,7 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.md, maxWidth: contentMaxWidth }]}>
       {/* Back button */}
-      <Pressable onPress={() => router.push('/(tabs)/home')} hitSlop={16} style={styles.backRow}>
+      <Pressable onPress={() => router.back()} hitSlop={16} style={styles.backRow}>
         <Text style={styles.backText}>{'\u2039'} {t('home')}</Text>
       </Pressable>
 
@@ -222,6 +222,11 @@ export default function ProfileScreen() {
             {currentStreak}
           </Text>
           <Text style={styles.statLabel}>{t('daysStreak')}</Text>
+          {isPremium && (
+            <Text style={[styles.freezeHint, { color: streakFreezeUsedThisWeek ? colors.textMuted : colors.success }]}>
+              {streakFreezeUsedThisWeek ? t('streakFreezeUsed') : t('streakFreezeAvailable')}
+            </Text>
+          )}
           <Text style={styles.shareHint}>{t('share')}</Text>
         </Pressable>
         <View style={styles.statCard}>
@@ -526,6 +531,13 @@ const useStyles = makeStyles((colors) => ({
     fontSize: 10,
     color: colors.primary,
     marginTop: spacing.xs,
+  },
+  freezeHint: {
+    fontFamily: fonts.data,
+    fontSize: 9,
+    fontWeight: '600',
+    marginTop: spacing.xs,
+    textAlign: 'center',
   },
   badgeShareBtn: {
     alignSelf: 'center',

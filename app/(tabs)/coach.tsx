@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   View,
   Text,
+  TextInput,
   ScrollView,
   Pressable,
   Platform,
@@ -147,6 +148,7 @@ export default function CoachScreen() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [quickReplies, setQuickReplies] = useState<QuickReply[]>([]);
   const [isTyping, setIsTyping] = useState(false);
+  const [freeText, setFreeText] = useState('');
   const messageIdRef = useRef(0);
 
   // Build context from current state
@@ -238,6 +240,26 @@ export default function CoachScreen() {
     addCoachMessages(response.messages, response.quickReplies);
   }, [coachContext, isTyping, addCoachMessages]);
 
+  // Handle free text message
+  const handleSendFreeText = useCallback(() => {
+    const text = freeText.trim();
+    if (!text || !coachContext || isTyping) return;
+
+    const userMsg: ChatMessage = {
+      id: String(++messageIdRef.current),
+      text,
+      isCoach: false,
+      timestamp: Date.now(),
+    };
+    setMessages((prev) => [...prev, userMsg]);
+    setFreeText('');
+
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+
+    const response = getCoachResponse('motivation', coachContext);
+    addCoachMessages(response.messages, response.quickReplies);
+  }, [freeText, coachContext, isTyping, addCoachMessages]);
+
   if (!profile) {
     return (
       <View style={[styles.container, { paddingTop: insets.top, maxWidth: contentMaxWidth }]}>
@@ -252,7 +274,7 @@ export default function CoachScreen() {
     <View style={[styles.container, { paddingTop: insets.top, maxWidth: contentMaxWidth }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.push('/(tabs)/home')} hitSlop={16} style={styles.backButton}>
+        <Pressable onPress={() => router.back()} hitSlop={16} style={styles.backButton}>
           <Text style={styles.backText}>{'\u2039'}</Text>
         </Pressable>
         <View style={styles.headerIcon}>
@@ -281,26 +303,48 @@ export default function CoachScreen() {
         {isTyping && <TypingIndicator />}
       </ScrollView>
 
-      {/* Quick Replies */}
+      {/* Quick Replies + Input */}
       <View style={[styles.repliesContainer, { paddingBottom: insets.bottom + spacing.sm }]}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.repliesScroll}
-        >
-          {quickReplies.map((reply) => (
-            <Pressable
-              key={reply.type}
-              style={({ pressed }) => [
-                styles.replyButton,
-                pressed && styles.replyButtonPressed,
-              ]}
-              onPress={() => handleQuestion(reply.type)}
-            >
-              <Text style={styles.replyText}>{reply.label}</Text>
-            </Pressable>
-          ))}
-        </ScrollView>
+        {quickReplies.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.repliesScroll}
+          >
+            {quickReplies.map((reply) => (
+              <Pressable
+                key={reply.type}
+                style={({ pressed }) => [
+                  styles.replyButton,
+                  pressed && styles.replyButtonPressed,
+                ]}
+                onPress={() => handleQuestion(reply.type)}
+              >
+                <Text style={styles.replyText}>{reply.label}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        )}
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.textInput}
+            value={freeText}
+            onChangeText={setFreeText}
+            placeholder={t('typeMessage')}
+            placeholderTextColor={colors.textMuted}
+            returnKeyType="send"
+            onSubmitEditing={handleSendFreeText}
+          />
+          <Pressable
+            style={[styles.sendButton, (!freeText.trim() || isTyping) && styles.sendButtonDisabled]}
+            onPress={handleSendFreeText}
+            disabled={!freeText.trim() || isTyping}
+          >
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+              <Path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke={colors.white} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -485,5 +529,38 @@ const useStyles = makeStyles((colors) => ({
     fontSize: fontSizes.sm,
     fontWeight: '600',
     color: colors.primary,
+  },
+
+  // Free text input
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    gap: spacing.sm,
+  },
+  textInput: {
+    flex: 1,
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    color: colors.text,
+    maxHeight: 80,
+  },
+  sendButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sendButtonDisabled: {
+    opacity: 0.4,
   },
 }));

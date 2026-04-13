@@ -1,6 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { View, Text, StyleSheet, Platform } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useTheme } from '../../src/context/ThemeContext';
 import { fonts, fontSizes } from '../../src/theme/fonts';
 import { spacing } from '../../src/theme/spacing';
@@ -9,38 +10,22 @@ import { Sidebar } from '../../src/components/layout/Sidebar';
 import { useT } from '../../src/i18n';
 import type { ThemeColors } from '../../src/theme';
 
-function TabIcon({ label, focused, colors }: { label: string; focused: boolean; colors: ThemeColors }) {
-  const icons: Record<string, { active: string; inactive: string }> = {
-    Accueil: { active: '\u2302', inactive: '\u2302' },
-    Repas: { active: '\u2615', inactive: '\u2615' },
-    Coach: { active: '\u2709', inactive: '\u2709' },
-    Profil: { active: '\u2603', inactive: '\u2603' },
-    Home: { active: '\u2302', inactive: '\u2302' },
-    Meals: { active: '\u2615', inactive: '\u2615' },
-    Training: { active: '\uD83C\uDFCB', inactive: '\uD83C\uDFCB' },
-    Entrainement: { active: '\uD83C\uDFCB', inactive: '\uD83C\uDFCB' },
-    Profile: { active: '\u2603', inactive: '\u2603' },
-  };
+const TAB_ICONS: Record<string, string> = {
+  home: 'M3 12l9-8 9 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8z',
+  meals: 'M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3',
+  training: 'M6.5 6.5h11M6 12h12M17.5 6.5v11M6.5 6.5v11M4 9v6M20 9v6M2 10.5v3M22 10.5v3',
+  coach: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z',
+  profile: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
+};
 
-  const icon = icons[label] ?? { active: '\u25CF', inactive: '\u25CB' };
-
+function TabIcon({ label, iconName, focused, colors }: { label: string; iconName: string; focused: boolean; colors: ThemeColors }) {
+  const color = focused ? colors.primary : colors.textSecondary;
   return (
     <View style={tabIconStyles.container}>
-      <Text
-        style={[
-          tabIconStyles.icon,
-          { color: focused ? colors.primary : colors.textSecondary },
-        ]}
-      >
-        {focused ? icon.active : icon.inactive}
-      </Text>
-      <Text
-        style={[
-          tabIconStyles.label,
-          { color: focused ? colors.primary : colors.textSecondary },
-          focused && tabIconStyles.labelActive,
-        ]}
-      >
+      <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+        <Path d={TAB_ICONS[iconName] ?? ''} stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      </Svg>
+      <Text style={[tabIconStyles.label, { color }, focused && tabIconStyles.labelActive]}>
         {label}
       </Text>
     </View>
@@ -53,14 +38,11 @@ const tabIconStyles = StyleSheet.create({
     justifyContent: 'center',
     paddingTop: 4,
   },
-  icon: {
-    fontSize: 20,
-    marginBottom: 2,
-  },
   label: {
     fontFamily: fonts.body,
     fontSize: fontSizes.xs,
     fontWeight: '500',
+    marginTop: 2,
   },
   labelActive: {
     fontWeight: '700',
@@ -77,17 +59,6 @@ export default function TabLayout() {
   const tabTraining = t('trainingTitle');
   const tabCoach = t('tabCoach');
   const tabProfile = t('tabProfile');
-
-  const mobileTabBarStyle = {
-    backgroundColor: colors.surface,
-    borderTopColor: colors.border,
-    borderTopWidth: 1,
-    height: Platform.OS === 'ios' ? 88 : 64,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 8,
-    paddingTop: spacing.sm,
-    elevation: 0,
-    shadowOpacity: 0,
-  };
 
   const tabs = (
     <Tabs
@@ -106,7 +77,7 @@ export default function TabLayout() {
         options={{
           title: tabHome,
           tabBarIcon: ({ focused }) => (
-            <TabIcon label={tabHome} focused={focused} colors={colors} />
+            <TabIcon label={tabHome} iconName="home" focused={focused} colors={colors} />
           ),
         }}
       />
@@ -115,7 +86,7 @@ export default function TabLayout() {
         options={{
           title: tabMeals,
           tabBarIcon: ({ focused }) => (
-            <TabIcon label={tabMeals} focused={focused} colors={colors} />
+            <TabIcon label={tabMeals} iconName="meals" focused={focused} colors={colors} />
           ),
         }}
       />
@@ -124,7 +95,7 @@ export default function TabLayout() {
         options={{
           title: tabTraining,
           tabBarIcon: ({ focused }) => (
-            <TabIcon label={tabTraining} focused={focused} colors={colors} />
+            <TabIcon label={tabTraining} iconName="training" focused={focused} colors={colors} />
           ),
         }}
       />
@@ -133,7 +104,7 @@ export default function TabLayout() {
         options={{
           title: tabCoach,
           tabBarIcon: ({ focused }) => (
-            <TabIcon label={tabCoach} focused={focused} colors={colors} />
+            <TabIcon label={tabCoach} iconName="coach" focused={focused} colors={colors} />
           ),
         }}
       />
@@ -142,7 +113,7 @@ export default function TabLayout() {
         options={{
           title: tabProfile,
           tabBarIcon: ({ focused }) => (
-            <TabIcon label={tabProfile} focused={focused} colors={colors} />
+            <TabIcon label={tabProfile} iconName="profile" focused={focused} colors={colors} />
           ),
         }}
       />

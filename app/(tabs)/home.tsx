@@ -5,7 +5,6 @@ import {
   ScrollView,
   Pressable,
   ImageBackground,
-  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -148,18 +147,10 @@ export default function HomeScreen() {
         </ImageBackground>
       </Pressable>
 
-      {/* ── COMMUNAUTÉ ── */}
+      {/* ── BILAN / CHECK-IN ── */}
       <Pressable
         style={styles.card}
-        onPress={() => {
-          if (Platform.OS === 'web') {
-            window.alert(t('comingSoon'));
-          } else {
-            import('react-native').then(({ Alert }) => {
-              Alert.alert('FORGA', t('communityComingSoon'));
-            });
-          }
-        }}
+        onPress={() => router.push('/progression')}
       >
         <ImageBackground
           source={{ uri: CARD_IMAGES.community }}
@@ -170,14 +161,9 @@ export default function HomeScreen() {
             colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.75)']}
             style={styles.cardOverlay}
           >
-            <View style={styles.cardTitleRow}>
-              <Text style={styles.cardTitle}>{t('communityCard')}</Text>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>{t('soon')}</Text>
-              </View>
-            </View>
+            <Text style={styles.cardTitle}>{t('myProgress')}</Text>
             <Text style={styles.cardDesc}>
-              {t('communityCardSub')}
+              {t('progressSubtitle')}
             </Text>
           </LinearGradient>
         </ImageBackground>

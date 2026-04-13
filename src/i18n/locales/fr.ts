@@ -602,6 +602,26 @@ export const fr = {
   // Paywall trigger
   unlock: 'Debloquer',
 
+  // UX improvements
+  mealsShowingFree: '{shown} sur {total} repas disponibles',
+  mealAdded: 'Repas ajoute',
+  undo: 'Annuler',
+  streakFreezeAvailable: '1 freeze disponible',
+  streakFreezeUsed: 'Freeze utilise cette sem.',
+  streakFreezePremiumOnly: 'PRO uniquement',
+  searchNoResultsFor: 'Aucun resultat pour "{query}"',
+  searchTryAnother: 'Essaie un autre terme ou cree un repas personnalise',
+  typeMessage: 'Ecris un message...',
+  sendMessage: 'Envoyer',
+  yourStats: 'Tes statistiques',
+  validationAgeError: 'Entre 14 et 65',
+  validationHeightError: 'Entre 120 et 220',
+  validationWeightError: 'Entre 30 et 250',
+  validationOk: 'OK',
+  sectionBody: 'MORPHOLOGIE',
+  sectionGoals: 'OBJECTIFS',
+  sectionPreferences: 'PREFERENCES',
+
   // Welcome / Landing page
   welcomeHeroTagline: 'FORGE TON CORPS.',
   welcomeHeroSubtitle: "L'app nutrition qui te donne un plan, pas des excuses.",

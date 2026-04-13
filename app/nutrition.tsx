@@ -6,6 +6,7 @@ import {
   RefreshControl,
   Modal,
   Pressable,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,9 +29,11 @@ import { ShareStreakCard } from '../src/components/gamification/ShareStreakCard'
 import { WaterCard } from '../src/components/hydration/WaterCard';
 import { useShareCard } from '../src/hooks/useShareCard';
 import { BadgeUnlockToast } from '../src/components/gamification/BadgeUnlockToast';
+import { UndoToast } from '../src/components/ui/UndoToast';
 import { PremiumExpiredBanner } from '../src/components/ui/PremiumExpiredBanner';
 import { usePremium } from '../src/hooks/usePremium';
 import { useT } from '../src/i18n';
+import * as Haptics from 'expo-haptics';
 import type { BadgeType } from '../src/types/user';
 
 export default function NutritionScreen() {
@@ -39,6 +42,8 @@ export default function NutritionScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [toastBadge, setToastBadge] = useState<BadgeType | null>(null);
+  const [undoSlot, setUndoSlot] = useState<string | null>(null);
+  const prevMealCountRef = useRef(todayMeals.length);
   const { cardRef, share } = useShareCard();
   const styles = useStyles();
   const { t } = useT();
@@ -62,6 +67,27 @@ export default function NutritionScreen() {
     }
     prevBadgeCount.current = badges.length;
   }, [badges]);
+
+  // Detect new meal added → show undo toast + haptic
+  useEffect(() => {
+    if (todayMeals.length > prevMealCountRef.current) {
+      const newest = todayMeals[todayMeals.length - 1];
+      if (newest) {
+        setUndoSlot(newest.slot);
+        if (Platform.OS !== 'web') {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        }
+      }
+    }
+    prevMealCountRef.current = todayMeals.length;
+  }, [todayMeals]);
+
+  const handleUndoMeal = useCallback(() => {
+    if (undoSlot) {
+      useMealStore.getState().removeValidatedMeal(undoSlot as any);
+      setUndoSlot(null);
+    }
+  }, [undoSlot]);
 
   // Recalculate score on mount and when meals/streak change
   useEffect(() => {
@@ -314,6 +340,13 @@ export default function NutritionScreen() {
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
+      {undoSlot && (
+        <UndoToast
+          message={t('mealAdded')}
+          onUndo={handleUndoMeal}
+          onDismiss={() => setUndoSlot(null)}
+        />
+      )}
       <BadgeUnlockToast badgeType={toastBadge} onHide={() => setToastBadge(null)} />
     </View>
   );

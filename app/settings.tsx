@@ -79,6 +79,26 @@ export default function SettingsScreen() {
   const [budget, setBudget] = useState<Budget>(profile?.budget ?? 'both');
   const [restrictions, setRestrictions] = useState<Restriction[]>(profile?.restrictions ?? []);
   const [saving, setSaving] = useState(false);
+  const [openSections, setOpenSections] = useState(new Set(['body', 'goals', 'preferences']));
+
+  const toggleSection = (id: string) => {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  // Real-time validation
+  const ageVal = parseInt(age);
+  const ageError = age.length > 0 && (isNaN(ageVal) || ageVal < 14 || ageVal > 65);
+  const heightVal = parseInt(heightCm);
+  const heightError = heightCm.length > 0 && (isNaN(heightVal) || heightVal < 120 || heightVal > 220);
+  const weightVal = parseFloat(currentWeight);
+  const weightError = currentWeight.length > 0 && (isNaN(weightVal) || weightVal < 30 || weightVal > 250);
+  const targetVal = parseFloat(targetWeight);
+  const targetError = targetWeight.length > 0 && (isNaN(targetVal) || targetVal < 30 || targetVal > 250);
 
   const computed = useMemo(() => {
     const ageNum = parseInt(age) || 25;
@@ -212,129 +232,155 @@ export default function SettingsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Sexe */}
-        <Text style={styles.sectionTitle}>{t('sex')}</Text>
-        <View style={styles.chipRow}>
-          {(['male', 'female'] as Sex[]).map((s) => (
-            <Pressable
-              key={s}
-              style={[styles.chip, sex === s && styles.chipActive]}
-              onPress={() => setSex(s)}
-            >
-              <Text style={[styles.chipText, sex === s && styles.chipTextActive]}>
-                {s === 'male' ? t('male') : t('female')}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        {/* ── MORPHOLOGIE ── */}
+        <Pressable onPress={() => toggleSection('body')} style={styles.groupHeader}>
+          <Text style={styles.groupTitle}>{t('sectionBody' as any)}</Text>
+          <Text style={styles.groupChevron}>{openSections.has('body') ? '\u2212' : '+'}</Text>
+        </Pressable>
+        {openSections.has('body') && (
+          <>
+            <Text style={styles.sectionTitle}>{t('sex')}</Text>
+            <View style={styles.chipRow}>
+              {(['male', 'female'] as Sex[]).map((s) => (
+                <Pressable
+                  key={s}
+                  style={[styles.chip, sex === s && styles.chipActive]}
+                  onPress={() => setSex(s)}
+                >
+                  <Text style={[styles.chipText, sex === s && styles.chipTextActive]}>
+                    {s === 'male' ? t('male') : t('female')}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
 
-        {/* Age */}
-        <Text style={styles.sectionTitle}>{t('age')}</Text>
-        <TextInput
-          style={styles.input}
-          value={age}
-          onChangeText={setAge}
-          keyboardType="numeric"
-          placeholder="25"
-          placeholderTextColor={colors.textMuted}
-        />
+            <Text style={styles.sectionTitle}>{t('age')}</Text>
+            <TextInput
+              style={[styles.input, ageError && styles.inputError]}
+              value={age}
+              onChangeText={setAge}
+              keyboardType="numeric"
+              placeholder="25"
+              placeholderTextColor={colors.textMuted}
+            />
+            {ageError && <Text style={styles.validationHint}>{t('validationAgeError' as any)}</Text>}
 
-        {/* Taille */}
-        <Text style={styles.sectionTitle}>{t('height')}</Text>
-        <TextInput
-          style={styles.input}
-          value={heightCm}
-          onChangeText={setHeightCm}
-          keyboardType="numeric"
-          placeholder="175"
-          placeholderTextColor={colors.textMuted}
-        />
+            <Text style={styles.sectionTitle}>{t('height')}</Text>
+            <TextInput
+              style={[styles.input, heightError && styles.inputError]}
+              value={heightCm}
+              onChangeText={setHeightCm}
+              keyboardType="numeric"
+              placeholder="175"
+              placeholderTextColor={colors.textMuted}
+            />
+            {heightError && <Text style={styles.validationHint}>{t('validationHeightError' as any)}</Text>}
 
-        {/* Poids actuel */}
-        <Text style={styles.sectionTitle}>{t('currentWeight')}</Text>
-        <TextInput
-          style={styles.input}
-          value={currentWeight}
-          onChangeText={setCurrentWeight}
-          keyboardType="decimal-pad"
-          placeholder="75"
-          placeholderTextColor={colors.textMuted}
-        />
+            <Text style={styles.sectionTitle}>{t('currentWeight')}</Text>
+            <TextInput
+              style={[styles.input, weightError && styles.inputError]}
+              value={currentWeight}
+              onChangeText={setCurrentWeight}
+              keyboardType="decimal-pad"
+              placeholder="75"
+              placeholderTextColor={colors.textMuted}
+            />
+            {weightError && <Text style={styles.validationHint}>{t('validationWeightError' as any)}</Text>}
 
-        {/* Poids cible */}
-        <Text style={styles.sectionTitle}>{t('targetWeight')}</Text>
-        <TextInput
-          style={styles.input}
-          value={targetWeight}
-          onChangeText={setTargetWeight}
-          keyboardType="decimal-pad"
-          placeholder="70"
-          placeholderTextColor={colors.textMuted}
-        />
+            <Text style={styles.sectionTitle}>{t('targetWeight')}</Text>
+            <TextInput
+              style={[styles.input, targetError && styles.inputError]}
+              value={targetWeight}
+              onChangeText={setTargetWeight}
+              keyboardType="decimal-pad"
+              placeholder="70"
+              placeholderTextColor={colors.textMuted}
+            />
+            {targetError && <Text style={styles.validationHint}>{t('validationWeightError' as any)}</Text>}
+          </>
+        )}
 
-        {/* Objectif */}
-        <Text style={styles.sectionTitle}>{t('objective')}</Text>
-        <View style={styles.chipRow}>
-          {OBJECTIVE_OPTIONS.map((o) => (
-            <Pressable
-              key={o.value}
-              style={[styles.chip, objective === o.value && styles.chipActive]}
-              onPress={() => setObjective(o.value)}
-            >
-              <Text style={[styles.chipText, objective === o.value && styles.chipTextActive]}>
-                {o.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        <View style={styles.rule} />
 
-        {/* Activite */}
-        <Text style={styles.sectionTitle}>{t('activityLevel')}</Text>
-        <View style={styles.chipRow}>
-          {ACTIVITY_OPTIONS.map((a) => (
-            <Pressable
-              key={a.value}
-              style={[styles.chip, activityLevel === a.value && styles.chipActive]}
-              onPress={() => setActivityLevel(a.value)}
-            >
-              <Text style={[styles.chipText, activityLevel === a.value && styles.chipTextActive]}>
-                {a.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        {/* ── OBJECTIFS ── */}
+        <Pressable onPress={() => toggleSection('goals')} style={styles.groupHeader}>
+          <Text style={styles.groupTitle}>{t('sectionGoals' as any)}</Text>
+          <Text style={styles.groupChevron}>{openSections.has('goals') ? '\u2212' : '+'}</Text>
+        </Pressable>
+        {openSections.has('goals') && (
+          <>
+            <Text style={styles.sectionTitle}>{t('objective')}</Text>
+            <View style={styles.chipRow}>
+              {OBJECTIVE_OPTIONS.map((o) => (
+                <Pressable
+                  key={o.value}
+                  style={[styles.chip, objective === o.value && styles.chipActive]}
+                  onPress={() => setObjective(o.value)}
+                >
+                  <Text style={[styles.chipText, objective === o.value && styles.chipTextActive]}>
+                    {o.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
 
-        {/* Budget */}
-        <Text style={styles.sectionTitle}>{t('budget')}</Text>
-        <View style={styles.chipRow}>
-          {BUDGET_OPTIONS.map((b) => (
-            <Pressable
-              key={b.value}
-              style={[styles.chip, budget === b.value && styles.chipActive]}
-              onPress={() => setBudget(b.value)}
-            >
-              <Text style={[styles.chipText, budget === b.value && styles.chipTextActive]}>
-                {b.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+            <Text style={styles.sectionTitle}>{t('activityLevel')}</Text>
+            <View style={styles.chipRow}>
+              {ACTIVITY_OPTIONS.map((a) => (
+                <Pressable
+                  key={a.value}
+                  style={[styles.chip, activityLevel === a.value && styles.chipActive]}
+                  onPress={() => setActivityLevel(a.value)}
+                >
+                  <Text style={[styles.chipText, activityLevel === a.value && styles.chipTextActive]}>
+                    {a.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </>
+        )}
 
-        {/* Restrictions */}
-        <Text style={styles.sectionTitle}>{t('dietaryRestrictions')}</Text>
-        <View style={styles.chipRow}>
-          {RESTRICTION_OPTIONS.map((r) => (
-            <Pressable
-              key={r.value}
-              style={[styles.chip, restrictions.includes(r.value) && styles.chipActive]}
-              onPress={() => toggleRestriction(r.value)}
-            >
-              <Text style={[styles.chipText, restrictions.includes(r.value) && styles.chipTextActive]}>
-                {r.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        <View style={styles.rule} />
+
+        {/* ── PREFERENCES ── */}
+        <Pressable onPress={() => toggleSection('preferences')} style={styles.groupHeader}>
+          <Text style={styles.groupTitle}>{t('sectionPreferences' as any)}</Text>
+          <Text style={styles.groupChevron}>{openSections.has('preferences') ? '\u2212' : '+'}</Text>
+        </Pressable>
+        {openSections.has('preferences') && (
+          <>
+            <Text style={styles.sectionTitle}>{t('budget')}</Text>
+            <View style={styles.chipRow}>
+              {BUDGET_OPTIONS.map((b) => (
+                <Pressable
+                  key={b.value}
+                  style={[styles.chip, budget === b.value && styles.chipActive]}
+                  onPress={() => setBudget(b.value)}
+                >
+                  <Text style={[styles.chipText, budget === b.value && styles.chipTextActive]}>
+                    {b.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+
+            <Text style={styles.sectionTitle}>{t('dietaryRestrictions')}</Text>
+            <View style={styles.chipRow}>
+              {RESTRICTION_OPTIONS.map((r) => (
+                <Pressable
+                  key={r.value}
+                  style={[styles.chip, restrictions.includes(r.value) && styles.chipActive]}
+                  onPress={() => toggleRestriction(r.value)}
+                >
+                  <Text style={[styles.chipText, restrictions.includes(r.value) && styles.chipTextActive]}>
+                    {r.label}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </>
+        )}
 
         {/* Preview macros */}
         <View style={styles.previewCard}>
@@ -424,6 +470,41 @@ const useStyles = makeStyles((colors) => ({
     fontFamily: fonts.data,
     fontSize: fontSizes.lg,
     color: colors.text,
+  },
+  inputError: {
+    borderWidth: 1,
+    borderColor: colors.error,
+  },
+  validationHint: {
+    fontFamily: fonts.data,
+    fontSize: fontSizes.xs,
+    color: colors.error,
+    marginTop: spacing.xs,
+    marginLeft: spacing.sm,
+  },
+  groupHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+    marginTop: spacing.md,
+  },
+  groupTitle: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes.sm,
+    fontWeight: fontWeights.bold,
+    letterSpacing: 2,
+    color: colors.textSecondary,
+  },
+  groupChevron: {
+    fontFamily: fonts.data,
+    fontSize: fontSizes.xl,
+    color: colors.textMuted,
+  },
+  rule: {
+    height: 1,
+    backgroundColor: colors.border,
+    marginTop: spacing.lg,
   },
   chipRow: {
     flexDirection: 'row',
