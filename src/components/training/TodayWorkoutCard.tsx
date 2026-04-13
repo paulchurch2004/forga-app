@@ -1,0 +1,226 @@
+import React from 'react';
+import { View, Text, Pressable, Platform } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { useT } from '../../i18n';
+import { useTheme } from '../../context/ThemeContext';
+import { estimateWorkoutDuration } from '../../engine/programEngine';
+import { EXERCISES } from '../../data/exercises';
+import type { PlannedDay, ProgramDay } from '../../types/program';
+import Svg, { Path } from 'react-native-svg';
+
+const triggerHaptic = () => {
+  if (Platform.OS === 'web') return;
+  import('expo-haptics').then((H) =>
+    H.impactAsync(H.ImpactFeedbackStyle.Medium)
+  ).catch(() => {});
+};
+
+interface Props {
+  todayPlan: PlannedDay;
+  programDay: ProgramDay | null;
+  onStartWorkout: () => void;
+}
+
+export function TodayWorkoutCard({ todayPlan, programDay, onStartWorkout }: Props) {
+  const styles = useStyles();
+  const { t } = useT();
+  const { colors } = useTheme();
+
+  const isCompleted = todayPlan.status === 'completed';
+  const isRest = todayPlan.status === 'rest' || !programDay;
+
+  // Rest day
+  if (isRest) {
+    return (
+      <Animated.View entering={FadeInDown.delay(200).duration(400)} style={styles.card}>
+        <Text style={styles.dayName}>{t('restDayTitle')}</Text>
+        <Text style={styles.restTip}>{t('restDayTip')}</Text>
+      </Animated.View>
+    );
+  }
+
+  const isCardio = programDay.type === 'cardio';
+  const duration = isCardio
+    ? programDay.cardio?.durationMinutes ?? 25
+    : estimateWorkoutDuration(programDay.exercises);
+
+  return (
+    <Animated.View entering={FadeInDown.delay(200).duration(400)} style={styles.card}>
+      <View style={styles.header}>
+        <Text style={styles.sectionLabel}>{t('todayWorkout')}</Text>
+        {isCompleted && (
+          <View style={styles.completedBadge}>
+            <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+              <Path
+                d="M20 6L9 17l-5-5"
+                stroke={colors.success}
+                strokeWidth={3}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+            <Text style={styles.completedText}>{t('workoutCompleted')}</Text>
+          </View>
+        )}
+      </View>
+
+      <Text style={styles.dayName}>{t(programDay.nameKey as any)}</Text>
+
+      <Text style={styles.meta}>
+        {t('estimatedDuration', { minutes: duration })}
+        {'  ·  '}
+        {isCardio
+          ? (programDay.cardio?.intensity ?? 'moderate')
+          : t('exerciseCountPreview', { count: programDay.exercises.length })}
+      </Text>
+
+      {/* Exercise list for muscu */}
+      {!isCardio && (
+        <View style={styles.exerciseList}>
+          {programDay.exercises.map((ex) => (
+            <View key={ex.exerciseId} style={styles.exerciseRow}>
+              <Text style={styles.exerciseName}>
+                {t((EXERCISES[ex.exerciseId]?.nameKey ?? ex.exerciseId) as any)}
+              </Text>
+              <Text style={styles.exerciseSets}>
+                {ex.targetSets}x{ex.targetReps}
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {/* Cardio info */}
+      {isCardio && programDay.cardio && (
+        <View style={styles.cardioInfo}>
+          <Text style={styles.cardioDetail}>
+            {t((EXERCISES[programDay.cardio.exerciseId]?.nameKey ?? programDay.cardio.exerciseId) as any)}
+            {'  ·  '}
+            {programDay.cardio.durationMinutes} min
+          </Text>
+        </View>
+      )}
+
+      {/* Start button */}
+      {!isCompleted && (
+        <Pressable
+          style={styles.startBtn}
+          onPress={() => {
+            triggerHaptic();
+            onStartWorkout();
+          }}
+        >
+          <Text style={styles.startBtnText}>
+            {isCardio ? t('cardioSessionStart') : t('startWorkout')}
+          </Text>
+        </Pressable>
+      )}
+    </Animated.View>
+  );
+}
+
+const useStyles = makeStyles((colors) => ({
+  card: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.xl,
+    marginBottom: spacing.lg,
+  },
+  header: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    marginBottom: spacing.sm,
+  },
+  sectionLabel: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes.xs,
+    fontWeight: '600' as const,
+    color: colors.textSecondary,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 2,
+  },
+  completedBadge: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: spacing.xs,
+  },
+  completedText: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes.xs,
+    fontWeight: '700' as const,
+    color: colors.success,
+    letterSpacing: 1,
+  },
+  dayName: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes['2xl'],
+    fontWeight: '800' as const,
+    color: colors.text,
+    letterSpacing: 1,
+    marginBottom: spacing.xs,
+  },
+  meta: {
+    fontFamily: fonts.data,
+    fontSize: fontSizes.xs,
+    color: colors.textSecondary,
+    marginBottom: spacing.lg,
+    letterSpacing: 0.5,
+  },
+  exerciseList: {
+    gap: spacing.sm,
+    marginBottom: spacing.xl,
+  },
+  exerciseRow: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'center' as const,
+    paddingVertical: spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  exerciseName: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.text,
+    flex: 1,
+  },
+  exerciseSets: {
+    fontFamily: fonts.data,
+    fontSize: fontSizes.sm,
+    fontWeight: '700' as const,
+    color: colors.primary,
+    marginLeft: spacing.md,
+  },
+  cardioInfo: {
+    marginBottom: spacing.xl,
+  },
+  cardioDetail: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    color: colors.text,
+  },
+  restTip: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
+    lineHeight: 22,
+    marginTop: spacing.sm,
+  },
+  startBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.md,
+    paddingVertical: spacing.lg,
+    alignItems: 'center' as const,
+  },
+  startBtnText: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes.md,
+    fontWeight: '800' as const,
+    color: colors.white,
+    letterSpacing: 1,
+  },
+}));

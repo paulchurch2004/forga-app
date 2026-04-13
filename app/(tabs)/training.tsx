@@ -1,32 +1,67 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable, Platform } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useTraining } from '../../src/hooks/useTraining';
-import { useStreak } from '../../src/hooks/useStreak';
+import { useProgram } from '../../src/hooks/useProgram';
+import { useUserStore } from '../../src/store/userStore';
 import { useT } from '../../src/i18n';
-import { StreakBadge } from '../../src/components/ui/StreakBadge';
-import { EmptyState } from '../../src/components/ui/EmptyState';
-import { WeeklyActivityBar } from '../../src/components/training/WeeklyActivityBar';
+import { ProgramSelector } from '../../src/components/training/ProgramSelector';
+import { ProgramCard } from '../../src/components/training/ProgramCard';
+import { WeeklyPlanCalendar } from '../../src/components/training/WeeklyPlanCalendar';
+import { TodayWorkoutCard } from '../../src/components/training/TodayWorkoutCard';
 import { WorkoutCard } from '../../src/components/training/WorkoutCard';
 import { QuickStats } from '../../src/components/training/QuickStats';
+
+const triggerHaptic = () => {
+  if (Platform.OS === 'web') return;
+  import('expo-haptics').then((H) =>
+    H.impactAsync(H.ImpactFeedbackStyle.Light)
+  ).catch(() => {});
+};
 
 export default function TrainingScreen() {
   const insets = useSafeAreaInsets();
   const { contentMaxWidth } = useResponsive();
   const { t } = useT();
   const styles = useStyles();
-  const { currentStreak, isTodayValidated } = useStreak();
+  const profile = useUserStore((s) => s.profile);
   const {
     recentWorkouts,
-    weekBarData,
     weeklyCount,
     monthlyCount,
     favoriteType,
   } = useTraining();
+  const {
+    hasActivePlan,
+    activeProgram,
+    recommendedProgramId,
+    currentWeek,
+    todayPlan,
+    todayProgramDay,
+    weekDays,
+    isPlanExpired,
+    selectProgram,
+    changeProgram,
+  } = useProgram();
+
+  const objective = profile?.objective ?? 'maintain';
+
+  const handleStartWorkout = () => {
+    if (!todayPlan || !todayProgramDay) return;
+    triggerHaptic();
+    router.push({
+      pathname: '/active-workout',
+      params: {
+        programDayId: todayPlan.programDayId ?? '',
+        date: todayPlan.date,
+        programId: hasActivePlan ? (activeProgram?.id ?? '') : '',
+      },
+    });
+  };
 
   return (
     <ScrollView
@@ -39,65 +74,101 @@ export default function TrainingScreen() {
     >
       {/* Header */}
       <View style={styles.headerRow}>
-        <View>
-          <Text style={styles.pageTitle}>{t('trainingTitle')}</Text>
-        </View>
-        <StreakBadge streak={currentStreak} isActive={isTodayValidated} size="sm" />
+        <Text style={styles.pageTitle}>{t('trainingTitle')}</Text>
+        {hasActivePlan && !isPlanExpired && (
+          <Text style={styles.weekBadge}>
+            {t('weekLabel', { current: currentWeek })}
+          </Text>
+        )}
       </View>
 
-      {/* Weekly Activity Bar */}
-      <WeeklyActivityBar weekData={weekBarData} />
+      {!hasActivePlan || isPlanExpired ? (
+        /* ── Mode A: Program Selection ── */
+        <Animated.View entering={FadeInDown.duration(400)}>
+          {isPlanExpired && (
+            <View style={styles.expiredBanner}>
+              <Text style={styles.expiredTitle}>{t('planExpired')}</Text>
+              <Text style={styles.expiredSub}>{t('planExpiredSub')}</Text>
+            </View>
+          )}
 
-      {/* CTA */}
-      <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-        <Pressable
-          style={styles.ctaButton}
-          onPress={() => router.push('/log-workout')}
-        >
-          <Text style={styles.ctaIcon}>{'\uD83C\uDFCB\uFE0F'}</Text>
-          <Text style={styles.ctaText}>{t('logWorkout')}</Text>
-        </Pressable>
-      </Animated.View>
-
-      {/* Quick Stats */}
-      {recentWorkouts.length > 0 && (
-        <Animated.View entering={FadeInDown.delay(300).duration(400)}>
-          <QuickStats
-            weeklyCount={weeklyCount}
-            monthlyCount={monthlyCount}
-            favoriteType={favoriteType}
+          <ProgramSelector
+            recommendedId={recommendedProgramId}
+            objective={objective}
+            onSelect={selectProgram}
           />
         </Animated.View>
-      )}
+      ) : (
+        /* ── Mode B: Active Plan ── */
+        <>
+          {/* Current program card */}
+          {activeProgram && (
+            <ProgramCard
+              program={activeProgram}
+              onChangePress={changeProgram}
+            />
+          )}
 
-      {/* Recent Workouts */}
-      <Animated.View entering={FadeInDown.delay(400).duration(400)}>
-        {recentWorkouts.length > 0 ? (
-          <View>
-            <Text style={styles.sectionTitle}>{t('recentWorkouts')}</Text>
-            {recentWorkouts.map((w) => (
-              <WorkoutCard
-                key={w.id}
-                workout={w}
-                onPress={() =>
-                  router.push({
-                    pathname: '/workout-detail',
-                    params: { workoutId: w.id, date: w.date },
-                  })
-                }
+          {/* Weekly calendar */}
+          {weekDays.length > 0 && (
+            <WeeklyPlanCalendar weekDays={weekDays} />
+          )}
+
+          {/* Today's workout */}
+          {todayPlan && (
+            <TodayWorkoutCard
+              todayPlan={todayPlan}
+              programDay={todayProgramDay}
+              onStartWorkout={handleStartWorkout}
+            />
+          )}
+
+          {/* Quick Stats */}
+          {recentWorkouts.length > 0 && (
+            <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+              <QuickStats
+                weeklyCount={weeklyCount}
+                monthlyCount={monthlyCount}
+                favoriteType={favoriteType}
               />
-            ))}
-          </View>
-        ) : (
-          <EmptyState
-            icon={'\uD83C\uDFCB\uFE0F'}
-            title={t('noWorkoutsYet')}
-            subtitle={t('noWorkoutsSubtitle')}
-            actionLabel={t('startFirstWorkout')}
-            onAction={() => router.push('/log-workout')}
-          />
-        )}
-      </Animated.View>
+            </Animated.View>
+          )}
+
+          {/* Recent history */}
+          {recentWorkouts.length > 0 && (
+            <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+              <Text style={styles.sectionTitle}>{t('recentWorkouts')}</Text>
+              {recentWorkouts.slice(0, 3).map((w) => (
+                <WorkoutCard
+                  key={w.id}
+                  workout={w}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/workout-detail',
+                      params: { workoutId: w.id, date: w.date },
+                    })
+                  }
+                />
+              ))}
+            </Animated.View>
+          )}
+
+          {/* Manual workout button */}
+          <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+            <Pressable
+              style={styles.manualBtn}
+              onPress={() => {
+                triggerHaptic();
+                router.push('/log-workout');
+              }}
+            >
+              <Text style={styles.manualBtnText}>
+                {t('logManualWorkout')} {'\u2192'}
+              </Text>
+            </Pressable>
+          </Animated.View>
+        </>
+      )}
 
       <View style={styles.bottomSpacer} />
     </ScrollView>
@@ -119,7 +190,7 @@ const useStyles = makeStyles((colors) => ({
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'space-between' as const,
-    marginBottom: spacing.lg,
+    marginBottom: spacing.xl,
   },
   pageTitle: {
     fontFamily: fonts.display,
@@ -127,24 +198,33 @@ const useStyles = makeStyles((colors) => ({
     fontWeight: '700' as const,
     color: colors.text,
   },
-  ctaButton: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    gap: spacing.sm,
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.md,
-    paddingVertical: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  ctaIcon: {
-    fontSize: 22,
-  },
-  ctaText: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.lg,
+  weekBadge: {
+    fontFamily: fonts.data,
+    fontSize: fontSizes.sm,
     fontWeight: '700' as const,
-    color: colors.white,
+    color: colors.primary,
+    letterSpacing: 1,
+  },
+  expiredBanner: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 2,
+    borderColor: colors.success,
+    padding: spacing.xl,
+    marginBottom: spacing.xl,
+  },
+  expiredTitle: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes.xl,
+    fontWeight: '800' as const,
+    color: colors.success,
+    letterSpacing: 1,
+    marginBottom: spacing.xs,
+  },
+  expiredSub: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
   },
   sectionTitle: {
     fontFamily: fonts.display,
@@ -152,6 +232,16 @@ const useStyles = makeStyles((colors) => ({
     fontWeight: '600' as const,
     color: colors.text,
     marginBottom: spacing.md,
+  },
+  manualBtn: {
+    alignSelf: 'center' as const,
+    paddingVertical: spacing.md,
+    marginTop: spacing.md,
+  },
+  manualBtnText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
   },
   bottomSpacer: {
     height: spacing['3xl'],
