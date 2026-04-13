@@ -54,10 +54,9 @@ export const useScoreStore = create<ScoreState>()(
               scoreHistory: { ...scoreHistory, [lastScoreDate]: currentScore },
               currentScore: defaultScore,
               lastScoreDate: today,
-              weeklyChange: 0,
             });
           } else {
-            set({ currentScore: defaultScore, lastScoreDate: today, weeklyChange: 0 });
+            set({ currentScore: defaultScore, lastScoreDate: today });
           }
         } else if (!lastScoreDate) {
           set({ lastScoreDate: today });

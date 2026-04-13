@@ -36,13 +36,13 @@ export function useScore() {
 
     // Calculate weight trend (simplified — uses last 2 weight entries)
     const weightLog = useUserStore.getState().weightLog;
+    const sortedWeights = [...weightLog].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
     let weightTrend = 0;
-    if (weightLog.length >= 2) {
-      const sorted = [...weightLog].sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
-      const latest = sorted[0];
-      const previous = sorted[1];
+    if (sortedWeights.length >= 2) {
+      const latest = sortedWeights[0];
+      const previous = sortedWeights[1];
       const daysDiff =
         (new Date(latest.date).getTime() - new Date(previous.date).getTime()) /
         (1000 * 60 * 60 * 24);
@@ -51,23 +51,33 @@ export function useScore() {
       }
     }
 
-    // Goal progress
+    // Goal progress — use sorted weight log for latest weight
     const totalToLose = Math.abs(profile.currentWeight - profile.targetWeight);
-    const currentProgress =
-      totalToLose > 0
-        ? Math.abs(
-            profile.currentWeight -
-              (weightLog.length > 0
-                ? weightLog[weightLog.length - 1].weight
-                : profile.currentWeight)
-          )
-        : 0;
+    const latestWeight = sortedWeights.length > 0 ? sortedWeights[0].weight : profile.currentWeight;
+    const currentProgress = totalToLose > 0
+      ? Math.abs(profile.currentWeight - latestWeight)
+      : 0;
     const goalProgressPercent =
       totalToLose > 0
         ? Math.min(100, (currentProgress / totalToLose) * 100)
         : profile.objective === 'maintain'
         ? 100
         : 0;
+
+    // Protein target days (last 7 days): count days where total protein is within ±10% of target
+    const mealHistory = useMealStore.getState().mealHistory;
+    let proteinDaysHit = 0;
+    if (profile.dailyProtein > 0) {
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const mealsForDay = i === 0 ? todayMeals : (mealHistory[date] ?? []);
+        if (mealsForDay.length === 0) continue;
+        const totalProtein = mealsForDay.reduce((sum, m) => sum + m.actualMacros.protein, 0);
+        if (Math.abs(totalProtein - profile.dailyProtein) / profile.dailyProtein <= 0.10) {
+          proteinDaysHit++;
+        }
+      }
+    }
 
     // Water tracking bonus
     const waterStore = useWaterStore.getState();
@@ -78,7 +88,7 @@ export function useScore() {
     const input: ScoreInput = {
       mealsValidated: todayMeals.length,
       mealsExpected: profile.mealsPerDay,
-      proteinTargetDays: Math.min(7, todayMeals.length), // simplified
+      proteinTargetDays: proteinDaysHit,
       uniqueMealsChosen: new Set(todayMeals.map((m) => m.mealId)).size,
       currentStreak: profile.currentStreak,
       checkInsCompleted: recentCheckIns.length,
@@ -92,14 +102,15 @@ export function useScore() {
     };
 
     const newScore = calculateForgaScore(input);
-    const change = newScore.total - currentScore.total;
     setCurrentScore(newScore);
-    setWeeklyChange(weeklyChange + change);
 
-    // Auto-save today's score to history if not already persisted
-    if (!scoreHistory[todayDate]) {
-      saveDailyScore(todayDate, newScore);
-    }
+    // Calculate weekly change from score history (today vs 7 days ago)
+    const weekAgoDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const weekAgoScore = scoreHistory[weekAgoDate];
+    setWeeklyChange(weekAgoScore ? newScore.total - weekAgoScore.total : 0);
+
+    // Save today's score to history
+    saveDailyScore(todayDate, newScore);
   }, [
     profile,
     checkIns,

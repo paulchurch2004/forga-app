@@ -1,20 +1,34 @@
 import React, { useEffect } from 'react';
 import { View, Text } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 import Animated, {
   useSharedValue,
+  useAnimatedProps,
   useAnimatedStyle,
   withTiming,
   withDelay,
+  withRepeat,
+  withSequence,
   Easing,
   FadeIn,
 } from 'react-native-reanimated';
 import { makeStyles, fonts, fontSizes, spacing } from '../../theme';
-import { getScoreColor } from '../../theme/colors';
+import { getScoreColor, getScoreLabel } from '../../theme/colors';
 import { useTheme } from '../../context/ThemeContext';
 import { useT } from '../../i18n';
 import type { ForgaScore } from '../../types/score';
 
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const AnimatedView = Animated.View;
 const EASE_OUT = Easing.out(Easing.cubic);
+
+const RING_SIZE = 200;
+const RING_STROKE = 10;
+const GLOW_STROKE = 20;
+const SPARK_STROKE = 3;
+const RING_RADIUS = (RING_SIZE - GLOW_STROKE) / 2;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+const RING_CENTER = RING_SIZE / 2;
 
 interface HeroScoreProps {
   score: ForgaScore;
@@ -23,7 +37,7 @@ interface HeroScoreProps {
   target: { calories: number; protein: number; carbs: number; fat: number };
 }
 
-/* -- Macro column (brutalist, no pill) -- */
+/* -- Macro column -- */
 
 interface MacroColProps {
   label: string;
@@ -61,16 +75,115 @@ function MacroCol({ label, current, target, color, withDivider }: MacroColProps)
   );
 }
 
-/* -- Hero Score (brutalist) -- */
+/* -- Hero Score with animated energy ring -- */
 
 export function HeroScore({ score, weeklyChange, consumed, target }: HeroScoreProps) {
   const { colors } = useTheme();
-  const { t } = useT();
+  const { t, locale } = useT();
   const styles = useStyles();
   const scoreColor = getScoreColor(score.total);
+  const scoreLabel = getScoreLabel(score.total, locale);
   const changeColor = weeklyChange >= 0 ? colors.success : colors.error;
   const changePrefix = weeklyChange >= 0 ? '+' : '';
   const caloriesRemaining = Math.max(0, target.calories - consumed.calories);
+
+  // === RING PROGRESS ANIMATION ===
+  const animatedProgress = useSharedValue(0);
+  useEffect(() => {
+    animatedProgress.value = withTiming(score.total / 100, {
+      duration: 1200,
+      easing: EASE_OUT,
+    });
+  }, [score.total]);
+
+  const ringAnimatedProps = useAnimatedProps(() => ({
+    strokeDashoffset: RING_CIRCUMFERENCE * (1 - animatedProgress.value),
+  }));
+
+  // === GLOW PULSE (outer glow that breathes) ===
+  const glowOpacity = useSharedValue(0.15);
+  useEffect(() => {
+    glowOpacity.value = withDelay(
+      1200,
+      withRepeat(
+        withSequence(
+          withTiming(0.4, { duration: 1500, easing: Easing.inOut(Easing.sin) }),
+          withTiming(0.1, { duration: 1500, easing: Easing.inOut(Easing.sin) })
+        ),
+        -1, // infinite
+        true
+      )
+    );
+  }, []);
+
+  const glowAnimatedProps = useAnimatedProps(() => ({
+    strokeOpacity: glowOpacity.value,
+    strokeDashoffset: RING_CIRCUMFERENCE * (1 - animatedProgress.value),
+  }));
+
+  // === SPARK 1 (electric particle traveling along arc) ===
+  const spark1Offset = useSharedValue(RING_CIRCUMFERENCE);
+  useEffect(() => {
+    spark1Offset.value = withDelay(
+      1400,
+      withRepeat(
+        withTiming(0, { duration: 2000, easing: Easing.linear }),
+        -1
+      )
+    );
+  }, []);
+
+  const spark1Props = useAnimatedProps(() => {
+    const arcLength = RING_CIRCUMFERENCE * animatedProgress.value;
+    const sparkGap = RING_CIRCUMFERENCE - 8; // small dash, big gap
+    return {
+      strokeDashoffset: spark1Offset.value % RING_CIRCUMFERENCE,
+      strokeDasharray: [8, sparkGap] as unknown as string,
+      strokeOpacity: arcLength > 20 ? 0.9 : 0,
+    };
+  });
+
+  // === SPARK 2 (second particle, offset timing) ===
+  const spark2Offset = useSharedValue(RING_CIRCUMFERENCE);
+  useEffect(() => {
+    spark2Offset.value = withDelay(
+      2400,
+      withRepeat(
+        withTiming(0, { duration: 2800, easing: Easing.linear }),
+        -1
+      )
+    );
+  }, []);
+
+  const spark2Props = useAnimatedProps(() => {
+    const arcLength = RING_CIRCUMFERENCE * animatedProgress.value;
+    const sparkGap = RING_CIRCUMFERENCE - 4;
+    return {
+      strokeDashoffset: spark2Offset.value % RING_CIRCUMFERENCE,
+      strokeDasharray: [4, sparkGap] as unknown as string,
+      strokeOpacity: arcLength > 40 ? 0.7 : 0,
+    };
+  });
+
+  // === SCORE NUMBER PULSE ===
+  const scorePulse = useSharedValue(1);
+  useEffect(() => {
+    scorePulse.value = withDelay(
+      1200,
+      withRepeat(
+        withSequence(
+          withTiming(1.05, { duration: 1500, easing: Easing.inOut(Easing.sin) }),
+          withTiming(1, { duration: 1500, easing: Easing.inOut(Easing.sin) })
+        ),
+        -1,
+        true
+      )
+    );
+  }, []);
+
+  const scorePulseStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scorePulse.value }],
+  }));
 
   // Calorie bar animation
   const caloriePct = target.calories > 0
@@ -91,20 +204,95 @@ export function HeroScore({ score, weeklyChange, consumed, target }: HeroScorePr
 
   return (
     <View style={styles.hero}>
-      {/* === SCORE BLOCK === */}
-      <Text style={styles.blockLabel}>FORGA SCORE</Text>
-      <View style={styles.scoreRow}>
-        <View style={styles.scoreNumberRow}>
-          <Text style={[styles.scoreNumber, { color: scoreColor }]}>
-            {Math.round(score.total)}
-          </Text>
-          <Text style={styles.scoreSlash}>/100</Text>
+      {/* === SCORE RING === */}
+      <View style={styles.ringSection}>
+        <View style={styles.ringContainer}>
+          <Svg width={RING_SIZE} height={RING_SIZE}>
+            {/* Background track */}
+            <Circle
+              cx={RING_CENTER}
+              cy={RING_CENTER}
+              r={RING_RADIUS}
+              stroke={colors.surfaceHover}
+              strokeWidth={RING_STROKE}
+              fill="none"
+            />
+
+            {/* Glow layer (pulsating outer glow) */}
+            <AnimatedCircle
+              cx={RING_CENTER}
+              cy={RING_CENTER}
+              r={RING_RADIUS}
+              stroke={scoreColor}
+              strokeWidth={GLOW_STROKE}
+              fill="none"
+              strokeDasharray={RING_CIRCUMFERENCE}
+              animatedProps={glowAnimatedProps}
+              strokeLinecap="round"
+              transform={`rotate(-90, ${RING_CENTER}, ${RING_CENTER})`}
+            />
+
+            {/* Main progress arc */}
+            <AnimatedCircle
+              cx={RING_CENTER}
+              cy={RING_CENTER}
+              r={RING_RADIUS}
+              stroke={scoreColor}
+              strokeWidth={RING_STROKE}
+              fill="none"
+              strokeDasharray={RING_CIRCUMFERENCE}
+              animatedProps={ringAnimatedProps}
+              strokeLinecap="round"
+              transform={`rotate(-90, ${RING_CENTER}, ${RING_CENTER})`}
+            />
+
+            {/* Electric spark 1 */}
+            <AnimatedCircle
+              cx={RING_CENTER}
+              cy={RING_CENTER}
+              r={RING_RADIUS}
+              stroke="#FFFFFF"
+              strokeWidth={SPARK_STROKE}
+              fill="none"
+              animatedProps={spark1Props}
+              strokeLinecap="round"
+              transform={`rotate(-90, ${RING_CENTER}, ${RING_CENTER})`}
+            />
+
+            {/* Electric spark 2 */}
+            <AnimatedCircle
+              cx={RING_CENTER}
+              cy={RING_CENTER}
+              r={RING_RADIUS}
+              stroke={scoreColor}
+              strokeWidth={SPARK_STROKE + 2}
+              fill="none"
+              animatedProps={spark2Props}
+              strokeLinecap="round"
+              transform={`rotate(-90, ${RING_CENTER}, ${RING_CENTER})`}
+            />
+          </Svg>
+
+          {/* Center content with pulse */}
+          <AnimatedView style={[styles.ringCenter, scorePulseStyle]}>
+            <Text style={[styles.scoreNumber, { color: scoreColor }]}>
+              {Math.round(score.total)}
+            </Text>
+            <Text style={styles.scoreMax}>/100</Text>
+          </AnimatedView>
         </View>
-        <Animated.View entering={FadeIn.delay(400).duration(300)}>
-          <Text style={[styles.changeText, { color: changeColor }]}>
-            {changePrefix}{weeklyChange} PTS / SEM
+
+        {/* Label + weekly change */}
+        <View style={styles.ringMeta}>
+          <Text style={[styles.scoreLabel, { color: scoreColor }]}>
+            {scoreLabel}
           </Text>
-        </Animated.View>
+          <Animated.View entering={FadeIn.delay(400).duration(300)}>
+            <Text style={[styles.changeText, { color: changeColor }]}>
+              {changePrefix}{weeklyChange} PTS / SEM
+            </Text>
+          </Animated.View>
+        </View>
       </View>
 
       <View style={styles.divider} />
@@ -165,6 +353,55 @@ const useStyles = makeStyles((colors) => ({
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.lg,
   },
+  ringSection: {
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  ringContainer: {
+    width: RING_SIZE,
+    height: RING_SIZE,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ringCenter: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+  },
+  scoreNumber: {
+    fontFamily: fonts.display,
+    fontSize: 48,
+    fontWeight: '800',
+    letterSpacing: -2,
+    lineHeight: 52,
+    includeFontPadding: false,
+  },
+  scoreMax: {
+    fontFamily: fonts.data,
+    fontSize: 16,
+    color: colors.textSecondary,
+    marginLeft: 2,
+    marginTop: 14,
+  },
+  ringMeta: {
+    alignItems: 'center',
+    marginTop: spacing.md,
+    gap: spacing.xs,
+  },
+  scoreLabel: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+  },
+  changeText: {
+    fontFamily: fonts.data,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
   blockLabel: {
     fontFamily: fonts.body,
     fontSize: 11,
@@ -172,37 +409,6 @@ const useStyles = makeStyles((colors) => ({
     letterSpacing: 2,
     color: colors.textSecondary,
     marginBottom: spacing.sm,
-  },
-  scoreRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-  },
-  scoreNumberRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-  },
-  scoreNumber: {
-    fontFamily: fonts.display,
-    fontSize: 96,
-    fontWeight: '800',
-    letterSpacing: -4,
-    lineHeight: 96,
-    includeFontPadding: false,
-  },
-  scoreSlash: {
-    fontFamily: fonts.data,
-    fontSize: 18,
-    color: colors.textSecondary,
-    marginLeft: spacing.xs,
-    marginBottom: spacing.md,
-  },
-  changeText: {
-    fontFamily: fonts.data,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1,
-    marginBottom: spacing.md,
   },
   divider: {
     height: 2,

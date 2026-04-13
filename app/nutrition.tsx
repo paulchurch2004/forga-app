@@ -102,15 +102,16 @@ export default function NutritionScreen() {
 
   const showCheckInBanner = useMemo(() => {
     const now = new Date();
-    const isSunday = now.getDay() === 0; // 0 = Sunday in JS
-    if (checkIns.length === 0) return isSunday;
+    const isSunday = now.getDay() === 0;
+    if (checkIns.length === 0) return true; // No check-in ever → always show
     const lastCheckIn = [...checkIns].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     )[0];
     const daysSince = (Date.now() - new Date(lastCheckIn.createdAt).getTime()) / (1000 * 60 * 60 * 24);
-    // Show on Sunday if no check-in this week, or any day if overdue (> 6 days)
-    const noCheckInThisWeek = daysSince > 6;
-    return (isSunday && noCheckInThisWeek) || daysSince > 13;
+    // Show if overdue (> 7 days since last check-in) or on Sunday if due this week
+    if (daysSince > 7) return true;
+    if (isSunday && daysSince > 6) return true;
+    return false;
   }, [checkIns]);
 
   const lastCalorieAdjustment = useMemo(() => {
