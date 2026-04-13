@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useProgramStore } from '../store/programStore';
 import { useUserStore } from '../store/userStore';
-import { recommendProgram } from '../engine/programEngine';
+import { recommendProgram, toLocalDateStr } from '../engine/programEngine';
 import { getProgramDayById, PROGRAMS } from '../data/programs';
 import type { ProgramId, PlannedDay, ProgramDay } from '../types/program';
 
@@ -44,7 +44,7 @@ export function useProgram() {
 
   const isPlanExpired = useMemo(() => {
     if (!activePlan) return false;
-    const today = new Date().toISOString().split('T')[0];
+    const today = toLocalDateStr();
     return today > activePlan.endDate;
   }, [activePlan]);
 

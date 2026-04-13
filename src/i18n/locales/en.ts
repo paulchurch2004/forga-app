@@ -979,6 +979,10 @@ export const en: Record<TranslationKey, string> = {
   skipRest: 'SKIP',
   finishWorkout: 'FINISH WORKOUT',
   exercisesCompleted: '{done}/{total} exercises',
+  confirmLeaveWorkout: 'Leave workout?',
+  confirmLeaveWorkoutSub: 'Your progress will not be saved.',
+  stay: 'Stay',
+  leave: 'Leave',
   confirmFinishWorkout: 'Finish workout?',
   confirmFinishIncomplete: 'Some sets are not done yet. Finish anyway?',
   autoFilledFromLast: 'Previous weight',
@@ -992,4 +996,155 @@ export const en: Record<TranslationKey, string> = {
   logManualWorkout: 'Free workout',
   cardioSessionStart: 'START',
   cardioSessionDone: 'FINISH',
+
+  // ── Exercise Tutorial Modal ──
+  exerciseTutorial: 'TUTORIAL',
+  watchTutorial: 'WATCH VIDEO',
+  formTips: 'FORM TIPS',
+
+  // ── Bench Press ──
+  tipBenchPress1: 'Plant your feet firmly on the floor and squeeze your shoulder blades against the bench.',
+  tipBenchPress2: 'Lower the bar to chest level, not toward your neck.',
+  tipBenchPress3: 'Keep wrists straight and aligned with your forearms.',
+  tipBenchPress4: 'Exhale while pushing up, inhale while lowering in a controlled manner.',
+
+  // ── Incline Press ──
+  tipInclinePress1: 'Set the bench at 30-45 degrees to target the upper chest.',
+  tipInclinePress2: 'Lower the bar toward the upper part of your chest.',
+  tipInclinePress3: 'Keep your elbows at about 45 degrees from your body.',
+
+  // ── Dips ──
+  tipDips1: 'Lean slightly forward to target the chest muscles.',
+  tipDips2: 'Lower until your upper arms are parallel to the floor.',
+  tipDips3: 'Keep elbows close to your body to protect your shoulders.',
+  tipDips4: 'If you are a beginner, use a resistance band for assistance.',
+
+  // ── Chest Fly ──
+  tipChestFly1: 'Keep your elbows slightly bent throughout the movement.',
+  tipChestFly2: 'Control the descent — do not let your arms drop.',
+  tipChestFly3: 'Squeeze your chest at the top of the movement.',
+
+  // ── Pull-ups ──
+  tipPullUps1: 'Start with arms fully extended, pull your chest toward the bar.',
+  tipPullUps2: 'Squeeze your shoulder blades together at the top.',
+  tipPullUps3: 'Control the descent, do not just drop down.',
+  tipPullUps4: 'If you cannot do one yet, use a resistance band for assistance.',
+
+  // ── Barbell Rows ──
+  tipBarbellRows1: 'Keep your back flat and core engaged throughout the movement.',
+  tipBarbellRows2: 'Pull the bar toward your belly button, not your chest.',
+  tipBarbellRows3: 'Keep your elbows close to your body to target the back.',
+  tipBarbellRows4: 'Squeeze your shoulder blades at the top for 1 second.',
+
+  // ── Lat Pulldown ──
+  tipLatPulldown1: 'Pull the bar toward your chest, never behind your neck.',
+  tipLatPulldown2: 'Do not cheat with body weight — stay seated upright.',
+  tipLatPulldown3: 'Squeeze your lats at the bottom before releasing.',
+
+  // ── Deadlift ──
+  tipDeadlift1: 'Keep a neutral spine — not rounded, not over-arched.',
+  tipDeadlift2: 'The bar should stay close to your body throughout the lift.',
+  tipDeadlift3: 'Push the floor away with your feet rather than pulling with your back.',
+  tipDeadlift4: 'Lock out your hips and knees at the top of the movement.',
+  tipDeadlift5: 'Take a deep breath before lifting to brace your core.',
+
+  // ── Overhead Press ──
+  tipOverheadPress1: 'Brace your core and squeeze your glutes to stabilize your trunk.',
+  tipOverheadPress2: 'Press the bar in a straight line — move your head out of the way.',
+  tipOverheadPress3: 'Fully lock out your arms at the top.',
+  tipOverheadPress4: 'Do not arch your back — if you must arch, reduce the weight.',
+
+  // ── Lateral Raises ──
+  tipLateralRaises1: 'Keep your elbows slightly bent, not fully straight.',
+  tipLateralRaises2: 'Raise your arms to shoulder height, no higher.',
+  tipLateralRaises3: 'Use a light weight and control the movement — no swinging.',
+
+  // ── Face Pulls ──
+  tipFacePulls1: 'Set the cable at face height or slightly above.',
+  tipFacePulls2: 'Pull apart and externally rotate your hands at the end.',
+  tipFacePulls3: 'Squeeze the muscles between your shoulder blades for 1 second.',
+
+  // ── Shrugs ──
+  tipShrugs1: 'Lift your shoulders straight up toward your ears — no rolling.',
+  tipShrugs2: 'Hold the contraction at the top for 2 seconds.',
+  tipShrugs3: 'Control the descent — do not let your shoulders drop.',
+
+  // ── Bicep Curls ──
+  tipBicepCurls1: 'Keep your elbows pinned to your sides — do not swing them forward.',
+  tipBicepCurls2: 'Supinate your wrists at the top for a better contraction.',
+  tipBicepCurls3: 'Control the negative (lowering) phase for 2-3 seconds.',
+
+  // ── Tricep Extensions ──
+  tipTricepExtensions1: 'Keep your elbows fixed and pointing upward.',
+  tipTricepExtensions2: 'Fully extend your arms at the top for maximum contraction.',
+  tipTricepExtensions3: 'Control the descent — do not let the weight drop.',
+
+  // ── Hammer Curls ──
+  tipHammerCurls1: 'Keep a neutral grip (palms facing each other) throughout.',
+  tipHammerCurls2: 'No swinging — only your forearms should move.',
+  tipHammerCurls3: 'Squeeze at the top of the movement for 1 second.',
+
+  // ── Skull Crushers ──
+  tipSkullCrushers1: 'Keep your elbows stable and pointing toward the ceiling.',
+  tipSkullCrushers2: 'Lower the bar toward your forehead, not behind your head.',
+  tipSkullCrushers3: 'Control the movement — do not bounce at the bottom.',
+
+  // ── Squat ──
+  tipSquat1: 'Go down at least until your thighs are parallel to the floor.',
+  tipSquat2: 'Your knees should follow the direction of your toes — do not let them cave in.',
+  tipSquat3: 'Keep your chest up and spine neutral throughout the movement.',
+  tipSquat4: 'Feet shoulder-width apart, toes slightly pointed outward.',
+  tipSquat5: 'Inhale on the way down, brace, and exhale on the way up.',
+
+  // ── Leg Press ──
+  tipLegPress1: 'Keep your back and glutes firmly pressed against the seat.',
+  tipLegPress2: 'Do not go too low — stop before your lower back lifts off.',
+  tipLegPress3: 'Place your feet shoulder-width apart in the middle of the platform.',
+
+  // ── Lunges ──
+  tipLunges1: 'Your front knee should form a 90-degree angle at the bottom.',
+  tipLunges2: 'Keep your torso upright and core engaged.',
+  tipLunges3: 'Take a long enough step so your knee does not go past your toes.',
+  tipLunges4: 'Push through the heel of your front foot to stand back up.',
+
+  // ── Leg Curl ──
+  tipLegCurl1: 'Control the movement in both directions — no bouncing.',
+  tipLegCurl2: 'Keep your hips pressed against the bench throughout.',
+  tipLegCurl3: 'Squeeze your hamstrings at the top for 1 second.',
+
+  // ── Leg Extension ──
+  tipLegExtension1: 'Adjust the seat so your knees align with the machine pivot.',
+  tipLegExtension2: 'Fully extend your legs at the top to contract your quads.',
+  tipLegExtension3: 'Control the descent — do not let the weight drop.',
+
+  // ── Calf Raises ──
+  tipCalfRaises1: 'Rise as high as possible on your toes.',
+  tipCalfRaises2: 'Hold the contraction at the top for 2 seconds.',
+  tipCalfRaises3: 'Lower slowly and fully stretch your calves at the bottom.',
+
+  // ── Romanian Deadlift ──
+  tipRomanianDeadlift1: 'Keep your legs nearly straight with a slight knee bend.',
+  tipRomanianDeadlift2: 'Push your hips back as if closing a door with your glutes.',
+  tipRomanianDeadlift3: 'The bar stays close to your legs throughout the movement.',
+  tipRomanianDeadlift4: 'You should feel a strong stretch in your hamstrings at the bottom.',
+
+  // ── Plank ──
+  tipPlank1: 'Align your head, back, and glutes in a straight line.',
+  tipPlank2: 'Breathe normally — do not hold your breath.',
+  tipPlank3: 'Brace your abs as if bracing for a punch.',
+
+  // ── Crunches ──
+  tipCrunches1: 'Do not pull on your neck — keep your hands behind your ears.',
+  tipCrunches2: 'Only lift your shoulders off the ground, not your entire back.',
+  tipCrunches3: 'Exhale on the way up and squeeze your abs at the top.',
+
+  // ── Leg Raises ──
+  tipLegRaises1: 'Keep your lower back pressed flat against the floor or support.',
+  tipLegRaises2: 'Control the descent — do not let your legs drop.',
+  tipLegRaises3: 'No swinging — the movement comes from your abs, not momentum.',
+
+  // ── Russian Twist ──
+  tipRussianTwist1: 'Lift your feet off the ground to engage your abs more.',
+  tipRussianTwist2: 'The rotation comes from your trunk, not just your arms.',
+  tipRussianTwist3: 'Keep your back straight and slightly leaned back.',
 };

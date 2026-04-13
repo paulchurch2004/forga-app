@@ -7,7 +7,7 @@ import type {
   PlannedDay,
 } from '../types/program';
 import type { Objective } from '../types/user';
-import { generatePlan } from '../engine/programEngine';
+import { generatePlan, toLocalDateStr } from '../engine/programEngine';
 
 interface ProgramState {
   activePlan: GeneratedPlan | null;
@@ -67,7 +67,7 @@ export const useProgramStore = create<ProgramState>()(
         const { activePlan, completedDays } = get();
         if (!activePlan) return null;
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = toLocalDateStr();
         const day = activePlan.days.find((d) => d.date === today);
         if (!day) return null;
 
@@ -88,7 +88,7 @@ export const useProgramStore = create<ProgramState>()(
         const { activePlan, completedDays } = get();
         if (!activePlan) return [];
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = toLocalDateStr();
         const startIdx = (weekNumber - 1) * 7;
         const weekDays = activePlan.days.slice(startIdx, startIdx + 7);
 
@@ -111,7 +111,7 @@ export const useProgramStore = create<ProgramState>()(
         const { activePlan } = get();
         if (!activePlan) return 1;
 
-        const today = new Date().toISOString().split('T')[0];
+        const today = toLocalDateStr();
         const start = new Date(activePlan.startDate + 'T00:00:00');
         const now = new Date(today + 'T00:00:00');
         const diffDays = Math.floor(

@@ -977,6 +977,10 @@ export const fr = {
   skipRest: 'PASSER',
   finishWorkout: 'TERMINER LA SEANCE',
   exercisesCompleted: '{done}/{total} exercices',
+  confirmLeaveWorkout: 'Quitter la seance ?',
+  confirmLeaveWorkoutSub: 'Ta progression ne sera pas sauvegardee.',
+  stay: 'Rester',
+  leave: 'Quitter',
   confirmFinishWorkout: 'Terminer la seance ?',
   confirmFinishIncomplete: 'Des series ne sont pas validees. Terminer quand meme ?',
   autoFilledFromLast: 'Charge precedente',
@@ -990,6 +994,157 @@ export const fr = {
   logManualWorkout: 'Seance libre',
   cardioSessionStart: 'DEMARRER',
   cardioSessionDone: 'TERMINER',
+
+  // ── Exercise Tutorial Modal ──
+  exerciseTutorial: 'TUTORIEL',
+  watchTutorial: 'VOIR LA VIDEO',
+  formTips: 'CONSEILS DE FORME',
+
+  // ── Bench Press ──
+  tipBenchPress1: 'Plante tes pieds au sol et serre les omoplates contre le banc.',
+  tipBenchPress2: 'Descends la barre au niveau des pectoraux, pas vers le cou.',
+  tipBenchPress3: 'Garde les poignets droits et alignes avec les avant-bras.',
+  tipBenchPress4: 'Expire en poussant, inspire en descendant de maniere controlee.',
+
+  // ── Incline Press ──
+  tipInclinePress1: 'Regle le banc entre 30 et 45 degres pour cibler le haut des pecs.',
+  tipInclinePress2: 'Descends la barre vers le haut des pectoraux.',
+  tipInclinePress3: 'Garde les coudes a environ 45 degres du corps.',
+
+  // ── Dips ──
+  tipDips1: 'Penche-toi legerement en avant pour cibler les pectoraux.',
+  tipDips2: 'Descends jusqu\'a ce que les bras soient paralleles au sol.',
+  tipDips3: 'Garde les coudes pres du corps pour proteger les epaules.',
+  tipDips4: 'Si tu debutes, utilise une bande elastique pour t\'assister.',
+
+  // ── Chest Fly ──
+  tipChestFly1: 'Garde les coudes legerement flechis tout au long du mouvement.',
+  tipChestFly2: 'Controle la descente : ne laisse pas les bras tomber.',
+  tipChestFly3: 'Squeeze les pectoraux en haut du mouvement.',
+
+  // ── Pull-ups ──
+  tipPullUps1: 'Commence bras tendus, tire en amenant la poitrine vers la barre.',
+  tipPullUps2: 'Serre les omoplates ensemble en haut du mouvement.',
+  tipPullUps3: 'Controle la descente, ne te laisse pas tomber.',
+  tipPullUps4: 'Si tu ne peux pas encore en faire, utilise une bande elastique.',
+
+  // ── Barbell Rows ──
+  tipBarbellRows1: 'Garde le dos plat et les abdos contractes pendant tout le mouvement.',
+  tipBarbellRows2: 'Tire la barre vers le nombril, pas vers la poitrine.',
+  tipBarbellRows3: 'Garde les coudes pres du corps pour cibler le dos.',
+  tipBarbellRows4: 'Contracte les omoplates en haut du mouvement pendant 1 seconde.',
+
+  // ── Lat Pulldown ──
+  tipLatPulldown1: 'Tire la barre vers la poitrine, pas derriere la nuque.',
+  tipLatPulldown2: 'Ne triche pas avec le poids du corps, reste assis bien droit.',
+  tipLatPulldown3: 'Squeeze les dorsaux en bas du mouvement avant de remonter.',
+
+  // ── Deadlift ──
+  tipDeadlift1: 'Garde le dos neutre : ni rond, ni trop cambre.',
+  tipDeadlift2: 'La barre doit rester collee au corps pendant tout le mouvement.',
+  tipDeadlift3: 'Pousse le sol avec les pieds plutot que de tirer avec le dos.',
+  tipDeadlift4: 'Verrouille les hanches et les genoux en haut du mouvement.',
+  tipDeadlift5: 'Prends une grande inspiration avant de soulever pour gainer le tronc.',
+
+  // ── Overhead Press ──
+  tipOverheadPress1: 'Contracte les abdos et les fessiers pour stabiliser le tronc.',
+  tipOverheadPress2: 'Pousse la barre en ligne droite, degage la tete sur le passage.',
+  tipOverheadPress3: 'Verrouille completement les bras en haut.',
+  tipOverheadPress4: 'Ne cambre pas le dos : si tu dois cambrer, reduis la charge.',
+
+  // ── Lateral Raises ──
+  tipLateralRaises1: 'Garde les coudes legerement flechis, pas completement tendus.',
+  tipLateralRaises2: 'Monte les bras jusqu\'a la hauteur des epaules, pas plus haut.',
+  tipLateralRaises3: 'Utilise un poids leger et controle le mouvement, pas d\'elan.',
+
+  // ── Face Pulls ──
+  tipFacePulls1: 'Regle la poulie en position haute, au niveau du visage.',
+  tipFacePulls2: 'Tire en ecartant les mains et en faisant une rotation externe.',
+  tipFacePulls3: 'Contracte les muscles entre les omoplates pendant 1 seconde.',
+
+  // ── Shrugs ──
+  tipShrugs1: 'Monte les epaules droit vers les oreilles, pas de rotation.',
+  tipShrugs2: 'Tiens la contraction en haut pendant 2 secondes.',
+  tipShrugs3: 'Controle la descente, ne laisse pas tomber les epaules.',
+
+  // ── Bicep Curls ──
+  tipBicepCurls1: 'Garde les coudes fixes le long du corps, ne les laisse pas avancer.',
+  tipBicepCurls2: 'Tourne les poignets en supination en haut pour mieux contracter.',
+  tipBicepCurls3: 'Controle la phase negative (descente) sur 2-3 secondes.',
+
+  // ── Tricep Extensions ──
+  tipTricepExtensions1: 'Garde les coudes fixes et pointes vers le haut.',
+  tipTricepExtensions2: 'Tends completement les bras en haut pour une contraction maximale.',
+  tipTricepExtensions3: 'Controle la descente, ne laisse pas le poids tomber.',
+
+  // ── Hammer Curls ──
+  tipHammerCurls1: 'Garde la prise neutre (paumes face a face) pendant tout le mouvement.',
+  tipHammerCurls2: 'Pas de balancement du corps, seuls les avant-bras bougent.',
+  tipHammerCurls3: 'Contracte en haut du mouvement pendant 1 seconde.',
+
+  // ── Skull Crushers ──
+  tipSkullCrushers1: 'Garde les coudes stables et pointes vers le plafond.',
+  tipSkullCrushers2: 'Descends la barre vers le front, pas derriere la tete.',
+  tipSkullCrushers3: 'Controle le mouvement, ne rebondis pas en bas.',
+
+  // ── Squat ──
+  tipSquat1: 'Descends au moins jusqu\'a ce que les cuisses soient paralleles au sol.',
+  tipSquat2: 'Les genoux suivent la direction des pieds, ne les laisse pas rentrer.',
+  tipSquat3: 'Garde la poitrine haute et le dos neutre pendant tout le mouvement.',
+  tipSquat4: 'Ecarte les pieds a la largeur des epaules, orteils legerement vers l\'exterieur.',
+  tipSquat5: 'Inspire en descendant, bloque, et expire en remontant.',
+
+  // ── Leg Press ──
+  tipLegPress1: 'Garde le dos et les fesses bien plaques contre le siege.',
+  tipLegPress2: 'Ne descends pas trop bas pour eviter que le bas du dos se decolle.',
+  tipLegPress3: 'Place les pieds a la largeur des epaules au milieu de la plateforme.',
+
+  // ── Lunges ──
+  tipLunges1: 'Le genou avant forme un angle de 90 degres en bas du mouvement.',
+  tipLunges2: 'Garde le torse droit et les abdos contractes.',
+  tipLunges3: 'Fais un pas assez grand pour que le genou ne depasse pas les orteils.',
+  tipLunges4: 'Pousse a travers le talon du pied avant pour remonter.',
+
+  // ── Leg Curl ──
+  tipLegCurl1: 'Controle le mouvement dans les deux directions, pas de rebond.',
+  tipLegCurl2: 'Garde les hanches collees au banc pendant tout le mouvement.',
+  tipLegCurl3: 'Contracte les ischios-jambiers en haut pendant 1 seconde.',
+
+  // ── Leg Extension ──
+  tipLegExtension1: 'Regle le dossier pour que tes genoux soient alignes avec l\'axe de la machine.',
+  tipLegExtension2: 'Tends completement les jambes en haut pour contracter les quadriceps.',
+  tipLegExtension3: 'Controle la descente, ne laisse pas le poids retomber.',
+
+  // ── Calf Raises ──
+  tipCalfRaises1: 'Monte le plus haut possible sur la pointe des pieds.',
+  tipCalfRaises2: 'Marque une pause de 2 secondes en haut de la contraction.',
+  tipCalfRaises3: 'Descends lentement et etire bien les mollets en bas.',
+
+  // ── Romanian Deadlift ──
+  tipRomanianDeadlift1: 'Garde les jambes quasi tendues, une legere flexion des genoux.',
+  tipRomanianDeadlift2: 'Pousse les hanches vers l\'arriere comme pour fermer une porte avec les fesses.',
+  tipRomanianDeadlift3: 'La barre reste proche des jambes pendant tout le mouvement.',
+  tipRomanianDeadlift4: 'Tu dois sentir un etirement dans les ischio-jambiers en bas.',
+
+  // ── Plank ──
+  tipPlank1: 'Aligne la tete, le dos et les fesses en une ligne droite.',
+  tipPlank2: 'Respire normalement, ne retiens pas ton souffle.',
+  tipPlank3: 'Contracte les abdos comme si tu allais recevoir un coup au ventre.',
+
+  // ── Crunches ──
+  tipCrunches1: 'Ne tire pas sur le cou, garde les mains derriere les oreilles.',
+  tipCrunches2: 'Decolle seulement les epaules du sol, pas tout le dos.',
+  tipCrunches3: 'Expire en montant et contracte les abdos en haut du mouvement.',
+
+  // ── Leg Raises ──
+  tipLegRaises1: 'Garde le bas du dos plaque au sol ou au support.',
+  tipLegRaises2: 'Controle la descente, ne laisse pas les jambes tomber.',
+  tipLegRaises3: 'Ne balance pas, le mouvement vient des abdos pas de l\'elan.',
+
+  // ── Russian Twist ──
+  tipRussianTwist1: 'Leve les pieds du sol pour engager davantage les abdos.',
+  tipRussianTwist2: 'La rotation vient du tronc, pas seulement des bras.',
+  tipRussianTwist3: 'Garde le dos droit et legerement incline en arriere.',
 } as const;
 
 export type TranslationKey = keyof typeof fr;

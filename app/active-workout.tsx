@@ -16,11 +16,21 @@ import { useTheme } from '../src/context/ThemeContext';
 import { useT } from '../src/i18n';
 import { getProgramDayById } from '../src/data/programs';
 import { EXERCISES } from '../src/data/exercises';
+import { hasTutorial } from '../src/data/exerciseTips';
+import { ExerciseTutorialModal } from '../src/components/training/ExerciseTutorialModal';
 import { useTrainingStore } from '../src/store/trainingStore';
 import { useProgramStore } from '../src/store/programStore';
 import type { ProgramExercise } from '../src/types/program';
-import type { Workout, WorkoutExercise, ExerciseSet } from '../src/types/training';
+import type { Workout, WorkoutExercise, ExerciseSet, WorkoutType } from '../src/types/training';
 import Svg, { Path } from 'react-native-svg';
+
+const CARDIO_TYPE_MAP: Record<string, WorkoutType> = {
+  cycling: 'cycling',
+  hiit: 'hiit',
+  running: 'running',
+  swimming: 'swimming',
+  marche: 'marche',
+};
 
 const triggerHaptic = (style: 'light' | 'medium' | 'success' = 'light') => {
   if (Platform.OS === 'web') return;
@@ -73,6 +83,9 @@ export default function ActiveWorkoutScreen() {
   );
 
   const isCardio = programDay?.type === 'cardio';
+
+  // Tutorial modal
+  const [tutorialExerciseId, setTutorialExerciseId] = useState<string | null>(null);
 
   // Timer
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
@@ -187,6 +200,23 @@ export default function ActiveWorkoutScreen() {
     [exercises, startRestTimer]
   );
 
+  // Back navigation with confirmation
+  const hasProgress = exercises.some((ex) => ex.sets.some((s) => s.completed)) || elapsedSeconds > 30;
+  const handleBack = useCallback(() => {
+    if (!hasProgress) {
+      router.back();
+      return;
+    }
+    if (Platform.OS === 'web') {
+      if (confirm(t('confirmLeaveWorkout'))) router.back();
+    } else {
+      Alert.alert(t('confirmLeaveWorkout'), t('confirmLeaveWorkoutSub'), [
+        { text: t('stay'), style: 'cancel' },
+        { text: t('leave'), style: 'destructive', onPress: () => router.back() },
+      ]);
+    }
+  }, [hasProgress, router, t, elapsedSeconds]);
+
   // Progress
   const completedExercises = exercises.filter((ex) =>
     ex.sets.every((s) => s.completed)
@@ -204,7 +234,7 @@ export default function ActiveWorkoutScreen() {
         id: workoutId,
         date,
         timestamp: new Date().toISOString(),
-        type: programDay.cardio.exerciseId as any,
+        type: CARDIO_TYPE_MAP[programDay.cardio.exerciseId] ?? 'autre',
         durationMinutes: Math.max(1, Math.ceil(elapsedSeconds / 60)),
         intensity: programDay.cardio.intensity,
         exercises: [],
@@ -273,7 +303,7 @@ export default function ActiveWorkoutScreen() {
   if (!programDay) {
     return (
       <View style={[styles.container, { paddingTop: insets.top + spacing.xl }]}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
+        <Pressable onPress={handleBack} hitSlop={12}>
           <Text style={styles.backBtn}>{'\u2190'} {t('back')}</Text>
         </Pressable>
       </View>
@@ -284,7 +314,7 @@ export default function ActiveWorkoutScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12}>
+        <Pressable onPress={handleBack} hitSlop={12}>
           <Text style={styles.backBtn}>{'\u2190'}</Text>
         </Pressable>
         <Text style={styles.headerTitle} numberOfLines={1}>
@@ -325,6 +355,23 @@ export default function ActiveWorkoutScreen() {
             >
               <View style={styles.exerciseHeader}>
                 <Text style={styles.exerciseName}>{t(ex.nameKey as any)}</Text>
+                {hasTutorial(ex.exerciseId) && (
+                  <Pressable
+                    onPress={() => {
+                      triggerHaptic('light');
+                      setTutorialExerciseId(ex.exerciseId);
+                    }}
+                    hitSlop={8}
+                    style={styles.infoBtn}
+                  >
+                    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+                      <Path
+                        d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 5a1 1 0 110 2 1 1 0 010-2zm-1 4h2v6h-2v-6z"
+                        fill={colors.textMuted}
+                      />
+                    </Svg>
+                  </Pressable>
+                )}
                 <Text style={styles.exerciseTarget}>
                   {ex.programExercise.targetSets}x{ex.programExercise.targetReps}
                 </Text>
@@ -425,6 +472,13 @@ export default function ActiveWorkoutScreen() {
           <Text style={styles.finishBtnText}>{t('finishWorkout')}</Text>
         </Pressable>
       </View>
+
+      {/* Exercise tutorial modal */}
+      <ExerciseTutorialModal
+        visible={tutorialExerciseId !== null}
+        exerciseId={tutorialExerciseId}
+        onClose={() => setTutorialExerciseId(null)}
+      />
     </View>
   );
 }
@@ -518,6 +572,10 @@ const useStyles = makeStyles((colors) => ({
     color: colors.text,
     letterSpacing: 0.5,
     flex: 1,
+  },
+  infoBtn: {
+    marginLeft: spacing.sm,
+    padding: spacing.xs,
   },
   exerciseTarget: {
     fontFamily: fonts.data,

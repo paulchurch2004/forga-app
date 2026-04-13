@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Pressable, Platform } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
@@ -6,6 +6,8 @@ import { useT } from '../../i18n';
 import { useTheme } from '../../context/ThemeContext';
 import { estimateWorkoutDuration } from '../../engine/programEngine';
 import { EXERCISES } from '../../data/exercises';
+import { hasTutorial } from '../../data/exerciseTips';
+import { ExerciseTutorialModal } from './ExerciseTutorialModal';
 import type { PlannedDay, ProgramDay } from '../../types/program';
 import Svg, { Path } from 'react-native-svg';
 
@@ -26,6 +28,7 @@ export function TodayWorkoutCard({ todayPlan, programDay, onStartWorkout }: Prop
   const styles = useStyles();
   const { t } = useT();
   const { colors } = useTheme();
+  const [tutorialExerciseId, setTutorialExerciseId] = useState<string | null>(null);
 
   const isCompleted = todayPlan.status === 'completed';
   const isRest = todayPlan.status === 'rest' || !programDay;
@@ -83,9 +86,28 @@ export function TodayWorkoutCard({ todayPlan, programDay, onStartWorkout }: Prop
               <Text style={styles.exerciseName}>
                 {t((EXERCISES[ex.exerciseId]?.nameKey ?? ex.exerciseId) as any)}
               </Text>
-              <Text style={styles.exerciseSets}>
-                {ex.targetSets}x{ex.targetReps}
-              </Text>
+              <View style={styles.exerciseRowRight}>
+                {hasTutorial(ex.exerciseId) && (
+                  <Pressable
+                    onPress={() => {
+                      triggerHaptic();
+                      setTutorialExerciseId(ex.exerciseId);
+                    }}
+                    hitSlop={8}
+                    style={styles.infoBtn}
+                  >
+                    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                      <Path
+                        d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 5a1 1 0 110 2 1 1 0 010-2zm-1 4h2v6h-2v-6z"
+                        fill={colors.textMuted}
+                      />
+                    </Svg>
+                  </Pressable>
+                )}
+                <Text style={styles.exerciseSets}>
+                  {ex.targetSets}x{ex.targetReps}
+                </Text>
+              </View>
             </View>
           ))}
         </View>
@@ -116,6 +138,13 @@ export function TodayWorkoutCard({ todayPlan, programDay, onStartWorkout }: Prop
           </Text>
         </Pressable>
       )}
+
+      {/* Exercise tutorial modal */}
+      <ExerciseTutorialModal
+        visible={tutorialExerciseId !== null}
+        exerciseId={tutorialExerciseId}
+        onClose={() => setTutorialExerciseId(null)}
+      />
     </Animated.View>
   );
 }
@@ -188,12 +217,19 @@ const useStyles = makeStyles((colors) => ({
     color: colors.text,
     flex: 1,
   },
+  exerciseRowRight: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: spacing.sm,
+  },
+  infoBtn: {
+    padding: spacing.xs,
+  },
   exerciseSets: {
     fontFamily: fonts.data,
     fontSize: fontSizes.sm,
     fontWeight: '700' as const,
     color: colors.primary,
-    marginLeft: spacing.md,
   },
   cardioInfo: {
     marginBottom: spacing.xl,

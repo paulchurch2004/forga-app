@@ -7,6 +7,14 @@ import type {
 } from '../types/program';
 import { PROGRAMS } from '../data/programs';
 
+/** Local-timezone YYYY-MM-DD (avoids UTC shift from toISOString) */
+export function toLocalDateStr(d: Date = new Date()): string {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 export function recommendProgram(
   activityLevel: ActivityLevel,
   objective: Objective
@@ -59,7 +67,7 @@ function getCardioRecommendation(objective: Objective): CardioRecommendation {
 function addDays(dateStr: string, days: number): string {
   const d = new Date(dateStr + 'T00:00:00');
   d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
+  return toLocalDateStr(d);
 }
 
 function getNextMonday(): string {
@@ -69,12 +77,12 @@ function getNextMonday(): string {
   const isoDay = day === 0 ? 6 : day - 1;
   if (isoDay === 0) {
     // Today is Monday
-    return now.toISOString().split('T')[0];
+    return toLocalDateStr(now);
   }
   const daysUntilMonday = 7 - isoDay;
   const monday = new Date(now);
   monday.setDate(monday.getDate() + daysUntilMonday);
-  return monday.toISOString().split('T')[0];
+  return toLocalDateStr(monday);
 }
 
 function pickCardioDays(
@@ -169,7 +177,7 @@ export function generatePlan(
   }
 
   // Mark today if within plan range
-  const today = new Date().toISOString().split('T')[0];
+  const today = toLocalDateStr();
   const todayDay = days.find((d) => d.date === today);
   if (todayDay && todayDay.status !== 'rest') {
     todayDay.status = 'today';

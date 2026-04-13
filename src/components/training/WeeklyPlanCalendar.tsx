@@ -6,6 +6,7 @@ import { useT } from '../../i18n';
 import type { PlannedDay } from '../../types/program';
 import Svg, { Path, Circle as SvgCircle } from 'react-native-svg';
 import { useTheme } from '../../context/ThemeContext';
+import { toLocalDateStr } from '../../engine/programEngine';
 
 const DAY_LABELS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 
@@ -17,7 +18,7 @@ export function WeeklyPlanCalendar({ weekDays }: Props) {
   const styles = useStyles();
   const { t } = useT();
   const { colors } = useTheme();
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = toLocalDateStr();
 
   return (
     <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.container}>

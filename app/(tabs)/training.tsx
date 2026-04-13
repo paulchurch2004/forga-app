@@ -97,6 +97,19 @@ export default function TrainingScreen() {
             objective={objective}
             onSelect={selectProgram}
           />
+
+          {/* Manual workout always accessible */}
+          <Pressable
+            style={styles.manualBtn}
+            onPress={() => {
+              triggerHaptic();
+              router.push('/log-workout');
+            }}
+          >
+            <Text style={styles.manualBtnText}>
+              {t('logManualWorkout')} {'\u2192'}
+            </Text>
+          </Pressable>
         </Animated.View>
       ) : (
         /* ── Mode B: Active Plan ── */
@@ -209,7 +222,7 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 2,
-    borderColor: colors.success,
+    borderColor: colors.primary,
     padding: spacing.xl,
     marginBottom: spacing.xl,
   },
@@ -217,7 +230,7 @@ const useStyles = makeStyles((colors) => ({
     fontFamily: fonts.display,
     fontSize: fontSizes.xl,
     fontWeight: '800' as const,
-    color: colors.success,
+    color: colors.primary,
     letterSpacing: 1,
     marginBottom: spacing.xs,
   },
