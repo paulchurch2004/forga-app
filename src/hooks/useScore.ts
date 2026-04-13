@@ -85,6 +85,7 @@ export function useScore() {
       weightTrendPerWeek: weightTrend,
       objective: profile.objective,
       goalProgressPercent,
+      hasWeightData: weightLog.length >= 2,
       activeDaysLast7: useTrainingStore.getState().getActiveDaysLast7(todayDate),
       thisWeekCheckIn,
       waterTargetDaysMet: waterDaysMet,

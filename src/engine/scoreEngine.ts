@@ -62,6 +62,9 @@ function calculateConsistencyScore(input: ScoreInput): number {
 
 // ─── PROGRESSION (20 points max) ───
 function calculateProgressionScore(input: ScoreInput): number {
+  // Sans donnée de poids, on ne peut pas évaluer la progression → 0
+  if (input.hasWeightData === false) return 0;
+
   let score = 0;
 
   // Direction du poids vs objectif (0-12)

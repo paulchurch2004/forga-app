@@ -33,6 +33,7 @@ export interface ScoreInput {
   weightTrendPerWeek: number; // kg/semaine (positif = prise, négatif = perte)
   objective: 'bulk' | 'cut' | 'maintain' | 'recomp';
   goalProgressPercent: number; // 0-100
+  hasWeightData?: boolean; // false si aucune pesée récente — empêche le score fallback
 
   // Discipline
   activeDaysLast7: number; // jours actifs cette semaine (0-7)
