@@ -56,22 +56,22 @@ export default function Step4Target() {
   const currentWeight = onboardingData.currentWeight ?? 75;
   const objective = onboardingData.objective;
 
+  // Maintain/recomp don't need a target weight — it stays at current weight
+  const isWeightChangeObjective = objective === 'bulk' || objective === 'cut';
+
   // Determine default target based on objective
   const defaultTarget = useMemo(() => {
+    if (!isWeightChangeObjective) return String(currentWeight);
     if (onboardingData.targetWeight) return String(onboardingData.targetWeight);
     switch (objective) {
       case 'bulk':
         return String(Math.round(currentWeight + 5));
       case 'cut':
         return String(Math.round(currentWeight - 5));
-      case 'maintain':
-        return String(currentWeight);
-      case 'recomp':
-        return String(currentWeight);
       default:
         return '';
     }
-  }, [objective, currentWeight, onboardingData.targetWeight]);
+  }, [objective, currentWeight, onboardingData.targetWeight, isWeightChangeObjective]);
 
   const [targetWeight, setTargetWeight] = useState<string>(defaultTarget);
   const [timeline, setTimeline] = useState<Timeline>(() => {
@@ -91,7 +91,18 @@ export default function Step4Target() {
   const parsedTarget = parseFloat(targetWeight);
   const isTargetValid =
     !isNaN(parsedTarget) && parsedTarget >= 30 && parsedTarget <= 250;
-  const canContinue = isTargetValid;
+
+  // Validate that target direction matches objective
+  const isDirectionValid = useMemo(() => {
+    if (!isTargetValid || !isWeightChangeObjective) return true;
+    if (objective === 'bulk') return parsedTarget > currentWeight;
+    if (objective === 'cut') return parsedTarget < currentWeight;
+    return true;
+  }, [objective, parsedTarget, currentWeight, isTargetValid, isWeightChangeObjective]);
+
+  const canContinue = isWeightChangeObjective
+    ? (isTargetValid && isDirectionValid)
+    : true;
 
   const delta = isTargetValid ? parsedTarget - currentWeight : 0;
   const deltaAbs = Math.abs(delta);
@@ -114,7 +125,9 @@ export default function Step4Target() {
 
   const isRateHealthy = (): boolean => {
     const rate = parseFloat(weeklyRate);
-    // Healthy rate: lose/gain max ~0.7-1kg/week
+    // Bulk: max ~0.5 kg/week for lean gain (ISSN recommendation)
+    if (objective === 'bulk') return rate <= 0.5;
+    // Cut: max ~1.0 kg/week to preserve muscle
     return rate <= 1.0;
   };
 
@@ -126,12 +139,20 @@ export default function Step4Target() {
   const handleNext = useCallback(() => {
     if (!canContinue) return;
     triggerHaptic('light');
-    setOnboardingData({
-      targetWeight: parsedTarget,
-      targetDeadline: getDeadlineDate(parseInt(timeline, 10)),
-    });
+    if (isWeightChangeObjective) {
+      setOnboardingData({
+        targetWeight: parsedTarget,
+        targetDeadline: getDeadlineDate(parseInt(timeline, 10)),
+      });
+    } else {
+      // maintain/recomp: target = current weight, no deadline relevant
+      setOnboardingData({
+        targetWeight: currentWeight,
+        targetDeadline: getDeadlineDate(6),
+      });
+    }
     router.push('/(onboarding)/step5-activity');
-  }, [canContinue, parsedTarget, timeline, setOnboardingData, router]);
+  }, [canContinue, isWeightChangeObjective, parsedTarget, currentWeight, timeline, setOnboardingData, router]);
 
   return (
     <KeyboardAvoidingView
@@ -166,7 +187,9 @@ export default function Step4Target() {
           {/* Title */}
           <Text style={styles.title}>{t("onboardingStep4Title")}</Text>
           <Text style={styles.subtitle}>
-            {t("onboardingStep4Subtitle")}
+            {isWeightChangeObjective
+              ? t("onboardingStep4Subtitle")
+              : t("onboardingStep4SubtitleNoTarget")}
           </Text>
 
           {/* Current weight reminder */}
@@ -175,90 +198,114 @@ export default function Step4Target() {
             <Text style={styles.currentWeightValue}>{currentWeight} kg</Text>
           </View>
 
-          {/* Target weight input */}
-          <Text style={styles.sectionLabel}>{t("targetWeightLabel")}</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.numericInput}
-              value={targetWeight}
-              onChangeText={(text) => {
-                const cleaned = text.replace(/[^0-9.]/g, '');
-                const parts = cleaned.split('.');
-                const sanitized =
-                  parts.length > 2
-                    ? parts[0] + '.' + parts.slice(1).join('')
-                    : cleaned;
-                if (parts.length === 2 && parts[1].length > 1) return;
-                if (sanitized.length <= 5) setTargetWeight(sanitized);
-              }}
-              placeholder="70"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="decimal-pad"
-              maxLength={5}
-              returnKeyType="done"
-              accessibilityLabel={t("targetWeightLabel")}
-            />
-            <Text style={styles.inputUnit}>kg</Text>
-          </View>
+          {isWeightChangeObjective ? (
+            <>
+              {/* Target weight input */}
+              <Text style={styles.sectionLabel}>{t("targetWeightLabel")}</Text>
+              <View style={[styles.inputContainer, !isDirectionValid && isTargetValid && styles.inputError]}>
+                <TextInput
+                  style={styles.numericInput}
+                  value={targetWeight}
+                  onChangeText={(text) => {
+                    const cleaned = text.replace(/[^0-9.]/g, '');
+                    const parts = cleaned.split('.');
+                    const sanitized =
+                      parts.length > 2
+                        ? parts[0] + '.' + parts.slice(1).join('')
+                        : cleaned;
+                    if (parts.length === 2 && parts[1].length > 1) return;
+                    if (sanitized.length <= 5) setTargetWeight(sanitized);
+                  }}
+                  placeholder="70"
+                  placeholderTextColor={colors.textMuted}
+                  keyboardType="decimal-pad"
+                  maxLength={5}
+                  returnKeyType="done"
+                  accessibilityLabel={t("targetWeightLabel")}
+                />
+                <Text style={styles.inputUnit}>kg</Text>
+              </View>
 
-          {/* Delta display */}
-          {isTargetValid && (
-            <View style={styles.deltaCard}>
-              <Text style={[styles.deltaText, { color: getDeltaColor() }]}>
-                {getDeltaLabel()}
+              {/* Direction mismatch error */}
+              {!isDirectionValid && isTargetValid && (
+                <Text style={styles.directionError}>
+                  {objective === 'bulk'
+                    ? t("targetMustBeHigher")
+                    : t("targetMustBeLower")}
+                </Text>
+              )}
+
+              {/* Delta display */}
+              {isTargetValid && isDirectionValid && (
+                <View style={styles.deltaCard}>
+                  <Text style={[styles.deltaText, { color: getDeltaColor() }]}>
+                    {getDeltaLabel()}
+                  </Text>
+                  {delta !== 0 && (
+                    <Text
+                      style={[
+                        styles.rateText,
+                        !isRateHealthy() && styles.rateWarning,
+                      ]}
+                    >
+                      {t("weeklyRate", { rate: weeklyRate })}
+                    </Text>
+                  )}
+                  {!isRateHealthy() && delta !== 0 && (
+                    <Text style={styles.rateWarningText}>
+                      {objective === 'bulk'
+                        ? t("rateWarningBulk")
+                        : t("rateWarning")}
+                    </Text>
+                  )}
+                </View>
+              )}
+
+              {/* Timeline selector */}
+              <Text style={[styles.sectionLabel, { marginTop: spacing["2xl"] }]}>
+                {t("deadline")}
               </Text>
-              {delta !== 0 && (
-                <Text
-                  style={[
-                    styles.rateText,
-                    !isRateHealthy() && styles.rateWarning,
-                  ]}
-                >
-                  {t("weeklyRate", { rate: weeklyRate })}
-                </Text>
-              )}
-              {!isRateHealthy() && delta !== 0 && (
-                <Text style={styles.rateWarningText}>
-                  {t("rateWarning")}
-                </Text>
-              )}
+              <View style={styles.timelineRow}>
+                {TIMELINE_OPTIONS.map((option) => {
+                  const isSelected = timeline === option.value;
+                  return (
+                    <Pressable
+                      key={option.value}
+                      style={[
+                        styles.timelineChip,
+                        isSelected && styles.timelineChipSelected,
+                      ]}
+                      onPress={() => {
+                        triggerHaptic('light');
+                        setTimeline(option.value);
+                      }}
+                      accessibilityRole="button"
+                      accessibilityLabel={t(option.labelKey as any)}
+                      accessibilityState={{ selected: isSelected }}
+                    >
+                      <Text
+                        style={[
+                          styles.timelineChipText,
+                          isSelected && styles.timelineChipTextSelected,
+                        ]}
+                      >
+                        {t(option.labelKey as any)}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </>
+          ) : (
+            /* Maintain/Recomp: informational message, no target needed */
+            <View style={styles.infoCard}>
+              <Text style={styles.infoText}>
+                {objective === 'maintain'
+                  ? t("step4MaintainInfo")
+                  : t("step4RecompInfo")}
+              </Text>
             </View>
           )}
-
-          {/* Timeline selector */}
-          <Text style={[styles.sectionLabel, { marginTop: spacing["2xl"] }]}>
-            {t("deadline")}
-          </Text>
-          <View style={styles.timelineRow}>
-            {TIMELINE_OPTIONS.map((option) => {
-              const isSelected = timeline === option.value;
-              return (
-                <Pressable
-                  key={option.value}
-                  style={[
-                    styles.timelineChip,
-                    isSelected && styles.timelineChipSelected,
-                  ]}
-                  onPress={() => {
-                    triggerHaptic('light');
-                    setTimeline(option.value);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={t(option.labelKey as any)}
-                  accessibilityState={{ selected: isSelected }}
-                >
-                  <Text
-                    style={[
-                      styles.timelineChipText,
-                      isSelected && styles.timelineChipTextSelected,
-                    ]}
-                  >
-                    {t(option.labelKey as any)}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
         </ScrollView>
 
         {/* Bottom button */}
@@ -390,6 +437,29 @@ const useStyles = makeStyles((colors) => ({
     fontSize: fontSizes.lg,
     color: colors.textSecondary,
     fontWeight: fontWeights.medium,
+  },
+  inputError: {
+    borderColor: colors.error,
+  },
+  directionError: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.xs,
+    color: colors.error,
+    marginTop: spacing.sm,
+  },
+  infoCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.xl,
+    marginTop: spacing.md,
+  },
+  infoText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    color: colors.textSecondary,
+    lineHeight: 22,
   },
   deltaCard: {
     backgroundColor: colors.surface,
