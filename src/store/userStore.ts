@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { UserProfile, OnboardingData, Badge, WeightEntry, WeeklyCheckIn, BodyMeasurement } from '../types/user';
+import type { UserProfile, OnboardingData, Badge, WeightEntry, WeeklyCheckIn, BodyMeasurement, ProgressPhoto } from '../types/user';
 
 interface UserState {
   profile: UserProfile | null;
@@ -10,6 +10,7 @@ interface UserState {
   weightLog: WeightEntry[];
   checkIns: WeeklyCheckIn[];
   measurements: BodyMeasurement[];
+  progressPhotos: ProgressPhoto[];
 
   setProfile: (profile: UserProfile | null) => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
@@ -23,6 +24,8 @@ interface UserState {
   addCheckIn: (checkIn: WeeklyCheckIn) => void;
   setMeasurements: (measurements: BodyMeasurement[]) => void;
   addMeasurement: (measurement: BodyMeasurement) => void;
+  addProgressPhoto: (photo: ProgressPhoto) => void;
+  removeProgressPhoto: (id: string) => void;
   reset: () => void;
 }
 
@@ -37,6 +40,7 @@ export const useUserStore = create<UserState>()(
       weightLog: [],
       checkIns: [],
       measurements: [],
+      progressPhotos: [],
 
       setProfile: (profile) => set({ profile }),
       updateProfile: (updates) =>
@@ -60,6 +64,10 @@ export const useUserStore = create<UserState>()(
       setMeasurements: (measurements) => set({ measurements }),
       addMeasurement: (measurement) =>
         set((state) => ({ measurements: [...state.measurements, measurement] })),
+      addProgressPhoto: (photo) =>
+        set((state) => ({ progressPhotos: [...state.progressPhotos, photo] })),
+      removeProgressPhoto: (id) =>
+        set((state) => ({ progressPhotos: state.progressPhotos.filter((p) => p.id !== id) })),
       reset: () =>
         set({
           profile: null,
@@ -68,6 +76,7 @@ export const useUserStore = create<UserState>()(
           weightLog: [],
           checkIns: [],
           measurements: [],
+          progressPhotos: [],
         }),
     }),
     {
@@ -79,6 +88,7 @@ export const useUserStore = create<UserState>()(
         weightLog: state.weightLog,
         checkIns: state.checkIns,
         measurements: state.measurements,
+        progressPhotos: state.progressPhotos,
       }),
     }
   )

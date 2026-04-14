@@ -175,6 +175,14 @@ export default function NutritionScreen() {
       targetProtein: targetMacros.protein,
       consumedCalories: consumedMacros.calories,
       targetCalories: targetMacros.calories,
+      // Timing insights
+      breakfastLogged: todayMeals.some((m) => m.slot === 'breakfast'),
+      lastMealHour: todayMeals.length > 0
+        ? Math.max(...todayMeals.map((m) => new Date(m.validatedAt).getHours()))
+        : undefined,
+      hoursWithoutMeal: todayMeals.length > 0
+        ? Math.round((now.getTime() - Math.max(...todayMeals.map((m) => new Date(m.validatedAt).getTime()))) / 3600000)
+        : undefined,
     };
     return getCoachMessage(input);
   }, [profile, currentStreak, isTodayValidated, todayMeals, currentSlot, currentScore, consumedMacros, targetMacros]);

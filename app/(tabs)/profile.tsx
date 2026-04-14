@@ -384,6 +384,23 @@ export default function ProfileScreen() {
         </Pressable>
       </View>
 
+      {/* Progress photos */}
+      <View style={styles.section}>
+        <Pressable
+          style={styles.progressionButton}
+          onPress={() => router.push('/progress-photos')}
+        >
+          <View style={styles.progressionLeft}>
+            <Text style={styles.progressionIcon}>{'\uD83D\uDCF7'}</Text>
+            <View>
+              <Text style={styles.progressionTitle}>{locale === 'en' ? 'Progress Photos' : 'Photos de progression'}</Text>
+              <Text style={styles.progressionSubtitle}>{locale === 'en' ? 'Track your visual transformation' : 'Suis ta transformation visuelle'}</Text>
+            </View>
+          </View>
+          <Text style={styles.progressionArrow}>{'\u203A'}</Text>
+        </Pressable>
+      </View>
+
       {/* Weight chart */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t('weightEvolution')}</Text>

@@ -27,6 +27,10 @@ export interface CoachInput {
   targetProtein: number;
   consumedCalories: number;
   targetCalories: number;
+  // Timing insights
+  lastMealHour?: number; // hour of last validated meal (0-23)
+  breakfastLogged?: boolean;
+  hoursWithoutMeal?: number; // hours since last meal
 }
 
 // ──────────── HELPERS ────────────
@@ -241,6 +245,39 @@ const GENERAL_MOTIVATION: LocalizedBank = {
   ],
 };
 
+const SKIP_BREAKFAST: LocalizedBank = {
+  fr: [
+    { text: 'T\'as pas pris de petit-dej aujourd\'hui {prenom}.', subtext: 'Le petit-dejeuner lance ton metabolisme. Essaie de manger dans les 2h apres le reveil.' },
+    { text: 'Petit-dej saute !', subtext: 'En {objective}, c\'est important de bien repartir tes repas. Commence par un shaker ou un yaourt si t\'as pas faim le matin.' },
+  ],
+  en: [
+    { text: 'You skipped breakfast today {prenom}.', subtext: 'Breakfast kickstarts your metabolism. Try eating within 2h of waking up.' },
+    { text: 'Breakfast skipped!', subtext: 'When {objective}, spreading meals matters. Start with a shake or yogurt if you\'re not hungry.' },
+  ],
+};
+
+const MEAL_GAP_LONG: LocalizedBank = {
+  fr: [
+    { text: 'Ca fait {gap}h que t\'as pas mange {prenom}.', subtext: 'Essaie de manger toutes les 3-4h pour maintenir ton energie et ta synthese proteique.' },
+    { text: '{gap} heures sans manger, c\'est long.', subtext: 'Meme un snack proteine suffit pour relancer ta machine.' },
+  ],
+  en: [
+    { text: 'It\'s been {gap}h since your last meal {prenom}.', subtext: 'Try eating every 3-4h to maintain energy and protein synthesis.' },
+    { text: '{gap} hours without food, that\'s a while.', subtext: 'Even a protein snack is enough to keep your engine running.' },
+  ],
+};
+
+const LATE_DINNER: LocalizedBank = {
+  fr: [
+    { text: 'Dernier repas a {lastMealH}h, c\'est un peu tard.', subtext: 'Essaie de diner avant 21h pour une meilleure digestion et un meilleur sommeil.' },
+    { text: 'Tu manges tard {prenom}.', subtext: 'Un diner tardif peut perturber ton sommeil et ta recuperation. Anticipe si possible.' },
+  ],
+  en: [
+    { text: 'Last meal at {lastMealH}h, that\'s a bit late.', subtext: 'Try eating dinner before 9pm for better digestion and sleep.' },
+    { text: 'You\'re eating late {prenom}.', subtext: 'Late dinners can disrupt sleep and recovery. Plan ahead if you can.' },
+  ],
+};
+
 // ──────────── MOTEUR PRINCIPAL ────────────
 
 export function getCoachMessage(input: CoachInput): CoachMessage {
@@ -300,6 +337,28 @@ export function getCoachMessage(input: CoachInput): CoachMessage {
   if (input.score.total >= 50 && input.score.consistency >= 20) {
     const msg = pick(SCORE_UP[locale] ?? SCORE_UP.fr);
     return { text: fill(msg.text, vars), subtext: fill(msg.subtext, vars), mood: 'trophy' };
+  }
+
+  // ─── P3.5: PETIT-DEJ SAUTE (apres 11h) ───
+  if (input.hour >= 11 && input.breakfastLogged === false && input.mealsValidatedCount > 0) {
+    const objLabel = locale === 'en'
+      ? (input.objective === 'bulk' ? 'bulking' : input.objective === 'cut' ? 'cutting' : 'maintaining')
+      : (input.objective === 'bulk' ? 'prise de masse' : input.objective === 'cut' ? 'seche' : 'maintien');
+    const msg = pick(SKIP_BREAKFAST[locale] ?? SKIP_BREAKFAST.fr);
+    return { text: fill(msg.text, { ...vars, objective: objLabel }), subtext: fill(msg.subtext, { ...vars, objective: objLabel }), mood: 'chill' as CoachMood };
+  }
+
+  // ─── P3.5: TROP LONGTEMPS SANS MANGER (5h+) ───
+  if (input.hoursWithoutMeal && input.hoursWithoutMeal >= 5 && input.mealsValidatedCount > 0 && input.mealsValidatedCount < input.mealsExpected) {
+    const msg = pick(MEAL_GAP_LONG[locale] ?? MEAL_GAP_LONG.fr);
+    return { text: fill(msg.text, { ...vars, gap: input.hoursWithoutMeal }), subtext: fill(msg.subtext, { ...vars, gap: input.hoursWithoutMeal }), mood: 'chill' as CoachMood,
+      action: { label: actionLabels.logMeal, route: '/(tabs)/meals' } };
+  }
+
+  // ─── P3.5: DINER TARDIF (apres 21h30) ───
+  if (input.lastMealHour && input.lastMealHour >= 22 && input.hour >= 7 && input.hour < 12) {
+    const msg = pick(LATE_DINNER[locale] ?? LATE_DINNER.fr);
+    return { text: fill(msg.text, { ...vars, lastMealH: input.lastMealHour }), subtext: fill(msg.subtext, { ...vars, lastMealH: input.lastMealHour }), mood: 'chill' as CoachMood };
   }
 
   // ─── P4: PROTEINES BASSES (apres midi) ───

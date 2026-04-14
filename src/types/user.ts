@@ -97,6 +97,16 @@ export interface BodyMeasurement {
   createdAt: string;
 }
 
+export interface ProgressPhoto {
+  id: string;
+  userId: string;
+  date: string;
+  uri: string; // local file URI
+  weight?: number;
+  note?: string;
+  createdAt: string;
+}
+
 export interface Badge {
   id: string;
   type: BadgeType;
