@@ -19,6 +19,7 @@ import { WeightPromptModal } from '../../src/components/ui/WeightPromptModal';
 import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useT } from '../../src/i18n';
+import { WaterCard } from '../../src/components/hydration/WaterCard';
 
 const CARD_IMAGES = {
   nutrition:
@@ -99,6 +100,9 @@ export default function HomeScreen() {
         <StreakBadge streak={currentStreak} isActive={isTodayValidated} size="sm" />
       </View>
 
+      {/* ── HYDRATATION ── */}
+      <WaterCard />
+
       {/* ── NUTRITION ── */}
       <Pressable style={styles.card} onPress={() => router.push('/nutrition')}>
         <ImageBackground
@@ -159,10 +163,10 @@ export default function HomeScreen() {
         </ImageBackground>
       </Pressable>
 
-      {/* ── BILAN / CHECK-IN ── */}
+      {/* ── BILAN HEBDO/MENSUEL ── */}
       <Pressable
         style={styles.card}
-        onPress={() => router.push('/progression')}
+        onPress={() => router.push('/report')}
       >
         <ImageBackground
           source={{ uri: CARD_IMAGES.community }}
