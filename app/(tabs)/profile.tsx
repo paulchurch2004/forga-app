@@ -35,7 +35,9 @@ import { LineChart, type DataPoint } from '../../src/components/charts/LineChart
 import { EmptyState } from '../../src/components/ui/EmptyState';
 import { useNotifications } from '../../src/hooks/useNotifications';
 import { events } from '../../src/services/analytics';
+import appJson from '../../app.json';
 
+const APP_VERSION = appJson.expo.version;
 const PROFILE_HEADER_IMAGE =
   'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&q=60';
 
@@ -90,7 +92,9 @@ export default function ProfileScreen() {
       setCodeCopied(true);
       events.referralCodeShared('copy');
       setTimeout(() => setCodeCopied(false), 2000);
-    } catch {}
+    } catch (error) {
+      console.warn('[Profile] Copy referral code failed:', error);
+    }
   }, [profile?.referralCode]);
 
   const handleShareCode = useCallback(async () => {
@@ -101,7 +105,9 @@ export default function ProfileScreen() {
         message: t('shareReferralMessage', { code }),
       });
       events.referralCodeShared('share');
-    } catch {}
+    } catch (error) {
+      console.warn('[Profile] Share referral code failed:', error);
+    }
   }, [profile?.referralCode]);
 
   if (!profile) return null;
@@ -153,20 +159,32 @@ export default function ProfileScreen() {
           text: t('delete'),
           style: 'destructive',
           onPress: async () => {
-            const userId = profile.id;
-            await supabase.from('daily_meals').delete().eq('user_id', userId);
-            await supabase.from('weekly_checkins').delete().eq('user_id', userId);
-            await supabase.from('weight_log').delete().eq('user_id', userId);
-            await supabase.from('badges').delete().eq('user_id', userId);
-            await supabase.from('favorites').delete().eq('user_id', userId);
-            await supabase.from('score_history').delete().eq('user_id', userId);
-            await supabase.from('users').delete().eq('id', userId);
-            await supabase.auth.signOut();
-            useUserStore.getState().reset();
-            useMealStore.getState().reset();
-            useScoreStore.getState().reset();
-            useAuthStore.getState().reset();
-            useWaterStore.getState().reset();
+            try {
+              const userId = profile.id;
+              const tables = [
+                { table: 'daily_meals', col: 'user_id' },
+                { table: 'weekly_checkins', col: 'user_id' },
+                { table: 'weight_log', col: 'user_id' },
+                { table: 'badges', col: 'user_id' },
+                { table: 'favorites', col: 'user_id' },
+                { table: 'score_history', col: 'user_id' },
+                { table: 'users', col: 'id' },
+              ];
+              for (const { table, col } of tables) {
+                const { error } = await supabase.from(table).delete().eq(col, userId);
+                if (error) {
+                  console.error(`[DeleteAccount] Failed to delete from ${table}:`, error.message);
+                }
+              }
+              await supabase.auth.signOut();
+              useUserStore.getState().reset();
+              useMealStore.getState().reset();
+              useScoreStore.getState().reset();
+              useAuthStore.getState().reset();
+              useWaterStore.getState().reset();
+            } catch (error: any) {
+              Alert.alert(t('error'), t('errorOccurred'));
+            }
           },
         },
       ],
@@ -497,7 +515,7 @@ export default function ProfileScreen() {
           </Text>
         </Pressable>
         <Text style={[styles.legalText, { marginTop: spacing.lg }]}>
-          FORGA v1.0.0
+          FORGA v{APP_VERSION}
         </Text>
       </View>
     </ScrollView>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable, Platform } from 'react-native';
 import { ProgressCircle } from '../ui/ProgressCircle';
-import { makeStyles, fonts, fontSizes, spacing } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius, shadows } from '../../theme';
 import { useWater } from '../../hooks/useWater';
 import { useT } from '../../i18n';
 import { useTheme } from '../../context/ThemeContext';
@@ -139,12 +139,12 @@ export function WaterCard() {
 const useStyles = makeStyles((colors) => ({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 0,
+    borderRadius: borderRadius.xl,
     padding: spacing.lg,
-    borderTopWidth: 2,
-    borderBottomWidth: 2,
-    borderColor: colors.border,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
     marginBottom: spacing.lg,
+    ...shadows.card,
   },
   row: {
     flexDirection: 'row' as const,
@@ -183,7 +183,7 @@ const useStyles = makeStyles((colors) => ({
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
     backgroundColor: 'transparent',
-    borderRadius: 0,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
     borderColor: WATER_COLOR,
     paddingVertical: spacing.sm,
@@ -247,7 +247,7 @@ const useStyles = makeStyles((colors) => ({
   },
   bar: {
     width: '60%' as const,
-    borderRadius: 0,
+    borderRadius: borderRadius.sm,
     minHeight: 3,
   },
   dayLabel: {

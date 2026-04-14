@@ -67,16 +67,16 @@ export async function purchasePackage(pkg: any): Promise<any | null> {
 }
 
 export async function restorePurchases(): Promise<any> {
-  if (isWeb) throw new Error('Non disponible sur web');
+  if (isWeb) return null;
   const sdk = await getPurchases();
-  if (!sdk) throw new Error('RevenueCat non disponible');
+  if (!sdk) return null;
   return sdk.restorePurchases();
 }
 
 export async function getCustomerInfo(): Promise<any> {
-  if (isWeb) throw new Error('Non disponible sur web');
+  if (isWeb) return null;
   const sdk = await getPurchases();
-  if (!sdk) throw new Error('RevenueCat non disponible');
+  if (!sdk) return null;
   return sdk.getCustomerInfo();
 }
 

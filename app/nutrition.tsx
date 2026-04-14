@@ -7,9 +7,11 @@ import {
   Modal,
   Pressable,
   Platform,
+  ImageBackground,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useUserStore } from '../src/store/userStore';
 import { useScoreStore } from '../src/store/scoreStore';
 import { useMealStore } from '../src/store/mealStore';
@@ -22,8 +24,9 @@ import { MealSlotList } from '../src/components/home/MealSlotList';
 import { StreakBadge } from '../src/components/ui/StreakBadge';
 import { CoachCard } from '../src/components/home/CoachCard';
 import { getCoachMessage, type CoachInput } from '../src/engine/coachEngine';
-import { fonts, fontSizes, spacing, makeStyles } from '../src/theme';
+import { fonts, fontSizes, spacing, borderRadius, shadows, makeStyles } from '../src/theme';
 import { useResponsive } from '../src/hooks/useResponsive';
+import { useTheme } from '../src/context/ThemeContext';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { ShareStreakCard } from '../src/components/gamification/ShareStreakCard';
 import { WaterCard } from '../src/components/hydration/WaterCard';
@@ -36,6 +39,13 @@ import { useT } from '../src/i18n';
 import * as Haptics from 'expo-haptics';
 import type { BadgeType } from '../src/types/user';
 
+const NUTRITION_HERO_IMAGE =
+  'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=60';
+const SCAN_IMAGE =
+  'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=60';
+const PHOTO_IMAGE =
+  'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=60';
+
 export default function NutritionScreen() {
   const insets = useSafeAreaInsets();
   const { contentMaxWidth } = useResponsive();
@@ -46,6 +56,7 @@ export default function NutritionScreen() {
   const { cardRef, share } = useShareCard();
   const styles = useStyles();
   const { t } = useT();
+  const { colors } = useTheme();
 
   const profile = useUserStore((s) => s.profile);
   const checkIns = useUserStore((s) => s.checkIns);
@@ -205,18 +216,28 @@ export default function NutritionScreen() {
           />
         }
       >
-        {/* Back + Header */}
-        <View style={styles.headerRow}>
-          <Pressable onPress={() => router.back()} hitSlop={16}>
-            <Text style={styles.backText}>{'\u2039'} {t('home')}</Text>
-          </Pressable>
-          <StreakBadge streak={currentStreak} isActive={isTodayValidated} size="sm" />
-        </View>
-
-        <Text style={styles.pageTitle}>{t('nutrition')}</Text>
-        <Text style={styles.pageSubtitle}>
-          {greeting}, {firstName}
-        </Text>
+        {/* Hero Header with image */}
+        <ImageBackground
+          source={{ uri: NUTRITION_HERO_IMAGE }}
+          style={styles.headerBg}
+          imageStyle={styles.headerBgImage}
+        >
+          <LinearGradient
+            colors={['rgba(0,0,0,0.2)', colors.background]}
+            style={styles.headerOverlay}
+          >
+            <View style={styles.headerRow}>
+              <Pressable onPress={() => router.back()} hitSlop={16}>
+                <Text style={styles.backText}>{'\u2039'} {t('home')}</Text>
+              </Pressable>
+              <StreakBadge streak={currentStreak} isActive={isTodayValidated} size="sm" />
+            </View>
+            <Text style={styles.pageTitle}>{t('nutrition')}</Text>
+            <Text style={styles.pageSubtitle}>
+              {greeting}, {firstName}
+            </Text>
+          </LinearGradient>
+        </ImageBackground>
 
         {currentStreak >= 3 && (
           <Pressable
@@ -311,17 +332,39 @@ export default function NutritionScreen() {
           </View>
         </Animated.View>
 
-        {/* Scan actions */}
+        {/* Scan actions with images */}
         <Animated.View entering={FadeInDown.delay(500).duration(400)}>
           <Text style={styles.sectionLabel}>AJOUTER UN REPAS</Text>
           <View style={styles.scanActions}>
             <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/barcode')}>
-              <Text style={styles.scanActionTitle}>SCAN</Text>
-              <Text style={styles.scanActionSub}>{t('barcode')}</Text>
+              <ImageBackground
+                source={{ uri: SCAN_IMAGE }}
+                style={styles.scanActionImage}
+                imageStyle={styles.scanActionImageInner}
+              >
+                <LinearGradient
+                  colors={['transparent', 'rgba(0,0,0,0.75)']}
+                  style={styles.scanActionOverlay}
+                >
+                  <Text style={styles.scanActionTitle}>SCAN</Text>
+                  <Text style={styles.scanActionSub}>{t('barcode')}</Text>
+                </LinearGradient>
+              </ImageBackground>
             </Pressable>
             <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/photo')}>
-              <Text style={styles.scanActionTitle}>PHOTO</Text>
-              <Text style={styles.scanActionSub}>{t('identifyDish')}</Text>
+              <ImageBackground
+                source={{ uri: PHOTO_IMAGE }}
+                style={styles.scanActionImage}
+                imageStyle={styles.scanActionImageInner}
+              >
+                <LinearGradient
+                  colors={['transparent', 'rgba(0,0,0,0.75)']}
+                  style={styles.scanActionOverlay}
+                >
+                  <Text style={styles.scanActionTitle}>PHOTO</Text>
+                  <Text style={styles.scanActionSub}>{t('identifyDish')}</Text>
+                </LinearGradient>
+              </ImageBackground>
             </Pressable>
           </View>
         </Animated.View>
@@ -330,10 +373,20 @@ export default function NutritionScreen() {
         <Animated.View entering={FadeInDown.delay(600).duration(400)}>
           <View style={styles.quickActions}>
             <Pressable style={styles.quickActionBtn} onPress={() => router.push('/weekly-plan')}>
-              <Text style={styles.quickActionText}>PLAN HEBDO</Text>
+              <LinearGradient
+                colors={[`${colors.primary}18`, `${colors.primary}08`]}
+                style={styles.quickActionGradient}
+              >
+                <Text style={styles.quickActionText}>PLAN HEBDO</Text>
+              </LinearGradient>
             </Pressable>
             <Pressable style={styles.quickActionBtn} onPress={() => router.push('/meal-history')}>
-              <Text style={styles.quickActionText}>HISTORIQUE</Text>
+              <LinearGradient
+                colors={[`${colors.primary}18`, `${colors.primary}08`]}
+                style={styles.quickActionGradient}
+              >
+                <Text style={styles.quickActionText}>HISTORIQUE</Text>
+              </LinearGradient>
             </Pressable>
           </View>
         </Animated.View>
@@ -376,16 +429,32 @@ const useStyles = makeStyles((colors) => ({
     fontSize: fontSizes.md,
     color: colors.textSecondary,
   },
+
+  // Hero header
+  headerBg: {
+    width: '100%',
+    height: 160,
+    marginBottom: spacing.md,
+  },
+  headerBgImage: {
+    borderRadius: borderRadius.xl,
+  },
+  headerOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: spacing.xl,
+    borderRadius: borderRadius.xl,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   backText: {
     fontFamily: fonts.body,
     fontSize: fontSizes.md,
-    color: colors.primary,
+    color: colors.white,
     fontWeight: '600',
   },
   pageTitle: {
@@ -393,15 +462,14 @@ const useStyles = makeStyles((colors) => ({
     fontSize: fontSizes['3xl'],
     fontWeight: '800',
     letterSpacing: -1,
-    color: colors.text,
+    color: colors.white,
     textTransform: 'uppercase',
   },
   pageSubtitle: {
     fontFamily: fonts.body,
     fontSize: fontSizes.sm,
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.75)',
     marginTop: spacing.xs,
-    marginBottom: spacing.lg,
   },
   sectionLabel: {
     fontFamily: fonts.body,
@@ -416,8 +484,8 @@ const useStyles = makeStyles((colors) => ({
   shareStreakBtn: {
     alignSelf: 'flex-start',
     backgroundColor: 'transparent',
-    borderRadius: 0,
-    borderWidth: 2,
+    borderRadius: borderRadius.sm,
+    borderWidth: 1.5,
     borderColor: colors.primary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
@@ -432,12 +500,13 @@ const useStyles = makeStyles((colors) => ({
   },
   objectiveCard: {
     backgroundColor: colors.surface,
-    borderRadius: 0,
+    borderRadius: borderRadius.lg,
     borderLeftWidth: 3,
     borderLeftColor: colors.primary,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     marginBottom: spacing.lg,
+    ...shadows.card,
   },
   objectiveText: {
     fontFamily: fonts.body,
@@ -452,6 +521,8 @@ const useStyles = makeStyles((colors) => ({
   bottomSpacer: {
     height: spacing['3xl'],
   },
+
+  // Scan actions with images
   scanActions: {
     flexDirection: 'row',
     gap: spacing.sm,
@@ -459,21 +530,31 @@ const useStyles = makeStyles((colors) => ({
   },
   scanActionBtn: {
     flex: 1,
-    backgroundColor: 'transparent',
-    borderRadius: 0,
-    borderWidth: 2,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    borderWidth: 1.5,
     borderColor: colors.primary,
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.md,
-    alignItems: 'center',
-    gap: spacing.xs,
+    ...shadows.card,
+  },
+  scanActionImage: {
+    width: '100%',
+    height: 100,
+  },
+  scanActionImageInner: {
+    borderRadius: borderRadius.lg - 1,
+  },
+  scanActionOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: spacing.md,
+    borderRadius: borderRadius.lg - 1,
   },
   scanActionTitle: {
     fontFamily: fonts.display,
     fontSize: fontSizes.lg,
     fontWeight: '800',
     letterSpacing: 2,
-    color: colors.primary,
+    color: colors.white,
   },
   scanActionSub: {
     fontFamily: fonts.body,
@@ -481,8 +562,10 @@ const useStyles = makeStyles((colors) => ({
     fontWeight: '600',
     letterSpacing: 1,
     textTransform: 'uppercase',
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.7)',
   },
+
+  // Quick actions
   quickActions: {
     flexDirection: 'row',
     gap: spacing.sm,
@@ -490,10 +573,12 @@ const useStyles = makeStyles((colors) => ({
   },
   quickActionBtn: {
     flex: 1,
-    backgroundColor: 'transparent',
-    borderRadius: 0,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: `${colors.primary}30`,
+  },
+  quickActionGradient: {
     paddingVertical: spacing.md,
     alignItems: 'center',
   },
@@ -505,6 +590,8 @@ const useStyles = makeStyles((colors) => ({
     color: colors.text,
     textAlign: 'center',
   },
+
+  // Modals
   modalOverlay: {
     flex: 1,
     backgroundColor: colors.overlay,
@@ -522,7 +609,7 @@ const useStyles = makeStyles((colors) => ({
   },
   modalShareBtn: {
     backgroundColor: colors.primary,
-    borderRadius: 0,
+    borderRadius: borderRadius.md,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
   },
@@ -536,7 +623,7 @@ const useStyles = makeStyles((colors) => ({
   },
   modalCancelBtn: {
     backgroundColor: 'transparent',
-    borderRadius: 0,
+    borderRadius: borderRadius.md,
     borderWidth: 1,
     borderColor: colors.border,
     paddingHorizontal: spacing.xl,
@@ -550,12 +637,14 @@ const useStyles = makeStyles((colors) => ({
     textTransform: 'uppercase',
     color: colors.textSecondary,
   },
+
+  // Check-in banner
   checkInBanner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
     backgroundColor: `${colors.primary}10`,
-    borderRadius: 0,
+    borderRadius: borderRadius.lg,
     borderLeftWidth: 3,
     borderLeftColor: colors.primary,
     paddingHorizontal: spacing.md,
@@ -587,7 +676,7 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: 'transparent',
     borderLeftWidth: 2,
     borderLeftColor: colors.carbs,
-    borderRadius: 0,
+    borderRadius: borderRadius.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.xs,
     marginBottom: spacing.sm,

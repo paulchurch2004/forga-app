@@ -3,7 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import { router } from 'expo-router';
 import Animated, { useSharedValue, withTiming, useAnimatedStyle, Easing } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
-import { makeStyles, fonts, fontSizes, spacing } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius, shadows } from '../../theme';
 import { useTheme } from '../../context/ThemeContext';
 import { useT } from '../../i18n';
 import type { CoachMessage, CoachMood } from '../../engine/coachEngine';
@@ -113,11 +113,12 @@ export function CoachCard({ message }: CoachCardProps) {
 const useStyles = makeStyles((colors) => ({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: 0,
+    borderRadius: borderRadius.xl,
     padding: spacing.lg,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
     marginBottom: spacing.lg,
+    ...shadows.card,
   },
   row: {
     flexDirection: 'row',
@@ -160,8 +161,8 @@ const useStyles = makeStyles((colors) => ({
     alignSelf: 'flex-start',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    borderRadius: 0,
-    borderWidth: 2,
+    borderRadius: borderRadius.md,
+    borderWidth: 1.5,
     borderColor: colors.primary,
   },
   actionText: {
@@ -176,8 +177,9 @@ const useStyles = makeStyles((colors) => ({
     alignSelf: 'flex-start',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-    borderRadius: 0,
+    borderRadius: borderRadius.md,
     backgroundColor: colors.primary,
+    ...shadows.button,
   },
   chatButtonText: {
     fontFamily: fonts.display,

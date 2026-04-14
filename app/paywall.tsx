@@ -45,7 +45,7 @@ export default function PaywallScreen() {
   const styles = useStyles();
   const { t } = useT();
   const [packages, setPackages] = useState<any[]>([]);
-  const [selectedPlan, setSelectedPlan] = useState<'annual' | 'weekly'>('annual');
+  const [selectedPlan, setSelectedPlan] = useState<'annual' | 'monthly'>('annual');
   const [loading, setLoading] = useState(false);
   const [loadingPackages, setLoadingPackages] = useState(true);
   const updateProfile = useUserStore((s) => s.updateProfile);
@@ -78,11 +78,11 @@ export default function PaywallScreen() {
     const pkg = packages.find((p: any) =>
       selectedPlan === 'annual'
         ? p.packageType === 'ANNUAL'
-        : p.packageType === 'WEEKLY'
+        : p.packageType === 'MONTHLY'
     );
 
     if (!pkg) {
-      showAlert(t('error'), 'RevenueCat not configured');
+      showAlert(t('error'), t('subscriptionUnavailable'));
       return;
     }
 
@@ -110,7 +110,7 @@ export default function PaywallScreen() {
     try {
       if (isDemoMode) {
         // Demo mode: simulate premium activation
-        const weeks = selectedPlan === 'annual' ? 52 : 1;
+        const weeks = selectedPlan === 'annual' ? 52 : 4;
         const premiumUntil = calculatePremiumUntil(undefined, weeks);
         updateProfile({ isPremium: true, premiumUntil });
         events.purchaseCompleted(selectedPlan);
@@ -201,12 +201,12 @@ export default function PaywallScreen() {
         <Pressable
           style={[
             styles.planCard,
-            selectedPlan === 'weekly' && styles.planCardSelected,
+            selectedPlan === 'monthly' && styles.planCardSelected,
           ]}
-          onPress={() => setSelectedPlan('weekly')}
+          onPress={() => setSelectedPlan('monthly')}
         >
-          <Text style={styles.planPrice}>{t("weeklyPrice")}</Text>
-          <Text style={styles.planDetail}>{t("weeklyLabel")}</Text>
+          <Text style={styles.planPrice}>{t("monthlyPrice")}</Text>
+          <Text style={styles.planDetail}>{t("monthlyLabel")}</Text>
         </Pressable>
       </View>
 

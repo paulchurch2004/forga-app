@@ -27,15 +27,57 @@ import { useStreak } from '../../src/hooks/useStreak';
 import {
   getCoachResponse,
   QUESTION_LABELS,
+  DEFAULT_QUICK_REPLIES,
   type QuestionType,
   type CoachContext,
   type QuickReply,
 } from '../../src/engine/coachChatEngine';
+import { sendCoachMessage, type ChatHistoryEntry } from '../../src/services/coachAI';
 import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useT } from '../../src/i18n';
 import { router } from 'expo-router';
+
+// ──────────── SPEECH HELPERS (Web only) ────────────
+
+const isSpeechSupported = Platform.OS === 'web' && typeof window !== 'undefined';
+
+function speak(text: string, lang = 'fr-FR') {
+  if (!isSpeechSupported || !window.speechSynthesis) return;
+  window.speechSynthesis.cancel();
+
+  const doSpeak = () => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    utterance.rate = 1.05;
+    utterance.pitch = 1;
+    // Try to find a voice matching the language
+    const voices = window.speechSynthesis.getVoices();
+    const match = voices.find((v) => v.lang.startsWith(lang.split('-')[0]));
+    if (match) utterance.voice = match;
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // Voices may not be loaded yet on first call
+  if (window.speechSynthesis.getVoices().length > 0) {
+    doSpeak();
+  } else {
+    window.speechSynthesis.onvoiceschanged = () => doSpeak();
+  }
+}
+
+function createRecognition(lang = 'fr-FR'): any {
+  if (!isSpeechSupported) return null;
+  const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+  if (!SR) return null;
+  const recognition = new SR();
+  recognition.lang = lang;
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+  recognition.continuous = false;
+  return recognition;
+}
 
 // ──────────── TYPES ────────────
 
@@ -150,6 +192,9 @@ export default function CoachScreen() {
   const [isTyping, setIsTyping] = useState(false);
   const [freeText, setFreeText] = useState('');
   const messageIdRef = useRef(0);
+  const chatHistoryRef = useRef<ChatHistoryEntry[]>([]);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   // Build context from current state
   const coachContext = useMemo((): CoachContext | null => {
@@ -212,33 +257,96 @@ export default function CoachScreen() {
     });
   }, []);
 
-  // Initial greeting
+  // Initial greeting — run once when context becomes available
+  const greetingSentRef = useRef(false);
   useEffect(() => {
-    if (!coachContext) return;
+    if (!coachContext || greetingSentRef.current) return;
+    greetingSentRef.current = true;
     const response = getCoachResponse('greeting', coachContext);
     addCoachMessages(response.messages, response.quickReplies);
-  }, [coachContext !== null]); // Only run once when context becomes available
+  }, [coachContext, addCoachMessages]);
 
-  // Handle user question
+  // Send message to Groq AI with fallback to templates
+  const sendToAI = useCallback(async (userText: string, fallbackType: QuestionType) => {
+    if (!coachContext) return;
+
+    setIsTyping(true);
+    setQuickReplies([]);
+
+    // Track user message in history
+    chatHistoryRef.current.push({ role: 'user', content: userText });
+
+    const aiReply = await sendCoachMessage(userText, coachContext, chatHistoryRef.current);
+
+    if (aiReply) {
+      // AI responded successfully
+      chatHistoryRef.current.push({ role: 'assistant', content: aiReply });
+      const id = String(++messageIdRef.current);
+      setMessages((prev) => [...prev, { id, text: aiReply, isCoach: true, timestamp: Date.now() }]);
+      setIsTyping(false);
+      setQuickReplies((DEFAULT_QUICK_REPLIES[locale] ?? DEFAULT_QUICK_REPLIES.fr));
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+      // Read response aloud
+      speak(aiReply, locale === 'en' ? 'en-US' : 'fr-FR');
+    } else {
+      // Fallback to template responses
+      const response = getCoachResponse(fallbackType, coachContext);
+      addCoachMessages(response.messages, response.quickReplies);
+    }
+  }, [coachContext, locale, addCoachMessages]);
+
+  // Handle user question (quick reply)
   const handleQuestion = useCallback((type: QuestionType) => {
     if (!coachContext || isTyping) return;
 
-    // Add user message
+    const userText = (QUESTION_LABELS[locale] ?? QUESTION_LABELS.fr)[type];
     const userMsg: ChatMessage = {
       id: String(++messageIdRef.current),
-      text: (QUESTION_LABELS[locale] ?? QUESTION_LABELS.fr)[type],
+      text: userText,
       isCoach: false,
       timestamp: Date.now(),
     };
     setMessages((prev) => [...prev, userMsg]);
-
-    // Scroll to show user message
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
 
-    // Get and display coach response
-    const response = getCoachResponse(type, coachContext);
-    addCoachMessages(response.messages, response.quickReplies);
-  }, [coachContext, isTyping, addCoachMessages]);
+    sendToAI(userText, type);
+  }, [coachContext, isTyping, locale, sendToAI]);
+
+  // Handle voice input toggle
+  const handleMicPress = useCallback(() => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+
+    const recognition = createRecognition(locale === 'en' ? 'en-US' : 'fr-FR');
+    if (!recognition) return;
+
+    recognitionRef.current = recognition;
+    setIsListening(true);
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results?.[0]?.[0]?.transcript?.trim();
+      if (transcript && coachContext && !isTyping) {
+        const userMsg: ChatMessage = {
+          id: String(++messageIdRef.current),
+          text: transcript,
+          isCoach: false,
+          timestamp: Date.now(),
+        };
+        setMessages((prev) => [...prev, userMsg]);
+        setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
+        sendToAI(transcript, 'motivation');
+      }
+      setIsListening(false);
+    };
+
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+
+    recognition.start();
+  }, [isListening, locale, coachContext, isTyping, sendToAI]);
 
   // Handle free text message
   const handleSendFreeText = useCallback(() => {
@@ -253,12 +361,10 @@ export default function CoachScreen() {
     };
     setMessages((prev) => [...prev, userMsg]);
     setFreeText('');
-
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
 
-    const response = getCoachResponse('motivation', coachContext);
-    addCoachMessages(response.messages, response.quickReplies);
-  }, [freeText, coachContext, isTyping, addCoachMessages]);
+    sendToAI(text, 'motivation');
+  }, [freeText, coachContext, isTyping, sendToAI]);
 
   if (!profile) {
     return (
@@ -330,11 +436,23 @@ export default function CoachScreen() {
             style={styles.textInput}
             value={freeText}
             onChangeText={setFreeText}
-            placeholder={t('typeMessage')}
-            placeholderTextColor={colors.textMuted}
+            placeholder={isListening ? (locale === 'en' ? 'Listening...' : 'Écoute...') : t('typeMessage')}
+            placeholderTextColor={isListening ? colors.primary : colors.textMuted}
             returnKeyType="send"
             onSubmitEditing={handleSendFreeText}
           />
+          {isSpeechSupported && (
+            <Pressable
+              style={[styles.micButton, isListening && styles.micButtonActive]}
+              onPress={handleMicPress}
+              disabled={isTyping}
+            >
+              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                <Path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z" fill={isListening ? colors.white : colors.primary} />
+                <Path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" stroke={isListening ? colors.white : colors.primary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+              </Svg>
+            </Pressable>
+          )}
           <Pressable
             style={[styles.sendButton, (!freeText.trim() || isTyping) && styles.sendButtonDisabled]}
             onPress={handleSendFreeText}
@@ -551,6 +669,17 @@ const useStyles = makeStyles((colors) => ({
     fontSize: fontSizes.md,
     color: colors.text,
     maxHeight: 80,
+  },
+  micButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,107,53,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  micButtonActive: {
+    backgroundColor: colors.primary,
   },
   sendButton: {
     width: 40,

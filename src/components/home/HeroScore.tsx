@@ -12,7 +12,7 @@ import Animated, {
   Easing,
   FadeIn,
 } from 'react-native-reanimated';
-import { makeStyles, fonts, fontSizes, spacing } from '../../theme';
+import { makeStyles, fonts, fontSizes, spacing, borderRadius, shadows } from '../../theme';
 import { getScoreColor, getScoreLabel } from '../../theme/colors';
 import { useTheme } from '../../context/ThemeContext';
 import { useT } from '../../i18n';
@@ -345,13 +345,13 @@ export function HeroScore({ score, weeklyChange, consumed, target }: HeroScorePr
 const useStyles = makeStyles((colors) => ({
   hero: {
     backgroundColor: colors.surface,
-    borderRadius: 0,
-    borderTopWidth: 2,
-    borderBottomWidth: 2,
-    borderColor: colors.border,
+    borderRadius: borderRadius.xl,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
     paddingVertical: spacing.xl,
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.lg,
+    ...shadows.card,
   },
   ringSection: {
     alignItems: 'center',
@@ -438,14 +438,14 @@ const useStyles = makeStyles((colors) => ({
   calorieTrack: {
     height: 6,
     backgroundColor: colors.surfaceHover,
-    borderRadius: 0,
+    borderRadius: borderRadius.full,
     overflow: 'hidden',
     marginTop: spacing.md,
   },
   calorieFill: {
     height: '100%',
     backgroundColor: colors.calories,
-    borderRadius: 0,
+    borderRadius: borderRadius.full,
     position: 'absolute',
     left: 0,
     top: 0,

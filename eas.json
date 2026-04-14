@@ -6,13 +6,6 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "env": {
-        "EXPO_PUBLIC_SUPABASE_URL": "",
-        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "",
-        "EXPO_PUBLIC_REVENUECAT_IOS": "",
-        "EXPO_PUBLIC_REVENUECAT_ANDROID": "",
-        "EXPO_PUBLIC_POSTHOG_KEY": ""
-      }
     },
     "preview": {
       "distribution": "internal"

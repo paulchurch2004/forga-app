@@ -246,6 +246,8 @@ const useStyles = makeStyles((colors) => ({
     borderRadius: borderRadius.xl,
     overflow: 'hidden',
     marginBottom: spacing.md,
+    borderWidth: 1.5,
+    borderColor: colors.primary,
   },
   cardImage: {
     width: '100%',

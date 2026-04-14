@@ -64,40 +64,52 @@ function getWeightTrendAdjustment(
   let adj = 0;
 
   if (objective === 'bulk') {
-    if (trend < 0.1) {
-      adj = +100;
+    // Ideal bulk: +0.2 to 0.5 kg/week
+    if (trend < -0.1) {
+      adj = +100; // Losing weight in bulk → needs more
+      reasons.push(t('adaptiveBulkSlow'));
+    } else if (trend < 0.2) {
+      adj = +50; // Gaining too slowly
       reasons.push(t('adaptiveBulkSlow'));
     } else if (trend > 0.7) {
-      adj = -100;
+      adj = -100; // Gaining too fast → reduce
       reasons.push(t('adaptiveBulkFast'));
     }
+    // 0.2–0.7: on track, no adjustment
   }
 
   if (objective === 'cut') {
-    if (trend > -0.2) {
-      adj = -100;
+    // Ideal cut: -0.3 to -0.7 kg/week
+    if (trend > 0.1) {
+      adj = -100; // Gaining weight in cut → needs less
+      reasons.push(t('adaptiveCutSlow'));
+    } else if (trend > -0.3) {
+      adj = -50; // Losing too slowly
       reasons.push(t('adaptiveCutSlow'));
     } else if (trend < -1.0) {
-      adj = +100;
+      adj = +100; // Losing too fast → increase
       reasons.push(t('adaptiveCutFast'));
     }
+    // -0.3 to -1.0: on track, no adjustment
   }
 
   if (objective === 'maintain') {
-    if (Math.abs(trend) > 0.3) {
+    if (Math.abs(trend) > 0.5) {
       adj = trend > 0 ? -75 : +75;
       reasons.push(t('adaptiveMaintainDrift'));
     }
+    // Small fluctuations (<0.5kg) are normal
   }
 
   if (objective === 'recomp') {
-    if (trend > 0.3) {
+    if (trend > 0.4) {
       adj = -75;
       reasons.push(t('adaptiveRecompExcess'));
     } else if (trend < -0.5) {
       adj = +75;
       reasons.push(t('adaptiveRecompLoss'));
     }
+    // -0.5 to +0.4: on track for recomp
   }
 
   return adj;

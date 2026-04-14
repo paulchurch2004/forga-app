@@ -67,7 +67,7 @@ const SLOT_LABELS: Record<string, Record<string, string>> = {
 
 // ──────────── QUICK REPLIES ────────────
 
-const DEFAULT_REPLIES: Record<string, QuickReply[]> = {
+export const DEFAULT_QUICK_REPLIES: Record<string, QuickReply[]> = {
   fr: [
     { label: 'Quoi manger ?', type: 'what_to_eat' },
     { label: 'Mes macros', type: 'my_macros' },
@@ -87,7 +87,7 @@ const DEFAULT_REPLIES: Record<string, QuickReply[]> = {
 };
 
 function getRepliesExcept(locale: string, ...exclude: QuestionType[]): QuickReply[] {
-  const replies = DEFAULT_REPLIES[locale] ?? DEFAULT_REPLIES.fr;
+  const replies = DEFAULT_QUICK_REPLIES[locale] ?? DEFAULT_QUICK_REPLIES.fr;
   const filtered = replies.filter((r) => !exclude.includes(r.type));
   // Return 4 suggestions max
   return filtered.slice(0, 4);
@@ -137,7 +137,7 @@ function getGreeting(ctx: CoachContext, locale: string): ChatResponse {
       : `Je suis la pour t'aider a atteindre tes objectifs. Qu'est-ce que tu veux savoir ?`);
   }
 
-  const replies = DEFAULT_REPLIES[locale] ?? DEFAULT_REPLIES.fr;
+  const replies = DEFAULT_QUICK_REPLIES[locale] ?? DEFAULT_QUICK_REPLIES.fr;
   return { messages, quickReplies: replies.slice(0, 4) };
 }
 

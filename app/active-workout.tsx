@@ -20,6 +20,8 @@ import { hasTutorial } from '../src/data/exerciseTips';
 import { ExerciseTutorialModal } from '../src/components/training/ExerciseTutorialModal';
 import { useTrainingStore } from '../src/store/trainingStore';
 import { useProgramStore } from '../src/store/programStore';
+import { useUserStore } from '../src/store/userStore';
+import { getRestConfig, formatRestTime as fmtRest } from '../src/engine/restEngine';
 import type { ProgramExercise } from '../src/types/program';
 import type { Workout, WorkoutExercise, ExerciseSet, WorkoutType } from '../src/types/training';
 import Svg, { Path } from 'react-native-svg';
@@ -76,6 +78,7 @@ export default function ActiveWorkoutScreen() {
   const addWorkout = useTrainingStore((s) => s.addWorkout);
   const markDayCompleted = useProgramStore((s) => s.markDayCompleted);
   const getLastSession = useTrainingStore((s) => s.getLastSessionForExercise);
+  const objective = useUserStore((s) => s.profile?.objective ?? 'maintain');
 
   const programDay = useMemo(
     () => getProgramDayById(params.programId, params.programDayId),
@@ -109,6 +112,8 @@ export default function ActiveWorkoutScreen() {
   // Rest timer
   const [restSeconds, setRestSeconds] = useState(0);
   const [isResting, setIsResting] = useState(false);
+  const [restReasonKey, setRestReasonKey] = useState('');
+  const [isTransitionRest, setIsTransitionRest] = useState(false);
   const restRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startRestTimer = useCallback((seconds: number) => {
@@ -193,11 +198,30 @@ export default function ActiveWorkoutScreen() {
       const set = exercises[exIdx]?.sets[setIdx];
       if (set && !set.completed) {
         triggerHaptic('medium');
-        const restSecs = exercises[exIdx].programExercise.restSeconds;
-        if (restSecs > 0) startRestTimer(restSecs);
+        const ex = exercises[exIdx];
+        const config = getRestConfig(ex.exerciseId, ex.programExercise.targetReps, objective);
+
+        // Check if all sets of this exercise are now done → transition rest
+        const updatedSets = exercises[exIdx].sets.map((s, i) =>
+          i === setIdx ? { ...s, completed: true } : s
+        );
+        const allSetsDone = updatedSets.every((s) => s.completed);
+        const isLastExercise = exIdx === exercises.length - 1;
+
+        if (allSetsDone && !isLastExercise) {
+          // Transition rest between exercises
+          setIsTransitionRest(true);
+          setRestReasonKey('restTransition');
+          startRestTimer(config.transitionSeconds);
+        } else if (!allSetsDone) {
+          // Normal set rest
+          setIsTransitionRest(false);
+          setRestReasonKey(config.reasonKey);
+          startRestTimer(config.restSeconds);
+        }
       }
     },
-    [exercises, startRestTimer]
+    [exercises, startRestTimer, objective]
   );
 
   // Back navigation with confirmation
@@ -347,6 +371,7 @@ export default function ActiveWorkoutScreen() {
         {/* Muscu exercises */}
         {exercises.map((ex, exIdx) => {
           const allSetsCompleted = ex.sets.every((s) => s.completed);
+          const restConfig = getRestConfig(ex.exerciseId, ex.programExercise.targetReps, objective);
           return (
             <Animated.View
               key={ex.exerciseId}
@@ -374,6 +399,16 @@ export default function ActiveWorkoutScreen() {
                 )}
                 <Text style={styles.exerciseTarget}>
                   {ex.programExercise.targetSets}x{ex.programExercise.targetReps}
+                </Text>
+              </View>
+
+              {/* Rest time info */}
+              <View style={styles.restInfoRow}>
+                <Text style={styles.restInfoBadge}>
+                  {fmtRest(restConfig.restSeconds)}
+                </Text>
+                <Text style={styles.restInfoText}>
+                  {t(restConfig.reasonKey as any)}
                 </Text>
               </View>
 
@@ -447,8 +482,13 @@ export default function ActiveWorkoutScreen() {
       {/* Rest timer overlay */}
       {isResting && (
         <View style={styles.restOverlay}>
-          <Text style={styles.restLabel}>{t('restTimer')}</Text>
+          <Text style={styles.restLabel}>
+            {isTransitionRest ? t('restTransition' as any) : t('restTimer')}
+          </Text>
           <Text style={styles.restTime}>{formatTime(restSeconds)}</Text>
+          {restReasonKey !== '' && (
+            <Text style={styles.restReason}>{t(restReasonKey as any)}</Text>
+          )}
           <Pressable style={styles.skipBtn} onPress={skipRest}>
             <Text style={styles.skipBtnText}>{t('skipRest')}</Text>
           </Pressable>
@@ -584,6 +624,29 @@ const useStyles = makeStyles((colors) => ({
     color: colors.primary,
     marginLeft: spacing.sm,
   },
+  restInfoRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    marginBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  restInfoBadge: {
+    fontFamily: fonts.data,
+    fontSize: fontSizes.xs,
+    fontWeight: '700' as const,
+    color: colors.primary,
+    backgroundColor: `${colors.primary}15`,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.sm,
+    overflow: 'hidden' as const,
+  },
+  restInfoText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.xs,
+    color: colors.textMuted,
+    flex: 1,
+  },
   tableHeader: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
@@ -684,7 +747,15 @@ const useStyles = makeStyles((colors) => ({
     fontSize: fontSizes['4xl'],
     fontWeight: '700' as const,
     color: colors.primary,
+    marginBottom: spacing.sm,
+  },
+  restReason: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.xs,
+    color: colors.textSecondary,
+    textAlign: 'center' as const,
     marginBottom: spacing.md,
+    paddingHorizontal: spacing.md,
   },
   skipBtn: {
     borderWidth: 2,

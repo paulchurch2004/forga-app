@@ -46,6 +46,8 @@ import { useMealStore } from '../src/store/mealStore';
 import type { MealSlot } from '../src/types/meal';
 import { OfflineBanner } from '../src/components/ui/OfflineBanner';
 import { processQueue } from '../src/services/syncQueue';
+import { initRevenueCat } from '../src/services/revenueCat';
+import { initAnalytics, events } from '../src/services/analytics';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -107,6 +109,8 @@ function RootLayoutInner() {
 
   useEffect(() => {
     initSentry();
+    initAnalytics();
+    events.appOpened();
   }, []);
 
   // Notification init + tap listener
@@ -140,8 +144,9 @@ function RootLayoutInner() {
             await scheduleReactivation(daysSince);
           }
         }
-      } catch {
-        // Silent fail
+      } catch (error) {
+        console.warn('[Notifications] Failed to schedule:', error);
+        captureException(error instanceof Error ? error : new Error(String(error)), { component: 'NotificationScheduler' });
       }
     });
 
@@ -173,6 +178,7 @@ function RootLayoutInner() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
+        initRevenueCat(session.user.id);
         loadProfileFromSupabase(session.user.id).finally(() => setLoading(false));
       } else {
         setLoading(false);
@@ -204,7 +210,7 @@ function RootLayoutInner() {
     const flush = () => {
       const session = useAuthStore.getState().session;
       if (!session) return;
-      processQueue().catch(() => {});
+      processQueue().catch((err) => console.warn('[SyncQueue] Failed:', err));
     };
 
     // 1. Reset daily data if date changed (all platforms)
