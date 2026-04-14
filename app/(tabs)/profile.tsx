@@ -369,6 +369,19 @@ export default function ProfileScreen() {
           </View>
           <Text style={styles.progressionArrow}>{'\u203A'}</Text>
         </Pressable>
+        <Pressable
+          style={[styles.progressionButton, { marginTop: spacing.sm }]}
+          onPress={() => router.push('/measurements')}
+        >
+          <View style={styles.progressionLeft}>
+            <Text style={styles.progressionIcon}>{'\uD83D\uDCCF'}</Text>
+            <View>
+              <Text style={styles.progressionTitle}>{locale === 'en' ? 'Measurements' : 'Mensurations'}</Text>
+              <Text style={styles.progressionSubtitle}>{locale === 'en' ? 'Waist, chest, arms...' : 'Taille, poitrine, bras...'}</Text>
+            </View>
+          </View>
+          <Text style={styles.progressionArrow}>{'\u203A'}</Text>
+        </Pressable>
       </View>
 
       {/* Weight chart */}
@@ -395,6 +408,8 @@ export default function ProfileScreen() {
             icon={'\u2696'}
             title={t('weightFirstEntry')}
             subtitle={t('startCheckInForChart')}
+            actionLabel={t('weeklyCheckIn')}
+            onAction={() => router.push('/checkin')}
           />
         )}
       </View>

@@ -380,6 +380,14 @@ export default function NutritionScreen() {
                 <Text style={styles.quickActionText}>PLAN HEBDO</Text>
               </LinearGradient>
             </Pressable>
+            <Pressable style={styles.quickActionBtn} onPress={() => router.push('/recipes')}>
+              <LinearGradient
+                colors={[`${colors.primary}18`, `${colors.primary}08`]}
+                style={styles.quickActionGradient}
+              >
+                <Text style={styles.quickActionText}>RECETTES</Text>
+              </LinearGradient>
+            </Pressable>
             <Pressable style={styles.quickActionBtn} onPress={() => router.push('/meal-history')}>
               <LinearGradient
                 colors={[`${colors.primary}18`, `${colors.primary}08`]}

@@ -347,6 +347,10 @@ export const fr = {
   shareStreak: 'Partager mon streak',
   shareBadge: 'Partager mon badge',
 
+  // Empty states
+  noWorkoutsYet: 'Aucune seance enregistree',
+  noWorkoutsYetSub: 'Commence par enregistrer ta premiere seance pour suivre ta progression.',
+
   // Coming soon
   comingSoon: 'Bientot disponible !',
   trainingSectionComingSoon: 'La section Entrainement arrive bientot !',

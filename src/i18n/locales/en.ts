@@ -349,6 +349,10 @@ export const en: Record<TranslationKey, string> = {
   shareStreak: 'Share my streak',
   shareBadge: 'Share my badge',
 
+  // Empty states
+  noWorkoutsYet: 'No workouts yet',
+  noWorkoutsYetSub: 'Log your first workout to start tracking your progress.',
+
   // Coming soon
   comingSoon: 'Coming soon!',
   trainingSectionComingSoon: 'Training section coming soon!',

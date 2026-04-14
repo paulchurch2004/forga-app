@@ -84,6 +84,19 @@ export interface WeightEntry {
   createdAt: string;
 }
 
+export interface BodyMeasurement {
+  id: string;
+  userId: string;
+  date: string;
+  waistCm?: number;
+  hipsCm?: number;
+  chestCm?: number;
+  armsCm?: number;
+  thighsCm?: number;
+  bodyFatPercent?: number;
+  createdAt: string;
+}
+
 export interface Badge {
   id: string;
   type: BadgeType;

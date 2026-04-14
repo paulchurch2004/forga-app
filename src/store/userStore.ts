@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { UserProfile, OnboardingData, Badge, WeightEntry, WeeklyCheckIn } from '../types/user';
+import type { UserProfile, OnboardingData, Badge, WeightEntry, WeeklyCheckIn, BodyMeasurement } from '../types/user';
 
 interface UserState {
   profile: UserProfile | null;
@@ -9,6 +9,7 @@ interface UserState {
   badges: Badge[];
   weightLog: WeightEntry[];
   checkIns: WeeklyCheckIn[];
+  measurements: BodyMeasurement[];
 
   setProfile: (profile: UserProfile | null) => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
@@ -20,6 +21,8 @@ interface UserState {
   addWeightEntry: (entry: WeightEntry) => void;
   setCheckIns: (checkIns: WeeklyCheckIn[]) => void;
   addCheckIn: (checkIn: WeeklyCheckIn) => void;
+  setMeasurements: (measurements: BodyMeasurement[]) => void;
+  addMeasurement: (measurement: BodyMeasurement) => void;
   reset: () => void;
 }
 
@@ -33,6 +36,7 @@ export const useUserStore = create<UserState>()(
       badges: [],
       weightLog: [],
       checkIns: [],
+      measurements: [],
 
       setProfile: (profile) => set({ profile }),
       updateProfile: (updates) =>
@@ -53,6 +57,9 @@ export const useUserStore = create<UserState>()(
       setCheckIns: (checkIns) => set({ checkIns }),
       addCheckIn: (checkIn) =>
         set((state) => ({ checkIns: [...state.checkIns, checkIn] })),
+      setMeasurements: (measurements) => set({ measurements }),
+      addMeasurement: (measurement) =>
+        set((state) => ({ measurements: [...state.measurements, measurement] })),
       reset: () =>
         set({
           profile: null,
@@ -60,6 +67,7 @@ export const useUserStore = create<UserState>()(
           badges: [],
           weightLog: [],
           checkIns: [],
+          measurements: [],
         }),
     }),
     {
@@ -70,6 +78,7 @@ export const useUserStore = create<UserState>()(
         badges: state.badges,
         weightLog: state.weightLog,
         checkIns: state.checkIns,
+        measurements: state.measurements,
       }),
     }
   )

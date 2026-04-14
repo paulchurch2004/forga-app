@@ -17,6 +17,7 @@ import { WeeklyPlanCalendar } from '../../src/components/training/WeeklyPlanCale
 import { TodayWorkoutCard } from '../../src/components/training/TodayWorkoutCard';
 import { WorkoutCard } from '../../src/components/training/WorkoutCard';
 import { QuickStats } from '../../src/components/training/QuickStats';
+import { EmptyState } from '../../src/components/ui/EmptyState';
 
 const TRAINING_HEADER_IMAGE =
   'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=60';
@@ -165,7 +166,7 @@ export default function TrainingScreen() {
           )}
 
           {/* Recent history */}
-          {recentWorkouts.length > 0 && (
+          {recentWorkouts.length > 0 ? (
             <Animated.View entering={FadeInDown.delay(400).duration(400)}>
               <Text style={styles.sectionTitle}>{t('recentWorkouts')}</Text>
               {recentWorkouts.slice(0, 3).map((w) => (
@@ -180,6 +181,16 @@ export default function TrainingScreen() {
                   }
                 />
               ))}
+            </Animated.View>
+          ) : (
+            <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+              <EmptyState
+                icon={'\uD83D\uDCAA'}
+                title={t('noWorkoutsYet')}
+                subtitle={t('noWorkoutsYetSub')}
+                actionLabel={t('logManualWorkout')}
+                onAction={() => router.push('/log-workout')}
+              />
             </Animated.View>
           )}
 
