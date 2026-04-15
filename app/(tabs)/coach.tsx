@@ -6,8 +6,11 @@ import {
   ScrollView,
   Pressable,
   Platform,
+  ImageBackground,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -33,7 +36,7 @@ import {
   type QuickReply,
 } from '../../src/engine/coachChatEngine';
 import { sendCoachMessage, type ChatHistoryEntry } from '../../src/services/coachAI';
-import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
+import { fonts, fontSizes, spacing, borderRadius, makeStyles, shadows } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useT } from '../../src/i18n';
@@ -88,17 +91,22 @@ interface ChatMessage {
   timestamp: number;
 }
 
+const COACH_AVATAR = 'https://images.unsplash.com/photo-1534368959876-26bf04f2c947?w=200&q=80';
+const CHAT_BG_IMAGE = 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&q=30';
+
 // ──────────── COACH AVATAR ────────────
 
-function CoachAvatar() {
-  const { colors } = useTheme();
+function CoachAvatar({ size = 36 }: { size?: number }) {
   const styles = useStyles();
+  const { colors } = useTheme();
   return (
-    <View style={styles.avatar}>
-      <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-        <Path d="M12 2c0 4-4 6-4 10a4 4 0 0 0 8 0c0-4-4-6-4-10Z" fill={colors.primary} opacity={0.9} />
-        <Path d="M12 8c0 2-2 3-2 5a2 2 0 0 0 4 0c0-2-2-3-2-5Z" fill="#FFD93D" />
-      </Svg>
+    <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2 }]}>
+      <ImageBackground
+        source={{ uri: COACH_AVATAR }}
+        style={{ width: size, height: size }}
+        imageStyle={{ borderRadius: size / 2 }}
+      />
+      <View style={styles.avatarOnline} />
     </View>
   );
 }
@@ -377,37 +385,50 @@ export default function CoachScreen() {
   }
 
   return (
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
     <View style={[styles.container, { paddingTop: insets.top, maxWidth: contentMaxWidth }]}>
-      {/* Header */}
-      <View style={styles.header}>
+      {/* Header with gradient */}
+      <LinearGradient
+        colors={[colors.primary, colors.primaryDark]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.header}
+      >
         <Pressable onPress={() => router.back()} hitSlop={16} style={styles.backButton}>
           <Text style={styles.backText}>{'\u2039'}</Text>
         </Pressable>
-        <View style={styles.headerIcon}>
-          <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-            <Path d="M12 2c0 4-4 6-4 10a4 4 0 0 0 8 0c0-4-4-6-4-10Z" fill={colors.primary} opacity={0.9} />
-            <Path d="M12 8c0 2-2 3-2 5a2 2 0 0 0 4 0c0-2-2-3-2-5Z" fill="#FFD93D" />
-          </Svg>
-        </View>
+        <CoachAvatar size={44} />
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>{t('coachForga')}</Text>
-          <Text style={styles.headerSubtitle}>{t('online')}</Text>
+          <View style={styles.onlineRow}>
+            <View style={styles.onlineDot} />
+            <Text style={styles.headerSubtitle}>{t('online')}</Text>
+          </View>
         </View>
-      </View>
+      </LinearGradient>
 
-      {/* Messages */}
-      <ScrollView
-        ref={scrollRef}
+      {/* Messages with sport background */}
+      <ImageBackground
+        source={{ uri: CHAT_BG_IMAGE }}
         style={styles.messagesContainer}
-        contentContainerStyle={styles.messagesContent}
-        showsVerticalScrollIndicator={false}
-        onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+        imageStyle={styles.bgImage}
       >
-        {messages.map((msg) => (
-          <MessageBubble key={msg.id} message={msg} />
-        ))}
-        {isTyping && <TypingIndicator />}
-      </ScrollView>
+        <View style={styles.bgOverlay}>
+          <ScrollView
+            ref={scrollRef}
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.messagesContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+          >
+            {messages.map((msg) => (
+              <MessageBubble key={msg.id} message={msg} />
+            ))}
+            {isTyping && <TypingIndicator />}
+          </ScrollView>
+        </View>
+      </ImageBackground>
 
       {/* Quick Replies + Input */}
       <View style={[styles.repliesContainer, { paddingBottom: insets.bottom + spacing.sm }]}>
@@ -436,7 +457,7 @@ export default function CoachScreen() {
             style={styles.textInput}
             value={freeText}
             onChangeText={setFreeText}
-            placeholder={isListening ? (locale === 'en' ? 'Listening...' : 'Écoute...') : t('typeMessage')}
+            placeholder={isListening ? (locale === 'en' ? 'Listening...' : '\u00c9coute...') : t('typeMessage')}
             placeholderTextColor={isListening ? colors.primary : colors.textMuted}
             returnKeyType="send"
             onSubmitEditing={handleSendFreeText}
@@ -465,6 +486,7 @@ export default function CoachScreen() {
         </View>
       </View>
     </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -488,16 +510,13 @@ const useStyles = makeStyles((colors) => ({
     color: colors.textSecondary,
   },
 
-  // Header
+  // Header — warm gradient
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.surface,
-    gap: spacing.sm,
+    paddingVertical: spacing.lg,
+    gap: spacing.md,
   },
   backButton: {
     paddingRight: spacing.xs,
@@ -505,66 +524,82 @@ const useStyles = makeStyles((colors) => ({
   backText: {
     fontFamily: fonts.display,
     fontSize: 28,
-    color: colors.primary,
+    color: colors.white,
     lineHeight: 32,
-  },
-  headerIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255,107,53,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   headerTitle: {
     fontFamily: fonts.display,
-    fontSize: fontSizes.lg,
+    fontSize: fontSizes.xl,
     fontWeight: '700',
-    color: colors.text,
+    color: colors.white,
+  },
+  onlineRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 2,
+  },
+  onlineDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#00FF88',
   },
   headerSubtitle: {
     fontFamily: fonts.body,
     fontSize: fontSizes.xs,
-    color: colors.success,
-    marginTop: 1,
+    color: 'rgba(255,255,255,0.85)',
   },
 
-  // Messages
+  // Messages — sport background
   messagesContainer: {
     flex: 1,
   },
+  bgImage: {
+    opacity: 0.08,
+  },
+  bgOverlay: {
+    flex: 1,
+    backgroundColor: `${colors.background}E6`,
+  },
   messagesContent: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     paddingVertical: spacing.lg,
     paddingBottom: spacing.xl,
   },
 
-  // Coach bubble
+  // Coach bubble — more contrast
   coachRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginBottom: spacing.sm,
-    maxWidth: '85%',
+    marginBottom: spacing.md,
+    maxWidth: '88%',
   },
   avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,107,53,0.15)',
-    alignItems: 'center',
-    justifyContent: 'center',
     marginRight: spacing.sm,
     flexShrink: 0,
+    position: 'relative',
+    overflow: 'visible',
+  },
+  avatarOnline: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#00FF88',
+    borderWidth: 2,
+    borderColor: colors.background,
   },
   coachBubble: {
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: 18,
     borderBottomLeftRadius: 4,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     flex: 1,
+    ...shadows.card,
   },
   coachText: {
     fontFamily: fonts.body,
@@ -573,20 +608,21 @@ const useStyles = makeStyles((colors) => ({
     lineHeight: 22,
   },
 
-  // User bubble
+  // User bubble — bold primary
   userRow: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
-    marginBottom: spacing.sm,
-    maxWidth: '85%',
+    marginBottom: spacing.md,
+    maxWidth: '82%',
     alignSelf: 'flex-end',
   },
   userBubble: {
     backgroundColor: colors.primary,
-    borderRadius: borderRadius.lg,
+    borderRadius: 18,
     borderBottomRightRadius: 4,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
+    ...shadows.card,
   },
   userText: {
     fontFamily: fonts.body,
@@ -599,28 +635,27 @@ const useStyles = makeStyles((colors) => ({
   typingRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.md,
   },
   typingBubble: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    borderRadius: 18,
     borderBottomLeftRadius: 4,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
     gap: 6,
+    ...shadows.card,
   },
   typingDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.textSecondary,
+    backgroundColor: colors.primary,
   },
 
-  // Quick replies
+  // Quick replies — warmer
   repliesContainer: {
     borderTopWidth: 1,
     borderTopColor: colors.border,
@@ -628,52 +663,54 @@ const useStyles = makeStyles((colors) => ({
     paddingTop: spacing.md,
   },
   repliesScroll: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     gap: spacing.sm,
   },
   replyButton: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.primary,
-    backgroundColor: 'rgba(255,107,53,0.08)',
+    backgroundColor: 'rgba(255,107,53,0.1)',
   },
   replyButtonPressed: {
-    backgroundColor: 'rgba(255,107,53,0.2)',
+    backgroundColor: 'rgba(255,107,53,0.25)',
+    transform: [{ scale: 0.96 }],
   },
   replyText: {
     fontFamily: fonts.body,
     fontSize: fontSizes.sm,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.primary,
   },
 
-  // Free text input
+  // Input — larger touch targets for mobile
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     gap: spacing.sm,
   },
   textInput: {
     flex: 1,
     backgroundColor: colors.background,
-    borderRadius: borderRadius.lg,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: colors.border,
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingVertical: Platform.OS === 'ios' ? spacing.md : spacing.sm,
     fontFamily: fonts.body,
     fontSize: fontSizes.md,
     color: colors.text,
-    maxHeight: 80,
+    maxHeight: 100,
+    minHeight: 44,
   },
   micButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: 'rgba(255,107,53,0.12)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -682,12 +719,13 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: colors.primary,
   },
   sendButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
+    ...shadows.button,
   },
   sendButtonDisabled: {
     opacity: 0.4,
