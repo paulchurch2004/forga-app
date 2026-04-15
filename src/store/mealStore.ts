@@ -59,9 +59,18 @@ export const useMealStore = create<MealState>()(
           };
         }),
       removeValidatedMeal: (slot) =>
-        set((state) => ({
-          todayMeals: state.todayMeals.filter((m) => m.slot !== slot),
-        })),
+        set((state) => {
+          const date = state.lastMealDate;
+          const updatedHistory = { ...state.mealHistory };
+          if (date && updatedHistory[date]) {
+            updatedHistory[date] = updatedHistory[date].filter((m) => m.slot !== slot);
+            if (updatedHistory[date].length === 0) delete updatedHistory[date];
+          }
+          return {
+            todayMeals: state.todayMeals.filter((m) => m.slot !== slot),
+            mealHistory: updatedHistory,
+          };
+        }),
       setDayPlan: (dayPlan) => set({ dayPlan }),
       setFavorites: (favorites) => set({ favorites }),
       toggleFavorite: (mealId) =>

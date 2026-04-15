@@ -48,6 +48,9 @@ import { OfflineBanner } from '../src/components/ui/OfflineBanner';
 import { processQueue } from '../src/services/syncQueue';
 import { initRevenueCat } from '../src/services/revenueCat';
 import { initAnalytics, events } from '../src/services/analytics';
+import { calculateForgaScore } from '../src/engine/scoreEngine';
+import { useWaterStore } from '../src/store/waterStore';
+import type { ScoreInput } from '../src/types/score';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -213,8 +216,73 @@ function RootLayoutInner() {
       processQueue().catch((err) => console.warn('[SyncQueue] Failed:', err));
     };
 
+    // Auto-recalculate and save score so it persists even if nutrition screen is never opened
+    const autoSaveScore = () => {
+      const profile = useUserStore.getState().profile;
+      if (!profile) return;
+      const todayMeals = useMealStore.getState().todayMeals;
+      const mealHistory = useMealStore.getState().mealHistory;
+      const checkIns = useUserStore.getState().checkIns;
+      const weightLog = useUserStore.getState().weightLog;
+      const waterStore = useWaterStore.getState();
+      const now = new Date();
+      const todayDate = now.toISOString().split('T')[0];
+
+      const fourWeeksAgo = new Date(now.getTime() - 28 * 86400000);
+      const recentCheckIns = checkIns.filter((c) => new Date(c.createdAt) >= fourWeeksAgo);
+      const weekStart = new Date(now);
+      weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+      weekStart.setHours(0, 0, 0, 0);
+      const thisWeekCheckIn = checkIns.some((c) => new Date(c.createdAt) >= weekStart);
+
+      const sortedWeights = [...weightLog].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      let weightTrend = 0;
+      if (sortedWeights.length >= 2) {
+        const daysDiff = (new Date(sortedWeights[0].date).getTime() - new Date(sortedWeights[1].date).getTime()) / 86400000;
+        if (daysDiff > 0) weightTrend = ((sortedWeights[0].weight - sortedWeights[1].weight) / daysDiff) * 7;
+      }
+      const totalToLose = Math.abs(profile.currentWeight - profile.targetWeight);
+      const latestWeight = sortedWeights[0]?.weight ?? profile.currentWeight;
+      const goalPct = totalToLose > 0 ? Math.min(100, (Math.abs(profile.currentWeight - latestWeight) / totalToLose) * 100) : profile.objective === 'maintain' ? 100 : 0;
+
+      let proteinDaysHit = 0;
+      if (profile.dailyProtein > 0) {
+        for (let i = 0; i < 7; i++) {
+          const date = new Date(now.getTime() - i * 86400000).toISOString().split('T')[0];
+          const meals = i === 0 ? todayMeals : (mealHistory[date] ?? []);
+          if (meals.length === 0) continue;
+          const totalP = meals.reduce((s, m) => s + m.actualMacros.protein, 0);
+          if (Math.abs(totalP - profile.dailyProtein) / profile.dailyProtein <= 0.10) proteinDaysHit++;
+        }
+      }
+      const waterWeek = waterStore.getWeekHistory(todayDate);
+      const waterDaysMet = waterWeek.filter((d) => d.total >= waterStore.dailyTargetMl).length;
+
+      const input: ScoreInput = {
+        mealsValidated: todayMeals.length,
+        mealsExpected: profile.mealsPerDay,
+        proteinTargetDays: proteinDaysHit,
+        uniqueMealsChosen: new Set(todayMeals.map((m) => m.mealId)).size,
+        currentStreak: profile.currentStreak,
+        checkInsCompleted: recentCheckIns.length,
+        weightTrendPerWeek: weightTrend,
+        objective: profile.objective,
+        goalProgressPercent: goalPct,
+        hasWeightData: weightLog.length >= 2,
+        activeDaysLast7: useTrainingStore.getState().getActiveDaysLast7(todayDate),
+        thisWeekCheckIn,
+        waterTargetDaysMet: waterDaysMet,
+      };
+      const score = calculateForgaScore(input);
+      useScoreStore.getState().setCurrentScore(score);
+      useScoreStore.getState().saveDailyScore(todayDate, score);
+    };
+
     // 1. Reset daily data if date changed (all platforms)
     checkDayReset();
+
+    // 1b. Auto-save score on startup
+    setTimeout(autoSaveScore, 500);
 
     // 2. Process sync queue at app startup (all platforms)
     flush();
@@ -232,6 +300,7 @@ function RootLayoutInner() {
       appStateSub = AppState.addEventListener('change', (nextState) => {
         if (appStateRef.current.match(/inactive|background/) && nextState === 'active') {
           checkDayReset();
+          autoSaveScore();
           flush();
         }
         appStateRef.current = nextState;

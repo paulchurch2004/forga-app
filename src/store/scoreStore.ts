@@ -48,16 +48,16 @@ export const useScoreStore = create<ScoreState>()(
         const today = new Date().toISOString().split('T')[0];
         const { lastScoreDate, currentScore, scoreHistory } = get();
         if (lastScoreDate && lastScoreDate !== today) {
-          // Save yesterday's score to history before resetting
-          if (currentScore.total > 0 && !(lastScoreDate in scoreHistory)) {
-            set({
-              scoreHistory: { ...scoreHistory, [lastScoreDate]: currentScore },
-              currentScore: defaultScore,
-              lastScoreDate: today,
-            });
-          } else {
-            set({ currentScore: defaultScore, lastScoreDate: today });
+          // Save yesterday's score to history before resetting (even 0-point days)
+          const updatedHistory = { ...scoreHistory };
+          if (!(lastScoreDate in updatedHistory)) {
+            updatedHistory[lastScoreDate] = currentScore;
           }
+          set({
+            scoreHistory: updatedHistory,
+            currentScore: defaultScore,
+            lastScoreDate: today,
+          });
         } else if (!lastScoreDate) {
           set({ lastScoreDate: today });
         }
