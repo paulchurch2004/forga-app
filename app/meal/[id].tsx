@@ -15,6 +15,7 @@ import { MealDetailSheet } from '../../src/components/meals/MealDetailSheet';
 import { makeStyles, fonts, fontSizes } from '../../src/theme';
 import { useT } from '../../src/i18n';
 import { syncMeal } from '../../src/services/userSync';
+import { CelebrationOverlay } from '../../src/components/ui/CelebrationOverlay';
 
 function generateId(): string {
   return `dm_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -23,8 +24,14 @@ function generateId(): string {
 export default function MealDetailScreen() {
   const { id, slot: slotParam } = useLocalSearchParams<{ id: string; slot?: string }>();
   const [validating, setValidating] = useState(false);
+  const [showCelebration, setShowCelebration] = useState(false);
   const styles = useStyles();
-  const { t } = useT();
+  const { t, locale } = useT();
+
+  const celebrationMessages = locale === 'en'
+    ? ['Nice one!', 'Crushed it!', 'Keep going!', 'On fire!', 'Beast mode!']
+    : ['Bien joue !', 'Enorme !', 'Continue !', 'En feu !', 'Machine !'];
+  const randomMessage = celebrationMessages[Math.floor(Math.random() * celebrationMessages.length)];
 
   const profile = useUserStore((s) => s.profile);
   const addValidatedMeal = useMealStore((s) => s.addValidatedMeal);
@@ -105,12 +112,8 @@ export default function MealDetailScreen() {
       // Recalculate score
       recalculate();
 
-      // Navigate back
-      if (router.canGoBack()) {
-        router.back();
-      } else {
-        router.replace('/(tabs)/home');
-      }
+      // Show celebration then navigate
+      setShowCelebration(true);
     } catch (error) {
       Alert.alert(
         t('error'),
@@ -166,21 +169,37 @@ export default function MealDetailScreen() {
     );
   }
 
+  const handleCelebrationDone = useCallback(() => {
+    setShowCelebration(false);
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace('/(tabs)/home');
+    }
+  }, []);
+
   return (
-    <MealDetailSheet
-      meal={meal}
-      adjustedIngredients={adjustedIngredients}
-      adjustedMacros={adjustedMacros}
-      slotTargetMacros={slotTargetMacros}
-      isPremium={isPremium}
-      isFavorite={isMealFavorite}
-      onValidate={handleValidate}
-      onGoBack={handleGoBack}
-      onToggleFavorite={handleToggleFavorite}
-      onClose={handleClose}
-      onShowPaywall={handleShowPaywall}
-      validating={validating}
-    />
+    <View style={{ flex: 1 }}>
+      <MealDetailSheet
+        meal={meal}
+        adjustedIngredients={adjustedIngredients}
+        adjustedMacros={adjustedMacros}
+        slotTargetMacros={slotTargetMacros}
+        isPremium={isPremium}
+        isFavorite={isMealFavorite}
+        onValidate={handleValidate}
+        onGoBack={handleGoBack}
+        onToggleFavorite={handleToggleFavorite}
+        onClose={handleClose}
+        onShowPaywall={handleShowPaywall}
+        validating={validating}
+      />
+      <CelebrationOverlay
+        visible={showCelebration}
+        onDone={handleCelebrationDone}
+        message={randomMessage}
+      />
+    </View>
   );
 }
 

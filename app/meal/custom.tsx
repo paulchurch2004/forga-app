@@ -17,6 +17,7 @@ import { useMealStore } from '../../src/store/mealStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { MEAL_SLOT_LABELS, type MealSlot } from '../../src/types/meal';
 import { syncMeal } from '../../src/services/userSync';
+import { CelebrationOverlay } from '../../src/components/ui/CelebrationOverlay';
 
 const SLOTS: MealSlot[] = [
   'breakfast',
@@ -41,6 +42,10 @@ export default function CustomMealScreen() {
   }>();
   const addValidatedMeal = useMealStore((s) => s.addValidatedMeal);
   const session = useAuthStore((s) => s.session);
+
+  const [showCelebration, setShowCelebration] = useState(false);
+  const celebrationMessages = ['Bien joue !', 'Enorme !', 'Continue !', 'En feu !', 'Machine !'];
+  const randomMessage = celebrationMessages[Math.floor(Math.random() * celebrationMessages.length)];
 
   const [selectedSlot, setSelectedSlot] = useState<MealSlot>(
     (params.slot as MealSlot) || 'lunch',
@@ -87,7 +92,7 @@ export default function CustomMealScreen() {
     addValidatedMeal(meal);
     syncMeal(meal);
 
-    router.back();
+    setShowCelebration(true);
   };
 
   return (
@@ -193,6 +198,14 @@ export default function CustomMealScreen() {
           <Text style={styles.validateButtonText}>{t('validateMeal')}</Text>
         </Pressable>
       </ScrollView>
+      <CelebrationOverlay
+        visible={showCelebration}
+        onDone={() => {
+          setShowCelebration(false);
+          router.back();
+        }}
+        message={randomMessage}
+      />
     </KeyboardAvoidingView>
   );
 }
