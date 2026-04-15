@@ -6,6 +6,7 @@ import { useMealStore } from '../store/mealStore';
 import { useWaterStore } from '../store/waterStore';
 import { useTrainingStore } from '../store/trainingStore';
 import type { ScoreInput } from '../types/score';
+import { syncScore } from '../services/userSync';
 
 export function useScore() {
   const { currentScore, weeklyChange, scoreHistory, setCurrentScore, setWeeklyChange, saveDailyScore } = useScoreStore();
@@ -111,6 +112,7 @@ export function useScore() {
 
     // Save today's score to history
     saveDailyScore(todayDate, newScore);
+    if (profile.id) syncScore(todayDate, newScore, profile.id);
   }, [
     profile,
     checkIns,

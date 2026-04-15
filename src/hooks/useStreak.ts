@@ -6,6 +6,7 @@ import { useScoreStore } from '../store/scoreStore';
 import type { Badge, BadgeType } from '../types/user';
 import { BADGE_INFO } from '../types/user';
 import { sendBadgeNotification, scheduleStreakDanger } from '../services/notifications';
+import { syncBadge, syncProfile } from '../services/userSync';
 
 function makeBadge(type: BadgeType): Badge {
   return { id: `${type}_${Date.now()}`, type, unlockedAt: new Date().toISOString() };
@@ -96,28 +97,31 @@ export function useStreak() {
         }
       };
 
+      const earnBadge = (type: BadgeType) => {
+        const badge = makeBadge(type);
+        addBadge(badge);
+        notifyBadge(type);
+        if (profile?.id) syncBadge(badge, profile.id);
+      };
+
       // first_meal
       if (todayMeals.length > 0 && !hasBadge('first_meal')) {
-        addBadge(makeBadge('first_meal'));
-        notifyBadge('first_meal');
+        earnBadge('first_meal');
       }
 
       // first_week
       if (newStreak >= 7 && !hasBadge('first_week')) {
-        addBadge(makeBadge('first_week'));
-        notifyBadge('first_week');
+        earnBadge('first_week');
       }
 
       // month_of_forge
       if (newStreak >= 30 && !hasBadge('month_of_forge')) {
-        addBadge(makeBadge('month_of_forge'));
-        notifyBadge('month_of_forge');
+        earnBadge('month_of_forge');
       }
 
       // forgeron: score > 70
       if (currentScore.total > 70 && !hasBadge('forgeron')) {
-        addBadge(makeBadge('forgeron'));
-        notifyBadge('forgeron');
+        earnBadge('forgeron');
       }
 
       // first_kilo: 1kg+ progress toward goal
@@ -128,8 +132,7 @@ export function useStreak() {
         )[0].weight;
         const delta = Math.abs(startWeight - latestWeight);
         if (delta >= 1) {
-          addBadge(makeBadge('first_kilo'));
-          notifyBadge('first_kilo');
+          earnBadge('first_kilo');
         }
       }
     },
@@ -140,10 +143,12 @@ export function useStreak() {
   const incrementStreak = useCallback(() => {
     if (!profile) return;
     const newStreak = profile.currentStreak + 1;
-    updateProfile({
+    const updates = {
       currentStreak: newStreak,
       bestStreak: Math.max(profile.bestStreak, newStreak),
-    });
+    };
+    updateProfile(updates);
+    if (profile.id) syncProfile(updates, profile.id);
     checkAndUnlockBadges(newStreak);
     // Re-schedule streak danger notification with updated count
     if (Platform.OS !== 'web') {

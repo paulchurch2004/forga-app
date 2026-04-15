@@ -13,6 +13,7 @@ import { calculatePortions } from '../../src/engine/portionCalculator';
 import { MealDetailSheet } from '../../src/components/meals/MealDetailSheet';
 import { makeStyles, fonts, fontSizes } from '../../src/theme';
 import { useT } from '../../src/i18n';
+import { syncMeal } from '../../src/services/userSync';
 
 function generateId(): string {
   return `dm_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -76,7 +77,7 @@ export default function MealDetailScreen() {
       const today = new Date().toISOString().split('T')[0];
       const wasTodayValidated = isTodayValidated;
 
-      addValidatedMeal({
+      const validatedMeal = {
         id: generateId(),
         userId: profile.id,
         date: today,
@@ -91,7 +92,9 @@ export default function MealDetailScreen() {
         ),
         actualMacros: adjustedMacros,
         validatedAt: new Date().toISOString(),
-      });
+      };
+      addValidatedMeal(validatedMeal);
+      syncMeal(validatedMeal);
 
       // Increment streak if this is the first meal today
       if (!wasTodayValidated) {

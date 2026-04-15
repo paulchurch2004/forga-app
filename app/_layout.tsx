@@ -48,6 +48,7 @@ import { OfflineBanner } from '../src/components/ui/OfflineBanner';
 import { processQueue } from '../src/services/syncQueue';
 import { initRevenueCat } from '../src/services/revenueCat';
 import { initAnalytics, events } from '../src/services/analytics';
+import { loadAllUserData } from '../src/services/userSync';
 import { calculateForgaScore } from '../src/engine/scoreEngine';
 import { useWaterStore } from '../src/store/waterStore';
 import type { ScoreInput } from '../src/types/score';
@@ -182,7 +183,9 @@ function RootLayoutInner() {
       setSession(session);
       if (session) {
         initRevenueCat(session.user.id);
-        loadProfileFromSupabase(session.user.id).finally(() => setLoading(false));
+        loadProfileFromSupabase(session.user.id)
+          .then(() => loadAllUserData(session.user.id))
+          .finally(() => setLoading(false));
       } else {
         setLoading(false);
       }
