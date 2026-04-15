@@ -320,7 +320,7 @@ export default function NutritionScreen() {
 
         {/* Water tracking */}
         <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-          <Text style={styles.sectionLabel}>HYDRATATION</Text>
+          <Text style={styles.sectionLabel}>{t('hydrationSection')}</Text>
           <WaterCard />
         </Animated.View>
 
@@ -334,7 +334,7 @@ export default function NutritionScreen() {
 
         {/* Meal Slots */}
         <Animated.View entering={FadeInDown.delay(400).duration(400)}>
-          <Text style={styles.sectionLabel}>REPAS DU JOUR</Text>
+          <Text style={styles.sectionLabel}>{t('mealsOfDay')}</Text>
           <View style={styles.section}>
             <MealSlotList slots={slots} />
           </View>
@@ -342,7 +342,7 @@ export default function NutritionScreen() {
 
         {/* Scan actions with images */}
         <Animated.View entering={FadeInDown.delay(500).duration(400)}>
-          <Text style={styles.sectionLabel}>AJOUTER UN REPAS</Text>
+          <Text style={styles.sectionLabel}>{t('addMealSection')}</Text>
           <View style={styles.scanActions}>
             <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/barcode')}>
               <ImageBackground
@@ -385,7 +385,7 @@ export default function NutritionScreen() {
                 colors={[`${colors.primary}18`, `${colors.primary}08`]}
                 style={styles.quickActionGradient}
               >
-                <Text style={styles.quickActionText}>PLAN HEBDO</Text>
+                <Text style={styles.quickActionText}>{t('weeklyPlanLabel')}</Text>
               </LinearGradient>
             </Pressable>
             <Pressable style={styles.quickActionBtn} onPress={() => router.push('/recipes')}>
@@ -393,7 +393,7 @@ export default function NutritionScreen() {
                 colors={[`${colors.primary}18`, `${colors.primary}08`]}
                 style={styles.quickActionGradient}
               >
-                <Text style={styles.quickActionText}>RECETTES</Text>
+                <Text style={styles.quickActionText}>{t('recipesLabel')}</Text>
               </LinearGradient>
             </Pressable>
             <Pressable style={styles.quickActionBtn} onPress={() => router.push('/meal-history')}>
@@ -401,7 +401,7 @@ export default function NutritionScreen() {
                 colors={[`${colors.primary}18`, `${colors.primary}08`]}
                 style={styles.quickActionGradient}
               >
-                <Text style={styles.quickActionText}>HISTORIQUE</Text>
+                <Text style={styles.quickActionText}>{t('historyLabel')}</Text>
               </LinearGradient>
             </Pressable>
           </View>

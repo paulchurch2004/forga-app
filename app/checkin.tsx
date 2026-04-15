@@ -15,6 +15,7 @@ import { useUserStore } from '../src/store/userStore';
 import { calculateAdaptiveAdjustment } from '../src/engine/adaptiveEngine';
 import { calculateMacros } from '../src/engine/macros';
 import { supabase } from '../src/services/supabase';
+import { syncProfile } from '../src/services/userSync';
 import { events } from '../src/services/analytics';
 import type { AdaptiveInput } from '../src/types/engine';
 
@@ -136,8 +137,14 @@ export default function CheckInScreen() {
         date: today,
         weight: weightNum,
       });
+      // Sync profile updates to Supabase
+      const profileUpdates: Record<string, any> = { currentWeight: weightNum };
+      if (adaptive.calorieAdjustment !== 0) {
+        profileUpdates.dailyCalories = (profile.dailyCalories || 0) + adaptive.calorieAdjustment;
+      }
+      syncProfile(profileUpdates, profile.id);
     } catch (e) {
-      // Silent fail -- data is saved locally
+      console.warn('[CheckIn] Supabase sync failed:', e);
     }
 
     events.checkInCompleted();

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Rect } from 'react-native-svg';
@@ -191,7 +191,7 @@ export default function ReportScreen() {
           <MacroBar
             value={report.avgMacros.fat}
             max={profile?.dailyFat ?? 70}
-            color={colors.info}
+            color={colors.fat}
             label={locale === 'en' ? 'Fat' : 'Lip'}
           />
         </View>

@@ -109,13 +109,8 @@ export default function PaywallScreen() {
 
     try {
       if (isDemoMode) {
-        // Demo mode: simulate premium activation
-        const weeks = selectedPlan === 'annual' ? 52 : 4;
-        const premiumUntil = calculatePremiumUntil(undefined, weeks);
-        updateProfile({ isPremium: true, premiumUntil });
-        events.purchaseCompleted(selectedPlan);
-        showAlert(t('demoMode'), t('demoPremiumActivated'));
-        router.back();
+        showAlert(t('error'), t('subscriptionUnavailable'));
+        setLoading(false);
         return;
       }
 

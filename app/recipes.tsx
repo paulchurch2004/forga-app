@@ -73,7 +73,7 @@ function RecipeCard({ meal, isFav, locale }: { meal: Meal; isFav: boolean; local
         <View style={styles.macroRow}>
           <Text style={[styles.macroChip, { color: colors.success }]}>{meal.baseMacros.protein}g P</Text>
           <Text style={[styles.macroChip, { color: colors.warning }]}>{meal.baseMacros.carbs}g G</Text>
-          <Text style={[styles.macroChip, { color: colors.info }]}>{meal.baseMacros.fat}g L</Text>
+          <Text style={[styles.macroChip, { color: colors.fat }]}>{meal.baseMacros.fat}g L</Text>
         </View>
       </View>
     </Pressable>

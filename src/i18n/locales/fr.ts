@@ -1169,6 +1169,78 @@ export const fr = {
   tipRussianTwist1: 'Leve les pieds du sol pour engager davantage les abdos.',
   tipRussianTwist2: 'La rotation vient du tronc, pas seulement des bras.',
   tipRussianTwist3: 'Garde le dos droit et legerement incline en arriere.',
+
+  // ── Custom meal ──
+  customMealSubtitle: 'Tu as mange autre chose ? Entre les infos ici.',
+  mealSlotLabel: 'Moment du repas',
+  mealNameLabel: 'Nom du repas',
+  macrosApprox: 'Macros (approximatif)',
+  macrosHint: 'Pas besoin d\'etre exact -- une estimation suffit pour garder ton suivi.',
+  customMealNameRequired: 'Donne un nom a ton repas.',
+  customMealMacroRequired: 'Entre au moins une valeur nutritionnelle.',
+
+  // ── Nutrition screen labels ──
+  hydrationSection: 'HYDRATATION',
+  mealsOfDay: 'REPAS DU JOUR',
+  addMealSection: 'AJOUTER UN REPAS',
+  weeklyPlanLabel: 'PLAN HEBDO',
+  recipesLabel: 'RECETTES',
+  historyLabel: 'HISTORIQUE',
+
+  // ── Report screen ──
+  reportTitle: 'Bilan',
+  thisWeek: 'Cette semaine',
+  lastWeek: 'Semaine derniere',
+  thisMonth: 'Ce mois',
+  lastMonth: 'Mois dernier',
+  adherenceLabel: 'Adherence',
+  avgScoreLabel: 'Score moyen',
+  weightLabel: 'Poids',
+  waterLabel2: 'Eau',
+  daysLabel: 'jours',
+  onTarget: 'objectif',
+  avgDailyMacros: 'Macros moyennes / jour',
+  dailyBreakdown: 'Detail par jour',
+  mealsCount: 'repas',
+  highlights: 'Points forts',
+  bestDayLabel: 'Meilleur jour',
+  needsWork: 'A ameliorer',
+  daysApart: 'jours d\'ecart',
+
+  // ── Recipes screen ──
+  recipesTitle: 'Recettes',
+  searchRecipes: 'Chercher par nom, ingredient, tag...',
+  noRecipesFound: 'Aucune recette trouvee',
+  tryDifferentFilters: 'Essaie d\'autres filtres ou mots-cles',
+  unlockPremiumRecipes: 'Debloque 300+ recettes premium avec FORGA PRO',
+  sortLabel: 'Trier :',
+  sortName: 'Nom',
+  sortTime: 'Temps',
+  sortProtein: 'Prot',
+  sortCalories: 'Calories',
+  favsLabel: 'Favoris',
+
+  // ── Measurements screen ──
+  measurementsTitle: 'Mensurations',
+  latestMeasurement: 'Derniere mesure',
+  noMeasurementsYet: 'Aucune mesure',
+  trackBeyondScale: 'Suis tes changements corporels au-dela de la balance',
+  addMeasurement: 'Ajouter une mesure',
+  newMeasurement: 'Nouvelle mesure',
+  measurementHistory: 'Historique',
+
+  // ── Progress photos ──
+  progressPhotosTitle: 'Photos de progression',
+  takePhoto: 'Prendre une photo',
+  fromGallery: 'Galerie',
+  compareBeforeAfter: 'Comparer avant/apres',
+  cancelCompare: 'Annuler',
+  selectPhotosToCompare: 'Selectionne {count} photo(s) a comparer',
+  noProgressPhotos: 'Aucune photo de progression',
+  startTrackingVisual: 'Prends ta premiere photo pour suivre ta transformation visuelle',
+  savePhoto: 'Enregistrer la photo',
+  weightOptional: 'Poids (optionnel)',
+  noteOptional: 'Note (optionnel)',
 } as const;
 
 export type TranslationKey = keyof typeof fr;

@@ -16,6 +16,7 @@ import { useT } from '../../src/i18n';
 import { useMealStore } from '../../src/store/mealStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { MEAL_SLOT_LABELS, type MealSlot } from '../../src/types/meal';
+import { syncMeal } from '../../src/services/userSync';
 
 const SLOTS: MealSlot[] = [
   'breakfast',
@@ -52,7 +53,7 @@ export default function CustomMealScreen() {
 
   const handleValidate = () => {
     if (!name.trim()) {
-      Alert.alert(t('error'), 'Donne un nom a ton repas.');
+      Alert.alert(t('error'), t('customMealNameRequired'));
       return;
     }
     const cal = parseFloat(calories) || 0;
@@ -61,13 +62,13 @@ export default function CustomMealScreen() {
     const lip = parseFloat(fat) || 0;
 
     if (cal === 0 && prot === 0 && carb === 0 && lip === 0) {
-      Alert.alert(t('error'), 'Entre au moins une valeur nutritionnelle.');
+      Alert.alert(t('error'), t('customMealMacroRequired'));
       return;
     }
 
     const today = new Date().toISOString().split('T')[0];
 
-    addValidatedMeal({
+    const meal = {
       id: `custom-${Date.now()}`,
       userId: session?.user?.id || 'demo-user',
       date: today,
@@ -82,7 +83,9 @@ export default function CustomMealScreen() {
         fat: Math.round(lip),
       },
       validatedAt: new Date().toISOString(),
-    });
+    };
+    addValidatedMeal(meal);
+    syncMeal(meal);
 
     router.back();
   };
@@ -105,11 +108,11 @@ export default function CustomMealScreen() {
       >
         <Text style={styles.title}>{t('addCustomMeal')}</Text>
         <Text style={styles.subtitle}>
-          Tu as mange autre chose ? Entre les infos ici.
+          {t('customMealSubtitle')}
         </Text>
 
         {/* Slot selector */}
-        <Text style={styles.fieldLabel}>Moment du repas</Text>
+        <Text style={styles.fieldLabel}>{t('mealSlotLabel')}</Text>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -138,7 +141,7 @@ export default function CustomMealScreen() {
         </ScrollView>
 
         {/* Meal name */}
-        <Text style={styles.fieldLabel}>Nom du repas</Text>
+        <Text style={styles.fieldLabel}>{t('mealNameLabel')}</Text>
         <TextInput
           style={styles.input}
           placeholder="Ex: Kebab, Salade maison, Pizza..."
@@ -149,7 +152,7 @@ export default function CustomMealScreen() {
         />
 
         {/* Macros */}
-        <Text style={styles.fieldLabel}>Macros (approximatif)</Text>
+        <Text style={styles.fieldLabel}>{t('macrosApprox')}</Text>
         <View style={styles.macroGrid}>
           <MacroInput
             label={t('caloriesLabel')}
@@ -182,11 +185,11 @@ export default function CustomMealScreen() {
         </View>
 
         <Text style={styles.hint}>
-          Pas besoin d'etre exact -- une estimation suffit pour garder ton suivi.
+          {t('macrosHint')}
         </Text>
 
         {/* Validate */}
-        <Pressable style={styles.validateButton} onPress={handleValidate}>
+        <Pressable style={styles.validateButton} onPress={handleValidate} accessibilityRole="button" accessibilityLabel={t('validateMeal')}>
           <Text style={styles.validateButtonText}>{t('validateMeal')}</Text>
         </Pressable>
       </ScrollView>

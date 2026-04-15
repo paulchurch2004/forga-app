@@ -15,10 +15,12 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "fr.forga.app",
+      "buildNumber": "1",
       "infoPlist": {
-        "NSCameraUsageDescription": "FORGA utilise la caméra pour les photos de progression.",
+        "NSCameraUsageDescription": "FORGA utilise la camera pour les photos de progression et scanner les aliments.",
+        "NSPhotoLibraryUsageDescription": "FORGA accede a tes photos pour les photos de progression et identifier les aliments.",
+        "NSUserNotificationsUsageDescription": "FORGA envoie des rappels de repas et de progression.",
         "UIBackgroundModes": [
-          "remote-notification",
           "remote-notification"
         ],
         "ITSAppUsesNonExemptEncryption": false
@@ -26,6 +28,7 @@
     },
     "android": {
       "package": "fr.forga.app",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#0B0B14",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -35,7 +38,8 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.POST_NOTIFICATIONS"
       ]
     },
     "web": {

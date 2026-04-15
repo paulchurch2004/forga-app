@@ -546,6 +546,11 @@ export default function ProfileScreen() {
             {t('privacyPolicy')}
           </Text>
         </Pressable>
+        <Pressable onPress={() => router.push('/terms')}>
+          <Text style={[styles.legalText, { color: colors.primary, marginTop: spacing.xs }]}>
+            {locale === 'en' ? 'Terms of Service' : "Conditions d'utilisation"}
+          </Text>
+        </Pressable>
         <Text style={[styles.legalText, { marginTop: spacing.lg }]}>
           FORGA v{APP_VERSION}
         </Text>
