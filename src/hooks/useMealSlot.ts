@@ -31,24 +31,11 @@ export function useMealSlot() {
       let status: MealSlotStatus;
       if (isValidated) {
         status = 'done';
+      } else if (slotMinutes > currentMinutes) {
+        status = 'upcoming';
       } else {
-        // Find the current slot (closest upcoming or ongoing)
-        const nextSlotIndex = engine.mealPlan.slots.findIndex((s) => {
-          const t = MEAL_SLOT_TIMES[s];
-          const [sh, sm] = t.split(':').map(Number);
-          return sh * 60 + sm > currentMinutes;
-        });
-
-        // Current slot is the one just before the next upcoming
-        const currentSlotIndex = nextSlotIndex > 0 ? nextSlotIndex - 1 : engine.mealPlan.slots.length - 1;
-
-        if (engine.mealPlan.slots[currentSlotIndex] === slot) {
-          status = 'current';
-        } else if (slotMinutes > currentMinutes) {
-          status = 'upcoming';
-        } else {
-          status = 'current'; // Past but not validated
-        }
+        // Past or current slot not yet validated — all are actionable
+        status = 'current';
       }
 
       return { slot, status, time, isValidated };

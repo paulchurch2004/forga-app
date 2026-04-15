@@ -83,9 +83,14 @@ function SlotRow({ item }: { item: SlotItem }) {
           </View>
         )}
         {item.status === 'upcoming' && (
-          <Pressable onPress={handleCustom}>
-            <Text style={styles.upcomingText}>+ {item.time}</Text>
-          </Pressable>
+          <View style={styles.actionRow}>
+            <Pressable style={styles.customButton} onPress={handleCustom}>
+              <Text style={styles.customButtonText}>{t('mealFree')}</Text>
+            </Pressable>
+            <Pressable style={styles.chooseButton} onPress={handleChoose}>
+              <Text style={styles.chooseButtonText}>{t('mealChoose')}</Text>
+            </Pressable>
+          </View>
         )}
       </View>
     </View>
