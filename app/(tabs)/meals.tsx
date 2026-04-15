@@ -9,7 +9,7 @@ import {
   TextInput,
   useWindowDimensions,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Fuse from 'fuse.js';
 import { ALL_MEALS, getMealsBySlotAndBudget } from '../../src/data/meals';
@@ -39,6 +39,7 @@ export default function MealsScreen() {
   const insets = useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
   const { contentMaxWidth } = useResponsive();
+  const params = useLocalSearchParams<{ slot?: string }>();
   const { currentSlot, slots } = useMealSlot();
   const { isPremium } = usePremium();
   const engine = useEngine();
@@ -78,10 +79,12 @@ export default function MealsScreen() {
     (contentWidth - SCREEN_PADDING - CARD_GAP * (numColumns - 1)) / numColumns
   );
 
-  const currentSlotInfo = currentSlot;
-  const currentMealSlot: MealSlot = currentSlotInfo?.slot ?? 'lunch';
+  // Use the slot from URL params if provided (e.g. from MealSlotList), otherwise fallback to current slot
+  const requestedSlot = params.slot as MealSlot | undefined;
+  const currentMealSlot: MealSlot = requestedSlot ?? currentSlot?.slot ?? 'lunch';
   const currentSlotLabel = MEAL_SLOT_LABELS[currentMealSlot];
-  const currentSlotTime = currentSlotInfo?.time ?? '12:30';
+  const matchingSlot = slots.find((s) => s.slot === currentMealSlot);
+  const currentSlotTime = matchingSlot?.time ?? currentSlot?.time ?? '12:30';
 
   // Get target macros for current slot
   const slotTargetMacros = useMemo(() => {
@@ -140,9 +143,9 @@ export default function MealsScreen() {
 
   const handleMealPress = useCallback(
     (mealId: string) => {
-      router.push(`/meal/${mealId}`);
+      router.push(`/meal/${mealId}?slot=${currentMealSlot}`);
     },
-    []
+    [currentMealSlot]
   );
 
   const handlePaywall = useCallback(() => {
@@ -150,8 +153,8 @@ export default function MealsScreen() {
   }, []);
 
   const renderMealItem = useCallback(
-    ({ item }: { item: Meal }) => <MealPhotoCard meal={item} cardWidth={cardWidth} />,
-    [cardWidth]
+    ({ item }: { item: Meal }) => <MealPhotoCard meal={item} cardWidth={cardWidth} slot={currentMealSlot} />,
+    [cardWidth, currentMealSlot]
   );
 
   const renderTextMealItem = useCallback(

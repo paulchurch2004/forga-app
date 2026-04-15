@@ -22,9 +22,10 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 interface MealPhotoCardProps {
   meal: Meal;
   cardWidth?: number;
+  slot?: string;
 }
 
-export function MealPhotoCard({ meal, cardWidth }: MealPhotoCardProps) {
+export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
   const { colors } = useTheme();
   const styles = useStyles();
   const favorites = useMealStore((s) => s.favorites);
@@ -51,7 +52,7 @@ export function MealPhotoCard({ meal, cardWidth }: MealPhotoCardProps) {
   };
 
   const handlePress = () => {
-    router.push(`/meal/${meal.id}`);
+    router.push(slot ? `/meal/${meal.id}?slot=${slot}` : `/meal/${meal.id}`);
   };
 
   const budgetLabel = meal.budget === 'eco' ? 'eco' : 'premium';

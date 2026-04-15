@@ -47,7 +47,7 @@ function SlotRow({ item }: { item: SlotItem }) {
   const label = MEAL_SLOT_LABELS[item.slot];
 
   const handleChoose = () => {
-    router.navigate('/(tabs)/meals');
+    router.push(`/(tabs)/meals?slot=${item.slot}`);
   };
 
   const handleCustom = () => {

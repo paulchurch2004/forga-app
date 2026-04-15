@@ -7,6 +7,7 @@ import { useUserStore } from '../../src/store/userStore';
 import { useEngine } from '../../src/hooks/useEngine';
 import { usePremium } from '../../src/hooks/usePremium';
 import { useMealSlot } from '../../src/hooks/useMealSlot';
+import type { MealSlot } from '../../src/types/meal';
 import { useScore } from '../../src/hooks/useScore';
 import { useStreak } from '../../src/hooks/useStreak';
 import { calculatePortions } from '../../src/engine/portionCalculator';
@@ -20,7 +21,7 @@ function generateId(): string {
 }
 
 export default function MealDetailScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, slot: slotParam } = useLocalSearchParams<{ id: string; slot?: string }>();
   const [validating, setValidating] = useState(false);
   const styles = useStyles();
   const { t } = useT();
@@ -41,7 +42,7 @@ export default function MealDetailScreen() {
     return getMealById(id);
   }, [id]);
 
-  const currentMealSlot = currentSlot?.slot ?? 'lunch';
+  const currentMealSlot = (slotParam as MealSlot) ?? currentSlot?.slot ?? 'lunch';
 
   // Calculate slot target macros
   const slotTargetMacros = useMemo(() => {
