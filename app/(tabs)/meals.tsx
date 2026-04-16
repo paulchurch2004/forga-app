@@ -30,7 +30,7 @@ import type { Budget, Restriction } from '../../src/types/user';
 
 const CARD_GAP = spacing.md;
 const SCREEN_PADDING = spacing.lg * 2;
-const FREE_MAX_SUGGESTIONS = 2;
+const FREE_MAX_SUGGESTIONS = 5;
 
 type BudgetFilter = 'all' | 'eco' | 'premium';
 type RestrictionFilter = 'all' | Restriction;

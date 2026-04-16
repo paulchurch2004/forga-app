@@ -1243,4 +1243,8 @@ export const en: Record<TranslationKey, string> = {
   savePhoto: 'Save photo',
   weightOptional: 'Weight (optional)',
   noteOptional: 'Note (optional)',
+
+  // ── Coming soon features ──
+  appleHealthComingSoon: 'Apple Health integration coming soon',
+  widgetComingSoon: 'Widget coming soon',
 };

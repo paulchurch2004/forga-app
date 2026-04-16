@@ -16,9 +16,10 @@ interface BadgeCardProps {
   type: BadgeType;
   unlocked: boolean;
   unlockedAt?: string;
+  progress?: string; // e.g. "3/7 jours"
 }
 
-export function BadgeCard({ type, unlocked, unlockedAt }: BadgeCardProps) {
+export function BadgeCard({ type, unlocked, unlockedAt, progress }: BadgeCardProps) {
   const { colors } = useTheme();
   const styles = useStyles();
   const info = BADGE_INFO[type];
@@ -46,8 +47,10 @@ export function BadgeCard({ type, unlocked, unlockedAt }: BadgeCardProps) {
         <Text style={styles.date}>
           {new Date(unlockedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
         </Text>
+      ) : progress ? (
+        <Text style={styles.progress}>{progress}</Text>
       ) : (
-        <Text style={styles.locked}>{unlocked ? '' : '\uD83D\uDD12'}</Text>
+        <Text style={styles.locked}>{'\uD83D\uDD12'}</Text>
       )}
     </View>
   );
@@ -96,5 +99,11 @@ const useStyles = makeStyles((colors) => ({
   },
   locked: {
     fontSize: 12,
+  },
+  progress: {
+    fontFamily: fonts.data,
+    fontSize: 9,
+    fontWeight: '600',
+    color: colors.primary,
   },
 }));

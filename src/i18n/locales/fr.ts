@@ -1241,6 +1241,10 @@ export const fr = {
   savePhoto: 'Enregistrer la photo',
   weightOptional: 'Poids (optionnel)',
   noteOptional: 'Note (optionnel)',
+
+  // ── Coming soon features ──
+  appleHealthComingSoon: 'Integration Apple Health bientot disponible',
+  widgetComingSoon: 'Widget bientot disponible',
 } as const;
 
 export type TranslationKey = keyof typeof fr;

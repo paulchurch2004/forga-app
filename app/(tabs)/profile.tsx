@@ -293,12 +293,25 @@ export default function ProfileScreen() {
         <View style={styles.badgeGrid}>
           {(Object.keys(BADGE_INFO) as BadgeType[]).map((type) => {
             const unlockedBadge = badges.find((b) => b.type === type);
+            // Badge progress for locked badges
+            let progress: string | undefined;
+            if (!unlockedBadge) {
+              if (type === 'first_week') progress = `${Math.min(currentStreak, 7)}/7`;
+              else if (type === 'month_of_forge') progress = `${Math.min(currentStreak, 30)}/30`;
+              else if (type === 'forgeron') progress = `${Math.min(score.total, 70)}/70`;
+              else if (type === 'first_kilo' && weightLog.length > 0) {
+                const latest = [...weightLog].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+                const delta = Math.abs(profile.currentWeight - latest.weight);
+                progress = `${Math.min(delta, 1).toFixed(1)}/1 kg`;
+              }
+            }
             return (
               <View key={type}>
                 <BadgeCard
                   type={type}
                   unlocked={!!unlockedBadge}
                   unlockedAt={unlockedBadge?.unlockedAt}
+                  progress={progress}
                 />
                 {unlockedBadge && (
                   <Pressable

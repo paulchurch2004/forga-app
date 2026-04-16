@@ -19,6 +19,22 @@ export function calculatePortions(
   mealBaseMacros: { calories: number; protein: number; carbs: number; fat: number },
   ingredients: MealIngredient[],
 ): PortionResult {
+  // Guard against division by zero
+  if (mealBaseMacros.calories === 0 || mealBaseMacros.protein === 0 || ingredients.length === 0) {
+    return {
+      adjustedIngredients: ingredients.map((ing) => ({
+        ingredientId: ing.ingredientId,
+        name: ing.name,
+        originalQuantity: ing.baseQuantityG,
+        adjustedQuantity: ing.baseQuantityG,
+        roundedQuantity: ing.baseQuantityG,
+        displayQuantity: formatQuantity(ing.baseQuantityG, ing.unit),
+        unit: ing.unit,
+      })),
+      adjustedMacros: { calories: mealBaseMacros.calories, protein: mealBaseMacros.protein, carbs: mealBaseMacros.carbs, fat: mealBaseMacros.fat },
+    };
+  }
+
   // Ratio d'ajustement basé sur les calories
   const calorieRatio = targetMacros.calories / mealBaseMacros.calories;
 

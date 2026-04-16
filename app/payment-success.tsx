@@ -18,15 +18,19 @@ export default function PaymentSuccessScreen() {
   const updateProfile = useUserStore((s) => s.updateProfile);
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [errorMessage, setErrorMessage] = useState('');
+  const [hasVerified, setHasVerified] = useState(false);
 
   useEffect(() => {
-    if (!session_id) {
-      setStatus('error');
-      setErrorMessage(t('missingSession'));
+    if (!session_id || hasVerified) {
+      if (!session_id) {
+        setStatus('error');
+        setErrorMessage(t('missingSession'));
+      }
       return;
     }
+    setHasVerified(true);
     verifyPayment(session_id);
-  }, [session_id]);
+  }, [session_id, hasVerified]);
 
   const verifyPayment = async (sessionId: string) => {
     try {

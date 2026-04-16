@@ -4,11 +4,13 @@ import {
   Text,
   Image,
   Pressable,
+  Platform,
 } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withSpring,
+  withSequence,
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -16,6 +18,11 @@ import { makeStyles, fonts, fontSizes, spacing, borderRadius, shadows } from '..
 import { useTheme } from '../../context/ThemeContext';
 import { useMealStore } from '../../store/mealStore';
 import type { Meal } from '../../types/meal';
+
+const triggerHaptic = () => {
+  if (Platform.OS === 'web') return;
+  import('expo-haptics').then((H) => H.impactAsync(H.ImpactFeedbackStyle.Light)).catch(() => {});
+};
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -30,6 +37,8 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
   const styles = useStyles();
   const favorites = useMealStore((s) => s.favorites);
   const toggleFavorite = useMealStore((s) => s.toggleFavorite);
+  const favScale = useSharedValue(1);
+  const favAnimStyle = useAnimatedStyle(() => ({ transform: [{ scale: favScale.value }] }));
   const likedMeals = useMealStore((s) => s.likedMeals);
   const dislikedMeals = useMealStore((s) => s.dislikedMeals);
   const toggleLike = useMealStore((s) => s.toggleLike);
@@ -91,12 +100,14 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
           onPress={(e) => {
             e.stopPropagation?.();
             toggleFavorite(meal.id);
+            triggerHaptic();
+            favScale.value = withSequence(withSpring(1.4, { damping: 6 }), withSpring(1, { damping: 10 }));
           }}
           hitSlop={8}
         >
-          <Text style={[styles.favIcon, isFav && styles.favIconActive]}>
+          <Animated.Text style={[styles.favIcon, isFav && styles.favIconActive, favAnimStyle]}>
             {isFav ? '\u2665' : '\u2661'}
-          </Text>
+          </Animated.Text>
         </Pressable>
       </View>
 
@@ -131,7 +142,7 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
           </Text>
           <View style={styles.feedbackRow}>
             <Pressable
-              onPress={(e) => { e.stopPropagation?.(); toggleLike(meal.id); }}
+              onPress={(e) => { e.stopPropagation?.(); toggleLike(meal.id); triggerHaptic(); }}
               hitSlop={6}
               style={styles.feedbackBtn}
             >
@@ -142,7 +153,7 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
               />
             </Pressable>
             <Pressable
-              onPress={(e) => { e.stopPropagation?.(); toggleDislike(meal.id); }}
+              onPress={(e) => { e.stopPropagation?.(); toggleDislike(meal.id); triggerHaptic(); }}
               hitSlop={6}
               style={styles.feedbackBtn}
             >

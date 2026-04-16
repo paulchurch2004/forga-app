@@ -40,7 +40,7 @@ export default function MealDetailScreen() {
   const isFavorite = useMealStore((s) => s.isFavorite);
   const engine = useEngine();
   const { isPremium } = usePremium();
-  const { currentSlot } = useMealSlot();
+  const { currentSlot, slots } = useMealSlot();
   const { recalculate } = useScore();
   const { incrementStreak, isTodayValidated } = useStreak();
 
@@ -78,7 +78,7 @@ export default function MealDetailScreen() {
   }, [meal, isFavorite, favorites]);
 
   const handleValidate = useCallback(async () => {
-    if (!meal || !profile) return;
+    if (!meal || !profile || validating) return;
 
     setValidating(true);
     try {
@@ -169,14 +169,22 @@ export default function MealDetailScreen() {
     );
   }
 
+  // After celebration, navigate to next unvalidated slot or go home
   const handleCelebrationDone = useCallback(() => {
     setShowCelebration(false);
-    if (router.canGoBack()) {
-      router.back();
+    // Find next unvalidated slot after the current one
+    const allSlots = slots.map((s) => s.slot);
+    const currentIndex = allSlots.indexOf(currentMealSlot);
+    const nextSlot = slots.find((s, i) => i > currentIndex && !s.isValidated);
+
+    if (nextSlot) {
+      // Go to meals screen for the next slot
+      router.replace(`/(tabs)/meals?slot=${nextSlot.slot}`);
     } else {
-      router.replace('/(tabs)/home');
+      // All slots done or no next slot — go to nutrition
+      router.replace('/nutrition');
     }
-  }, []);
+  }, [slots, currentMealSlot]);
 
   return (
     <View style={{ flex: 1 }}>

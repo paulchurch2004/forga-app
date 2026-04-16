@@ -110,14 +110,20 @@ export function CelebrationOverlay({ visible, onDone, message }: CelebrationOver
     textScale.value = withDelay(300, withSpring(1, { damping: 6, stiffness: 120 }));
     textOpacity.value = withDelay(300, withTiming(1, { duration: 200 }));
 
-    // Auto dismiss
-    const timer = setTimeout(() => {
+    // Auto dismiss — both timers cleaned up
+    const dismissTimer = setTimeout(() => {
       overlayOpacity.value = withTiming(0, { duration: 300 });
       textOpacity.value = withTiming(0, { duration: 200 });
-      setTimeout(() => runOnJS(onDone)(), 350);
     }, 2200);
 
-    return () => clearTimeout(timer);
+    const callbackTimer = setTimeout(() => {
+      runOnJS(onDone)();
+    }, 2550);
+
+    return () => {
+      clearTimeout(dismissTimer);
+      clearTimeout(callbackTimer);
+    };
   }, [visible]);
 
   const overlayStyle = useAnimatedStyle(() => ({

@@ -100,6 +100,22 @@ export default function HomeScreen() {
         <StreakBadge streak={currentStreak} isActive={isTodayValidated} size="sm" />
       </View>
 
+      {/* ── QUICK ACTIONS ── */}
+      <View style={styles.quickRow}>
+        <Pressable style={styles.quickBtn} onPress={() => router.push('/scan/barcode')}>
+          <Text style={styles.quickIcon}>{'\uD83D\uDCF7'}</Text>
+          <Text style={styles.quickLabel}>{t('barcode') ?? 'Scan'}</Text>
+        </Pressable>
+        <Pressable style={styles.quickBtn} onPress={() => router.push('/meal/custom')}>
+          <Text style={styles.quickIcon}>{'\u270D'}</Text>
+          <Text style={styles.quickLabel}>{t('mealFree') ?? 'Repas libre'}</Text>
+        </Pressable>
+        <Pressable style={styles.quickBtn} onPress={() => router.push('/recipes')}>
+          <Text style={styles.quickIcon}>{'\uD83C\uDF7D'}</Text>
+          <Text style={styles.quickLabel}>{t('recipesLabel') ?? 'Recettes'}</Text>
+        </Pressable>
+      </View>
+
       {/* ── HYDRATATION ── */}
       <WaterCard />
 
@@ -282,6 +298,32 @@ const useStyles = makeStyles((colors) => ({
     fontSize: fontSizes.sm,
     color: 'rgba(255,255,255,0.75)',
     marginTop: spacing.xs,
+  },
+
+  // Quick actions
+  quickRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  quickBtn: {
+    flex: 1,
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: spacing.xs,
+  },
+  quickIcon: {
+    fontSize: 22,
+  },
+  quickLabel: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.xs,
+    fontWeight: '600',
+    color: colors.textSecondary,
   },
 
   // Badge
