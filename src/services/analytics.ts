@@ -10,7 +10,7 @@ export async function initAnalytics(): Promise<void> {
   // Using lazy init to avoid blocking app startup
   const apiKey = process.env.EXPO_PUBLIC_POSTHOG_KEY;
   if (!apiKey) {
-    console.warn('[Analytics] No PostHog key configured');
+    if (__DEV__) console.warn('[Analytics] No PostHog key configured');
     return;
   }
   isInitialized = true;

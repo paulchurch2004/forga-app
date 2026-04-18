@@ -1245,6 +1245,50 @@ export const fr = {
   // ── Coming soon features ──
   appleHealthComingSoon: 'Integration Apple Health bientot disponible',
   widgetComingSoon: 'Widget bientot disponible',
+
+  // ── Final i18n cleanup ──
+  mealNotFound: 'Repas introuvable',
+  listeningPlaceholder: 'Ecoute...',
+  enterOneMeasurement: 'Entre au moins une mesure',
+  profileLabel2: 'Profil',
+  daysApart2: 'jours d\'ecart',
+  dateLocaleFr: 'fr-FR',
+  dateLocaleEn: 'en-US',
+
+  // Celebration messages
+  celebration1: 'Bien joue !',
+  celebration2: 'Enorme !',
+  celebration3: 'Continue !',
+  celebration4: 'En feu !',
+  celebration5: 'Machine !',
+  mealValidated: 'Repas valide',
+
+  // Measurements screen
+  waistLabel: 'Tour de taille',
+  hipsLabel: 'Tour de hanches',
+  chestLabel: 'Tour de poitrine',
+  armsLabel: 'Tour de bras',
+  thighsLabel: 'Tour de cuisse',
+  bodyFatLabel: 'Masse grasse',
+
+  // Meal prep
+  mealPrepGuide: 'GUIDE DE MEAL PREP',
+  mealPrepIntro: 'Gagne du temps en cuisinant en batch le week-end. Voici tes conseils pour la semaine :',
+  prepTip1Title: '1. PROTEINES EN BATCH',
+  prepTip1Text: 'Cuis toutes tes proteines en une fois : poulet, boeuf, oeufs durs. Stocke au frigo (3-4 jours) ou congelateur.',
+  prepTip2Title: '2. FECULENTS EN AVANCE',
+  prepTip2Text: 'Riz, pates, patates douces : cuis de grosses quantites. Ca se conserve 4-5 jours au frigo.',
+  prepTip3Title: '3. LEGUMES PREPARES',
+  prepTip3Text: 'Lave et coupe tes legumes le dimanche. Stocke dans des contenants hermetiques avec un sopalin humide.',
+  prepTip4Title: '4. PORTIONS INDIVIDUELLES',
+  prepTip4Text: 'Repartis dans des boites par repas. Etiquette avec le jour et le slot. Tu n\'as plus qu\'a rechauffer.',
+  prepTip5Title: '5. SAUCES & ASSAISONNEMENTS',
+  prepTip5Text: 'Prepare 2-3 sauces differentes pour varier les gouts sans refaire la cuisine : vinaigrette, sauce soja-miel, tahini.',
+
+  // Difficulty
+  difficultyEasy: 'Facile',
+  difficultyMedium: 'Moyen',
+  difficultyAdvanced: 'Avance',
 } as const;
 
 export type TranslationKey = keyof typeof fr;

@@ -22,7 +22,7 @@ export default function TermsScreen() {
       </Pressable>
 
       <Text style={styles.title}>{isFr ? "Conditions Generales d'Utilisation" : 'Terms of Service'}</Text>
-      <Text style={styles.date}>{isFr ? 'Derniere mise a jour : 15 avril 2026' : 'Last updated: April 15, 2026'}</Text>
+      <Text style={styles.date}>{isFr ? 'Derniere mise a jour : 18 avril 2026' : 'Last updated: April 18, 2026'}</Text>
 
       {sections.map((section, i) => (
         <View key={i} style={styles.section}>

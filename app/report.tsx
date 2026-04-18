@@ -98,14 +98,14 @@ export default function ReportScreen() {
   }, [period, mealHistory, scoreHistory, waterHistory, weightLog, waterTarget, profile]);
 
   const periodLabels: Record<Period, string> = {
-    this_week: locale === 'en' ? 'This week' : 'Cette semaine',
-    last_week: locale === 'en' ? 'Last week' : 'Semaine derniere',
-    this_month: locale === 'en' ? 'This month' : 'Ce mois',
-    last_month: locale === 'en' ? 'Last month' : 'Mois dernier',
+    this_week: t('thisWeek'),
+    last_week: t('lastWeek'),
+    this_month: t('thisMonth'),
+    last_month: t('lastMonth'),
   };
 
   const formatDate = (d: string) =>
-    new Date(d).toLocaleDateString(locale === 'en' ? 'en-US' : 'fr-FR', { day: 'numeric', month: 'short' });
+    new Date(d).toLocaleDateString(locale === 'en' ? 'en-US' as const : 'fr-FR' as const, { day: 'numeric', month: 'short' });
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top, maxWidth: contentMaxWidth }]}>
@@ -114,7 +114,7 @@ export default function ReportScreen() {
         <Pressable onPress={() => router.back()} hitSlop={16}>
           <Text style={styles.backText}>{'\u2039'} {t('home')}</Text>
         </Pressable>
-        <Text style={styles.title}>{locale === 'en' ? 'Report' : 'Bilan'}</Text>
+        <Text style={styles.title}>{t('reportTitle')}</Text>
       </View>
 
       {/* Period selector */}
@@ -140,26 +140,26 @@ export default function ReportScreen() {
       {/* Overview stats */}
       <View style={styles.statsGrid}>
         <StatCard
-          title={locale === 'en' ? 'Adherence' : 'Adherence'}
+          title={t('adherenceLabel')}
           value={`${report.adherencePct}%`}
-          subtitle={`${report.daysWithMeals}/${report.totalDays} ${locale === 'en' ? 'days' : 'jours'}`}
+          subtitle={`${report.daysWithMeals}/${report.totalDays} ${t('daysLabel')}`}
           color={report.adherencePct >= 80 ? colors.success : report.adherencePct >= 50 ? colors.warning : colors.error}
         />
         <StatCard
-          title={locale === 'en' ? 'Avg score' : 'Score moyen'}
+          title={t('avgScoreLabel')}
           value={`${report.avgScore}`}
           subtitle={report.scoreTrend >= 0 ? `+${report.scoreTrend}` : `${report.scoreTrend}`}
           color={getScoreColor(report.avgScore)}
         />
         <StatCard
-          title={locale === 'en' ? 'Weight' : 'Poids'}
+          title={t('weightLabel')}
           value={report.weightChange !== null ? `${report.weightChange > 0 ? '+' : ''}${report.weightChange} kg` : '—'}
           subtitle={report.weightEnd !== null ? `${report.weightEnd} kg` : undefined}
         />
         <StatCard
-          title={locale === 'en' ? 'Water' : 'Eau'}
+          title={t('waterLabel2')}
           value={`${Math.round(report.waterAvgMl / 1000 * 10) / 10}L`}
-          subtitle={`${report.waterDaysOnTarget}/${report.totalDays} ${locale === 'en' ? 'on target' : 'objectif'}`}
+          subtitle={`${report.waterDaysOnTarget}/${report.totalDays} ${t('onTarget')}`}
           color={report.waterDaysOnTarget >= report.totalDays * 0.7 ? '#00BFFF' : colors.textSecondary}
         />
       </View>
@@ -167,7 +167,7 @@ export default function ReportScreen() {
       {/* Average macros */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>
-          {locale === 'en' ? 'Average daily macros' : 'Macros moyennes / jour'}
+          {t('avgDailyMacros')}
         </Text>
         <View style={styles.macroRow}>
           <MacroBar
@@ -200,16 +200,16 @@ export default function ReportScreen() {
       {/* Daily breakdown */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>
-          {locale === 'en' ? 'Daily breakdown' : 'Detail par jour'}
+          {t('dailyBreakdown')}
         </Text>
         {report.days.map((day) => (
           <View key={day.date} style={styles.dayRow}>
             <View style={styles.dayLeft}>
               <Text style={styles.dayDate}>
-                {new Date(day.date).toLocaleDateString(locale === 'en' ? 'en-US' : 'fr-FR', { weekday: 'short', day: 'numeric' })}
+                {new Date(day.date).toLocaleDateString(locale === 'en' ? 'en-US' as const : 'fr-FR' as const, { weekday: 'short', day: 'numeric' })}
               </Text>
               <Text style={styles.dayMeals}>
-                {day.mealsLogged} {locale === 'en' ? 'meals' : 'repas'}
+                {day.mealsLogged} {t('mealsCount')}
               </Text>
             </View>
             <Text style={styles.dayCal}>{day.macros.calories} kcal</Text>
@@ -229,13 +229,13 @@ export default function ReportScreen() {
       {(report.bestDay || report.worstDay) && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
-            {locale === 'en' ? 'Highlights' : 'Points forts'}
+            {t('highlights')}
           </Text>
           {report.bestDay && (
             <View style={styles.highlightRow}>
               <Text style={styles.highlightIcon}>{'\u2B50'}</Text>
               <Text style={styles.highlightText}>
-                {locale === 'en' ? 'Best day' : 'Meilleur jour'}: {formatDate(report.bestDay.date)} — {locale === 'en' ? 'Score' : 'Score'} {report.bestDay.score}
+                {t('bestDayLabel')}: {formatDate(report.bestDay.date)} — Score {report.bestDay.score}
               </Text>
             </View>
           )}
@@ -243,7 +243,7 @@ export default function ReportScreen() {
             <View style={styles.highlightRow}>
               <Text style={styles.highlightIcon}>{'\u26A0'}</Text>
               <Text style={styles.highlightText}>
-                {locale === 'en' ? 'Needs work' : 'A ameliorer'}: {formatDate(report.worstDay.date)} — {locale === 'en' ? 'Score' : 'Score'} {report.worstDay.score}
+                {t('needsWork')}: {formatDate(report.worstDay.date)} — Score {report.worstDay.score}
               </Text>
             </View>
           )}

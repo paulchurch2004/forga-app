@@ -28,9 +28,7 @@ export default function MealDetailScreen() {
   const styles = useStyles();
   const { t, locale } = useT();
 
-  const celebrationMessages = locale === 'en'
-    ? ['Nice one!', 'Crushed it!', 'Keep going!', 'On fire!', 'Beast mode!']
-    : ['Bien joue !', 'Enorme !', 'Continue !', 'En feu !', 'Machine !'];
+  const celebrationMessages = [t('celebration1'), t('celebration2'), t('celebration3'), t('celebration4'), t('celebration5')];
   const randomMessage = celebrationMessages[Math.floor(Math.random() * celebrationMessages.length)];
 
   const profile = useUserStore((s) => s.profile);
@@ -164,7 +162,7 @@ export default function MealDetailScreen() {
   if (!meal) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Repas introuvable</Text>
+        <Text style={styles.errorText}>{t('mealNotFound')}</Text>
       </View>
     );
   }

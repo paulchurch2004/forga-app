@@ -38,7 +38,7 @@ export default function MeasurementsScreen() {
   const { contentMaxWidth } = useResponsive();
   const { colors } = useTheme();
   const styles = useStyles();
-  const { locale } = useT();
+  const { t, locale } = useT();
 
   const measurements = useUserStore((s) => s.measurements);
   const addMeasurement = useUserStore((s) => s.addMeasurement);
@@ -66,7 +66,7 @@ export default function MeasurementsScreen() {
   const handleSave = () => {
     const hasValue = FIELDS.some((f) => formValues[f.key]?.trim());
     if (!hasValue) {
-      const msg = locale === 'en' ? 'Enter at least one measurement' : 'Entre au moins une mesure';
+      const msg = t('enterOneMeasurement');
       Platform.OS === 'web' ? alert(msg) : Alert.alert('', msg);
       return;
     }

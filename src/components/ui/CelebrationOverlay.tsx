@@ -159,7 +159,7 @@ export function CelebrationOverlay({ visible, onDone, message }: CelebrationOver
       <Animated.View style={[textStyle, styles.textContainer]}>
         <Text style={styles.emoji}>{'\uD83D\uDCAA'}</Text>
         <Text style={styles.title}>{message ?? 'Bien jou\u00e9 !'}</Text>
-        <Text style={styles.subtitle}>Repas valid\u00e9</Text>
+        <Text style={styles.subtitle}>{'\u2705'}</Text>
       </Animated.View>
     </Animated.View>
   );

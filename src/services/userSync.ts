@@ -112,7 +112,7 @@ export async function syncProfile(updates: Record<string, any>, userId: string) 
 
     await supabase.from('users').update(snakeUpdates).eq('id', userId);
   } catch (err) {
-    console.warn('[UserSync] Profile sync failed:', err);
+    if (__DEV__) console.warn('[UserSync] Profile sync failed:', err);
   }
 }
 
@@ -250,6 +250,6 @@ export async function loadAllUserData(userId: string): Promise<void> {
       useUserStore.setState({ checkIns: merged });
     }
   } catch (err) {
-    console.warn('[UserSync] Failed to load user data:', err);
+    if (__DEV__) console.warn('[UserSync] Failed to load user data:', err);
   }
 }

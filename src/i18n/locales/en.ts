@@ -1247,4 +1247,48 @@ export const en: Record<TranslationKey, string> = {
   // ── Coming soon features ──
   appleHealthComingSoon: 'Apple Health integration coming soon',
   widgetComingSoon: 'Widget coming soon',
+
+  // ── Final i18n cleanup ──
+  mealNotFound: 'Meal not found',
+  listeningPlaceholder: 'Listening...',
+  enterOneMeasurement: 'Enter at least one measurement',
+  profileLabel2: 'Profile',
+  daysApart2: 'days apart',
+  dateLocaleFr: 'fr-FR',
+  dateLocaleEn: 'en-US',
+
+  // Celebration messages
+  celebration1: 'Nice one!',
+  celebration2: 'Crushed it!',
+  celebration3: 'Keep going!',
+  celebration4: 'On fire!',
+  celebration5: 'Beast mode!',
+  mealValidated: 'Meal validated',
+
+  // Measurements screen
+  waistLabel: 'Waist',
+  hipsLabel: 'Hips',
+  chestLabel: 'Chest',
+  armsLabel: 'Arms',
+  thighsLabel: 'Thighs',
+  bodyFatLabel: 'Body fat',
+
+  // Meal prep
+  mealPrepGuide: 'MEAL PREP GUIDE',
+  mealPrepIntro: 'Save time by batch cooking on the weekend. Here are your tips for the week:',
+  prepTip1Title: '1. BATCH COOK PROTEINS',
+  prepTip1Text: 'Cook all your proteins at once: chicken, beef, hard-boiled eggs. Store in fridge (3-4 days) or freezer.',
+  prepTip2Title: '2. PREP STARCHES AHEAD',
+  prepTip2Text: 'Rice, pasta, sweet potatoes: cook large batches. They keep 4-5 days in the fridge.',
+  prepTip3Title: '3. PREP VEGETABLES',
+  prepTip3Text: 'Wash and chop veggies on Sunday. Store in airtight containers with a damp paper towel.',
+  prepTip4Title: '4. PORTION CONTAINERS',
+  prepTip4Text: 'Divide into containers per meal. Label with day and slot. Just reheat and eat.',
+  prepTip5Title: '5. SAUCES & SEASONINGS',
+  prepTip5Text: 'Prepare 2-3 different sauces to vary flavors without cooking again: vinaigrette, soy-honey, tahini.',
+
+  // Difficulty
+  difficultyEasy: 'Easy',
+  difficultyMedium: 'Medium',
+  difficultyAdvanced: 'Advanced',
 };

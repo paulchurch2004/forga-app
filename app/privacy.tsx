@@ -7,7 +7,7 @@ import { useTheme } from '../src/context/ThemeContext';
 import { useT } from '../src/i18n';
 import { useResponsive } from '../src/hooks/useResponsive';
 
-const LAST_UPDATED = '2 avril 2025';
+const LAST_UPDATED = '18 avril 2026';
 
 export default function PrivacyScreen() {
   const insets = useSafeAreaInsets();

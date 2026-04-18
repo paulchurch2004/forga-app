@@ -144,7 +144,7 @@ export default function CheckInScreen() {
       }
       syncProfile(profileUpdates, profile.id);
     } catch (e) {
-      console.warn('[CheckIn] Supabase sync failed:', e);
+      if (__DEV__) console.warn('[CheckIn] Supabase sync failed:', e);
     }
 
     events.checkInCompleted();

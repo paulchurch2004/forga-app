@@ -44,7 +44,7 @@ export default function CustomMealScreen() {
   const session = useAuthStore((s) => s.session);
 
   const [showCelebration, setShowCelebration] = useState(false);
-  const celebrationMessages = ['Bien joue !', 'Enorme !', 'Continue !', 'En feu !', 'Machine !'];
+  const celebrationMessages = [t('celebration1'), t('celebration2'), t('celebration3'), t('celebration4'), t('celebration5')];
   const randomMessage = celebrationMessages[Math.floor(Math.random() * celebrationMessages.length)];
 
   const [selectedSlot, setSelectedSlot] = useState<MealSlot>(

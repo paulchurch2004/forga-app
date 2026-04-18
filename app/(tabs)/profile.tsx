@@ -93,7 +93,7 @@ export default function ProfileScreen() {
       events.referralCodeShared('copy');
       setTimeout(() => setCodeCopied(false), 2000);
     } catch (error) {
-      console.warn('[Profile] Copy referral code failed:', error);
+      if (__DEV__) console.warn('[Profile] Copy referral code failed:', error);
     }
   }, [profile?.referralCode]);
 
@@ -106,7 +106,7 @@ export default function ProfileScreen() {
       });
       events.referralCodeShared('share');
     } catch (error) {
-      console.warn('[Profile] Share referral code failed:', error);
+      if (__DEV__) console.warn('[Profile] Share referral code failed:', error);
     }
   }, [profile?.referralCode]);
 

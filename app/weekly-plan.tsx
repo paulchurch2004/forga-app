@@ -404,50 +404,19 @@ export default function WeeklyPlanScreen() {
         ) : activeTab === 'prep' ? (
           /* -- Meal prep tab -- */
           <View style={styles.shoppingSection}>
-            <Text style={styles.prepTitle}>
-              {locale === 'en' ? 'MEAL PREP GUIDE' : 'GUIDE DE MEAL PREP'}
-            </Text>
-            <Text style={styles.prepIntro}>
-              {locale === 'en'
-                ? 'Save time by batch cooking on the weekend. Here are your tips for the week:'
-                : 'Gagne du temps en cuisinant en batch le week-end. Voici tes conseils pour la semaine :'}
-            </Text>
+            <Text style={styles.prepTitle}>{t('mealPrepGuide')}</Text>
+            <Text style={styles.prepIntro}>{t('mealPrepIntro')}</Text>
 
             {[
-              {
-                titleFr: '1. PROTEINES EN BATCH',
-                titleEn: '1. BATCH COOK PROTEINS',
-                textFr: 'Cuis toutes tes proteines en une fois : poulet, boeuf, oeufs durs. Stocke au frigo (3-4 jours) ou congelateur.',
-                textEn: 'Cook all your proteins at once: chicken, beef, hard-boiled eggs. Store in fridge (3-4 days) or freezer.',
-              },
-              {
-                titleFr: '2. FECULENTS EN AVANCE',
-                titleEn: '2. PREP STARCHES AHEAD',
-                textFr: 'Riz, pates, patates douces : cuis de grosses quantites. Ca se conserve 4-5 jours au frigo.',
-                textEn: 'Rice, pasta, sweet potatoes: cook large batches. They keep 4-5 days in the fridge.',
-              },
-              {
-                titleFr: '3. LEGUMES PREPARES',
-                titleEn: '3. PREP VEGETABLES',
-                textFr: 'Lave et coupe tes legumes le dimanche. Stocke dans des contenants hermetiques avec un sopalin humide.',
-                textEn: 'Wash and chop veggies on Sunday. Store in airtight containers with a damp paper towel.',
-              },
-              {
-                titleFr: '4. PORTIONS INDIVIDUELLES',
-                titleEn: '4. PORTION CONTAINERS',
-                textFr: 'Repartis dans des boites par repas. Etiquette avec le jour et le slot. Tu n\'as plus qu\'a rechauffer.',
-                textEn: 'Divide into containers per meal. Label with day and slot. Just reheat and eat.',
-              },
-              {
-                titleFr: '5. SAUCES & ASSAISONNEMENTS',
-                titleEn: '5. SAUCES & SEASONINGS',
-                textFr: 'Prepare 2-3 sauces differentes pour varier les gouts sans refaire la cuisine : vinaigrette, sauce soja-miel, tahini.',
-                textEn: 'Prepare 2-3 different sauces to vary flavors without cooking again: vinaigrette, soy-honey, tahini.',
-              },
+              { title: t('prepTip1Title'), text: t('prepTip1Text') },
+              { title: t('prepTip2Title'), text: t('prepTip2Text') },
+              { title: t('prepTip3Title'), text: t('prepTip3Text') },
+              { title: t('prepTip4Title'), text: t('prepTip4Text') },
+              { title: t('prepTip5Title'), text: t('prepTip5Text') },
             ].map((tip, i) => (
               <View key={i} style={styles.prepCard}>
-                <Text style={styles.prepCardTitle}>{locale === 'en' ? tip.titleEn : tip.titleFr}</Text>
-                <Text style={styles.prepCardText}>{locale === 'en' ? tip.textEn : tip.textFr}</Text>
+                <Text style={styles.prepCardTitle}>{tip.title}</Text>
+                <Text style={styles.prepCardText}>{tip.text}</Text>
               </View>
             ))}
           </View>

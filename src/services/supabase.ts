@@ -9,10 +9,12 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 export const isDemoMode = !supabaseUrl || !supabaseAnonKey;
 
 if (isDemoMode && __DEV__) {
-  console.warn(
-    '[FORGA] Mode démo activé — Supabase non configuré. ' +
-    'Les données sont stockées localement uniquement.'
-  );
+  if (__DEV__) {
+    console.warn(
+      '[FORGA] Mode démo activé — Supabase non configuré. ' +
+      'Les données sont stockées localement uniquement.'
+    );
+  }
 }
 
 // En mode démo, on crée un client avec une URL factice

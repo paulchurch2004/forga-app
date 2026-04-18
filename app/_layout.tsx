@@ -149,7 +149,7 @@ function RootLayoutInner() {
           }
         }
       } catch (error) {
-        console.warn('[Notifications] Failed to schedule:', error);
+        if (__DEV__) console.warn('[Notifications] Failed to schedule:', error);
         captureException(error instanceof Error ? error : new Error(String(error)), { component: 'NotificationScheduler' });
       }
     });
@@ -216,7 +216,7 @@ function RootLayoutInner() {
     const flush = () => {
       const session = useAuthStore.getState().session;
       if (!session) return;
-      processQueue().catch((err) => console.warn('[SyncQueue] Failed:', err));
+      processQueue().catch((err) => { if (__DEV__) console.warn('[SyncQueue] Failed:', err); });
     };
 
     // Auto-recalculate and save score so it persists even if nutrition screen is never opened
