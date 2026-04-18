@@ -100,22 +100,6 @@ export default function HomeScreen() {
         <StreakBadge streak={currentStreak} isActive={isTodayValidated} size="sm" />
       </View>
 
-      {/* ── QUICK ACTIONS ── */}
-      <View style={styles.quickRow}>
-        <Pressable style={styles.quickBtn} onPress={() => router.push('/scan/barcode')}>
-          <Text style={styles.quickIcon}>{'\uD83D\uDCF7'}</Text>
-          <Text style={styles.quickLabel}>{t('barcode') ?? 'Scan'}</Text>
-        </Pressable>
-        <Pressable style={styles.quickBtn} onPress={() => router.push('/meal/custom')}>
-          <Text style={styles.quickIcon}>{'\u270D'}</Text>
-          <Text style={styles.quickLabel}>{t('mealFree') ?? 'Repas libre'}</Text>
-        </Pressable>
-        <Pressable style={styles.quickBtn} onPress={() => router.push('/recipes')}>
-          <Text style={styles.quickIcon}>{'\uD83C\uDF7D'}</Text>
-          <Text style={styles.quickLabel}>{t('recipesLabel') ?? 'Recettes'}</Text>
-        </Pressable>
-      </View>
-
       {/* ── NUTRITION ── */}
       <Pressable style={styles.card} onPress={() => router.push('/nutrition')}>
         <ImageBackground
