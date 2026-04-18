@@ -19,7 +19,7 @@ import { WeightPromptModal } from '../../src/components/ui/WeightPromptModal';
 import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useT } from '../../src/i18n';
-import { WaterCard } from '../../src/components/hydration/WaterCard';
+// WaterCard is displayed in nutrition.tsx, not on home
 
 const CARD_IMAGES = {
   nutrition:
@@ -115,9 +115,6 @@ export default function HomeScreen() {
           <Text style={styles.quickLabel}>{t('recipesLabel') ?? 'Recettes'}</Text>
         </Pressable>
       </View>
-
-      {/* ── HYDRATATION ── */}
-      <WaterCard />
 
       {/* ── NUTRITION ── */}
       <Pressable style={styles.card} onPress={() => router.push('/nutrition')}>
