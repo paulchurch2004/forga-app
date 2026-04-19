@@ -1,14 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
-  ScrollView,
   Pressable,
   ImageBackground,
+  useWindowDimensions,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  useAnimatedScrollHandler,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
 import { useUserStore } from '../../src/store/userStore';
 import { useSettingsStore } from '../../src/store/settingsStore';
 import { useStreak } from '../../src/hooks/useStreak';
@@ -18,23 +25,190 @@ import { TutorialOverlay } from '../../src/components/ui/TutorialOverlay';
 import { WeightPromptModal } from '../../src/components/ui/WeightPromptModal';
 import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
 import { useResponsive } from '../../src/hooks/useResponsive';
+import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
-// WaterCard is displayed in nutrition.tsx, not on home
 
-const CARD_IMAGES = {
-  nutrition:
-    'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80',
-  training:
-    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
-  space:
-    'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&q=80',
-  boutique:
-    'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800&q=80',
-};
+// ──────────── CARD DATA ────────────
+
+const CARDS = [
+  {
+    key: 'nutrition',
+    image: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80',
+    titleKey: 'nutritionCard',
+    subKey: 'nutritionCardSub',
+    route: '/nutrition',
+  },
+  {
+    key: 'training',
+    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
+    titleKey: 'trainingCard',
+    subKey: 'trainingCardSub',
+    route: '/(tabs)/training',
+  },
+  {
+    key: 'space',
+    image: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&q=80',
+    titleKey: 'mySpace',
+    subKey: 'mySpaceSub',
+    route: '/(tabs)/profile',
+  },
+  {
+    key: 'boutique',
+    image: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800&q=80',
+    titleKey: 'boutiqueCard',
+    subKey: 'boutiqueCardSub',
+    route: null, // Coming soon
+    comingSoon: true,
+  },
+];
+
+// ──────────── 3D CAROUSEL CARD ────────────
+
+function CarouselCard({
+  card,
+  index,
+  scrollX,
+  cardWidth,
+  cardHeight,
+  t,
+}: {
+  card: typeof CARDS[0];
+  index: number;
+  scrollX: Animated.SharedValue<number>;
+  cardWidth: number;
+  cardHeight: number;
+  t: any;
+}) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+
+  const animatedStyle = useAnimatedStyle(() => {
+    const inputRange = [
+      (index - 1) * cardWidth,
+      index * cardWidth,
+      (index + 1) * cardWidth,
+    ];
+
+    const rotateY = interpolate(
+      scrollX.value,
+      inputRange,
+      [45, 0, -45],
+      Extrapolation.CLAMP
+    );
+
+    const scale = interpolate(
+      scrollX.value,
+      inputRange,
+      [0.85, 1, 0.85],
+      Extrapolation.CLAMP
+    );
+
+    const opacity = interpolate(
+      scrollX.value,
+      inputRange,
+      [0.6, 1, 0.6],
+      Extrapolation.CLAMP
+    );
+
+    const translateX = interpolate(
+      scrollX.value,
+      inputRange,
+      [30, 0, -30],
+      Extrapolation.CLAMP
+    );
+
+    return {
+      transform: [
+        { perspective: 800 },
+        { translateX },
+        { rotateY: `${rotateY}deg` },
+        { scale },
+      ],
+      opacity,
+    };
+  });
+
+  const handlePress = useCallback(() => {
+    if (card.route) {
+      router.push(card.route as any);
+    }
+  }, [card.route]);
+
+  const content = (
+    <ImageBackground
+      source={{ uri: card.image }}
+      style={[styles.carouselImage, { width: cardWidth - spacing.md * 2, height: cardHeight }]}
+      imageStyle={styles.carouselImageInner}
+    >
+      <LinearGradient
+        colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.8)']}
+        style={styles.carouselOverlay}
+      >
+        {card.comingSoon && (
+          <View style={styles.comingSoonBadge}>
+            <Text style={styles.comingSoonText}>{t('comingSoonBadge')}</Text>
+          </View>
+        )}
+        <Text style={styles.carouselTitle}>{t(card.titleKey as any)}</Text>
+        <Text style={styles.carouselDesc}>{t(card.subKey as any)}</Text>
+      </LinearGradient>
+    </ImageBackground>
+  );
+
+  return (
+    <Animated.View style={[{ width: cardWidth, alignItems: 'center', justifyContent: 'center' }, animatedStyle]}>
+      {card.route ? (
+        <Pressable onPress={handlePress} style={[styles.carouselCard, card.comingSoon && { opacity: 0.8 }]}>
+          {content}
+        </Pressable>
+      ) : (
+        <View style={[styles.carouselCard, { opacity: 0.8 }]}>
+          {content}
+        </View>
+      )}
+    </Animated.View>
+  );
+}
+
+// ──────────── DOT INDICATOR ────────────
+
+function DotIndicator({ scrollX, cardWidth, count }: { scrollX: Animated.SharedValue<number>; cardWidth: number; count: number }) {
+  const { colors } = useTheme();
+
+  return (
+    <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: spacing.lg }}>
+      {Array.from({ length: count }).map((_, i) => (
+        <DotItem key={i} index={i} scrollX={scrollX} cardWidth={cardWidth} colors={colors} />
+      ))}
+    </View>
+  );
+}
+
+function DotItem({ index, scrollX, cardWidth, colors }: { index: number; scrollX: Animated.SharedValue<number>; cardWidth: number; colors: any }) {
+  const animStyle = useAnimatedStyle(() => {
+    const inputRange = [(index - 1) * cardWidth, index * cardWidth, (index + 1) * cardWidth];
+    const width = interpolate(scrollX.value, inputRange, [8, 24, 8], Extrapolation.CLAMP);
+    const opacity = interpolate(scrollX.value, inputRange, [0.3, 1, 0.3], Extrapolation.CLAMP);
+    return { width, opacity };
+  });
+
+  return (
+    <Animated.View
+      style={[{
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: colors.primary,
+      }, animStyle]}
+    />
+  );
+}
+
+// ──────────── MAIN SCREEN ────────────
 
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { contentMaxWidth } = useResponsive();
+  const { width: screenWidth } = useWindowDimensions();
   const profile = useUserStore((s) => s.profile);
   const { currentStreak, isTodayValidated } = useStreak();
   const tutorialStep = useSettingsStore((s) => s.tutorialStep);
@@ -44,7 +218,16 @@ export default function HomeScreen() {
   const styles = useStyles();
   const { t } = useT();
 
-  // Auto-start tutorial on first visit after onboarding
+  const scrollX = useSharedValue(0);
+  const cardWidth = Math.min(screenWidth, contentMaxWidth);
+  const cardHeight = 220;
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollX.value = event.contentOffset.x;
+    },
+  });
+
   useEffect(() => {
     if (profile && tutorialStep === 0) {
       const timer = setTimeout(() => setTutorialStep(1), 800);
@@ -52,7 +235,6 @@ export default function HomeScreen() {
     }
   }, [profile, tutorialStep, setTutorialStep]);
 
-  // Show weight prompt after 10+ days without weigh-in
   useEffect(() => {
     if (shouldPrompt && profile && tutorialStep === -1) {
       const timer = setTimeout(() => setShowWeightModal(true), 1000);
@@ -79,16 +261,9 @@ export default function HomeScreen() {
   const firstName = profile.name.split(' ')[0];
 
   return (
-    <ScrollView
-      style={styles.wrapper}
-      contentContainerStyle={[
-        styles.content,
-        { paddingTop: insets.top + spacing.xl, maxWidth: contentMaxWidth },
-      ]}
-      showsVerticalScrollIndicator={false}
-    >
+    <View style={[styles.wrapper, { paddingTop: insets.top + spacing.xl }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%', paddingHorizontal: spacing.lg }]}>
         <View style={styles.greetingCol}>
           <Text style={styles.greeting}>
             {greeting}, {firstName}
@@ -100,89 +275,35 @@ export default function HomeScreen() {
         <StreakBadge streak={currentStreak} isActive={isTodayValidated} size="sm" />
       </View>
 
-      {/* ── NUTRITION ── */}
-      <Pressable style={styles.card} onPress={() => router.push('/nutrition')}>
-        <ImageBackground
-          source={{ uri: CARD_IMAGES.nutrition }}
-          style={styles.cardImage}
-          imageStyle={styles.cardImageInner}
-        >
-          <LinearGradient
-            colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.75)']}
-            style={styles.cardOverlay}
-          >
-            <Text style={styles.cardTitle}>{t('nutritionCard')}</Text>
-            <Text style={styles.cardDesc}>
-              {t('nutritionCardSub')}
-            </Text>
-          </LinearGradient>
-        </ImageBackground>
-      </Pressable>
-
-      {/* ── ENTRAÎNEMENT ── */}
-      <Pressable
-        style={styles.card}
-        onPress={() => router.push('/(tabs)/training')}
+      {/* 3D Carousel */}
+      <Animated.ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={cardWidth}
+        decelerationRate="fast"
+        contentContainerStyle={{ paddingVertical: spacing.xl }}
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
       >
-        <ImageBackground
-          source={{ uri: CARD_IMAGES.training }}
-          style={styles.cardImage}
-          imageStyle={styles.cardImageInner}
-        >
-          <LinearGradient
-            colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.75)']}
-            style={styles.cardOverlay}
-          >
-            <Text style={styles.cardTitle}>{t('trainingCard')}</Text>
-            <Text style={styles.cardDesc}>
-              {t('trainingCardSub')}
-            </Text>
-          </LinearGradient>
-        </ImageBackground>
-      </Pressable>
+        {CARDS.map((card, index) => (
+          <CarouselCard
+            key={card.key}
+            card={card}
+            index={index}
+            scrollX={scrollX}
+            cardWidth={cardWidth}
+            cardHeight={cardHeight}
+            t={t}
+          />
+        ))}
+      </Animated.ScrollView>
 
-      {/* ── MON ESPACE ── */}
-      <Pressable style={styles.card} onPress={() => router.push('/(tabs)/profile')}>
-        <ImageBackground
-          source={{ uri: CARD_IMAGES.space }}
-          style={styles.cardImage}
-          imageStyle={styles.cardImageInner}
-        >
-          <LinearGradient
-            colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.75)']}
-            style={styles.cardOverlay}
-          >
-            <Text style={styles.cardTitle}>{t('mySpace')}</Text>
-            <Text style={styles.cardDesc}>
-              {t('mySpaceSub')}
-            </Text>
-          </LinearGradient>
-        </ImageBackground>
-      </Pressable>
+      {/* Dot indicator */}
+      <DotIndicator scrollX={scrollX} cardWidth={cardWidth} count={CARDS.length} />
 
-      {/* ── BOUTIQUE FORGA ── */}
-      <View style={[styles.card, { opacity: 0.8 }]}>
-        <ImageBackground
-          source={{ uri: CARD_IMAGES.boutique }}
-          style={styles.cardImage}
-          imageStyle={styles.cardImageInner}
-        >
-          <LinearGradient
-            colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.75)']}
-            style={styles.cardOverlay}
-          >
-            <View style={styles.comingSoonBadge}>
-              <Text style={styles.comingSoonText}>{t('comingSoonBadge')}</Text>
-            </View>
-            <Text style={styles.cardTitle}>{t('boutiqueCard')}</Text>
-            <Text style={styles.cardDesc}>
-              {t('boutiqueCardSub')}
-            </Text>
-          </LinearGradient>
-        </ImageBackground>
-      </View>
-
-      <View style={{ height: spacing['3xl'] }} />
+      {/* Swipe hint */}
+      <Text style={styles.swipeHint}>{'\u2190'} {t('comingSoon') ? 'Swipe' : 'Swipe'} {'\u2192'}</Text>
 
       {/* Tutorial overlay */}
       <TutorialOverlay step={tutorialStep} />
@@ -193,19 +314,16 @@ export default function HomeScreen() {
         daysSinceLastWeighIn={daysSinceLastWeighIn}
         onClose={() => setShowWeightModal(false)}
       />
-    </ScrollView>
+    </View>
   );
 }
+
+// ──────────── STYLES ────────────
 
 const useStyles = makeStyles((colors) => ({
   wrapper: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    alignSelf: 'center',
-    width: '100%',
   },
   loadingContainer: {
     flex: 1,
@@ -223,7 +341,7 @@ const useStyles = makeStyles((colors) => ({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: spacing.xl,
+    marginBottom: spacing.md,
   },
   greetingCol: {
     flex: 1,
@@ -242,39 +360,38 @@ const useStyles = makeStyles((colors) => ({
     marginTop: spacing.xs,
   },
 
-  // Cards
-  card: {
+  // 3D Carousel
+  carouselCard: {
     borderRadius: borderRadius.xl,
     overflow: 'hidden',
-    marginBottom: spacing.md,
     borderWidth: 1.5,
     borderColor: colors.primary,
+    elevation: 8,
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
-  cardImage: {
-    width: '100%',
-    height: 160,
-  },
-  cardImageInner: {
+  carouselImage: {
+    overflow: 'hidden',
     borderRadius: borderRadius.xl,
   },
-  cardOverlay: {
+  carouselImageInner: {
+    borderRadius: borderRadius.xl,
+  },
+  carouselOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
     padding: spacing.xl,
     borderRadius: borderRadius.xl,
   },
-  cardTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  cardTitle: {
+  carouselTitle: {
     fontFamily: fonts.display,
-    fontSize: fontSizes.xl,
+    fontSize: fontSizes['2xl'],
     fontWeight: '700',
     color: colors.white,
   },
-  cardDesc: {
+  carouselDesc: {
     fontFamily: fonts.body,
     fontSize: fontSizes.sm,
     color: 'rgba(255,255,255,0.75)',
@@ -299,43 +416,12 @@ const useStyles = makeStyles((colors) => ({
     textTransform: 'uppercase',
   },
 
-  // Quick actions
-  quickRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  quickBtn: {
-    flex: 1,
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: colors.border,
-    gap: spacing.xs,
-  },
-  quickIcon: {
-    fontSize: 22,
-  },
-  quickLabel: {
+  // Swipe hint
+  swipeHint: {
     fontFamily: fonts.body,
-    fontSize: fontSizes.xs,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-
-  // Badge
-  badge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 2,
-  },
-  badgeText: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    color: colors.white,
+    fontSize: fontSizes.sm,
+    color: colors.textMuted,
+    textAlign: 'center',
+    marginTop: spacing.md,
   },
 }));
