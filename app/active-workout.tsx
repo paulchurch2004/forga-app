@@ -158,10 +158,25 @@ export default function ActiveWorkoutScreen() {
       const lastSession = getLastSession(pe.exerciseId);
       const lastWeight = lastSession?.[0]?.weight ?? 0;
 
+      // Adjust reps based on user objective
+      let adjustedReps = pe.targetReps;
+      const isCompound = exercise?.isCompound ?? false;
+      if (objective === 'bulk' && isCompound) {
+        // Bulk: heavier, fewer reps for compounds
+        adjustedReps = Math.max(4, pe.targetReps - 2);
+      } else if (objective === 'cut') {
+        // Cut: lighter, more reps for metabolic stress
+        adjustedReps = pe.targetReps + 2;
+      } else if (objective === 'recomp') {
+        // Recomp: moderate, keep as-is
+        adjustedReps = pe.targetReps;
+      }
+      // Maintain: keep program defaults
+
       const sets: ActiveSet[] = Array.from({ length: pe.targetSets }, (_, i) => ({
         id: `s_${pe.exerciseId}_${i}`,
-        targetReps: pe.targetReps,
-        actualReps: String(pe.targetReps),
+        targetReps: adjustedReps,
+        actualReps: String(adjustedReps),
         weight: lastWeight > 0 ? String(lastWeight) : '',
         completed: false,
       }));
