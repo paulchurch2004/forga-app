@@ -70,6 +70,7 @@ function CarouselCard({
   scrollX,
   cardWidth,
   cardHeight,
+  snapInterval,
   t,
 }: {
   card: typeof CARDS[0];
@@ -77,6 +78,7 @@ function CarouselCard({
   scrollX: Animated.SharedValue<number>;
   cardWidth: number;
   cardHeight: number;
+  snapInterval: number;
   t: any;
 }) {
   const styles = useStyles();
@@ -84,43 +86,35 @@ function CarouselCard({
 
   const animatedStyle = useAnimatedStyle(() => {
     const inputRange = [
-      (index - 1) * cardWidth,
-      index * cardWidth,
-      (index + 1) * cardWidth,
+      (index - 1) * snapInterval,
+      index * snapInterval,
+      (index + 1) * snapInterval,
     ];
 
     const rotateY = interpolate(
       scrollX.value,
       inputRange,
-      [45, 0, -45],
+      [35, 0, -35],
       Extrapolation.CLAMP
     );
 
     const scale = interpolate(
       scrollX.value,
       inputRange,
-      [0.85, 1, 0.85],
+      [0.82, 1, 0.82],
       Extrapolation.CLAMP
     );
 
     const opacity = interpolate(
       scrollX.value,
       inputRange,
-      [0.6, 1, 0.6],
-      Extrapolation.CLAMP
-    );
-
-    const translateX = interpolate(
-      scrollX.value,
-      inputRange,
-      [30, 0, -30],
+      [0.5, 1, 0.5],
       Extrapolation.CLAMP
     );
 
     return {
       transform: [
         { perspective: 800 },
-        { translateX },
         { rotateY: `${rotateY}deg` },
         { scale },
       ],
@@ -137,7 +131,7 @@ function CarouselCard({
   const content = (
     <ImageBackground
       source={{ uri: card.image }}
-      style={[styles.carouselImage, { width: cardWidth - spacing.md * 2, height: cardHeight }]}
+      style={[styles.carouselImage, { width: cardWidth, height: cardHeight }]}
       imageStyle={styles.carouselImageInner}
     >
       <LinearGradient
@@ -156,7 +150,7 @@ function CarouselCard({
   );
 
   return (
-    <Animated.View style={[{ width: cardWidth, alignItems: 'center', justifyContent: 'center' }, animatedStyle]}>
+    <Animated.View style={[{ width: cardWidth, alignItems: 'center' }, animatedStyle]}>
       {card.route ? (
         <Pressable onPress={handlePress} style={[styles.carouselCard, card.comingSoon && { opacity: 0.8 }]}>
           {content}
@@ -219,8 +213,11 @@ export default function HomeScreen() {
   const { t } = useT();
 
   const scrollX = useSharedValue(0);
-  const cardWidth = Math.min(screenWidth, contentMaxWidth);
-  const cardHeight = 220;
+  const visibleWidth = Math.min(screenWidth, contentMaxWidth);
+  const cardWidth = visibleWidth * 0.72;
+  const cardSpacing = (visibleWidth - cardWidth) / 2;
+  const snapInterval = cardWidth + spacing.md;
+  const cardHeight = 260;
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
@@ -278,11 +275,14 @@ export default function HomeScreen() {
       {/* 3D Carousel */}
       <Animated.ScrollView
         horizontal
-        pagingEnabled
         showsHorizontalScrollIndicator={false}
-        snapToInterval={cardWidth}
+        snapToInterval={snapInterval}
         decelerationRate="fast"
-        contentContainerStyle={{ paddingVertical: spacing.xl }}
+        contentContainerStyle={{
+          paddingHorizontal: cardSpacing,
+          paddingVertical: spacing.xl,
+          gap: spacing.md,
+        }}
         onScroll={scrollHandler}
         scrollEventThrottle={16}
       >
@@ -294,13 +294,14 @@ export default function HomeScreen() {
             scrollX={scrollX}
             cardWidth={cardWidth}
             cardHeight={cardHeight}
+            snapInterval={snapInterval}
             t={t}
           />
         ))}
       </Animated.ScrollView>
 
       {/* Dot indicator */}
-      <DotIndicator scrollX={scrollX} cardWidth={cardWidth} count={CARDS.length} />
+      <DotIndicator scrollX={scrollX} cardWidth={snapInterval} count={CARDS.length} />
 
       {/* Swipe hint */}
       <Text style={styles.swipeHint}>{'\u2190'} {t('comingSoon') ? 'Swipe' : 'Swipe'} {'\u2192'}</Text>
