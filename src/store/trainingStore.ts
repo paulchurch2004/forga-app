@@ -17,6 +17,8 @@ interface TrainingState {
   getFavoriteType: () => WorkoutType | null;
   getExerciseHistory: (exerciseId: string) => { date: string; sets: { reps: number; weight: number }[] }[];
   getLastSessionForExercise: (exerciseId: string) => { reps: number; weight: number }[] | null;
+  getPersonalRecord: (exerciseId: string) => { weight: number; reps: number; date: string } | null;
+  isNewPR: (exerciseId: string, weight: number) => boolean;
   checkDayReset: () => void;
   reset: () => void;
 }
@@ -142,6 +144,29 @@ export const useTrainingStore = create<TrainingState>()(
           }
         }
         return null;
+      },
+
+      getPersonalRecord: (exerciseId) => {
+        let best: { weight: number; reps: number; date: string } | null = null;
+        for (const [date, dayWorkouts] of Object.entries(get().workouts)) {
+          for (const w of dayWorkouts) {
+            for (const ex of w.exercises) {
+              if (ex.exerciseId === exerciseId) {
+                for (const s of ex.sets) {
+                  if (!best || s.weight > best.weight) {
+                    best = { weight: s.weight, reps: s.reps, date };
+                  }
+                }
+              }
+            }
+          }
+        }
+        return best;
+      },
+
+      isNewPR: (exerciseId, weight) => {
+        const current = get().getPersonalRecord(exerciseId);
+        return !current || weight > current.weight;
       },
 
       checkDayReset: () => {

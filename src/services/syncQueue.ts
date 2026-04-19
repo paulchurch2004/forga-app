@@ -32,7 +32,7 @@ export async function processQueue(): Promise<void> {
   const queue = await getQueue();
   if (queue.length === 0) return;
 
-  const ALLOWED_TABLES = ['daily_meals', 'weight_log', 'weekly_checkins', 'score_history', 'badges', 'favorites'];
+  const ALLOWED_TABLES = ['daily_meals', 'weight_log', 'weekly_checkins', 'score_history', 'badges', 'favorites', 'workouts'];
   const remaining: SyncAction[] = [];
   for (const action of queue) {
     if (!ALLOWED_TABLES.includes(action.table)) {

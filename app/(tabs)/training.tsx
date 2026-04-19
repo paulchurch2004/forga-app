@@ -8,6 +8,7 @@ import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../src/t
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useTraining } from '../../src/hooks/useTraining';
 import { useProgram } from '../../src/hooks/useProgram';
+import { useProgramStore } from '../../src/store/programStore';
 import { useUserStore } from '../../src/store/userStore';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
@@ -56,6 +57,13 @@ export default function TrainingScreen() {
   } = useProgram();
 
   const objective = profile?.objective ?? 'maintain';
+  const markDaySkipped = useProgramStore((s) => s.markDaySkipped);
+
+  const handleSkipDay = () => {
+    if (!todayPlan) return;
+    triggerHaptic();
+    markDaySkipped(todayPlan.date);
+  };
 
   const handleStartWorkout = () => {
     if (!todayPlan || !todayProgramDay) return;
@@ -151,6 +159,7 @@ export default function TrainingScreen() {
               todayPlan={todayPlan}
               programDay={todayProgramDay}
               onStartWorkout={handleStartWorkout}
+              onSkipDay={handleSkipDay}
             />
           )}
 

@@ -19,6 +19,8 @@ import { EXERCISES } from '../src/data/exercises';
 import { hasTutorial } from '../src/data/exerciseTips';
 import { ExerciseTutorialModal } from '../src/components/training/ExerciseTutorialModal';
 import { useTrainingStore } from '../src/store/trainingStore';
+import { syncWorkout } from '../src/services/userSync';
+import { useAuthStore } from '../src/store/authStore';
 import { useProgramStore } from '../src/store/programStore';
 import { useUserStore } from '../src/store/userStore';
 import { getRestConfig, formatRestTime as fmtRest } from '../src/engine/restEngine';
@@ -78,6 +80,7 @@ export default function ActiveWorkoutScreen() {
   const addWorkout = useTrainingStore((s) => s.addWorkout);
   const markDayCompleted = useProgramStore((s) => s.markDayCompleted);
   const getLastSession = useTrainingStore((s) => s.getLastSessionForExercise);
+  const userId = useAuthStore((s) => s.session?.user?.id);
   const objective = useUserStore((s) => s.profile?.objective ?? 'maintain');
 
   const programDay = useMemo(
@@ -114,6 +117,7 @@ export default function ActiveWorkoutScreen() {
   const [isResting, setIsResting] = useState(false);
   const [restReasonKey, setRestReasonKey] = useState('');
   const [isTransitionRest, setIsTransitionRest] = useState(false);
+  const [prAlert, setPrAlert] = useState<string | null>(null);
   const restRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startRestTimer = useCallback((seconds: number) => {
@@ -189,8 +193,16 @@ export default function ActiveWorkoutScreen() {
       setExercises((prev) => {
         const next = [...prev];
         const ex = { ...next[exIdx], sets: [...next[exIdx].sets] };
-        const wasCompleted = ex.sets[setIdx].completed;
-        ex.sets[setIdx] = { ...ex.sets[setIdx], completed: !wasCompleted };
+        const set = ex.sets[setIdx];
+        const wasCompleted = set.completed;
+
+        // Block completing a set with 0 or empty reps
+        if (!wasCompleted) {
+          const reps = parseInt(set.actualReps || '0', 10);
+          if (reps <= 0) return prev; // Don't complete
+        }
+
+        ex.sets[setIdx] = { ...set, completed: !wasCompleted };
         next[exIdx] = ex;
         return next;
       });
@@ -198,6 +210,19 @@ export default function ActiveWorkoutScreen() {
       const set = exercises[exIdx]?.sets[setIdx];
       if (set && !set.completed) {
         triggerHaptic('medium');
+
+        // Check for new Personal Record
+        const weight = parseFloat(set.weight || '0');
+        const exerciseId = exercises[exIdx]?.exerciseId;
+        if (weight > 0 && exerciseId) {
+          const isNewPR = useTrainingStore.getState().isNewPR(exerciseId, weight);
+          if (isNewPR) {
+            triggerHaptic('success');
+            setPrAlert(exerciseId);
+            setTimeout(() => setPrAlert(null), 3000);
+          }
+        }
+
         const ex = exercises[exIdx];
         const config = getRestConfig(ex.exerciseId, ex.programExercise.targetReps, objective);
 
@@ -264,6 +289,7 @@ export default function ActiveWorkoutScreen() {
         exercises: [],
       };
       addWorkout(workout);
+      if (userId) syncWorkout(workout, userId);
       markDayCompleted(date, workoutId);
       triggerHaptic('success');
       router.back();
@@ -317,11 +343,12 @@ export default function ActiveWorkoutScreen() {
       };
 
       addWorkout(workout);
+      if (userId) syncWorkout(workout, userId);
       markDayCompleted(date, workoutId);
       triggerHaptic('success');
       router.back();
     },
-    [exercises, elapsedSeconds, addWorkout, markDayCompleted, router, t]
+    [exercises, elapsedSeconds, addWorkout, markDayCompleted, router, t, userId]
   );
 
   if (!programDay) {
@@ -357,7 +384,7 @@ export default function ActiveWorkoutScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Cardio mode */}
-        {isCardio && programDay.cardio && (
+        {isCardio && programDay?.cardio && (
           <Animated.View entering={FadeInDown.duration(400)} style={styles.cardioCard}>
             <Text style={styles.exerciseName}>
               {t(EXERCISES[programDay.cardio.exerciseId]?.nameKey as any ?? 'cardio')}
@@ -432,23 +459,24 @@ export default function ActiveWorkoutScreen() {
                     {set.targetReps}
                   </Text>
                   <TextInput
-                    style={[styles.colInput, styles.colReps]}
+                    style={[styles.colInput, styles.colReps, set.completed && styles.colInputDone]}
                     value={set.actualReps}
-                    onChangeText={(v) => updateSet(exIdx, setIdx, 'actualReps', v.replace(/[^0-9]/g, ''))}
+                    onChangeText={(v) => {
+                      const clean = v.replace(/[^0-9]/g, '');
+                      updateSet(exIdx, setIdx, 'actualReps', clean);
+                    }}
                     keyboardType="number-pad"
                     maxLength={3}
-                    editable={!set.completed}
                     selectTextOnFocus
                   />
                   <TextInput
-                    style={[styles.colInput, styles.colWeight]}
+                    style={[styles.colInput, styles.colWeight, set.completed && styles.colInputDone]}
                     value={set.weight}
                     onChangeText={(v) => updateSet(exIdx, setIdx, 'weight', v.replace(/[^0-9.]/g, ''))}
                     keyboardType="decimal-pad"
                     maxLength={5}
                     placeholder="kg"
                     placeholderTextColor={colors.textMuted}
-                    editable={!set.completed}
                     selectTextOnFocus
                   />
                   <Pressable
@@ -478,6 +506,14 @@ export default function ActiveWorkoutScreen() {
 
         <View style={{ height: spacing['5xl'] }} />
       </ScrollView>
+
+      {/* PR Alert */}
+      {prAlert && (
+        <Animated.View style={styles.prBanner}>
+          <Text style={styles.prEmoji}>{'\uD83C\uDFC6'}</Text>
+          <Text style={styles.prText}>NOUVEAU RECORD !</Text>
+        </Animated.View>
+      )}
 
       {/* Rest timer overlay */}
       {isResting && (
@@ -696,6 +732,38 @@ const useStyles = makeStyles((colors) => ({
     borderRadius: borderRadius.sm,
     backgroundColor: `${colors.border}30`,
     marginHorizontal: 2,
+  },
+  prBanner: {
+    position: 'absolute' as const,
+    top: 100,
+    left: spacing.xl,
+    right: spacing.xl,
+    backgroundColor: '#FFD700',
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.lg,
+    alignItems: 'center' as const,
+    zIndex: 100,
+    elevation: 10,
+    shadowColor: '#FFD700',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+  },
+  prEmoji: {
+    fontSize: 36,
+    marginBottom: spacing.xs,
+  },
+  prText: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes.xl,
+    fontWeight: '800' as const,
+    color: '#1a1a2e',
+    letterSpacing: 2,
+  },
+  colInputDone: {
+    backgroundColor: `${colors.success}15`,
+    borderWidth: 1,
+    borderColor: `${colors.success}30`,
   },
   checkBtn: {
     width: 44,

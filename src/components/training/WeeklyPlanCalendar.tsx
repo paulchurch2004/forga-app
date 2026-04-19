@@ -8,7 +8,8 @@ import Svg, { Path, Circle as SvgCircle } from 'react-native-svg';
 import { useTheme } from '../../context/ThemeContext';
 import { toLocalDateStr } from '../../engine/programEngine';
 
-const DAY_LABELS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+const DAY_LABELS_FR = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+const DAY_LABELS_EN = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 interface Props {
   weekDays: PlannedDay[];
@@ -16,8 +17,9 @@ interface Props {
 
 export function WeeklyPlanCalendar({ weekDays }: Props) {
   const styles = useStyles();
-  const { t } = useT();
+  const { t, locale } = useT();
   const { colors } = useTheme();
+  const DAY_LABELS = locale === 'en' ? DAY_LABELS_EN : DAY_LABELS_FR;
   const todayStr = toLocalDateStr();
 
   return (

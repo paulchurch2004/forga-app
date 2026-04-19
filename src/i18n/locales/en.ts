@@ -1291,6 +1291,8 @@ export const en: Record<TranslationKey, string> = {
   difficultyEasy: 'Easy',
   difficultyMedium: 'Medium',
   difficultyAdvanced: 'Advanced',
+  skipDay: 'Skip',
+  newPersonalRecord: 'NEW PERSONAL RECORD!',
 
   // ── Boutique ──
   boutiqueCard: 'FORGA Shop',

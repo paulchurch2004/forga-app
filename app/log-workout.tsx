@@ -6,6 +6,8 @@ import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../src/them
 import { useResponsive } from '../src/hooks/useResponsive';
 import { useT } from '../src/i18n';
 import { useTrainingStore } from '../src/store/trainingStore';
+import { useAuthStore } from '../src/store/authStore';
+import { syncWorkout } from '../src/services/userSync';
 import { WorkoutTypeGrid } from '../src/components/training/WorkoutTypeGrid';
 import { ExerciseRow } from '../src/components/training/ExerciseRow';
 import { ExercisePicker } from '../src/components/training/ExercisePicker';
@@ -19,6 +21,7 @@ export default function LogWorkoutScreen() {
   const styles = useStyles();
   const addWorkout = useTrainingStore((s) => s.addWorkout);
   const getLastSession = useTrainingStore((s) => s.getLastSessionForExercise);
+  const userId = useAuthStore((s) => s.session?.user?.id);
 
   // State
   const [workoutType, setWorkoutType] = useState<WorkoutType | null>(null);
@@ -69,6 +72,7 @@ export default function LogWorkoutScreen() {
     };
 
     addWorkout(workout);
+    if (userId) syncWorkout(workout, userId);
 
     if (Platform.OS === 'web') {
       window.alert(t('workoutSaved'));

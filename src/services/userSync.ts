@@ -7,6 +7,8 @@ import { enqueue } from './syncQueue';
 import type { DailyMeal } from '../types/meal';
 import type { ForgaScore } from '../types/score';
 import type { Badge, WeightEntry, WeeklyCheckIn } from '../types/user';
+import type { Workout } from '../types/training';
+import { useTrainingStore } from '../store/trainingStore';
 
 // ──────────── PUSH (Local → Supabase) ────────────
 
@@ -76,6 +78,26 @@ export function syncFavorite(mealId: string, userId: string, isFav: boolean) {
     });
   }
   // Note: remove favorites via direct delete if needed
+}
+
+/** Sync a workout to Supabase */
+export function syncWorkout(workout: Workout, userId: string) {
+  if (isDemoMode) return;
+  enqueue({
+    table: 'workouts',
+    operation: 'upsert',
+    data: {
+      id: workout.id,
+      user_id: userId,
+      date: workout.date,
+      type: workout.type,
+      duration_minutes: workout.durationMinutes,
+      intensity: workout.intensity ?? null,
+      exercises: JSON.stringify(workout.exercises),
+      note: workout.note ?? null,
+      timestamp: workout.timestamp,
+    },
+  });
 }
 
 /** Sync profile updates to Supabase */

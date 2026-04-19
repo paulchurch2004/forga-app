@@ -23,9 +23,10 @@ interface Props {
   todayPlan: PlannedDay;
   programDay: ProgramDay | null;
   onStartWorkout: () => void;
+  onSkipDay?: () => void;
 }
 
-export function TodayWorkoutCard({ todayPlan, programDay, onStartWorkout }: Props) {
+export function TodayWorkoutCard({ todayPlan, programDay, onStartWorkout, onSkipDay }: Props) {
   const styles = useStyles();
   const { t } = useT();
   const { colors } = useTheme();
@@ -133,19 +134,32 @@ export function TodayWorkoutCard({ todayPlan, programDay, onStartWorkout }: Prop
             </View>
           )}
 
-          {/* Start button */}
+          {/* Start + Skip buttons */}
           {!isCompleted && (
-            <Pressable
-              style={styles.startBtn}
-              onPress={() => {
-                triggerHaptic();
-                onStartWorkout();
-              }}
-            >
-              <Text style={styles.startBtnText}>
-                {isCardio ? t('cardioSessionStart') : t('startWorkout')}
-              </Text>
-            </Pressable>
+            <View style={styles.actionRow}>
+              <Pressable
+                style={styles.startBtn}
+                onPress={() => {
+                  triggerHaptic();
+                  onStartWorkout();
+                }}
+              >
+                <Text style={styles.startBtnText}>
+                  {isCardio ? t('cardioSessionStart') : t('startWorkout')}
+                </Text>
+              </Pressable>
+              {onSkipDay && (
+                <Pressable
+                  style={styles.skipDayBtn}
+                  onPress={() => {
+                    triggerHaptic();
+                    onSkipDay();
+                  }}
+                >
+                  <Text style={styles.skipDayText}>{t('skipDay')}</Text>
+                </Pressable>
+              )}
+            </View>
           )}
 
           {/* Exercise tutorial modal */}
@@ -260,7 +274,12 @@ const useStyles = makeStyles((colors) => ({
     lineHeight: 22,
     marginTop: spacing.sm,
   },
+  actionRow: {
+    flexDirection: 'row' as const,
+    gap: spacing.md,
+  },
   startBtn: {
+    flex: 1,
     backgroundColor: colors.primary,
     borderRadius: borderRadius.md,
     paddingVertical: spacing.lg,
@@ -272,5 +291,21 @@ const useStyles = makeStyles((colors) => ({
     fontWeight: '800' as const,
     color: colors.white,
     letterSpacing: 1,
+  },
+  skipDayBtn: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  skipDayText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    fontWeight: '600' as const,
+    color: colors.textSecondary,
   },
 }));

@@ -1289,6 +1289,8 @@ export const fr = {
   difficultyEasy: 'Facile',
   difficultyMedium: 'Moyen',
   difficultyAdvanced: 'Avance',
+  skipDay: 'Passer',
+  newPersonalRecord: 'NOUVEAU RECORD !',
 
   // ── Boutique ──
   boutiqueCard: 'Boutique FORGA',
