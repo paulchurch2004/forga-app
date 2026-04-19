@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -57,7 +57,7 @@ const CARDS = [
     image: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800&q=80',
     titleKey: 'boutiqueCard',
     subKey: 'boutiqueCardSub',
-    route: null, // Coming soon
+    route: null,
     comingSoon: true,
   },
 ];
@@ -82,7 +82,6 @@ function CarouselCard({
   t: any;
 }) {
   const styles = useStyles();
-  const { colors } = useTheme();
 
   const animatedStyle = useAnimatedStyle(() => {
     const inputRange = [
@@ -91,26 +90,9 @@ function CarouselCard({
       (index + 1) * snapInterval,
     ];
 
-    const rotateY = interpolate(
-      scrollX.value,
-      inputRange,
-      [25, 0, -25],
-      Extrapolation.CLAMP
-    );
-
-    const scale = interpolate(
-      scrollX.value,
-      inputRange,
-      [0.88, 1, 0.88],
-      Extrapolation.CLAMP
-    );
-
-    const opacity = interpolate(
-      scrollX.value,
-      inputRange,
-      [0.7, 1, 0.7],
-      Extrapolation.CLAMP
-    );
+    const rotateY = interpolate(scrollX.value, inputRange, [25, 0, -25], Extrapolation.CLAMP);
+    const scale = interpolate(scrollX.value, inputRange, [0.88, 1, 0.88], Extrapolation.CLAMP);
+    const opacity = interpolate(scrollX.value, inputRange, [0.65, 1, 0.65], Extrapolation.CLAMP);
 
     return {
       transform: [
@@ -123,9 +105,7 @@ function CarouselCard({
   });
 
   const handlePress = useCallback(() => {
-    if (card.route) {
-      router.push(card.route as any);
-    }
+    if (card.route) router.push(card.route as any);
   }, [card.route]);
 
   const content = (
@@ -135,7 +115,7 @@ function CarouselCard({
       imageStyle={styles.carouselImageInner}
     >
       <LinearGradient
-        colors={['rgba(0,0,0,0.1)', 'rgba(0,0,0,0.8)']}
+        colors={['rgba(0,0,0,0.05)', 'rgba(0,0,0,0.8)']}
         style={styles.carouselOverlay}
       >
         {card.comingSoon && (
@@ -152,99 +132,37 @@ function CarouselCard({
   return (
     <Animated.View style={[{ width: cardWidth, alignItems: 'center' }, animatedStyle]}>
       {card.route ? (
-        <Pressable onPress={handlePress} style={[styles.carouselCard, card.comingSoon && { opacity: 0.8 }]}>
-          {content}
-        </Pressable>
+        <Pressable onPress={handlePress} style={styles.carouselCard}>{content}</Pressable>
       ) : (
-        <View style={[styles.carouselCard, { opacity: 0.8 }]}>
-          {content}
-        </View>
+        <View style={[styles.carouselCard, { opacity: 0.8 }]}>{content}</View>
       )}
     </Animated.View>
   );
 }
 
-// ──────────── BACKGROUND PARALLAX CARD ────────────
-
-function BgCard({ card, index, scrollX, snapInterval }: { card: typeof CARDS[0]; index: number; scrollX: Animated.SharedValue<number>; snapInterval: number }) {
-  const animStyle = useAnimatedStyle(() => {
-    const inputRange = [
-      (index - 1) * snapInterval,
-      index * snapInterval,
-      (index + 1) * snapInterval,
-    ];
-    const translateX = interpolate(
-      scrollX.value,
-      inputRange,
-      [80, 0, -80],
-      Extrapolation.CLAMP
-    );
-    const opacity = interpolate(
-      scrollX.value,
-      inputRange,
-      [0, 0.12, 0],
-      Extrapolation.CLAMP
-    );
-    const scale = interpolate(
-      scrollX.value,
-      inputRange,
-      [0.9, 1.1, 0.9],
-      Extrapolation.CLAMP
-    );
-    return {
-      opacity,
-      transform: [{ translateX }, { scale }],
-    };
-  });
-
-  return (
-    <Animated.Image
-      source={{ uri: card.image }}
-      style={[{
-        position: 'absolute',
-        width: '100%',
-        height: '100%',
-        borderRadius: 0,
-      }, animStyle]}
-      resizeMode="cover"
-      blurRadius={20}
-    />
-  );
-}
-
 // ──────────── DOT INDICATOR ────────────
 
-function DotIndicator({ scrollX, cardWidth, count }: { scrollX: Animated.SharedValue<number>; cardWidth: number; count: number }) {
+function DotIndicator({ scrollX, snapInterval, count }: { scrollX: Animated.SharedValue<number>; snapInterval: number; count: number }) {
   const { colors } = useTheme();
-
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: spacing.lg }}>
       {Array.from({ length: count }).map((_, i) => (
-        <DotItem key={i} index={i} scrollX={scrollX} cardWidth={cardWidth} colors={colors} />
+        <DotItem key={i} index={i} scrollX={scrollX} snapInterval={snapInterval} colors={colors} />
       ))}
     </View>
   );
 }
 
-function DotItem({ index, scrollX, cardWidth, colors }: { index: number; scrollX: Animated.SharedValue<number>; cardWidth: number; colors: any }) {
-  const count = CARDS.length;
+function DotItem({ index, scrollX, snapInterval, colors }: { index: number; scrollX: Animated.SharedValue<number>; snapInterval: number; colors: any }) {
   const animStyle = useAnimatedStyle(() => {
-    // Map scroll position to 0..count range using modulo for infinite loop
-    const pos = ((scrollX.value / cardWidth) % count + count) % count;
-    const dist = Math.min(Math.abs(pos - index), count - Math.abs(pos - index));
-    const width = interpolate(dist, [0, 1, 2], [24, 8, 8], Extrapolation.CLAMP);
-    const opacity = interpolate(dist, [0, 1, 2], [1, 0.3, 0.3], Extrapolation.CLAMP);
+    const inputRange = [(index - 1) * snapInterval, index * snapInterval, (index + 1) * snapInterval];
+    const width = interpolate(scrollX.value, inputRange, [8, 24, 8], Extrapolation.CLAMP);
+    const opacity = interpolate(scrollX.value, inputRange, [0.3, 1, 0.3], Extrapolation.CLAMP);
     return { width, opacity };
   });
 
   return (
-    <Animated.View
-      style={[{
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: colors.primary,
-      }, animStyle]}
-    />
+    <Animated.View style={[{ height: 8, borderRadius: 4, backgroundColor: colors.primary }, animStyle]} />
   );
 }
 
@@ -253,7 +171,7 @@ function DotItem({ index, scrollX, cardWidth, colors }: { index: number; scrollX
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { contentMaxWidth } = useResponsive();
-  const { width: screenWidth } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const profile = useUserStore((s) => s.profile);
   const { currentStreak, isTodayValidated } = useStreak();
   const tutorialStep = useSettingsStore((s) => s.tutorialStep);
@@ -264,43 +182,17 @@ export default function HomeScreen() {
   const { t } = useT();
 
   const scrollX = useSharedValue(0);
-  const scrollRef = useRef<any>(null);
-  const { height: screenHeight } = useWindowDimensions();
   const visibleWidth = Math.min(screenWidth, contentMaxWidth);
-  const cardWidth = visibleWidth * 0.68;
+  const cardWidth = visibleWidth * 0.70;
   const cardSpacing = (visibleWidth - cardWidth) / 2;
   const snapInterval = cardWidth + spacing.lg;
-  const cardHeight = Math.min(screenHeight - insets.top - insets.bottom - 220, 480);
-
-  // Infinite scroll: repeat cards 3 times, start in the middle set
-  const REPEAT = 3;
-  const infiniteCards = Array.from({ length: REPEAT }, () => CARDS).flat();
-  const middleOffset = CARDS.length * snapInterval; // start at 2nd set
+  const cardHeight = Math.min(screenHeight - insets.top - insets.bottom - 200, 480);
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollX.value = event.contentOffset.x;
     },
   });
-
-  // Center scroll on middle set at mount
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      scrollRef.current?.scrollTo({ x: middleOffset, animated: false });
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [middleOffset]);
-
-  // Loop: when reaching edges, jump back to middle set
-  const handleScrollEnd = useCallback((e: any) => {
-    const x = e.nativeEvent.contentOffset.x;
-    const totalWidth = CARDS.length * snapInterval;
-    if (x < totalWidth * 0.5) {
-      scrollRef.current?.scrollTo({ x: x + totalWidth, animated: false });
-    } else if (x > totalWidth * 2.2) {
-      scrollRef.current?.scrollTo({ x: x - totalWidth, animated: false });
-    }
-  }, [snapInterval]);
 
   useEffect(() => {
     if (profile && tutorialStep === 0) {
@@ -349,16 +241,8 @@ export default function HomeScreen() {
         <StreakBadge streak={currentStreak} isActive={isTodayValidated} size="sm" />
       </View>
 
-      {/* Background parallax cards */}
-      <View style={styles.bgCardsContainer}>
-        {CARDS.map((card, index) => (
-          <BgCard key={card.key} card={card} index={index} scrollX={scrollX} snapInterval={snapInterval} />
-        ))}
-      </View>
-
-      {/* 3D Carousel — infinite loop */}
+      {/* 3D Carousel — 4 cartes fixes */}
       <Animated.ScrollView
-        ref={scrollRef}
         horizontal
         showsHorizontalScrollIndicator={false}
         snapToInterval={snapInterval}
@@ -369,12 +253,11 @@ export default function HomeScreen() {
           gap: spacing.lg,
         }}
         onScroll={scrollHandler}
-        onMomentumScrollEnd={handleScrollEnd}
         scrollEventThrottle={16}
       >
-        {infiniteCards.map((card, index) => (
+        {CARDS.map((card, index) => (
           <CarouselCard
-            key={`${card.key}-${index}`}
+            key={card.key}
             card={card}
             index={index}
             scrollX={scrollX}
@@ -387,10 +270,7 @@ export default function HomeScreen() {
       </Animated.ScrollView>
 
       {/* Dot indicator */}
-      <DotIndicator scrollX={scrollX} cardWidth={snapInterval} count={CARDS.length} />
-
-      {/* Swipe hint */}
-      <Text style={styles.swipeHint}>{'\u2190'} {t('comingSoon') ? 'Swipe' : 'Swipe'} {'\u2192'}</Text>
+      <DotIndicator scrollX={scrollX} snapInterval={snapInterval} count={CARDS.length} />
 
       {/* Tutorial overlay */}
       <TutorialOverlay step={tutorialStep} />
@@ -422,8 +302,6 @@ const useStyles = makeStyles((colors) => ({
     fontSize: fontSizes.md,
     color: colors.textSecondary,
   },
-
-  // Header
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -446,13 +324,6 @@ const useStyles = makeStyles((colors) => ({
     color: colors.textSecondary,
     marginTop: spacing.xs,
   },
-
-  // Background parallax
-  bgCardsContainer: {
-    ...({ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' } as any),
-  },
-
-  // 3D Carousel
   carouselCard: {
     borderRadius: borderRadius.xl,
     overflow: 'hidden',
@@ -489,8 +360,6 @@ const useStyles = makeStyles((colors) => ({
     color: 'rgba(255,255,255,0.75)',
     marginTop: spacing.xs,
   },
-
-  // Coming soon badge
   comingSoonBadge: {
     backgroundColor: colors.primary,
     paddingHorizontal: spacing.md,
@@ -506,14 +375,5 @@ const useStyles = makeStyles((colors) => ({
     color: colors.white,
     letterSpacing: 1,
     textTransform: 'uppercase',
-  },
-
-  // Swipe hint
-  swipeHint: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.sm,
-    color: colors.textMuted,
-    textAlign: 'center',
-    marginTop: spacing.md,
   },
 }));
