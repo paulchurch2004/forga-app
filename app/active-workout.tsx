@@ -63,6 +63,7 @@ interface ActiveExercise {
   nameKey: string;
   programExercise: ProgramExercise;
   sets: ActiveSet[];
+  weightTip?: string;
 }
 
 export default function ActiveWorkoutScreen() {
@@ -162,28 +163,49 @@ export default function ActiveWorkoutScreen() {
       let adjustedReps = pe.targetReps;
       const isCompound = exercise?.isCompound ?? false;
       if (objective === 'bulk' && isCompound) {
-        // Bulk: heavier, fewer reps for compounds
         adjustedReps = Math.max(4, pe.targetReps - 2);
       } else if (objective === 'cut') {
-        // Cut: lighter, more reps for metabolic stress
         adjustedReps = pe.targetReps + 2;
-      } else if (objective === 'recomp') {
-        // Recomp: moderate, keep as-is
-        adjustedReps = pe.targetReps;
       }
-      // Maintain: keep program defaults
+
+      // Smart weight suggestion
+      let suggestedWeight = lastWeight;
+      let weightTip = '';
+
+      if (lastWeight > 0 && lastSession) {
+        // Has history → progressive overload
+        const allRepsHit = lastSession.every((s) => s.reps >= adjustedReps);
+        if (allRepsHit) {
+          // Completed all reps last time → suggest increase
+          const increment = isCompound ? 2.5 : 1;
+          suggestedWeight = lastWeight + increment;
+          weightTip = isCompound
+            ? `+${increment}kg vs derniere seance`
+            : `+${increment}kg vs derniere seance`;
+        } else {
+          weightTip = 'Meme poids, essaie de completer toutes les reps';
+        }
+      } else {
+        // No history → beginner guidance
+        if (isCompound) {
+          weightTip = 'Commence leger. Les 2 dernieres reps doivent etre dures.';
+        } else {
+          weightTip = 'Choisis un poids ou tu sens le muscle travailler.';
+        }
+      }
 
       const sets: ActiveSet[] = Array.from({ length: pe.targetSets }, (_, i) => ({
         id: `s_${pe.exerciseId}_${i}`,
         targetReps: adjustedReps,
         actualReps: String(adjustedReps),
-        weight: lastWeight > 0 ? String(lastWeight) : '',
+        weight: suggestedWeight > 0 ? String(suggestedWeight) : '',
         completed: false,
       }));
 
       return {
         exerciseId: pe.exerciseId,
         nameKey: exercise?.nameKey ?? pe.exerciseId,
+        weightTip,
         programExercise: pe,
         sets,
       };
@@ -443,6 +465,11 @@ export default function ActiveWorkoutScreen() {
                   {ex.programExercise.targetSets}x{ex.programExercise.targetReps}
                 </Text>
               </View>
+
+              {/* Weight tip */}
+              {ex.weightTip && (
+                <Text style={styles.weightTip}>{'\uD83D\uDCA1'} {ex.weightTip}</Text>
+              )}
 
               {/* Rest time info */}
               <View style={styles.restInfoRow}>
@@ -747,6 +774,14 @@ const useStyles = makeStyles((colors) => ({
     borderRadius: borderRadius.sm,
     backgroundColor: `${colors.border}30`,
     marginHorizontal: 2,
+  },
+  weightTip: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.xs,
+    color: colors.primary,
+    fontStyle: 'italic' as const,
+    paddingHorizontal: spacing.md,
+    marginBottom: spacing.sm,
   },
   prBanner: {
     position: 'absolute' as const,
