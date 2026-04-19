@@ -28,8 +28,8 @@ const CARD_IMAGES = {
     'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
   space:
     'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&q=80',
-  community:
-    'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
+  boutique:
+    'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800&q=80',
 };
 
 export default function HomeScreen() {
@@ -160,13 +160,10 @@ export default function HomeScreen() {
         </ImageBackground>
       </Pressable>
 
-      {/* ── BILAN HEBDO/MENSUEL ── */}
-      <Pressable
-        style={styles.card}
-        onPress={() => router.push('/report')}
-      >
+      {/* ── BOUTIQUE FORGA ── */}
+      <View style={[styles.card, { opacity: 0.8 }]}>
         <ImageBackground
-          source={{ uri: CARD_IMAGES.community }}
+          source={{ uri: CARD_IMAGES.boutique }}
           style={styles.cardImage}
           imageStyle={styles.cardImageInner}
         >
@@ -174,13 +171,16 @@ export default function HomeScreen() {
             colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.75)']}
             style={styles.cardOverlay}
           >
-            <Text style={styles.cardTitle}>{t('myProgress')}</Text>
+            <View style={styles.comingSoonBadge}>
+              <Text style={styles.comingSoonText}>{t('comingSoonBadge')}</Text>
+            </View>
+            <Text style={styles.cardTitle}>{t('boutiqueCard')}</Text>
             <Text style={styles.cardDesc}>
-              {t('progressSubtitle')}
+              {t('boutiqueCardSub')}
             </Text>
           </LinearGradient>
         </ImageBackground>
-      </Pressable>
+      </View>
 
       <View style={{ height: spacing['3xl'] }} />
 
@@ -279,6 +279,24 @@ const useStyles = makeStyles((colors) => ({
     fontSize: fontSizes.sm,
     color: 'rgba(255,255,255,0.75)',
     marginTop: spacing.xs,
+  },
+
+  // Coming soon badge
+  comingSoonBadge: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 4,
+    borderRadius: borderRadius.full,
+    alignSelf: 'flex-start',
+    marginBottom: spacing.sm,
+  },
+  comingSoonText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.xs,
+    fontWeight: '700',
+    color: colors.white,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
 
   // Quick actions

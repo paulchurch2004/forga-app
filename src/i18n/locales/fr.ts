@@ -1289,6 +1289,11 @@ export const fr = {
   difficultyEasy: 'Facile',
   difficultyMedium: 'Moyen',
   difficultyAdvanced: 'Avance',
+
+  // ── Boutique ──
+  boutiqueCard: 'Boutique FORGA',
+  boutiqueCardSub: 'Vetements, accessoires et supplements sport',
+  comingSoonBadge: 'Bientot',
 } as const;
 
 export type TranslationKey = keyof typeof fr;

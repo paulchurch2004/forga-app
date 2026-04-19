@@ -1291,4 +1291,9 @@ export const en: Record<TranslationKey, string> = {
   difficultyEasy: 'Easy',
   difficultyMedium: 'Medium',
   difficultyAdvanced: 'Advanced',
+
+  // ── Boutique ──
+  boutiqueCard: 'FORGA Shop',
+  boutiqueCardSub: 'Clothing, accessories & sport supplements',
+  comingSoonBadge: 'Soon',
 };
