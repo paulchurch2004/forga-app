@@ -27,7 +27,8 @@ import { isDemoMode, supabase } from '../src/services/supabase';
 import { useAuthStore } from '../src/store/authStore';
 import { loadProfileFromSupabase } from '../src/services/profile';
 import { initSentry, captureException } from '../src/services/sentry';
-import { View, Text, ActivityIndicator, ScrollView, Platform, AppState } from 'react-native';
+import { View, Text, ActivityIndicator, ScrollView, Platform, AppState, Image } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
@@ -91,6 +92,32 @@ class ErrorBoundary extends Component<
     }
     return this.props.children;
   }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const FORGA_LOGO = require('../assets/logo/logo_sans_fond.png');
+
+function SplashLogo() {
+  const scale = useSharedValue(0.9);
+  const opacity = useSharedValue(0.6);
+
+  React.useEffect(() => {
+    scale.value = withRepeat(withTiming(1.05, { duration: 1200, easing: Easing.inOut(Easing.ease) }), -1, true);
+    opacity.value = withRepeat(withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) }), -1, true);
+  }, []);
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  return (
+    <View style={{ flex: 1, backgroundColor: '#0B0B14', justifyContent: 'center', alignItems: 'center' }}>
+      <Animated.View style={animStyle}>
+        <Image source={FORGA_LOGO} style={{ width: 120, height: 120 }} resizeMode="contain" />
+      </Animated.View>
+    </View>
+  );
 }
 
 function RootLayoutInner() {
@@ -326,20 +353,11 @@ function RootLayoutInner() {
   }, [fontsLoaded, fontError, isLoading]);
 
   if (!fontsLoaded && !fontError) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator color={colors.primary} size="large" />
-      </View>
-    );
+    return <SplashLogo />;
   }
 
   if (isLoading) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator color={colors.primary} size="large" />
-        <Text style={{ color: colors.textSecondary, marginTop: 16 }}>{getTranslation(useSettingsStore.getState().locale)('loading')}</Text>
-      </View>
-    );
+    return <SplashLogo />;
   }
 
   return (
