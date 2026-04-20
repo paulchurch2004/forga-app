@@ -451,23 +451,8 @@ export default function ActiveWorkoutScreen() {
               style={[styles.exerciseCard, allSetsCompleted && styles.exerciseCardDone]}
             >
               <View style={styles.exerciseHeader}>
-                {/* Mini GIF thumbnail */}
-                {EXERCISES[ex.exerciseId]?.gifUrl && (
-                  <Pressable
-                    onPress={() => {
-                      triggerHaptic('light');
-                      setTutorialExerciseId(ex.exerciseId);
-                    }}
-                  >
-                    <Image
-                      source={{ uri: EXERCISES[ex.exerciseId].gifUrl }}
-                      style={styles.miniGif}
-                      resizeMode="cover"
-                    />
-                  </Pressable>
-                )}
                 <Text style={styles.exerciseName}>{t(ex.nameKey as any)}</Text>
-                {hasTutorial(ex.exerciseId) && !EXERCISES[ex.exerciseId]?.gifUrl && (
+                {hasTutorial(ex.exerciseId) && (
                   <Pressable
                     onPress={() => {
                       triggerHaptic('light');
@@ -508,6 +493,23 @@ export default function ActiveWorkoutScreen() {
                   {t(restConfig.reasonKey as any)}
                 </Text>
               </View>
+
+              {/* Exercise GIF demo */}
+              {EXERCISES[ex.exerciseId]?.gifUrl && (
+                <Pressable
+                  style={styles.gifContainer}
+                  onPress={() => {
+                    triggerHaptic('light');
+                    setTutorialExerciseId(ex.exerciseId);
+                  }}
+                >
+                  <Image
+                    source={{ uri: EXERCISES[ex.exerciseId].gifUrl }}
+                    style={styles.exerciseGif}
+                    resizeMode="contain"
+                  />
+                </Pressable>
+              )}
 
               {/* Sets table header */}
               <View style={styles.tableHeader}>
@@ -922,12 +924,16 @@ const useStyles = makeStyles((colors) => ({
     fontWeight: '700' as const,
     color: colors.white,
   },
-  miniGif: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    backgroundColor: '#f0f0f5',
-    marginRight: spacing.sm,
+  gifContainer: {
+    alignItems: 'center' as const,
+    marginVertical: spacing.sm,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden' as const,
+    backgroundColor: `${colors.border}20`,
+  },
+  exerciseGif: {
+    width: '100%' as any,
+    height: 180,
   },
   weightTip: {
     fontFamily: fonts.body,
