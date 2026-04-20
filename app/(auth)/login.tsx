@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -165,8 +166,7 @@ export default function LoginScreen() {
 
           {/* Brand */}
           <Animated.View style={[styles.brandContainer, brandStyle]}>
-            <Text style={styles.brandText}>FORGA</Text>
-            <View style={styles.brandDot} />
+            <Image source={require('../../assets/texte sf.png')} style={styles.brandWordmark} resizeMode="contain" />
           </Animated.View>
 
           {/* Title */}
@@ -301,24 +301,12 @@ const useStyles = makeStyles((colors) => ({
 
   // Brand
   brandContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: spacing['3xl'],
   },
-  brandText: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes['4xl'],
-    fontWeight: '800',
-    color: colors.text,
-    letterSpacing: 4,
-  },
-  brandDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.primary,
-    marginLeft: 4,
-    marginTop: 14,
+  brandWordmark: {
+    width: 180,
+    height: 56,
   },
 
   // Title

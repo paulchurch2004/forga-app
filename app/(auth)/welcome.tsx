@@ -289,8 +289,8 @@ export default function WelcomeScreen() {
 
           {/* Hero content dissolves on scroll */}
           <Animated.View style={[styles.heroContent, { maxWidth: LANDING_MAX_WIDTH }, heroDissolveStyle]}>
-            <Animated.Image source={require('../../assets/logo/logo_sans_fond.png')} style={[styles.logo, isWide && styles.logoWide, logoStyle]} resizeMode="contain" />
-            <Animated.Text style={[styles.heroTagline, isWide && styles.heroTaglineWide, taglineStyle]}>
+            <Animated.Image source={require('../../assets/texte sf.png')} style={[styles.wordmark, isWide && styles.wordmarkWide, logoStyle]} resizeMode="contain" />
+            <Animated.Text style={[styles.heroTaglineSmall, taglineStyle]}>
               {t('welcomeHeroTagline')}
             </Animated.Text>
             <Animated.Text style={[styles.heroSubtitle, subtitleStyle]}>
@@ -521,7 +521,7 @@ export default function WelcomeScreen() {
         {/* ═══════════ FOOTER ═══════════ */}
         <View style={styles.footer}>
           <View style={[styles.sectionInner, { maxWidth: LANDING_MAX_WIDTH }]}>
-            <Image source={require('../../assets/logo/logo_sans_fond.png')} style={styles.footerLogo} resizeMode="contain" />
+            <Image source={require('../../assets/texte sf.png')} style={styles.footerWordmark} resizeMode="contain" />
             <View style={styles.footerDivider} />
             <Text style={styles.footerDisclaimer}>
               {t('welcomeFooterDisclaimer')}
@@ -969,6 +969,24 @@ const useStyles = makeStyles((colors) => ({
   logoWide: {
     width: 160,
     height: 160,
+  },
+  wordmark: {
+    width: 260,
+    height: 90,
+    marginBottom: spacing.sm,
+  },
+  wordmarkWide: {
+    width: 360,
+    height: 120,
+  },
+  heroTaglineSmall: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.lg,
+    fontWeight: '500',
+    color: colors.textSecondary,
+    textAlign: 'center',
+    letterSpacing: 1,
+    marginTop: spacing.xs,
   },
   heroTagline: {
     fontFamily: fonts.display,
@@ -1486,6 +1504,10 @@ const useStyles = makeStyles((colors) => ({
   },
   footerLogo: {
     width: 48,
+    height: 48,
+  },
+  footerWordmark: {
+    width: 140,
     height: 48,
   },
   footerDivider: {
