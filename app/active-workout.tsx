@@ -125,6 +125,17 @@ export default function ActiveWorkoutScreen() {
   const [isTransitionRest, setIsTransitionRest] = useState(false);
   const [prAlert, setPrAlert] = useState<string | null>(null);
   const [showWorkoutGuide, setShowWorkoutGuide] = useState(false);
+  const [showFinisherCardio, setShowFinisherCardio] = useState(false);
+  const [finisherTimer, setFinisherTimer] = useState(0);
+  const [finisherRunning, setFinisherRunning] = useState(false);
+  const [finisherLevel, setFinisherLevel] = useState<'beginner' | 'intermediate' | 'advanced' | null>(null);
+  const finisherRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const FINISHER_LEVELS = {
+    beginner: { minutes: 10, labelKey: 'finisherBeginner', descKey: 'finisherBeginnerDesc' },
+    intermediate: { minutes: 15, labelKey: 'finisherIntermediate', descKey: 'finisherIntermediateDesc' },
+    advanced: { minutes: 20, labelKey: 'finisherAdvanced', descKey: 'finisherAdvancedDesc' },
+  };
 
   // Show guide only on first ever workout
   useEffect(() => {
@@ -391,10 +402,35 @@ export default function ActiveWorkoutScreen() {
       if (userId) syncWorkout(workout, userId);
       markDayCompleted(date, workoutId);
       triggerHaptic('success');
-      router.back();
+      // Show finisher cardio option instead of going back immediately
+      setShowFinisherCardio(true);
     },
     [exercises, elapsedSeconds, addWorkout, markDayCompleted, router, t, userId]
   );
+
+  // Finisher cardio timer
+  const startFinisher = useCallback((level: 'beginner' | 'intermediate' | 'advanced') => {
+    setFinisherLevel(level);
+    setFinisherTimer(FINISHER_LEVELS[level].minutes * 60);
+    setFinisherRunning(true);
+    triggerHaptic('medium');
+  }, []);
+
+  useEffect(() => {
+    if (!finisherRunning || finisherTimer <= 0) return;
+    finisherRef.current = setInterval(() => {
+      setFinisherTimer((prev) => {
+        if (prev <= 1) {
+          setFinisherRunning(false);
+          if (finisherRef.current) clearInterval(finisherRef.current);
+          triggerHaptic('success');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => { if (finisherRef.current) clearInterval(finisherRef.current); };
+  }, [finisherRunning]);
 
   if (!programDay) {
     return (
@@ -632,6 +668,73 @@ export default function ActiveWorkoutScreen() {
         exerciseId={tutorialExerciseId}
         onClose={() => setTutorialExerciseId(null)}
       />
+
+      {/* Finisher Cardio */}
+      <Modal visible={showFinisherCardio} animationType="slide" transparent>
+        <View style={styles.guideOverlay}>
+          <View style={styles.guideCard}>
+            {!finisherLevel ? (
+              <>
+                <Text style={styles.guideEmoji}>{'\uD83C\uDFC3'}</Text>
+                <Text style={styles.guideTitle}>{t('finisherTitle' as any)}</Text>
+                <Text style={styles.finisherIntro}>{t('finisherIntro' as any)}</Text>
+
+                {(['beginner', 'intermediate', 'advanced'] as const).map((level) => (
+                  <Pressable
+                    key={level}
+                    style={styles.finisherOption}
+                    onPress={() => startFinisher(level)}
+                  >
+                    <View style={styles.finisherOptionLeft}>
+                      <Text style={styles.finisherOptionTitle}>{t(FINISHER_LEVELS[level].labelKey as any)}</Text>
+                      <Text style={styles.finisherOptionDesc}>{t(FINISHER_LEVELS[level].descKey as any)}</Text>
+                    </View>
+                    <Text style={styles.finisherOptionTime}>{FINISHER_LEVELS[level].minutes} min</Text>
+                  </Pressable>
+                ))}
+
+                <Pressable
+                  style={styles.finisherSkip}
+                  onPress={() => { setShowFinisherCardio(false); router.back(); }}
+                >
+                  <Text style={styles.finisherSkipText}>{t('skipDay')}</Text>
+                </Pressable>
+              </>
+            ) : finisherTimer > 0 ? (
+              <>
+                <Text style={styles.guideEmoji}>{'\uD83C\uDFC3'}</Text>
+                <Text style={styles.guideTitle}>{t(FINISHER_LEVELS[finisherLevel].labelKey as any)}</Text>
+                <Text style={styles.finisherTimerText}>
+                  {Math.floor(finisherTimer / 60)}:{String(finisherTimer % 60).padStart(2, '0')}
+                </Text>
+                <Text style={styles.finisherIntro}>{t('finisherKeepGoing' as any)}</Text>
+                <Pressable
+                  style={styles.finisherSkip}
+                  onPress={() => {
+                    setFinisherRunning(false);
+                    if (finisherRef.current) clearInterval(finisherRef.current);
+                    setFinisherTimer(0);
+                  }}
+                >
+                  <Text style={styles.finisherSkipText}>{t('finisherStop' as any)}</Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <Text style={styles.guideEmoji}>{'\uD83D\uDD25'}</Text>
+                <Text style={styles.guideTitle}>{t('finisherDone' as any)}</Text>
+                <Text style={styles.finisherIntro}>{t('finisherDoneDesc' as any)}</Text>
+                <Pressable
+                  style={styles.guideBtn}
+                  onPress={() => { setShowFinisherCardio(false); router.back(); }}
+                >
+                  <Text style={styles.guideBtnText}>{t('finisherFinish' as any)}</Text>
+                </Pressable>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
 
       {/* First workout guide */}
       <Modal visible={showWorkoutGuide} animationType="fade" transparent>
@@ -928,6 +1031,66 @@ const useStyles = makeStyles((colors) => ({
     fontSize: fontSizes.lg,
     fontWeight: '700' as const,
     color: colors.white,
+  },
+  // Finisher cardio
+  finisherIntro: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
+    textAlign: 'center' as const,
+    marginBottom: spacing.xl,
+    lineHeight: 20,
+  },
+  finisherOption: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    backgroundColor: colors.background,
+    borderRadius: borderRadius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    width: '100%' as any,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  finisherOptionLeft: {
+    flex: 1,
+  },
+  finisherOptionTitle: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes.md,
+    fontWeight: '700' as const,
+    color: colors.text,
+  },
+  finisherOptionDesc: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.xs,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
+  finisherOptionTime: {
+    fontFamily: fonts.data,
+    fontSize: fontSizes.xl,
+    fontWeight: '700' as const,
+    color: colors.primary,
+  },
+  finisherSkip: {
+    marginTop: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  finisherSkipText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.textMuted,
+    textAlign: 'center' as const,
+  },
+  finisherTimerText: {
+    fontFamily: fonts.data,
+    fontSize: 64,
+    fontWeight: '700' as const,
+    color: colors.primary,
+    textAlign: 'center' as const,
+    marginVertical: spacing.xl,
   },
   gifContainer: {
     alignItems: 'center' as const,

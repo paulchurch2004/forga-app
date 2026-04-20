@@ -1305,6 +1305,21 @@ export const en: Record<TranslationKey, string> = {
   workoutGuideStep4: 'Tap the check to validate each set. Rest timer starts automatically.',
   tapForTutorial: 'Tap for full tutorial',
 
+  // Finisher cardio
+  finisherTitle: 'Finisher Cardio',
+  finisherIntro: 'Workout done! Post-lifting cardio burns more fat and builds endurance.',
+  finisherBeginner: 'Beginner',
+  finisherBeginnerDesc: 'Brisk walking or light cycling. Perfect to start.',
+  finisherIntermediate: 'Intermediate',
+  finisherIntermediateDesc: 'Light jogging or moderate cycling. Comfortable pace.',
+  finisherAdvanced: 'Advanced',
+  finisherAdvancedDesc: 'Running or rowing. Sustained effort.',
+  finisherKeepGoing: 'Keep going! Stay at a pace where you can talk.',
+  finisherStop: 'Stop',
+  finisherDone: 'Great job!',
+  finisherDoneDesc: 'Cardio complete. Full session: weights + cardio. Recover well!',
+  finisherFinish: 'Finish',
+
   // ── Boutique ──
   boutiqueCard: 'FORGA Shop',
   boutiqueCardSub: 'Clothing, accessories & sport supplements',

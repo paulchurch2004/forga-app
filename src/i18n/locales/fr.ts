@@ -1303,6 +1303,21 @@ export const fr = {
   workoutGuideStep4: 'Valide chaque serie en appuyant sur le check. Le chrono de repos se lance automatiquement.',
   tapForTutorial: 'Appuie pour voir le tutoriel complet',
 
+  // Finisher cardio
+  finisherTitle: 'Finisher Cardio',
+  finisherIntro: 'Seance terminee ! Un peu de cardio apres la muscu brule plus de graisses et ameliore ton endurance.',
+  finisherBeginner: 'Debutant',
+  finisherBeginnerDesc: 'Marche rapide ou velo leger. Parfait pour reprendre.',
+  finisherIntermediate: 'Intermediaire',
+  finisherIntermediateDesc: 'Jogging leger ou velo modere. Rythme confortable.',
+  finisherAdvanced: 'Avance',
+  finisherAdvancedDesc: 'Course ou rameur. Rythme soutenu.',
+  finisherKeepGoing: 'Continue ! Garde un rythme ou tu peux parler.',
+  finisherStop: 'Arreter',
+  finisherDone: 'Bravo !',
+  finisherDoneDesc: 'Cardio termine. Ta seance etait complete : muscu + cardio. Recupere bien !',
+  finisherFinish: 'Terminer',
+
   // ── Boutique ──
   boutiqueCard: 'Boutique FORGA',
   boutiqueCardSub: 'Vetements, accessoires et supplements sport',
