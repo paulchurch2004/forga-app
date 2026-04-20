@@ -4,6 +4,21 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { MealSlot } from '../types/meal';
 import type { WeeklyDayPlan } from '../engine/weeklyPlanner';
 
+function syncWeeklyPlanLazy() {
+  setTimeout(() => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { useUserStore } = require('./userStore');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { syncWeeklyPlan } = require('../services/userSync');
+      const userId = useUserStore.getState().profile?.id;
+      if (userId) syncWeeklyPlan(userId);
+    } catch {
+      /* noop */
+    }
+  }, 0);
+}
+
 interface WeeklyPlanState {
   weekStart: string | null;
   days: WeeklyDayPlan[];
@@ -23,13 +38,7 @@ export const useWeeklyPlanStore = create<WeeklyPlanState>()(
 
       setWeeklyPlan: (weekStart, days) => {
         set({ weekStart, days, generatedAt: new Date().toISOString() });
-        // Sync to Supabase
-        import('./userStore').then(({ useUserStore }) => {
-          import('../services/userSync').then(({ syncWeeklyPlan }) => {
-            const userId = useUserStore.getState().profile?.id;
-            if (userId) syncWeeklyPlan(userId);
-          });
-        });
+        syncWeeklyPlanLazy();
       },
 
       swapMeal: (date, slot, newMealId, newMealName) => {
@@ -45,13 +54,7 @@ export const useWeeklyPlanStore = create<WeeklyPlanState>()(
               : day
           ),
         }));
-        // Sync to Supabase
-        import('./userStore').then(({ useUserStore }) => {
-          import('../services/userSync').then(({ syncWeeklyPlan }) => {
-            const userId = useUserStore.getState().profile?.id;
-            if (userId) syncWeeklyPlan(userId);
-          });
-        });
+        syncWeeklyPlanLazy();
       },
 
       reset: () => set({ weekStart: null, days: [], generatedAt: null }),

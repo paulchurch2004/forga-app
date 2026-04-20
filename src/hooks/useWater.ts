@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { AppState } from 'react-native';
 import { useWaterStore } from '../store/waterStore';
 import { useUserStore } from '../store/userStore';
+import { syncWater } from '../services/userSync';
 
 const WATER_ML_PER_KG = 33;
 
@@ -73,14 +74,14 @@ export function useWater() {
   const add = useCallback(
     (amount: number) => {
       addWater(today, amount);
-      // Sync to Supabase (the entry was just added, get last one)
+      // Sync to Supabase (deferred, errors ignored)
       setTimeout(() => {
-        const { useUserStore } = require('../store/userStore');
-        const { syncWater } = require('../services/userSync');
-        const userId = useUserStore.getState().profile?.id;
-        const entries = useWaterStore.getState().history[today];
-        const lastEntry = entries?.[entries.length - 1];
-        if (userId && lastEntry) syncWater(lastEntry, today, userId);
+        try {
+          const userId = useUserStore.getState().profile?.id;
+          const entries = useWaterStore.getState().history[today];
+          const lastEntry = entries?.[entries.length - 1];
+          if (userId && lastEntry) syncWater(lastEntry, today, userId);
+        } catch { /* noop */ }
       }, 0);
     },
     [today, addWater]

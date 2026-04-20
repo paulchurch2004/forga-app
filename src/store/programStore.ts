@@ -9,6 +9,21 @@ import type {
 import type { Objective } from '../types/user';
 import { generatePlan, toLocalDateStr } from '../engine/programEngine';
 
+function syncProgramLazy() {
+  setTimeout(() => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { useUserStore } = require('./userStore');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { syncProgramProgress } = require('../services/userSync');
+      const userId = useUserStore.getState().profile?.id;
+      if (userId) syncProgramProgress(userId);
+    } catch {
+      /* noop */
+    }
+  }, 0);
+}
+
 interface ProgramState {
   activePlan: GeneratedPlan | null;
   completedDays: Record<string, string>; // date → workoutId
@@ -32,13 +47,7 @@ export const useProgramStore = create<ProgramState>()(
       selectProgram: (programId, objective) => {
         const plan = generatePlan(programId, objective);
         set({ activePlan: plan, completedDays: {} });
-        // Sync to Supabase
-        import('./userStore').then(({ useUserStore }) => {
-          import('../services/userSync').then(({ syncProgramProgress }) => {
-            const userId = useUserStore.getState().profile?.id;
-            if (userId) syncProgramProgress(userId);
-          });
-        });
+        syncProgramLazy();
       },
 
       markDayCompleted: (date, workoutId) => {
@@ -53,13 +62,7 @@ export const useProgramStore = create<ProgramState>()(
           activePlan: { ...activePlan, days: updatedDays },
           completedDays: { ...completedDays, [date]: workoutId },
         });
-        // Sync to Supabase
-        import('./userStore').then(({ useUserStore }) => {
-          import('../services/userSync').then(({ syncProgramProgress }) => {
-            const userId = useUserStore.getState().profile?.id;
-            if (userId) syncProgramProgress(userId);
-          });
-        });
+        syncProgramLazy();
       },
 
       markDaySkipped: (date) => {

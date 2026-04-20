@@ -5,6 +5,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export type ThemeMode = 'dark' | 'light' | 'system';
 export type Locale = 'fr' | 'en';
 
+/** Lazy sync setting to Supabase profile (non-blocking, errors ignored) */
+function syncSettingToProfile(updates: Record<string, any>) {
+  // Use setTimeout to defer and avoid circular deps at module init
+  setTimeout(() => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { useUserStore } = require('./userStore');
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { syncProfile } = require('../services/userSync');
+      const userId = useUserStore.getState().profile?.id;
+      if (userId) syncProfile(updates, userId);
+    } catch {
+      /* noop */
+    }
+  }, 0);
+}
+
 interface SettingsState {
   notificationsEnabled: boolean;
   mealReminders: boolean;
@@ -40,67 +57,31 @@ export const useSettingsStore = create<SettingsState>()(
 
       setNotificationsEnabled: (notificationsEnabled) => {
         set({ notificationsEnabled });
-        import('./userStore').then(({ useUserStore }) => {
-          import('../services/userSync').then(({ syncProfile }) => {
-            const userId = useUserStore.getState().profile?.id;
-            if (userId) syncProfile({ notifications_enabled: notificationsEnabled } as any, userId);
-          });
-        });
+        syncSettingToProfile({ notifications_enabled: notificationsEnabled });
       },
       setMealReminders: (mealReminders) => {
         set({ mealReminders });
-        import('./userStore').then(({ useUserStore }) => {
-          import('../services/userSync').then(({ syncProfile }) => {
-            const userId = useUserStore.getState().profile?.id;
-            if (userId) syncProfile({ meal_reminders: mealReminders } as any, userId);
-          });
-        });
+        syncSettingToProfile({ meal_reminders: mealReminders });
       },
       setStreakAlerts: (streakAlerts) => {
         set({ streakAlerts });
-        import('./userStore').then(({ useUserStore }) => {
-          import('../services/userSync').then(({ syncProfile }) => {
-            const userId = useUserStore.getState().profile?.id;
-            if (userId) syncProfile({ streak_alerts: streakAlerts } as any, userId);
-          });
-        });
+        syncSettingToProfile({ streak_alerts: streakAlerts });
       },
       setWeeklyCheckInReminder: (weeklyCheckInReminder) => {
         set({ weeklyCheckInReminder });
-        import('./userStore').then(({ useUserStore }) => {
-          import('../services/userSync').then(({ syncProfile }) => {
-            const userId = useUserStore.getState().profile?.id;
-            if (userId) syncProfile({ weekly_checkin_reminder: weeklyCheckInReminder } as any, userId);
-          });
-        });
+        syncSettingToProfile({ weekly_checkin_reminder: weeklyCheckInReminder });
       },
       setThemeMode: (themeMode) => {
         set({ themeMode });
-        // Sync to Supabase profile
-        import('./userStore').then(({ useUserStore }) => {
-          import('../services/userSync').then(({ syncProfile }) => {
-            const userId = useUserStore.getState().profile?.id;
-            if (userId) syncProfile({ theme_mode: themeMode } as any, userId);
-          });
-        });
+        syncSettingToProfile({ theme_mode: themeMode });
       },
       setLocale: (locale) => {
         set({ locale });
-        import('./userStore').then(({ useUserStore }) => {
-          import('../services/userSync').then(({ syncProfile }) => {
-            const userId = useUserStore.getState().profile?.id;
-            if (userId) syncProfile({ locale } as any, userId);
-          });
-        });
+        syncSettingToProfile({ locale });
       },
       setTutorialStep: (tutorialStep) => {
         set({ tutorialStep });
-        import('./userStore').then(({ useUserStore }) => {
-          import('../services/userSync').then(({ syncProfile }) => {
-            const userId = useUserStore.getState().profile?.id;
-            if (userId) syncProfile({ tutorial_step: tutorialStep } as any, userId);
-          });
-        });
+        syncSettingToProfile({ tutorial_step: tutorialStep });
       },
       setWeightPromptDismissedDate: (weightPromptDismissedDate) => set({ weightPromptDismissedDate }),
       reset: () =>

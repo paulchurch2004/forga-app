@@ -17,6 +17,8 @@ import { router } from 'expo-router';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius, shadows } from '../../theme';
 import { useTheme } from '../../context/ThemeContext';
 import { useMealStore } from '../../store/mealStore';
+import { useUserStore } from '../../store/userStore';
+import { syncMealPreference } from '../../services/userSync';
 import type { Meal } from '../../types/meal';
 
 const triggerHaptic = () => {
@@ -146,8 +148,6 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
                 e.stopPropagation?.();
                 toggleLike(meal.id);
                 triggerHaptic();
-                const { useUserStore } = require('../../store/userStore');
-                const { syncMealPreference } = require('../../services/userSync');
                 const userId = useUserStore.getState().profile?.id;
                 if (userId) {
                   const nowLiked = !isLiked;
@@ -168,8 +168,6 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
                 e.stopPropagation?.();
                 toggleDislike(meal.id);
                 triggerHaptic();
-                const { useUserStore } = require('../../store/userStore');
-                const { syncMealPreference } = require('../../services/userSync');
                 const userId = useUserStore.getState().profile?.id;
                 if (userId) {
                   const nowDisliked = !isDisliked;
