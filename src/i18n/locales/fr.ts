@@ -1295,6 +1295,13 @@ export const fr = {
   weightTipIsolation: 'Choisis un poids ou tu sens le muscle travailler.',
   weightTipSameWeight: 'Meme poids, complete toutes les reps cette fois.',
 
+  // Workout guide (first time)
+  workoutGuideTitle: 'Comment ca marche',
+  workoutGuideStep1: 'Les repetitions sont definies automatiquement selon ton objectif (masse, seche, maintien).',
+  workoutGuideStep2: 'Entre ton poids uniquement la premiere fois. L\'app s\'en souvient et ajuste pour la prochaine seance.',
+  workoutGuideStep3: 'Si tu reussis toutes les reps, l\'app propose +2.5kg (compose) ou +1kg (isolation) la fois suivante.',
+  workoutGuideStep4: 'Valide chaque serie en appuyant sur le check. Le chrono de repos se lance automatiquement.',
+
   // ── Boutique ──
   boutiqueCard: 'Boutique FORGA',
   boutiqueCardSub: 'Vetements, accessoires et supplements sport',

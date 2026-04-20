@@ -8,7 +8,9 @@ import {
   Platform,
   Alert,
   Image,
+  Modal,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -122,6 +124,14 @@ export default function ActiveWorkoutScreen() {
   const [restReasonKey, setRestReasonKey] = useState('');
   const [isTransitionRest, setIsTransitionRest] = useState(false);
   const [prAlert, setPrAlert] = useState<string | null>(null);
+  const [showWorkoutGuide, setShowWorkoutGuide] = useState(false);
+
+  // Show guide only on first ever workout
+  useEffect(() => {
+    AsyncStorage.getItem('forga-workout-guide-seen').then((seen) => {
+      if (!seen) setShowWorkoutGuide(true);
+    });
+  }, []);
   const restRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startRestTimer = useCallback((seconds: number) => {
@@ -615,6 +625,43 @@ export default function ActiveWorkoutScreen() {
         exerciseId={tutorialExerciseId}
         onClose={() => setTutorialExerciseId(null)}
       />
+
+      {/* First workout guide */}
+      <Modal visible={showWorkoutGuide} animationType="fade" transparent>
+        <View style={styles.guideOverlay}>
+          <View style={styles.guideCard}>
+            <Text style={styles.guideEmoji}>{'\uD83C\uDFCB'}</Text>
+            <Text style={styles.guideTitle}>{t('workoutGuideTitle' as any)}</Text>
+
+            <View style={styles.guideStep}>
+              <Text style={styles.guideStepNum}>1</Text>
+              <Text style={styles.guideStepText}>{t('workoutGuideStep1' as any)}</Text>
+            </View>
+            <View style={styles.guideStep}>
+              <Text style={styles.guideStepNum}>2</Text>
+              <Text style={styles.guideStepText}>{t('workoutGuideStep2' as any)}</Text>
+            </View>
+            <View style={styles.guideStep}>
+              <Text style={styles.guideStepNum}>3</Text>
+              <Text style={styles.guideStepText}>{t('workoutGuideStep3' as any)}</Text>
+            </View>
+            <View style={styles.guideStep}>
+              <Text style={styles.guideStepNum}>4</Text>
+              <Text style={styles.guideStepText}>{t('workoutGuideStep4' as any)}</Text>
+            </View>
+
+            <Pressable
+              style={styles.guideBtn}
+              onPress={() => {
+                setShowWorkoutGuide(false);
+                AsyncStorage.setItem('forga-workout-guide-seen', 'true');
+              }}
+            >
+              <Text style={styles.guideBtnText}>{t('letsGo' as any)}</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -807,6 +854,73 @@ const useStyles = makeStyles((colors) => ({
     borderRadius: borderRadius.sm,
     backgroundColor: `${colors.border}30`,
     marginHorizontal: 2,
+  },
+  // First workout guide
+  guideOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    padding: spacing.xl,
+  },
+  guideCard: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.xl,
+    padding: spacing['2xl'],
+    width: '100%' as any,
+    maxWidth: 360,
+    alignItems: 'center' as const,
+  },
+  guideEmoji: {
+    fontSize: 48,
+    marginBottom: spacing.md,
+  },
+  guideTitle: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes.xl,
+    fontWeight: '700' as const,
+    color: colors.text,
+    textAlign: 'center' as const,
+    marginBottom: spacing.xl,
+  },
+  guideStep: {
+    flexDirection: 'row' as const,
+    alignItems: 'flex-start' as const,
+    gap: spacing.md,
+    marginBottom: spacing.lg,
+    width: '100%' as any,
+  },
+  guideStepNum: {
+    fontFamily: fonts.data,
+    fontSize: fontSizes.lg,
+    fontWeight: '700' as const,
+    color: colors.primary,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: `${colors.primary}15`,
+    textAlign: 'center' as const,
+    lineHeight: 28,
+  },
+  guideStepText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.text,
+    lineHeight: 20,
+    flex: 1,
+  },
+  guideBtn: {
+    backgroundColor: colors.primary,
+    borderRadius: borderRadius.lg,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing['3xl'],
+    marginTop: spacing.md,
+  },
+  guideBtnText: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes.lg,
+    fontWeight: '700' as const,
+    color: colors.white,
   },
   miniGif: {
     width: 48,

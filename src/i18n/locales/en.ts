@@ -1297,6 +1297,13 @@ export const en: Record<TranslationKey, string> = {
   weightTipIsolation: 'Pick a weight where you feel the muscle working.',
   weightTipSameWeight: 'Same weight, try to complete all reps this time.',
 
+  // Workout guide (first time)
+  workoutGuideTitle: 'How it works',
+  workoutGuideStep1: 'Reps are set automatically based on your goal (bulk, cut, maintain).',
+  workoutGuideStep2: 'Enter your weight only the first time. The app remembers and adjusts for next session.',
+  workoutGuideStep3: 'If you complete all reps, the app suggests +2.5kg (compound) or +1kg (isolation) next time.',
+  workoutGuideStep4: 'Tap the check to validate each set. Rest timer starts automatically.',
+
   // ── Boutique ──
   boutiqueCard: 'FORGA Shop',
   boutiqueCardSub: 'Clothing, accessories & sport supplements',
