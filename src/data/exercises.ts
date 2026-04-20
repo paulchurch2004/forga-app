@@ -1,46 +1,49 @@
 import type { Exercise, MuscleGroup } from '../types/training';
 
+// GIFs from ExerciseDB / MuscleWiki style animated demonstrations
+const GIF_BASE = 'https://v2.exercisedb.io/image';
+
 export const EXERCISES: Record<string, Exercise> = {
   // ── Chest (4) ──
-  bench_press:   { id: 'bench_press',   nameKey: 'exBenchPress',   muscleGroup: 'chest',     isCompound: true },
-  incline_press: { id: 'incline_press', nameKey: 'exInclinePress', muscleGroup: 'chest',     isCompound: true },
-  dips:          { id: 'dips',          nameKey: 'exDips',          muscleGroup: 'chest',     isCompound: true },
-  chest_fly:     { id: 'chest_fly',     nameKey: 'exChestFly',     muscleGroup: 'chest',     isCompound: false },
+  bench_press:   { id: 'bench_press',   nameKey: 'exBenchPress',   muscleGroup: 'chest',     isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Bench-Press.gif' },
+  incline_press: { id: 'incline_press', nameKey: 'exInclinePress', muscleGroup: 'chest',     isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Incline-Barbell-Bench-Press.gif' },
+  dips:          { id: 'dips',          nameKey: 'exDips',          muscleGroup: 'chest',     isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/06/Chest-Dips.gif' },
+  chest_fly:     { id: 'chest_fly',     nameKey: 'exChestFly',     muscleGroup: 'chest',     isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Fly.gif' },
 
   // ── Back (4) ──
-  pull_ups:      { id: 'pull_ups',      nameKey: 'exPullUps',      muscleGroup: 'back',      isCompound: true },
-  barbell_rows:  { id: 'barbell_rows',  nameKey: 'exBarbellRows',  muscleGroup: 'back',      isCompound: true },
-  lat_pulldown:  { id: 'lat_pulldown',  nameKey: 'exLatPulldown',  muscleGroup: 'back',      isCompound: true },
-  deadlift:      { id: 'deadlift',      nameKey: 'exDeadlift',     muscleGroup: 'back',      isCompound: true },
+  pull_ups:      { id: 'pull_ups',      nameKey: 'exPullUps',      muscleGroup: 'back',      isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Pull-Up.gif' },
+  barbell_rows:  { id: 'barbell_rows',  nameKey: 'exBarbellRows',  muscleGroup: 'back',      isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Bent-Over-Row.gif' },
+  lat_pulldown:  { id: 'lat_pulldown',  nameKey: 'exLatPulldown',  muscleGroup: 'back',      isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Lat-Pulldown.gif' },
+  deadlift:      { id: 'deadlift',      nameKey: 'exDeadlift',     muscleGroup: 'back',      isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Deadlift.gif' },
 
   // ── Shoulders (4) ──
-  overhead_press:  { id: 'overhead_press',  nameKey: 'exOverheadPress',  muscleGroup: 'shoulders', isCompound: true },
-  lateral_raises:  { id: 'lateral_raises',  nameKey: 'exLateralRaises',  muscleGroup: 'shoulders', isCompound: false },
-  face_pulls:      { id: 'face_pulls',      nameKey: 'exFacePulls',      muscleGroup: 'shoulders', isCompound: false },
-  shrugs:          { id: 'shrugs',          nameKey: 'exShrugs',          muscleGroup: 'shoulders', isCompound: false },
+  overhead_press:  { id: 'overhead_press',  nameKey: 'exOverheadPress',  muscleGroup: 'shoulders', isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Overhead-Press.gif' },
+  lateral_raises:  { id: 'lateral_raises',  nameKey: 'exLateralRaises',  muscleGroup: 'shoulders', isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lateral-Raise.gif' },
+  face_pulls:      { id: 'face_pulls',      nameKey: 'exFacePulls',      muscleGroup: 'shoulders', isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Face-Pull.gif' },
+  shrugs:          { id: 'shrugs',          nameKey: 'exShrugs',          muscleGroup: 'shoulders', isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Shrug.gif' },
 
   // ── Arms (4) ──
-  bicep_curls:       { id: 'bicep_curls',       nameKey: 'exBicepCurls',       muscleGroup: 'arms', isCompound: false },
-  tricep_extensions: { id: 'tricep_extensions', nameKey: 'exTricepExtensions', muscleGroup: 'arms', isCompound: false },
-  hammer_curls:      { id: 'hammer_curls',      nameKey: 'exHammerCurls',      muscleGroup: 'arms', isCompound: false },
-  skull_crushers:    { id: 'skull_crushers',    nameKey: 'exSkullCrushers',    muscleGroup: 'arms', isCompound: false },
+  bicep_curls:       { id: 'bicep_curls',       nameKey: 'exBicepCurls',       muscleGroup: 'arms', isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Curl.gif' },
+  tricep_extensions: { id: 'tricep_extensions', nameKey: 'exTricepExtensions', muscleGroup: 'arms', isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Tricep-Extension.gif' },
+  hammer_curls:      { id: 'hammer_curls',      nameKey: 'exHammerCurls',      muscleGroup: 'arms', isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Hammer-Curl.gif' },
+  skull_crushers:    { id: 'skull_crushers',    nameKey: 'exSkullCrushers',    muscleGroup: 'arms', isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Skull-Crusher.gif' },
 
   // ── Legs (7) ──
-  squat:              { id: 'squat',              nameKey: 'exSquat',             muscleGroup: 'legs', isCompound: true },
-  leg_press:          { id: 'leg_press',          nameKey: 'exLegPress',          muscleGroup: 'legs', isCompound: true },
-  lunges:             { id: 'lunges',             nameKey: 'exLunges',            muscleGroup: 'legs', isCompound: true },
-  leg_curl:           { id: 'leg_curl',           nameKey: 'exLegCurl',           muscleGroup: 'legs', isCompound: false },
-  leg_extension:      { id: 'leg_extension',      nameKey: 'exLegExtension',      muscleGroup: 'legs', isCompound: false },
-  calf_raises:        { id: 'calf_raises',        nameKey: 'exCalfRaises',        muscleGroup: 'legs', isCompound: false },
-  romanian_deadlift:  { id: 'romanian_deadlift',  nameKey: 'exRomanianDeadlift',  muscleGroup: 'legs', isCompound: true },
+  squat:              { id: 'squat',              nameKey: 'exSquat',             muscleGroup: 'legs', isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Squat.gif' },
+  leg_press:          { id: 'leg_press',          nameKey: 'exLegPress',          muscleGroup: 'legs', isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Press.gif' },
+  lunges:             { id: 'lunges',             nameKey: 'exLunges',            muscleGroup: 'legs', isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Lunge.gif' },
+  leg_curl:           { id: 'leg_curl',           nameKey: 'exLegCurl',           muscleGroup: 'legs', isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Leg-Curl.gif' },
+  leg_extension:      { id: 'leg_extension',      nameKey: 'exLegExtension',      muscleGroup: 'legs', isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/LEG-EXTENSION.gif' },
+  calf_raises:        { id: 'calf_raises',        nameKey: 'exCalfRaises',        muscleGroup: 'legs', isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Standing-Calf-Raise.gif' },
+  romanian_deadlift:  { id: 'romanian_deadlift',  nameKey: 'exRomanianDeadlift',  muscleGroup: 'legs', isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Barbell-Romanian-Deadlift.gif' },
 
   // ── Core (4) ──
-  plank:          { id: 'plank',          nameKey: 'exPlank',         muscleGroup: 'core', isCompound: false },
-  crunches:       { id: 'crunches',       nameKey: 'exCrunches',      muscleGroup: 'core', isCompound: false },
-  leg_raises:     { id: 'leg_raises',     nameKey: 'exLegRaises',     muscleGroup: 'core', isCompound: false },
-  russian_twist:  { id: 'russian_twist',  nameKey: 'exRussianTwist',  muscleGroup: 'core', isCompound: false },
+  plank:          { id: 'plank',          nameKey: 'exPlank',         muscleGroup: 'core', isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Front-Plank.gif' },
+  crunches:       { id: 'crunches',       nameKey: 'exCrunches',      muscleGroup: 'core', isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Crunch.gif' },
+  leg_raises:     { id: 'leg_raises',     nameKey: 'exLegRaises',     muscleGroup: 'core', isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Lying-Leg-Raise.gif' },
+  russian_twist:  { id: 'russian_twist',  nameKey: 'exRussianTwist',  muscleGroup: 'core', isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Russian-Twist.gif' },
 
-  // ── Cardio (7) ──
+  // ── Cardio (7) — no GIFs needed ──
   running:    { id: 'running',    nameKey: 'exRunning',    muscleGroup: 'cardio', isCompound: false },
   cycling:    { id: 'cycling',    nameKey: 'exCycling',    muscleGroup: 'cardio', isCompound: false },
   swimming:   { id: 'swimming',   nameKey: 'exSwimming',   muscleGroup: 'cardio', isCompound: false },

@@ -39,6 +39,7 @@ export interface Exercise {
   nameKey: string; // i18n key
   muscleGroup: MuscleGroup;
   isCompound: boolean;
+  gifUrl?: string; // animated demo GIF URL
 }
 
 export interface Workout {

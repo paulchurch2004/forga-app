@@ -7,6 +7,7 @@ import {
   Pressable,
   Platform,
   Alert,
+  Image,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -440,8 +441,23 @@ export default function ActiveWorkoutScreen() {
               style={[styles.exerciseCard, allSetsCompleted && styles.exerciseCardDone]}
             >
               <View style={styles.exerciseHeader}>
+                {/* Mini GIF thumbnail */}
+                {EXERCISES[ex.exerciseId]?.gifUrl && (
+                  <Pressable
+                    onPress={() => {
+                      triggerHaptic('light');
+                      setTutorialExerciseId(ex.exerciseId);
+                    }}
+                  >
+                    <Image
+                      source={{ uri: EXERCISES[ex.exerciseId].gifUrl }}
+                      style={styles.miniGif}
+                      resizeMode="cover"
+                    />
+                  </Pressable>
+                )}
                 <Text style={styles.exerciseName}>{t(ex.nameKey as any)}</Text>
-                {hasTutorial(ex.exerciseId) && (
+                {hasTutorial(ex.exerciseId) && !EXERCISES[ex.exerciseId]?.gifUrl && (
                   <Pressable
                     onPress={() => {
                       triggerHaptic('light');
@@ -791,6 +807,13 @@ const useStyles = makeStyles((colors) => ({
     borderRadius: borderRadius.sm,
     backgroundColor: `${colors.border}30`,
     marginHorizontal: 2,
+  },
+  miniGif: {
+    width: 48,
+    height: 48,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f5',
+    marginRight: spacing.sm,
   },
   weightTip: {
     fontFamily: fonts.body,

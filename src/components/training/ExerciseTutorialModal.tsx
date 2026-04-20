@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, Modal, Linking, ScrollView, Platform } from 'react-native';
+import { View, Text, Pressable, Modal, Linking, ScrollView, Platform, Image } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { makeStyles, fonts, fontSizes, spacing } from '../../theme';
 import { useTheme } from '../../context/ThemeContext';
@@ -67,6 +67,17 @@ export function ExerciseTutorialModal({
             {/* Exercise name */}
             <Text style={styles.title}>{t(exercise.nameKey as any)}</Text>
             <Text style={styles.subtitle}>{t('exerciseTutorial')}</Text>
+
+            {/* Animated GIF demo */}
+            {exercise.gifUrl && (
+              <View style={styles.gifContainer}>
+                <Image
+                  source={{ uri: exercise.gifUrl }}
+                  style={styles.gifImage}
+                  resizeMode="contain"
+                />
+              </View>
+            )}
 
             {/* Video button */}
             <Pressable style={styles.videoBtn} onPress={handleWatchVideo}>
@@ -143,6 +154,17 @@ const useStyles = makeStyles((colors) => ({
     textTransform: 'uppercase' as const,
     letterSpacing: 2,
     marginBottom: spacing.xl,
+  },
+  gifContainer: {
+    alignItems: 'center' as const,
+    marginBottom: spacing.lg,
+    backgroundColor: '#f0f0f5',
+    borderRadius: spacing.md,
+    overflow: 'hidden' as const,
+  },
+  gifImage: {
+    width: 280,
+    height: 200,
   },
   videoBtn: {
     backgroundColor: colors.primary,
