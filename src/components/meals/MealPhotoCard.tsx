@@ -142,7 +142,18 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
           </Text>
           <View style={styles.feedbackRow}>
             <Pressable
-              onPress={(e) => { e.stopPropagation?.(); toggleLike(meal.id); triggerHaptic(); }}
+              onPress={(e) => {
+                e.stopPropagation?.();
+                toggleLike(meal.id);
+                triggerHaptic();
+                const { useUserStore } = require('../../store/userStore');
+                const { syncMealPreference } = require('../../services/userSync');
+                const userId = useUserStore.getState().profile?.id;
+                if (userId) {
+                  const nowLiked = !isLiked;
+                  syncMealPreference(meal.id, userId, nowLiked ? 'like' : null);
+                }
+              }}
               hitSlop={6}
               style={styles.feedbackBtn}
             >
@@ -153,7 +164,18 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
               />
             </Pressable>
             <Pressable
-              onPress={(e) => { e.stopPropagation?.(); toggleDislike(meal.id); triggerHaptic(); }}
+              onPress={(e) => {
+                e.stopPropagation?.();
+                toggleDislike(meal.id);
+                triggerHaptic();
+                const { useUserStore } = require('../../store/userStore');
+                const { syncMealPreference } = require('../../services/userSync');
+                const userId = useUserStore.getState().profile?.id;
+                if (userId) {
+                  const nowDisliked = !isDisliked;
+                  syncMealPreference(meal.id, userId, nowDisliked ? 'dislike' : null);
+                }
+              }}
               hitSlop={6}
               style={styles.feedbackBtn}
             >

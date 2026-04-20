@@ -8,7 +8,10 @@ import type { DailyMeal } from '../types/meal';
 import type { ForgaScore } from '../types/score';
 import type { Badge, WeightEntry, WeeklyCheckIn } from '../types/user';
 import type { Workout } from '../types/training';
+import type { BodyMeasurement } from '../types/user';
 import { useTrainingStore } from '../store/trainingStore';
+import { useWaterStore } from '../store/waterStore';
+import { useSettingsStore } from '../store/settingsStore';
 
 // ──────────── PUSH (Local → Supabase) ────────────
 
@@ -100,6 +103,57 @@ export function syncWorkout(workout: Workout, userId: string) {
   });
 }
 
+/** Sync a water entry to Supabase */
+export function syncWater(entry: { id: string; amount: number; timestamp: string }, date: string, userId: string) {
+  if (isDemoMode) return;
+  enqueue({
+    table: 'water_log',
+    operation: 'upsert',
+    data: {
+      id: entry.id,
+      user_id: userId,
+      date,
+      amount_ml: entry.amount,
+      timestamp: entry.timestamp,
+    },
+  });
+}
+
+/** Sync a body measurement to Supabase */
+export function syncMeasurement(m: BodyMeasurement) {
+  if (isDemoMode) return;
+  enqueue({
+    table: 'measurements',
+    operation: 'upsert',
+    data: {
+      id: m.id,
+      user_id: m.userId,
+      date: m.date,
+      waist_cm: m.waistCm ?? null,
+      hips_cm: m.hipsCm ?? null,
+      chest_cm: m.chestCm ?? null,
+      arms_cm: m.armsCm ?? null,
+      thighs_cm: m.thighsCm ?? null,
+      body_fat_percent: m.bodyFatPercent ?? null,
+    },
+  });
+}
+
+/** Sync a meal preference (like/dislike) to Supabase */
+export function syncMealPreference(mealId: string, userId: string, preference: 'like' | 'dislike' | null) {
+  if (isDemoMode) return;
+  if (preference) {
+    enqueue({
+      table: 'meal_preferences',
+      operation: 'upsert',
+      data: { user_id: userId, meal_id: mealId, preference },
+    });
+  } else {
+    // Remove preference
+    supabase.from('meal_preferences').delete().match({ user_id: userId, meal_id: mealId }).then(() => {}, () => {});
+  }
+}
+
 /** Sync profile updates to Supabase */
 export async function syncProfile(updates: Record<string, any>, userId: string) {
   if (isDemoMode) return;
@@ -146,13 +200,17 @@ export async function loadAllUserData(userId: string): Promise<void> {
 
   try {
     // Fetch all data in parallel
-    const [mealsRes, scoresRes, badgesRes, favoritesRes, weightRes, checkInsRes] = await Promise.all([
+    const [mealsRes, scoresRes, badgesRes, favoritesRes, weightRes, checkInsRes, workoutsRes, waterRes, measurementsRes, preferencesRes] = await Promise.all([
       supabase.from('daily_meals').select('*').eq('user_id', userId).order('date', { ascending: true }),
       supabase.from('score_history').select('*').eq('user_id', userId).order('date', { ascending: true }),
       supabase.from('badges').select('*').eq('user_id', userId),
       supabase.from('favorites').select('*').eq('user_id', userId),
       supabase.from('weight_log').select('*').eq('user_id', userId).order('date', { ascending: true }),
       supabase.from('weekly_checkins').select('*').eq('user_id', userId).order('week_start', { ascending: true }),
+      supabase.from('workouts').select('*').eq('user_id', userId).order('date', { ascending: true }),
+      supabase.from('water_log').select('*').eq('user_id', userId).order('date', { ascending: true }),
+      supabase.from('measurements').select('*').eq('user_id', userId).order('date', { ascending: true }),
+      supabase.from('meal_preferences').select('*').eq('user_id', userId),
     ]);
 
     // Populate meal history
@@ -270,6 +328,80 @@ export async function loadAllUserData(userId: string): Promise<void> {
         localCheckIns.find((c) => c.weekStart === week) ?? checkIns.find((c) => c.weekStart === week)!
       );
       useUserStore.setState({ checkIns: merged });
+    }
+
+    // Populate workouts
+    if (workoutsRes.data && workoutsRes.data.length > 0) {
+      const workouts: Record<string, Workout[]> = {};
+      for (const row of workoutsRes.data) {
+        const workout: Workout = {
+          id: row.id,
+          date: row.date,
+          timestamp: row.timestamp,
+          type: row.type,
+          durationMinutes: row.duration_minutes,
+          intensity: row.intensity ?? 'moderate',
+          exercises: typeof row.exercises === 'string' ? JSON.parse(row.exercises) : (row.exercises ?? []),
+          note: row.note ?? undefined,
+        };
+        if (!workouts[row.date]) workouts[row.date] = [];
+        workouts[row.date].push(workout);
+      }
+      const localWorkouts = useTrainingStore.getState().workouts;
+      useTrainingStore.setState({ workouts: { ...workouts, ...localWorkouts } });
+    }
+
+    // Populate water log
+    if (waterRes.data && waterRes.data.length > 0) {
+      const waterHistory: Record<string, { id: string; amount: number; timestamp: string }[]> = {};
+      for (const row of waterRes.data) {
+        if (!waterHistory[row.date]) waterHistory[row.date] = [];
+        waterHistory[row.date].push({
+          id: row.id,
+          amount: row.amount_ml,
+          timestamp: row.timestamp,
+        });
+      }
+      const localWater = useWaterStore.getState().history;
+      useWaterStore.setState({ history: { ...waterHistory, ...localWater } });
+    }
+
+    // Populate body measurements
+    if (measurementsRes.data && measurementsRes.data.length > 0) {
+      const measurements: BodyMeasurement[] = measurementsRes.data.map((row) => ({
+        id: row.id,
+        userId: row.user_id,
+        date: row.date,
+        waistCm: row.waist_cm ?? undefined,
+        hipsCm: row.hips_cm ?? undefined,
+        chestCm: row.chest_cm ?? undefined,
+        armsCm: row.arms_cm ?? undefined,
+        thighsCm: row.thighs_cm ?? undefined,
+        bodyFatPercent: row.body_fat_percent ?? undefined,
+        createdAt: row.created_at,
+      }));
+      const localMeasurements = useUserStore.getState().measurements;
+      const allIds = new Set([...localMeasurements.map((m) => m.id), ...measurements.map((m) => m.id)]);
+      const merged = [...allIds].map((id) =>
+        localMeasurements.find((m) => m.id === id) ?? measurements.find((m) => m.id === id)!
+      );
+      useUserStore.setState({ measurements: merged });
+    }
+
+    // Populate meal preferences (likes/dislikes)
+    if (preferencesRes.data && preferencesRes.data.length > 0) {
+      const liked: string[] = [];
+      const disliked: string[] = [];
+      for (const row of preferencesRes.data) {
+        if (row.preference === 'like') liked.push(row.meal_id);
+        else if (row.preference === 'dislike') disliked.push(row.meal_id);
+      }
+      const localLiked = useMealStore.getState().likedMeals;
+      const localDisliked = useMealStore.getState().dislikedMeals;
+      useMealStore.setState({
+        likedMeals: [...new Set([...localLiked, ...liked])],
+        dislikedMeals: [...new Set([...localDisliked, ...disliked])],
+      });
     }
   } catch (err) {
     if (__DEV__) console.warn('[UserSync] Failed to load user data:', err);

@@ -9,6 +9,7 @@ import { useTheme } from '../src/context/ThemeContext';
 import { useResponsive } from '../src/hooks/useResponsive';
 import { useT } from '../src/i18n';
 import type { BodyMeasurement } from '../src/types/user';
+import { syncMeasurement } from '../src/services/userSync';
 
 // ──────────── TYPES ────────────
 
@@ -86,6 +87,7 @@ export default function MeasurementsScreen() {
     }
 
     addMeasurement(entry);
+    syncMeasurement(entry);
     setFormValues({});
     setShowForm(false);
   };

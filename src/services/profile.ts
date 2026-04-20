@@ -1,6 +1,8 @@
 import { supabase, isDemoMode } from './supabase';
 import { useUserStore } from '../store/userStore';
 import { useAuthStore } from '../store/authStore';
+import { useSettingsStore } from '../store/settingsStore';
+import { useWaterStore } from '../store/waterStore';
 import type { UserProfile } from '../types/user';
 
 /**
@@ -56,6 +58,20 @@ export async function loadProfileFromSupabase(userId: string): Promise<boolean> 
 
   useUserStore.getState().setProfile(profile);
   useAuthStore.getState().setOnboarded(!!data.objective);
+
+  // Restore settings from profile (tutorial step, theme, locale, water target)
+  if (data.tutorial_step !== undefined && data.tutorial_step !== null) {
+    useSettingsStore.setState({ tutorialStep: data.tutorial_step });
+  }
+  if (data.theme_mode) {
+    useSettingsStore.setState({ themeMode: data.theme_mode });
+  }
+  if (data.locale) {
+    useSettingsStore.setState({ locale: data.locale });
+  }
+  if (data.water_daily_target_ml) {
+    useWaterStore.setState({ dailyTargetMl: data.water_daily_target_ml });
+  }
 
   return !!data.objective;
 }

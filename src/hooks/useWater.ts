@@ -71,7 +71,18 @@ export function useWater() {
   }, [weekHistory, dailyTargetMl]);
 
   const add = useCallback(
-    (amount: number) => addWater(today, amount),
+    (amount: number) => {
+      addWater(today, amount);
+      // Sync to Supabase (the entry was just added, get last one)
+      setTimeout(() => {
+        const { useUserStore } = require('../store/userStore');
+        const { syncWater } = require('../services/userSync');
+        const userId = useUserStore.getState().profile?.id;
+        const entries = useWaterStore.getState().history[today];
+        const lastEntry = entries?.[entries.length - 1];
+        if (userId && lastEntry) syncWater(lastEntry, today, userId);
+      }, 0);
+    },
     [today, addWater]
   );
 

@@ -42,9 +42,34 @@ export const useSettingsStore = create<SettingsState>()(
       setMealReminders: (mealReminders) => set({ mealReminders }),
       setStreakAlerts: (streakAlerts) => set({ streakAlerts }),
       setWeeklyCheckInReminder: (weeklyCheckInReminder) => set({ weeklyCheckInReminder }),
-      setThemeMode: (themeMode) => set({ themeMode }),
-      setLocale: (locale) => set({ locale }),
-      setTutorialStep: (tutorialStep) => set({ tutorialStep }),
+      setThemeMode: (themeMode) => {
+        set({ themeMode });
+        // Sync to Supabase profile
+        import('./userStore').then(({ useUserStore }) => {
+          import('../services/userSync').then(({ syncProfile }) => {
+            const userId = useUserStore.getState().profile?.id;
+            if (userId) syncProfile({ theme_mode: themeMode } as any, userId);
+          });
+        });
+      },
+      setLocale: (locale) => {
+        set({ locale });
+        import('./userStore').then(({ useUserStore }) => {
+          import('../services/userSync').then(({ syncProfile }) => {
+            const userId = useUserStore.getState().profile?.id;
+            if (userId) syncProfile({ locale } as any, userId);
+          });
+        });
+      },
+      setTutorialStep: (tutorialStep) => {
+        set({ tutorialStep });
+        import('./userStore').then(({ useUserStore }) => {
+          import('../services/userSync').then(({ syncProfile }) => {
+            const userId = useUserStore.getState().profile?.id;
+            if (userId) syncProfile({ tutorial_step: tutorialStep } as any, userId);
+          });
+        });
+      },
       setWeightPromptDismissedDate: (weightPromptDismissedDate) => set({ weightPromptDismissedDate }),
       reset: () =>
         set({
