@@ -32,6 +32,13 @@ export const useProgramStore = create<ProgramState>()(
       selectProgram: (programId, objective) => {
         const plan = generatePlan(programId, objective);
         set({ activePlan: plan, completedDays: {} });
+        // Sync to Supabase
+        import('./userStore').then(({ useUserStore }) => {
+          import('../services/userSync').then(({ syncProgramProgress }) => {
+            const userId = useUserStore.getState().profile?.id;
+            if (userId) syncProgramProgress(userId);
+          });
+        });
       },
 
       markDayCompleted: (date, workoutId) => {
@@ -45,6 +52,13 @@ export const useProgramStore = create<ProgramState>()(
         set({
           activePlan: { ...activePlan, days: updatedDays },
           completedDays: { ...completedDays, [date]: workoutId },
+        });
+        // Sync to Supabase
+        import('./userStore').then(({ useUserStore }) => {
+          import('../services/userSync').then(({ syncProgramProgress }) => {
+            const userId = useUserStore.getState().profile?.id;
+            if (userId) syncProgramProgress(userId);
+          });
         });
       },
 

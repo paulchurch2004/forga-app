@@ -22,6 +22,7 @@ import { useResponsive } from '../src/hooks/useResponsive';
 import { useT } from '../src/i18n';
 import { EmptyState } from '../src/components/ui/EmptyState';
 import type { ProgressPhoto } from '../src/types/user';
+import { syncProgressPhoto } from '../src/services/userSync';
 
 // ──────────── COMPARE VIEW ────────────
 
@@ -130,6 +131,7 @@ export default function ProgressPhotosScreen() {
       createdAt: new Date().toISOString(),
     };
     addProgressPhoto(photo);
+    syncProgressPhoto(photo);
     setShowAddModal(false);
     setNewPhotoUri(null);
     setNewWeight('');

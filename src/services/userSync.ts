@@ -12,6 +12,9 @@ import type { BodyMeasurement } from '../types/user';
 import { useTrainingStore } from '../store/trainingStore';
 import { useWaterStore } from '../store/waterStore';
 import { useSettingsStore } from '../store/settingsStore';
+import { useProgramStore } from '../store/programStore';
+import { useWeeklyPlanStore } from '../store/weeklyPlanStore';
+import type { ProgressPhoto } from '../types/user';
 
 // ──────────── PUSH (Local → Supabase) ────────────
 
@@ -70,7 +73,7 @@ export function syncBadge(badge: Badge, userId: string) {
   });
 }
 
-/** Sync a favorite toggle to Supabase */
+/** Sync a favorite toggle to Supabase (handles add AND remove) */
 export function syncFavorite(mealId: string, userId: string, isFav: boolean) {
   if (isDemoMode) return;
   if (isFav) {
@@ -79,8 +82,10 @@ export function syncFavorite(mealId: string, userId: string, isFav: boolean) {
       operation: 'upsert',
       data: { user_id: userId, meal_id: mealId },
     });
+  } else {
+    // Remove favorite directly
+    supabase.from('favorites').delete().match({ user_id: userId, meal_id: mealId }).then(() => {}, () => {});
   }
-  // Note: remove favorites via direct delete if needed
 }
 
 /** Sync a workout to Supabase */
@@ -154,6 +159,56 @@ export function syncMealPreference(mealId: string, userId: string, preference: '
   }
 }
 
+/** Sync a progress photo to Supabase */
+export function syncProgressPhoto(photo: ProgressPhoto) {
+  if (isDemoMode) return;
+  enqueue({
+    table: 'progress_photos',
+    operation: 'upsert',
+    data: {
+      id: photo.id,
+      user_id: photo.userId,
+      date: photo.date,
+      uri: photo.uri,
+      weight: photo.weight ?? null,
+      note: photo.note ?? null,
+    },
+  });
+}
+
+/** Sync weekly meal plan */
+export async function syncWeeklyPlan(userId: string) {
+  if (isDemoMode) return;
+  const state = useWeeklyPlanStore.getState();
+  if (!state.weekStart || state.days.length === 0) return;
+  enqueue({
+    table: 'weekly_plans',
+    operation: 'upsert',
+    data: {
+      user_id: userId,
+      week_start: state.weekStart,
+      days: JSON.stringify(state.days),
+    },
+  });
+}
+
+/** Sync program progress (active plan + completed days) */
+export async function syncProgramProgress(userId: string) {
+  if (isDemoMode) return;
+  const state = useProgramStore.getState();
+  try {
+    await supabase.from('program_progress').upsert({
+      user_id: userId,
+      active_program_id: state.activePlan?.programId ?? null,
+      start_date: state.activePlan?.startDate ?? null,
+      planned_days: JSON.stringify(state.activePlan ?? null),
+      updated_at: new Date().toISOString(),
+    });
+  } catch (err) {
+    if (__DEV__) console.warn('[syncProgramProgress]', err);
+  }
+}
+
 /** Sync profile updates to Supabase */
 export async function syncProfile(updates: Record<string, any>, userId: string) {
   if (isDemoMode) return;
@@ -200,7 +255,7 @@ export async function loadAllUserData(userId: string): Promise<void> {
 
   try {
     // Fetch all data in parallel
-    const [mealsRes, scoresRes, badgesRes, favoritesRes, weightRes, checkInsRes, workoutsRes, waterRes, measurementsRes, preferencesRes] = await Promise.all([
+    const [mealsRes, scoresRes, badgesRes, favoritesRes, weightRes, checkInsRes, workoutsRes, waterRes, measurementsRes, preferencesRes, photosRes, planRes, progressRes] = await Promise.all([
       supabase.from('daily_meals').select('*').eq('user_id', userId).order('date', { ascending: true }),
       supabase.from('score_history').select('*').eq('user_id', userId).order('date', { ascending: true }),
       supabase.from('badges').select('*').eq('user_id', userId),
@@ -211,6 +266,9 @@ export async function loadAllUserData(userId: string): Promise<void> {
       supabase.from('water_log').select('*').eq('user_id', userId).order('date', { ascending: true }),
       supabase.from('measurements').select('*').eq('user_id', userId).order('date', { ascending: true }),
       supabase.from('meal_preferences').select('*').eq('user_id', userId),
+      supabase.from('progress_photos').select('*').eq('user_id', userId).order('date', { ascending: true }),
+      supabase.from('weekly_plans').select('*').eq('user_id', userId).order('week_start', { ascending: false }).limit(1),
+      supabase.from('program_progress').select('*').eq('user_id', userId).maybeSingle(),
     ]);
 
     // Populate meal history
@@ -402,6 +460,48 @@ export async function loadAllUserData(userId: string): Promise<void> {
         likedMeals: [...new Set([...localLiked, ...liked])],
         dislikedMeals: [...new Set([...localDisliked, ...disliked])],
       });
+    }
+
+    // Populate progress photos
+    if (photosRes.data && photosRes.data.length > 0) {
+      const photos: ProgressPhoto[] = photosRes.data.map((row) => ({
+        id: row.id,
+        userId: row.user_id,
+        date: row.date,
+        uri: row.uri,
+        weight: row.weight ?? undefined,
+        note: row.note ?? undefined,
+        createdAt: row.created_at,
+      }));
+      const localPhotos = useUserStore.getState().progressPhotos;
+      const allIds = new Set([...localPhotos.map((p) => p.id), ...photos.map((p) => p.id)]);
+      const merged = [...allIds].map((id) =>
+        localPhotos.find((p) => p.id === id) ?? photos.find((p) => p.id === id)!
+      );
+      useUserStore.setState({ progressPhotos: merged });
+    }
+
+    // Populate weekly meal plan
+    if (planRes.data && planRes.data.length > 0) {
+      const row = planRes.data[0];
+      const days = typeof row.days === 'string' ? JSON.parse(row.days) : (row.days ?? []);
+      useWeeklyPlanStore.setState({
+        weekStart: row.week_start,
+        days,
+      });
+    }
+
+    // Populate program progress
+    if (progressRes.data) {
+      const row = progressRes.data;
+      if (row.active_program_id && row.planned_days) {
+        try {
+          const activePlan = typeof row.planned_days === 'string' ? JSON.parse(row.planned_days) : row.planned_days;
+          if (activePlan && activePlan.programId) {
+            useProgramStore.setState({ activePlan });
+          }
+        } catch {}
+      }
     }
   } catch (err) {
     if (__DEV__) console.warn('[UserSync] Failed to load user data:', err);

@@ -38,10 +38,42 @@ export const useSettingsStore = create<SettingsState>()(
       tutorialStep: 0,
       weightPromptDismissedDate: null,
 
-      setNotificationsEnabled: (notificationsEnabled) => set({ notificationsEnabled }),
-      setMealReminders: (mealReminders) => set({ mealReminders }),
-      setStreakAlerts: (streakAlerts) => set({ streakAlerts }),
-      setWeeklyCheckInReminder: (weeklyCheckInReminder) => set({ weeklyCheckInReminder }),
+      setNotificationsEnabled: (notificationsEnabled) => {
+        set({ notificationsEnabled });
+        import('./userStore').then(({ useUserStore }) => {
+          import('../services/userSync').then(({ syncProfile }) => {
+            const userId = useUserStore.getState().profile?.id;
+            if (userId) syncProfile({ notifications_enabled: notificationsEnabled } as any, userId);
+          });
+        });
+      },
+      setMealReminders: (mealReminders) => {
+        set({ mealReminders });
+        import('./userStore').then(({ useUserStore }) => {
+          import('../services/userSync').then(({ syncProfile }) => {
+            const userId = useUserStore.getState().profile?.id;
+            if (userId) syncProfile({ meal_reminders: mealReminders } as any, userId);
+          });
+        });
+      },
+      setStreakAlerts: (streakAlerts) => {
+        set({ streakAlerts });
+        import('./userStore').then(({ useUserStore }) => {
+          import('../services/userSync').then(({ syncProfile }) => {
+            const userId = useUserStore.getState().profile?.id;
+            if (userId) syncProfile({ streak_alerts: streakAlerts } as any, userId);
+          });
+        });
+      },
+      setWeeklyCheckInReminder: (weeklyCheckInReminder) => {
+        set({ weeklyCheckInReminder });
+        import('./userStore').then(({ useUserStore }) => {
+          import('../services/userSync').then(({ syncProfile }) => {
+            const userId = useUserStore.getState().profile?.id;
+            if (userId) syncProfile({ weekly_checkin_reminder: weeklyCheckInReminder } as any, userId);
+          });
+        });
+      },
       setThemeMode: (themeMode) => {
         set({ themeMode });
         // Sync to Supabase profile

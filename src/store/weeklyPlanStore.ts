@@ -21,10 +21,18 @@ export const useWeeklyPlanStore = create<WeeklyPlanState>()(
       days: [],
       generatedAt: null,
 
-      setWeeklyPlan: (weekStart, days) =>
-        set({ weekStart, days, generatedAt: new Date().toISOString() }),
+      setWeeklyPlan: (weekStart, days) => {
+        set({ weekStart, days, generatedAt: new Date().toISOString() });
+        // Sync to Supabase
+        import('./userStore').then(({ useUserStore }) => {
+          import('../services/userSync').then(({ syncWeeklyPlan }) => {
+            const userId = useUserStore.getState().profile?.id;
+            if (userId) syncWeeklyPlan(userId);
+          });
+        });
+      },
 
-      swapMeal: (date, slot, newMealId, newMealName) =>
+      swapMeal: (date, slot, newMealId, newMealName) => {
         set((state) => ({
           days: state.days.map((day) =>
             day.date === date
@@ -36,7 +44,15 @@ export const useWeeklyPlanStore = create<WeeklyPlanState>()(
                 }
               : day
           ),
-        })),
+        }));
+        // Sync to Supabase
+        import('./userStore').then(({ useUserStore }) => {
+          import('../services/userSync').then(({ syncWeeklyPlan }) => {
+            const userId = useUserStore.getState().profile?.id;
+            if (userId) syncWeeklyPlan(userId);
+          });
+        });
+      },
 
       reset: () => set({ weekStart: null, days: [], generatedAt: null }),
     }),

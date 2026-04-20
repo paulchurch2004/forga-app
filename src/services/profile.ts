@@ -72,6 +72,19 @@ export async function loadProfileFromSupabase(userId: string): Promise<boolean> 
   if (data.water_daily_target_ml) {
     useWaterStore.setState({ dailyTargetMl: data.water_daily_target_ml });
   }
+  // Notification settings
+  if (data.notifications_enabled !== undefined && data.notifications_enabled !== null) {
+    useSettingsStore.setState({ notificationsEnabled: data.notifications_enabled });
+  }
+  if (data.meal_reminders !== undefined && data.meal_reminders !== null) {
+    useSettingsStore.setState({ mealReminders: data.meal_reminders });
+  }
+  if (data.streak_alerts !== undefined && data.streak_alerts !== null) {
+    useSettingsStore.setState({ streakAlerts: data.streak_alerts });
+  }
+  if (data.weekly_checkin_reminder !== undefined && data.weekly_checkin_reminder !== null) {
+    useSettingsStore.setState({ weeklyCheckInReminder: data.weekly_checkin_reminder });
+  }
 
   return !!data.objective;
 }
