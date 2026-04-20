@@ -64,6 +64,8 @@ interface ActiveExercise {
   programExercise: ProgramExercise;
   sets: ActiveSet[];
   weightTip?: string;
+  adjustedReps: number;
+  adjustedSets: number;
 }
 
 export default function ActiveWorkoutScreen() {
@@ -173,25 +175,18 @@ export default function ActiveWorkoutScreen() {
       let weightTip = '';
 
       if (lastWeight > 0 && lastSession) {
-        // Has history → progressive overload
         const allRepsHit = lastSession.every((s) => s.reps >= adjustedReps);
         if (allRepsHit) {
-          // Completed all reps last time → suggest increase
           const increment = isCompound ? 2.5 : 1;
           suggestedWeight = lastWeight + increment;
-          weightTip = isCompound
-            ? `+${increment}kg vs derniere seance`
-            : `+${increment}kg vs derniere seance`;
+          weightTip = `+${increment}kg vs last`;
         } else {
-          weightTip = 'Meme poids, essaie de completer toutes les reps';
+          weightTip = t('weightTipSameWeight' as any);
         }
       } else {
-        // No history → beginner guidance
-        if (isCompound) {
-          weightTip = 'Commence leger. Les 2 dernieres reps doivent etre dures.';
-        } else {
-          weightTip = 'Choisis un poids ou tu sens le muscle travailler.';
-        }
+        weightTip = isCompound
+          ? t('weightTipCompound' as any)
+          : t('weightTipIsolation' as any);
       }
 
       const sets: ActiveSet[] = Array.from({ length: pe.targetSets }, (_, i) => ({
@@ -206,6 +201,8 @@ export default function ActiveWorkoutScreen() {
         exerciseId: pe.exerciseId,
         nameKey: exercise?.nameKey ?? pe.exerciseId,
         weightTip,
+        adjustedReps,
+        adjustedSets: pe.targetSets,
         programExercise: pe,
         sets,
       };
@@ -461,9 +458,14 @@ export default function ActiveWorkoutScreen() {
                     </Svg>
                   </Pressable>
                 )}
-                <Text style={styles.exerciseTarget}>
-                  {ex.programExercise.targetSets}x{ex.programExercise.targetReps}
-                </Text>
+                <View style={styles.exerciseTargetRow}>
+                  <Text style={styles.exerciseTarget}>
+                    {ex.adjustedSets}x{ex.adjustedReps}
+                  </Text>
+                  <Text style={styles.exerciseRestBadge}>
+                    {'\u23F1'} {fmtRest(restConfig.restSeconds)}
+                  </Text>
+                </View>
               </View>
 
               {/* Weight tip */}
@@ -695,12 +697,27 @@ const useStyles = makeStyles((colors) => ({
     marginLeft: spacing.sm,
     padding: spacing.xs,
   },
+  exerciseTargetRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: spacing.sm,
+    marginLeft: 'auto' as const,
+  },
   exerciseTarget: {
     fontFamily: fonts.data,
-    fontSize: fontSizes.sm,
+    fontSize: fontSizes.md,
     fontWeight: '700' as const,
     color: colors.primary,
-    marginLeft: spacing.sm,
+    backgroundColor: `${colors.primary}15`,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+    borderRadius: borderRadius.sm,
+  },
+  exerciseRestBadge: {
+    fontFamily: fonts.data,
+    fontSize: fontSizes.xs,
+    fontWeight: '600' as const,
+    color: colors.textSecondary,
   },
   restInfoRow: {
     flexDirection: 'row' as const,

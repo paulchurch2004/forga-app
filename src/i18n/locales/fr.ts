@@ -1291,6 +1291,9 @@ export const fr = {
   difficultyAdvanced: 'Avance',
   skipDay: 'Passer',
   newPersonalRecord: 'NOUVEAU RECORD !',
+  weightTipCompound: 'Commence leger. Les 2 dernieres reps doivent etre difficiles.',
+  weightTipIsolation: 'Choisis un poids ou tu sens le muscle travailler.',
+  weightTipSameWeight: 'Meme poids, complete toutes les reps cette fois.',
 
   // ── Boutique ──
   boutiqueCard: 'Boutique FORGA',

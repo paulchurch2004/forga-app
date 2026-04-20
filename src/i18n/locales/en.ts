@@ -1293,6 +1293,9 @@ export const en: Record<TranslationKey, string> = {
   difficultyAdvanced: 'Advanced',
   skipDay: 'Skip',
   newPersonalRecord: 'NEW PERSONAL RECORD!',
+  weightTipCompound: 'Start light. The last 2 reps should be hard.',
+  weightTipIsolation: 'Pick a weight where you feel the muscle working.',
+  weightTipSameWeight: 'Same weight, try to complete all reps this time.',
 
   // ── Boutique ──
   boutiqueCard: 'FORGA Shop',
