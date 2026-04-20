@@ -1303,6 +1303,7 @@ export const en: Record<TranslationKey, string> = {
   workoutGuideStep2: 'Enter your weight only the first time. The app remembers and adjusts for next session.',
   workoutGuideStep3: 'If you complete all reps, the app suggests +2.5kg (compound) or +1kg (isolation) next time.',
   workoutGuideStep4: 'Tap the check to validate each set. Rest timer starts automatically.',
+  tapForTutorial: 'Tap for full tutorial',
 
   // ── Boutique ──
   boutiqueCard: 'FORGA Shop',

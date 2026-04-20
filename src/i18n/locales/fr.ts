@@ -1301,6 +1301,7 @@ export const fr = {
   workoutGuideStep2: 'Entre ton poids uniquement la premiere fois. L\'app s\'en souvient et ajuste pour la prochaine seance.',
   workoutGuideStep3: 'Si tu reussis toutes les reps, l\'app propose +2.5kg (compose) ou +1kg (isolation) la fois suivante.',
   workoutGuideStep4: 'Valide chaque serie en appuyant sur le check. Le chrono de repos se lance automatiquement.',
+  tapForTutorial: 'Appuie pour voir le tutoriel complet',
 
   // ── Boutique ──
   boutiqueCard: 'Boutique FORGA',

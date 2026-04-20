@@ -507,7 +507,12 @@ export default function ActiveWorkoutScreen() {
                     source={{ uri: EXERCISES[ex.exerciseId].gifUrl }}
                     style={styles.exerciseGif}
                     resizeMode="contain"
+                    defaultSource={undefined}
+                    onError={() => {
+                      if (__DEV__) console.warn(`[GIF] Failed to load: ${ex.exerciseId}`);
+                    }}
                   />
+                  <Text style={styles.gifHint}>{t('tapForTutorial' as any)}</Text>
                 </Pressable>
               )}
 
@@ -934,6 +939,13 @@ const useStyles = makeStyles((colors) => ({
   exerciseGif: {
     width: '100%' as any,
     height: 180,
+  },
+  gifHint: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.xs,
+    color: colors.textMuted,
+    textAlign: 'center' as const,
+    paddingVertical: spacing.xs,
   },
   weightTip: {
     fontFamily: fonts.body,
