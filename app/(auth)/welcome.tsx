@@ -289,7 +289,7 @@ export default function WelcomeScreen() {
 
           {/* Hero content dissolves on scroll */}
           <Animated.View style={[styles.heroContent, { maxWidth: LANDING_MAX_WIDTH }, heroDissolveStyle]}>
-            <Animated.Image source={require('../../assets/texte sf.png')} style={[styles.wordmark, isWide && styles.wordmarkWide, logoStyle]} resizeMode="contain" />
+            <Animated.Image source={require('../../assets/wordmark.png')} style={[styles.wordmark, isWide && styles.wordmarkWide, logoStyle]} resizeMode="contain" />
             <Animated.Text style={[styles.heroTaglineSmall, taglineStyle]}>
               {t('welcomeHeroTagline')}
             </Animated.Text>
@@ -521,7 +521,7 @@ export default function WelcomeScreen() {
         {/* ═══════════ FOOTER ═══════════ */}
         <View style={styles.footer}>
           <View style={[styles.sectionInner, { maxWidth: LANDING_MAX_WIDTH }]}>
-            <Image source={require('../../assets/texte sf.png')} style={styles.footerWordmark} resizeMode="contain" />
+            <Image source={require('../../assets/wordmark.png')} style={styles.footerWordmark} resizeMode="contain" />
             <View style={styles.footerDivider} />
             <Text style={styles.footerDisclaimer}>
               {t('welcomeFooterDisclaimer')}

@@ -166,7 +166,7 @@ export default function LoginScreen() {
 
           {/* Brand */}
           <Animated.View style={[styles.brandContainer, brandStyle]}>
-            <Image source={require('../../assets/texte sf.png')} style={styles.brandWordmark} resizeMode="contain" />
+            <Image source={require('../../assets/wordmark.png')} style={styles.brandWordmark} resizeMode="contain" />
           </Animated.View>
 
           {/* Title */}
