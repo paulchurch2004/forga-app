@@ -31,6 +31,7 @@ import { useT } from '../../src/i18n';
 import { supabase } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/store/authStore';
 import { loadProfileFromSupabase } from '../../src/services/profile';
+import { loadAllUserData } from '../../src/services/userSync';
 
 const EASE_OUT = Easing.out(Easing.cubic);
 
@@ -117,6 +118,7 @@ export default function LoginScreen() {
     if (data.session) {
       useAuthStore.getState().setSession(data.session);
       await loadProfileFromSupabase(data.session.user.id);
+      await loadAllUserData(data.session.user.id);
       router.replace('/');
     }
   };

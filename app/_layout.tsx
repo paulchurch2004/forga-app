@@ -218,10 +218,16 @@ function RootLayoutInner() {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
-      if (session) {
-        loadProfileFromSupabase(session.user.id);
+      // On SIGNED_IN (login or fresh session after reinstall), reload full profile
+      // + all user data (meals, scores, water, workouts, etc.) so nothing is lost.
+      // Skip on TOKEN_REFRESHED to avoid reloading everything every hour.
+      if (session && event === 'SIGNED_IN') {
+        setLoading(true);
+        loadProfileFromSupabase(session.user.id)
+          .then(() => loadAllUserData(session.user.id))
+          .finally(() => setLoading(false));
       }
     });
 

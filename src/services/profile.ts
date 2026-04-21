@@ -19,6 +19,9 @@ export async function loadProfileFromSupabase(userId: string): Promise<boolean> 
     .single();
 
   if (error || !data) {
+    if (__DEV__) {
+      console.warn('[profile] loadProfileFromSupabase: no row for user', userId, 'error=', error?.message);
+    }
     useAuthStore.getState().setOnboarded(false);
     return false;
   }
