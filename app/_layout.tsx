@@ -28,6 +28,7 @@ import { useAuthStore } from '../src/store/authStore';
 import { loadProfileFromSupabase } from '../src/services/profile';
 import { initSentry, captureException } from '../src/services/sentry';
 import { View, Text, ActivityIndicator, ScrollView, Platform, AppState, Image } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
 import { AnimatedSplash } from '../src/components/ui/AnimatedSplash';
 import * as Notifications from 'expo-notifications';
@@ -377,9 +378,11 @@ function RootLayoutInner() {
 export default function RootLayout() {
   return (
     <ErrorBoundary>
-      <ThemeProvider>
-        <RootLayoutInner />
-      </ThemeProvider>
+      <SafeAreaProvider>
+        <ThemeProvider>
+          <RootLayoutInner />
+        </ThemeProvider>
+      </SafeAreaProvider>
     </ErrorBoundary>
   );
 }
