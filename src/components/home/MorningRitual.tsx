@@ -1,0 +1,462 @@
+import React, { useEffect, useState } from 'react';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
+import Svg, { Defs, RadialGradient as SvgRadialGradient, Stop, Rect } from 'react-native-svg';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  withSpring,
+  Easing,
+} from 'react-native-reanimated';
+import { fonts, fontSizes } from '../../theme/fonts';
+import { spacing, borderRadius } from '../../theme/spacing';
+import { useTheme } from '../../context/ThemeContext';
+
+type MetalId = 'lead' | 'bronze' | 'iron' | 'steel' | 'gold';
+
+interface Metal {
+  id: MetalId;
+  label: string;
+  sub: string;
+  color: string;
+  impact: string;
+}
+
+const METALS: Metal[] = [
+  { id: 'lead', label: 'Plomb', sub: 'Lourd, pas en forme', color: '#6b6b7a', impact: 'Séance allégée · charges −15% · focus récup' },
+  { id: 'bronze', label: 'Bronze', sub: 'Fatigué mais OK', color: '#cd7f32', impact: 'Volume −10% · intensité modérée · rappels hydratation' },
+  { id: 'iron', label: 'Fer', sub: 'Prêt, focus', color: '#8a9099', impact: 'Plan standard · charges habituelles · full program' },
+  { id: 'steel', label: 'Acier', sub: 'Fort, confiant', color: '#b4c0d0', impact: 'Intensité ↑ · 1 série bonus suggérée · macros pleines' },
+  { id: 'gold', label: 'Or', sub: 'En pleine forme', color: '#ffc94d', impact: 'Jour de PR · charges +5% · défi du jour débloqué' },
+];
+
+const STORAGE_KEY = 'forga-metal-today';
+
+function getTodayKey(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
+export function MorningRitual() {
+  const { colors } = useTheme();
+  const [metal, setMetal] = useState<MetalId | null>(null);
+  const [preview, setPreview] = useState<MetalId | null>(null);
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem(STORAGE_KEY).then((raw) => {
+      if (raw) {
+        try {
+          const { date, metalId } = JSON.parse(raw);
+          if (date === getTodayKey()) setMetal(metalId);
+        } catch {}
+      }
+      setHydrated(true);
+    });
+  }, []);
+
+  const chooseMetal = (m: Metal) => {
+    setMetal(m.id);
+    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ date: getTodayKey(), metalId: m.id }));
+  };
+
+  const reset = () => {
+    setMetal(null);
+    setPreview(null);
+    AsyncStorage.removeItem(STORAGE_KEY);
+  };
+
+  if (!hydrated) return null;
+
+  const currentMetal = metal ? METALS.find((m) => m.id === metal) ?? null : null;
+  const previewMetal = preview ? METALS.find((m) => m.id === preview) ?? null : null;
+
+  if (currentMetal) {
+    return <ChosenCard metal={currentMetal} onChange={reset} />;
+  }
+
+  return <ChooseCard previewMetal={previewMetal} onPreview={setPreview} onConfirm={chooseMetal} />;
+}
+
+function ChooseCard({
+  previewMetal,
+  onPreview,
+  onConfirm,
+}: {
+  previewMetal: Metal | null;
+  onPreview: (id: MetalId) => void;
+  onConfirm: (m: Metal) => void;
+}) {
+  return (
+    <View style={styles.card}>
+      <CornerGlow color="#FF6B35" intensity={0.35} />
+
+      <Text style={styles.eyebrow}>CHECK-IN DU MATIN · 15 SEC</Text>
+      <Text style={styles.cardTitle}>Comment tu te sens ?</Text>
+      <Text style={styles.cardSubtitle}>
+        Ton plan s'adapte automatiquement : charges, volume, macros. Choisis ton état.
+      </Text>
+
+      <View style={styles.metalsRow}>
+        {METALS.map((m) => (
+          <MetalButton
+            key={m.id}
+            metal={m}
+            active={previewMetal?.id === m.id}
+            onPress={() => onPreview(m.id)}
+          />
+        ))}
+      </View>
+
+      <PreviewPanel metal={previewMetal} />
+
+      {previewMetal && <ConfirmButton metal={previewMetal} onPress={() => onConfirm(previewMetal)} />}
+    </View>
+  );
+}
+
+function MetalButton({ metal, active, onPress }: { metal: Metal; active: boolean; onPress: () => void }) {
+  const translateY = useSharedValue(0);
+
+  useEffect(() => {
+    translateY.value = withSpring(active ? -2 : 0, { damping: 15, stiffness: 250 });
+  }, [active]);
+
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ translateY: translateY.value }] }));
+
+  return (
+    <Animated.View style={[styles.metalCol, animStyle]}>
+      <Pressable
+        onPress={onPress}
+        style={[
+          styles.metalButton,
+          {
+            backgroundColor: active ? `${metal.color}22` : 'rgba(255,255,255,0.03)',
+            borderColor: active ? `${metal.color}aa` : 'rgba(255,255,255,0.08)',
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.metalDot,
+            {
+              backgroundColor: metal.color,
+              shadowColor: metal.color,
+              shadowOpacity: active ? 0.8 : 0.5,
+              shadowRadius: active ? 12 : 8,
+            },
+          ]}
+        />
+        <Text style={styles.metalLabel}>{metal.label}</Text>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+function PreviewPanel({ metal }: { metal: Metal | null }) {
+  const opacity = useSharedValue(0);
+
+  useEffect(() => {
+    opacity.value = withTiming(metal ? 1 : 0.6, { duration: 200, easing: Easing.out(Easing.cubic) });
+  }, [metal]);
+
+  const animStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  return (
+    <Animated.View
+      style={[
+        styles.previewPanel,
+        animStyle,
+        {
+          backgroundColor: metal ? `${metal.color}10` : 'rgba(255,255,255,0.02)',
+          borderColor: metal ? `${metal.color}44` : 'rgba(255,255,255,0.06)',
+        },
+      ]}
+    >
+      <View
+        style={[styles.sparkleDot, { backgroundColor: metal ? metal.color : 'rgba(255,255,255,0.38)' }]}
+      />
+      <Text style={[styles.previewText, !metal && styles.previewTextMuted]} numberOfLines={2}>
+        {metal ? metal.impact : 'Touche un métal pour voir comment ton plan s\'adapte…'}
+      </Text>
+    </Animated.View>
+  );
+}
+
+function ConfirmButton({ metal, onPress }: { metal: Metal; onPress: () => void }) {
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(0);
+  const translateY = useSharedValue(8);
+
+  useEffect(() => {
+    opacity.value = withTiming(1, { duration: 280, easing: Easing.out(Easing.cubic) });
+    translateY.value = withTiming(0, { duration: 280, easing: Easing.out(Easing.cubic) });
+  }, []);
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }, { translateY: translateY.value }],
+    opacity: opacity.value,
+  }));
+
+  const isGold = metal.id === 'gold';
+  const textColor = isGold ? '#1A1A1A' : '#FFFFFF';
+
+  return (
+    <Animated.View style={[styles.confirmWrap, animStyle]}>
+      <Pressable
+        onPress={onPress}
+        onPressIn={() => {
+          scale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
+        }}
+        onPressOut={() => {
+          scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+        }}
+        style={({ pressed }) => [{ opacity: pressed ? 0.92 : 1 }]}
+      >
+        <LinearGradient
+          colors={[metal.color, `${metal.color}dd`]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.confirmButton, { shadowColor: metal.color }]}
+        >
+          <Text style={[styles.confirmText, { color: textColor }]}>FORGER MA JOURNÉE · {metal.label.toUpperCase()}</Text>
+        </LinearGradient>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+function ChosenCard({ metal, onChange }: { metal: Metal; onChange: () => void }) {
+  return (
+    <View style={styles.card}>
+      <CornerGlow color={metal.color} intensity={0.45} />
+
+      <View style={styles.chosenHeader}>
+        <View
+          style={[
+            styles.chosenDot,
+            {
+              backgroundColor: metal.color,
+              shadowColor: metal.color,
+            },
+          ]}
+        />
+        <View style={styles.chosenTextWrap}>
+          <Text style={styles.eyebrow}>AUJOURD'HUI TU ES</Text>
+          <Text style={styles.chosenLabel}>
+            {metal.label} <Text style={styles.chosenSub}>· {metal.sub}</Text>
+          </Text>
+        </View>
+        <Pressable onPress={onChange} style={styles.changeButton}>
+          <Text style={styles.changeButtonText}>CHANGER</Text>
+        </Pressable>
+      </View>
+
+      <View style={[styles.impactBox, { borderLeftColor: metal.color }]}>
+        <Text style={styles.impactLabel}>PLAN DU JOUR RECALIBRÉ</Text>
+        <Text style={styles.impactText}>{metal.impact}</Text>
+      </View>
+    </View>
+  );
+}
+
+function CornerGlow({ color, intensity }: { color: string; intensity: number }) {
+  return (
+    <View style={styles.glowWrap} pointerEvents="none">
+      <Svg width="100%" height="100%">
+        <Defs>
+          <SvgRadialGradient id="cornerGlow" cx="80%" cy="0%" rx="70%" ry="70%">
+            <Stop offset="0%" stopColor={color} stopOpacity={intensity} />
+            <Stop offset="100%" stopColor={color} stopOpacity={0} />
+          </SvgRadialGradient>
+        </Defs>
+        <Rect x="0" y="0" width="100%" height="100%" fill="url(#cornerGlow)" />
+      </Svg>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  card: {
+    backgroundColor: 'rgba(255,107,53,0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,107,53,0.30)',
+    borderRadius: 18,
+    padding: 20,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  glowWrap: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  eyebrow: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    color: '#FF6B35',
+    letterSpacing: 1.6,
+    fontWeight: '700',
+  },
+  cardTitle: {
+    fontFamily: fonts.display,
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginTop: 8,
+    letterSpacing: -0.3,
+  },
+  cardSubtitle: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.62)',
+    marginTop: 6,
+    lineHeight: 18,
+  },
+  metalsRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 18,
+  },
+  metalCol: {
+    flex: 1,
+  },
+  metalButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    borderWidth: 1,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  metalDot: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    shadowOffset: { width: 0, height: 0 },
+    elevation: 6,
+  },
+  metalLabel: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    marginTop: 8,
+  },
+  previewPanel: {
+    marginTop: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  sparkleDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  previewText: {
+    flex: 1,
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.62)',
+    lineHeight: 16,
+  },
+  previewTextMuted: {
+    fontStyle: 'italic',
+    color: 'rgba(255,255,255,0.38)',
+  },
+  confirmWrap: {
+    marginTop: 12,
+  },
+  confirmButton: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 14,
+    elevation: 8,
+  },
+  confirmText: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  chosenHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  chosenDot: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.7,
+    shadowRadius: 14,
+    elevation: 8,
+  },
+  chosenTextWrap: {
+    flex: 1,
+  },
+  chosenLabel: {
+    fontFamily: fonts.display,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginTop: 2,
+  },
+  chosenSub: {
+    color: 'rgba(255,255,255,0.38)',
+    fontSize: 14,
+    fontWeight: '400',
+  },
+  changeButton: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  changeButtonText: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    fontWeight: '700',
+    color: 'rgba(255,255,255,0.62)',
+    letterSpacing: 0.8,
+  },
+  impactBox: {
+    marginTop: 14,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 10,
+    borderLeftWidth: 2,
+  },
+  impactLabel: {
+    fontFamily: fonts.body,
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+    color: 'rgba(255,255,255,0.38)',
+  },
+  impactText: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: '#FFFFFF',
+    marginTop: 4,
+    lineHeight: 18,
+  },
+});

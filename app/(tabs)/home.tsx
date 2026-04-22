@@ -27,6 +27,7 @@ import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/t
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
+import { MorningRitual } from '../../src/components/home/MorningRitual';
 
 // ──────────── CARD DATA ────────────
 
@@ -228,49 +229,60 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.wrapper, { paddingTop: insets.top + spacing.xl }]}>
-      {/* Header */}
-      <View style={[styles.header, { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%', paddingHorizontal: spacing.lg }]}>
-        <View style={styles.greetingCol}>
-          <Text style={styles.greeting}>
-            {greeting}, {firstName}
-          </Text>
-          <Text style={styles.subtitle}>
-            {isTodayValidated ? t('keepItUp') : t('readyToForge')}
-          </Text>
-        </View>
-        <StreakBadge streak={currentStreak} isActive={isTodayValidated} size="sm" />
-      </View>
-
-      {/* 3D Carousel — 4 cartes fixes */}
       <Animated.ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        snapToInterval={snapInterval}
-        decelerationRate="fast"
-        contentContainerStyle={{
-          paddingHorizontal: cardSpacing,
-          paddingVertical: spacing.md,
-          gap: spacing.lg,
-        }}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: spacing['4xl'] }}
       >
-        {CARDS.map((card, index) => (
-          <CarouselCard
-            key={card.key}
-            card={card}
-            index={index}
-            scrollX={scrollX}
-            cardWidth={cardWidth}
-            cardHeight={cardHeight}
-            snapInterval={snapInterval}
-            t={t}
-          />
-        ))}
-      </Animated.ScrollView>
+        {/* Header */}
+        <View style={[styles.header, { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%', paddingHorizontal: spacing.lg }]}>
+          <View style={styles.greetingCol}>
+            <Text style={styles.greeting}>
+              {greeting}, {firstName}
+            </Text>
+            <Text style={styles.subtitle}>
+              {isTodayValidated ? t('keepItUp') : t('readyToForge')}
+            </Text>
+          </View>
+          <StreakBadge streak={currentStreak} isActive={isTodayValidated} size="sm" />
+        </View>
 
-      {/* Dot indicator */}
-      <DotIndicator scrollX={scrollX} snapInterval={snapInterval} count={CARDS.length} />
+        {/* Morning Ritual — check-in métal qui adapte le plan du jour */}
+        <View style={{ maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%', paddingHorizontal: spacing.lg, marginTop: spacing.lg }}>
+          <MorningRitual />
+        </View>
+
+        {/* 3D Carousel — 4 cartes fixes */}
+        <Animated.ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={snapInterval}
+          decelerationRate="fast"
+          contentContainerStyle={{
+            paddingHorizontal: cardSpacing,
+            paddingVertical: spacing.md,
+            gap: spacing.lg,
+          }}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          style={{ marginTop: spacing.xl }}
+        >
+          {CARDS.map((card, index) => (
+            <CarouselCard
+              key={card.key}
+              card={card}
+              index={index}
+              scrollX={scrollX}
+              cardWidth={cardWidth}
+              cardHeight={cardHeight}
+              snapInterval={snapInterval}
+              t={t}
+            />
+          ))}
+        </Animated.ScrollView>
+
+        {/* Dot indicator */}
+        <DotIndicator scrollX={scrollX} snapInterval={snapInterval} count={CARDS.length} />
+      </Animated.ScrollView>
 
       {/* Tutorial overlay */}
       <TutorialOverlay step={tutorialStep} />
