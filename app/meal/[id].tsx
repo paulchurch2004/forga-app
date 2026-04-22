@@ -170,16 +170,25 @@ export default function MealDetailScreen() {
   // After celebration, navigate to next unvalidated slot or go home
   const handleCelebrationDone = useCallback(() => {
     setShowCelebration(false);
+
+    // Prompt App Store review after 5th validated meal (native only)
+    if (Platform.OS !== 'web') {
+      const totalMeals = useMealStore.getState().mealHistory.length;
+      if (totalMeals === 5 || totalMeals === 20) {
+        import('expo-store-review')
+          .then((SR) => SR.isAvailableAsync().then((ok) => { if (ok) SR.requestReview(); }))
+          .catch(() => {});
+      }
+    }
+
     // Find next unvalidated slot after the current one
     const allSlots = slots.map((s) => s.slot);
     const currentIndex = allSlots.indexOf(currentMealSlot);
     const nextSlot = slots.find((s, i) => i > currentIndex && !s.isValidated);
 
     if (nextSlot) {
-      // Go to meals screen for the next slot
       router.replace(`/(tabs)/meals?slot=${nextSlot.slot}`);
     } else {
-      // All slots done or no next slot — go to nutrition
       router.replace('/nutrition');
     }
   }, [slots, currentMealSlot]);

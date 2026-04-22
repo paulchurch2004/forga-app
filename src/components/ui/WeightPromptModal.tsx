@@ -4,7 +4,10 @@ import * as Haptics from 'expo-haptics';
 import { makeStyles, fonts, fontSizes, spacing } from '../../theme';
 import { useUserStore } from '../../store/userStore';
 import { useSettingsStore } from '../../store/settingsStore';
+import { useAuthStore } from '../../store/authStore';
 import { useT } from '../../i18n';
+import { supabase, isDemoMode } from '../../services/supabase';
+import { syncProfile } from '../../services/userSync';
 import Svg, { Path } from 'react-native-svg';
 
 interface WeightPromptModalProps {
@@ -34,15 +37,31 @@ export function WeightPromptModal({
     const profile = useUserStore.getState().profile;
     if (!profile) return;
 
-    useUserStore.getState().addWeightEntry({
+    const weightEntry = {
       id: `w_${Date.now()}`,
       userId: profile.id,
       date: today,
       weight,
       createdAt: new Date().toISOString(),
-    });
+    };
 
+    useUserStore.getState().addWeightEntry(weightEntry);
     useUserStore.getState().updateProfile({ currentWeight: weight });
+
+    // Sync to Supabase so data survives reinstall
+    if (!isDemoMode) {
+      const userId = useAuthStore.getState().session?.user?.id;
+      if (userId) {
+        supabase.from('weight_log').upsert({
+          id: weightEntry.id,
+          user_id: userId,
+          date: today,
+          weight,
+          created_at: weightEntry.createdAt,
+        }).then(() => {}, () => {});
+        syncProfile({ currentWeight: weight }, userId);
+      }
+    }
 
     if (Platform.OS !== 'web') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);

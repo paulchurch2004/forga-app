@@ -92,7 +92,7 @@ export default function SettingsScreen() {
 
   // Real-time validation
   const ageVal = parseInt(age);
-  const ageError = age.length > 0 && (isNaN(ageVal) || ageVal < 14 || ageVal > 65);
+  const ageError = age.length > 0 && (isNaN(ageVal) || ageVal < 16 || ageVal > 65);
   const heightVal = parseInt(heightCm);
   const heightError = heightCm.length > 0 && (isNaN(heightVal) || heightVal < 120 || heightVal > 220);
   const weightVal = parseFloat(currentWeight);

@@ -175,6 +175,7 @@ export const fr = {
   notifications: 'Notifications',
   recalculateTDEE: 'Recalculer mes besoins (TDEE)',
   exportData: 'Exporter mes donnees (RGPD)',
+  contactSupportBtn: 'Contacter le support',
   signOut: 'Se deconnecter',
   deleteAccount: 'Supprimer mon compte',
   deleteAccountConfirm: 'Cette action est irreversible. Toutes tes donnees seront supprimees.',

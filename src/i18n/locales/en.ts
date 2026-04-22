@@ -177,6 +177,7 @@ export const en: Record<TranslationKey, string> = {
   notifications: 'Notifications',
   recalculateTDEE: 'Recalculate my needs (TDEE)',
   exportData: 'Export my data (GDPR)',
+  contactSupportBtn: 'Contact support',
   signOut: 'Sign out',
   deleteAccount: 'Delete my account',
   deleteAccountConfirm: 'This action is irreversible. All your data will be deleted.',

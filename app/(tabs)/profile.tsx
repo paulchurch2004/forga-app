@@ -540,6 +540,16 @@ export default function ProfileScreen() {
           <Text style={styles.actionText}>{t('exportData')}</Text>
         </Pressable>
 
+        <Pressable style={styles.actionRow} onPress={() => {
+          if (Platform.OS === 'web') {
+            window.open('mailto:support@forga.fr', '_blank');
+          } else {
+            import('expo-linking').then((L) => L.openURL('mailto:support@forga.fr')).catch(() => {});
+          }
+        }}>
+          <Text style={styles.actionText}>{t('contactSupportBtn')}</Text>
+        </Pressable>
+
         <Pressable style={styles.actionRow} onPress={handleSignOut}>
           <Text style={styles.actionText}>{t('signOut')}</Text>
         </Pressable>

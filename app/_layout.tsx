@@ -29,6 +29,7 @@ import { loadProfileFromSupabase } from '../src/services/profile';
 import { initSentry, captureException } from '../src/services/sentry';
 import { View, Text, ActivityIndicator, ScrollView, Platform, AppState, Image } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing } from 'react-native-reanimated';
+import { AnimatedSplash } from '../src/components/ui/AnimatedSplash';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
@@ -94,29 +95,10 @@ class ErrorBoundary extends Component<
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const FORGA_LOGO = require('../assets/logo/logo_sans_fond.png');
-
+// Minimal fallback while fonts load (before AnimatedSplash can render)
 function SplashLogo() {
-  const scale = useSharedValue(0.9);
-  const opacity = useSharedValue(0.6);
-
-  React.useEffect(() => {
-    scale.value = withRepeat(withTiming(1.05, { duration: 1200, easing: Easing.inOut(Easing.ease) }), -1, true);
-    opacity.value = withRepeat(withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) }), -1, true);
-  }, []);
-
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
-
   return (
-    <View style={{ flex: 1, backgroundColor: '#0B0B14', justifyContent: 'center', alignItems: 'center' }}>
-      <Animated.View style={animStyle}>
-        <Image source={FORGA_LOGO} style={{ width: 120, height: 120 }} resizeMode="contain" />
-      </Animated.View>
-    </View>
+    <View style={{ flex: 1, backgroundColor: '#0B0B14' }} />
   );
 }
 
@@ -220,9 +202,6 @@ function RootLayoutInner() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
-      // On SIGNED_IN (login or fresh session after reinstall), reload full profile
-      // + all user data (meals, scores, water, workouts, etc.) so nothing is lost.
-      // Skip on TOKEN_REFRESHED to avoid reloading everything every hour.
       if (session && event === 'SIGNED_IN') {
         setLoading(true);
         loadProfileFromSupabase(session.user.id)
@@ -351,19 +330,39 @@ function RootLayoutInner() {
     };
   }, []);
 
-  // Cacher le splash screen quand tout est prêt
+  // Animated splash state
+  const [showAnimatedSplash, setShowAnimatedSplash] = React.useState(true);
+  const appReady = (fontsLoaded || fontError) && !isLoading;
+
+  // Hide native splash as soon as fonts are loaded (animated splash takes over)
   useEffect(() => {
-    if ((fontsLoaded || fontError) && !isLoading) {
+    if (fontsLoaded || fontError) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError, isLoading]);
+  }, [fontsLoaded, fontError]);
+
+  // When animated splash finishes AND app is ready, show the app
+  const handleSplashFinish = React.useCallback(() => {
+    if (appReady) {
+      setShowAnimatedSplash(false);
+    } else {
+      // App not ready yet — wait and check again
+      const check = setInterval(() => {
+        if ((useUserStore.getState().profile || !useAuthStore.getState().session)) {
+          setShowAnimatedSplash(false);
+          clearInterval(check);
+        }
+      }, 200);
+      setTimeout(() => { clearInterval(check); setShowAnimatedSplash(false); }, 3000);
+    }
+  }, [appReady]);
 
   if (!fontsLoaded && !fontError) {
     return <SplashLogo />;
   }
 
-  if (isLoading) {
-    return <SplashLogo />;
+  if (showAnimatedSplash) {
+    return <AnimatedSplash onFinish={handleSplashFinish} />;
   }
 
   return (

@@ -1,21 +1,14 @@
-import React, { useEffect, useMemo } from 'react';
-import { View, Text, Dimensions, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { Platform, StyleSheet } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
-  withDelay,
   withSequence,
-  withSpring,
   runOnJS,
   Easing,
 } from 'react-native-reanimated';
-import { fonts, fontSizes, spacing } from '../../theme';
-
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
-
-const CONFETTI_COLORS = ['#FF6B35', '#FFD93D', '#00D4AA', '#FF4757', '#00BFFF', '#FF8A5C', '#A855F7'];
-const EMOJIS = ['\uD83D\uDCAA', '\uD83D\uDD25', '\u2B50', '\uD83C\uDFC6', '\uD83E\uDD4A', '\uD83C\uDFCB', '\u26A1'];
+import Svg, { Path } from 'react-native-svg';
 
 interface CelebrationOverlayProps {
   visible: boolean;
@@ -23,112 +16,94 @@ interface CelebrationOverlayProps {
   message?: string;
 }
 
-function ConfettiPiece({ index, total }: { index: number; total: number }) {
-  const color = CONFETTI_COLORS[index % CONFETTI_COLORS.length];
-  const startX = (index / total) * SCREEN_W + (Math.random() - 0.5) * 60;
-  const endX = startX + (Math.random() - 0.5) * 120;
-  const size = 8 + Math.random() * 8;
-  const delay = Math.random() * 400;
-  const duration = 1200 + Math.random() * 600;
-  const rotation = Math.random() * 360;
-  const isSquare = index % 3 !== 0;
+/** Play a success chime via Web Audio API — louder, 3-tone ascending (works on all browsers) */
+const playSuccessSound = () => {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const playTone = (freq: number, start: number, dur: number, vol: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(vol, ctx.currentTime + start);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + start);
+      osc.stop(ctx.currentTime + start + dur);
+    };
+    // 3-tone ascending chime — clear, audible
+    playTone(784, 0, 0.12, 0.4);      // G5
+    playTone(988, 0.08, 0.12, 0.4);   // B5
+    playTone(1319, 0.16, 0.25, 0.35); // E6 (hold longer)
+  } catch {}
+};
 
-  const translateY = useSharedValue(-20);
-  const translateX = useSharedValue(startX);
-  const opacity = useSharedValue(1);
-  const rotate = useSharedValue(0);
+const triggerSuccessFeedback = () => {
+  if (Platform.OS === 'web') {
+    // Vibrate on Android browsers (longer pattern for clear feedback)
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate([120, 60, 120]);
+    }
+    // Play success sound on all browsers (incl. iOS)
+    playSuccessSound();
+    return;
+  }
+  import('expo-haptics')
+    .then((H) => H.notificationAsync(H.NotificationFeedbackType.Success))
+    .catch(() => {});
+};
 
-  useEffect(() => {
-    translateY.value = withDelay(delay, withTiming(SCREEN_H * 0.7, { duration, easing: Easing.out(Easing.quad) }));
-    translateX.value = withDelay(delay, withTiming(endX, { duration }));
-    rotate.value = withDelay(delay, withTiming(rotation + 360, { duration }));
-    opacity.value = withDelay(delay + duration * 0.7, withTiming(0, { duration: duration * 0.3 }));
-  }, []);
-
-  const style = useAnimatedStyle(() => ({
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: size,
-    height: isSquare ? size : size * 0.4,
-    borderRadius: isSquare ? 2 : size,
-    backgroundColor: color,
-    opacity: opacity.value,
-    transform: [
-      { translateX: translateX.value },
-      { translateY: translateY.value },
-      { rotate: `${rotate.value}deg` },
-    ],
-  }));
-
-  return <Animated.View style={style} />;
-}
-
-function FloatingEmoji({ index }: { index: number }) {
-  const emoji = EMOJIS[index % EMOJIS.length];
-  const startX = SCREEN_W * 0.15 + Math.random() * SCREEN_W * 0.7;
-  const delay = 200 + index * 150;
-
-  const translateY = useSharedValue(SCREEN_H * 0.5);
-  const scale = useSharedValue(0);
-  const opacity = useSharedValue(0);
-
-  useEffect(() => {
-    scale.value = withDelay(delay, withSpring(1, { damping: 8 }));
-    opacity.value = withDelay(delay, withTiming(1, { duration: 200 }));
-    translateY.value = withDelay(delay, withTiming(SCREEN_H * 0.15 + index * 40, { duration: 800, easing: Easing.out(Easing.back(1.5)) }));
-    opacity.value = withDelay(delay + 1200, withTiming(0, { duration: 400 }));
-  }, []);
-
-  const style = useAnimatedStyle(() => ({
-    position: 'absolute',
-    left: startX,
-    top: 0,
-    fontSize: 32 + index * 4,
-    opacity: opacity.value,
-    transform: [
-      { translateY: translateY.value },
-      { scale: scale.value },
-    ],
-  }));
-
-  return <Animated.Text style={style}>{emoji}</Animated.Text>;
-}
-
-export function CelebrationOverlay({ visible, onDone, message }: CelebrationOverlayProps) {
+export function CelebrationOverlay({ visible, onDone }: CelebrationOverlayProps) {
   const overlayOpacity = useSharedValue(0);
-  const textScale = useSharedValue(0);
-  const textOpacity = useSharedValue(0);
-
-  const confettiCount = 30;
-  const emojiCount = 5;
+  const checkScale = useSharedValue(0);
+  const ringScale = useSharedValue(0.8);
+  const ringOpacity = useSharedValue(0);
 
   useEffect(() => {
     if (!visible) return;
 
-    overlayOpacity.value = withTiming(1, { duration: 200 });
-    textScale.value = withDelay(300, withSpring(1, { damping: 6, stiffness: 120 }));
-    textOpacity.value = withDelay(300, withTiming(1, { duration: 200 }));
+    // Haptic feedback — Apple Pay style success
+    triggerSuccessFeedback();
 
-    // Auto dismiss — both timers cleaned up
-    const dismissTimer = setTimeout(() => {
-      overlayOpacity.value = withTiming(0, { duration: 300 });
-      textOpacity.value = withTiming(0, { duration: 200 });
-    }, 2200);
+    // Quick flash: ring expands + check pops in
+    overlayOpacity.value = withSequence(
+      withTiming(1, { duration: 100 }),
+      withTiming(1, { duration: 600 }),
+      withTiming(0, { duration: 200 }),
+    );
 
-    const callbackTimer = setTimeout(() => {
+    ringOpacity.value = withSequence(
+      withTiming(1, { duration: 80 }),
+      withTiming(1, { duration: 500 }),
+      withTiming(0, { duration: 200 }),
+    );
+
+    ringScale.value = withSequence(
+      withTiming(1, { duration: 150, easing: Easing.out(Easing.back(1.5)) }),
+      withTiming(1, { duration: 500 }),
+      withTiming(1.1, { duration: 200 }),
+    );
+
+    checkScale.value = withSequence(
+      withTiming(0, { duration: 50 }),
+      withTiming(1.15, { duration: 200, easing: Easing.out(Easing.back(2)) }),
+      withTiming(1, { duration: 100 }),
+      withTiming(1, { duration: 400 }),
+      withTiming(0, { duration: 150 }),
+    );
+
+    // Done after 900ms total
+    const timer = setTimeout(() => {
       runOnJS(onDone)();
-    }, 2550);
+    }, 950);
 
-    return () => {
-      clearTimeout(dismissTimer);
-      clearTimeout(callbackTimer);
-    };
+    return () => clearTimeout(timer);
   }, [visible]);
 
   const overlayStyle = useAnimatedStyle(() => ({
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: 'rgba(0,0,0,0.25)',
     opacity: overlayOpacity.value,
     justifyContent: 'center',
     alignItems: 'center',
@@ -136,58 +111,39 @@ export function CelebrationOverlay({ visible, onDone, message }: CelebrationOver
     pointerEvents: 'none' as const,
   }));
 
-  const textStyle = useAnimatedStyle(() => ({
-    opacity: textOpacity.value,
-    transform: [{ scale: textScale.value }],
+  const ringStyle = useAnimatedStyle(() => ({
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 3,
+    borderColor: '#00D4AA',
+    opacity: ringOpacity.value,
+    transform: [{ scale: ringScale.value }],
+    justifyContent: 'center',
+    alignItems: 'center',
+  }));
+
+  const checkStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: checkScale.value }],
   }));
 
   if (!visible) return null;
 
   return (
     <Animated.View style={overlayStyle}>
-      {/* Confetti */}
-      {Array.from({ length: confettiCount }).map((_, i) => (
-        <ConfettiPiece key={`c${i}`} index={i} total={confettiCount} />
-      ))}
-
-      {/* Floating emojis */}
-      {Array.from({ length: emojiCount }).map((_, i) => (
-        <FloatingEmoji key={`e${i}`} index={i} />
-      ))}
-
-      {/* Message */}
-      <Animated.View style={[textStyle, styles.textContainer]}>
-        <Text style={styles.emoji}>{'\uD83D\uDCAA'}</Text>
-        <Text style={styles.title}>{message ?? 'Bien jou\u00e9 !'}</Text>
-        <Text style={styles.subtitle}>{'\u2705'}</Text>
+      <Animated.View style={ringStyle}>
+        <Animated.View style={checkStyle}>
+          <Svg width={36} height={36} viewBox="0 0 24 24" fill="none">
+            <Path
+              d="M20 6L9 17l-5-5"
+              stroke="#00D4AA"
+              strokeWidth={3}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </Svg>
+        </Animated.View>
       </Animated.View>
     </Animated.View>
   );
 }
-
-const styles = StyleSheet.create({
-  textContainer: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    borderRadius: 24,
-    paddingHorizontal: 40,
-    paddingVertical: 28,
-  },
-  emoji: {
-    fontSize: 56,
-    marginBottom: 8,
-  },
-  title: {
-    fontFamily: fonts.display,
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#FFFFFF',
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.md,
-    color: 'rgba(255,255,255,0.7)',
-    marginTop: 4,
-  },
-});

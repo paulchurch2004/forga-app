@@ -12,7 +12,7 @@ function getReturnUrl(): string {
   if (typeof window !== 'undefined') {
     return window.location.origin;
   }
-  return 'http://localhost:5557';
+  return 'https://forga.fr';
 }
 
 export interface CheckoutResult {
