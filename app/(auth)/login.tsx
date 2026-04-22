@@ -5,7 +5,6 @@ import {
   TextInput,
   StyleSheet,
   Pressable,
-  KeyboardAvoidingView,
   Platform,
   Alert,
   ActivityIndicator,
@@ -82,7 +81,7 @@ export default function LoginScreen() {
   useEffect(() => {
     glowOpacity.value = withDelay(
       300,
-      withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.sine) })
+      withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.sin) })
     );
   }, []);
   const glowStyle = useAnimatedStyle(() => ({
@@ -149,10 +148,7 @@ export default function LoginScreen() {
         />
       </Animated.View>
 
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <View style={styles.flex}>
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
@@ -260,7 +256,7 @@ export default function LoginScreen() {
             </Pressable>
           </Animated.View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </View>
     </View>
   );
 }

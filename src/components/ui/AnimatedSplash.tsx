@@ -2,6 +2,7 @@
 // Spiral embers converge → ignition flash → logo + wordmark reveal → fade to app
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, Image, Dimensions, StyleSheet, Platform } from 'react-native';
+import Svg, { Defs, RadialGradient as SvgRadialGradient, Stop, Rect } from 'react-native-svg';
 import { fonts } from '../../theme';
 
 const { width: SW, height: SH } = Dimensions.get('window');
@@ -31,30 +32,56 @@ interface Props {
 //   transparent 58%)
 function RadialGlow({ intensity }: { intensity: number }) {
   if (intensity <= 0.01) return null;
-  const maxR = Math.max(SW, SH) * 0.58;
   return (
-    <>
-      <View style={{ position: 'absolute', left: CX - maxR, top: CY - maxR, width: maxR * 2, height: maxR * 2, borderRadius: maxR, backgroundColor: ORANGE_DEEP, opacity: intensity * 0.04 }} />
-      <View style={{ position: 'absolute', left: CX - maxR * 0.7, top: CY - maxR * 0.7, width: maxR * 1.4, height: maxR * 1.4, borderRadius: maxR * 0.7, backgroundColor: ORANGE_DEEP, opacity: intensity * 0.12 }} />
-      <View style={{ position: 'absolute', left: CX - maxR * 0.5, top: CY - maxR * 0.5, width: maxR, height: maxR, borderRadius: maxR * 0.5, backgroundColor: ORANGE_DEEP, opacity: intensity * 0.25 }} />
-      <View style={{ position: 'absolute', left: CX - maxR * 0.35, top: CY - maxR * 0.35, width: maxR * 0.7, height: maxR * 0.7, borderRadius: maxR * 0.35, backgroundColor: ORANGE, opacity: intensity * 0.45 }} />
-      <View style={{ position: 'absolute', left: CX - maxR * 0.2, top: CY - maxR * 0.2, width: maxR * 0.4, height: maxR * 0.4, borderRadius: maxR * 0.2, backgroundColor: ORANGE, opacity: intensity * 0.7 }} />
-      <View style={{ position: 'absolute', left: CX - maxR * 0.08, top: CY - maxR * 0.08, width: maxR * 0.16, height: maxR * 0.16, borderRadius: maxR * 0.08, backgroundColor: ORANGE, opacity: intensity }} />
-    </>
+    <Svg
+      style={StyleSheet.absoluteFill}
+      pointerEvents="none"
+    >
+      <Defs>
+        <SvgRadialGradient
+          id="forgaGlow"
+          cx={CX}
+          cy={CY}
+          rx={Math.max(SW, SH) * 0.58}
+          ry={Math.max(SW, SH) * 0.58}
+          gradientUnits="userSpaceOnUse"
+        >
+          <Stop offset="0%" stopColor={ORANGE} stopOpacity={intensity} />
+          <Stop offset="25%" stopColor={ORANGE_DEEP} stopOpacity={intensity * 0.45} />
+          <Stop offset="58%" stopColor={ORANGE_DEEP} stopOpacity={0} />
+          <Stop offset="100%" stopColor={ORANGE_DEEP} stopOpacity={0} />
+        </SvgRadialGradient>
+      </Defs>
+      <Rect x={0} y={0} width={SW} height={SH} fill="url(#forgaGlow)" />
+    </Svg>
   );
 }
 
 // ─── Ignite Flash (radial white-warm burst) ─────────────────────
 function IgniteFlash({ intensity }: { intensity: number }) {
   if (intensity <= 0) return null;
-  const maxR = Math.max(SW, SH) * 0.5;
   return (
-    <>
-      <View style={{ position: 'absolute', left: CX - maxR * 0.5, top: CY - maxR * 0.5, width: maxR, height: maxR, borderRadius: maxR * 0.5, backgroundColor: WARM, opacity: intensity * 0.08 }} />
-      <View style={{ position: 'absolute', left: CX - maxR * 0.35, top: CY - maxR * 0.35, width: maxR * 0.7, height: maxR * 0.7, borderRadius: maxR * 0.35, backgroundColor: WARM, opacity: intensity * 0.2 }} />
-      <View style={{ position: 'absolute', left: CX - maxR * 0.2, top: CY - maxR * 0.2, width: maxR * 0.4, height: maxR * 0.4, borderRadius: maxR * 0.2, backgroundColor: '#FFC488', opacity: intensity * 0.5 }} />
-      <View style={{ position: 'absolute', left: CX - maxR * 0.08, top: CY - maxR * 0.08, width: maxR * 0.16, height: maxR * 0.16, borderRadius: maxR * 0.08, backgroundColor: '#FFF6EC', opacity: intensity * 0.9 }} />
-    </>
+    <Svg
+      style={StyleSheet.absoluteFill}
+      pointerEvents="none"
+    >
+      <Defs>
+        <SvgRadialGradient
+          id="forgaFlash"
+          cx={CX}
+          cy={CY}
+          rx={Math.max(SW, SH) * 0.5}
+          ry={Math.max(SW, SH) * 0.5}
+          gradientUnits="userSpaceOnUse"
+        >
+          <Stop offset="0%" stopColor="#FFF6EC" stopOpacity={intensity * 0.9} />
+          <Stop offset="20%" stopColor="#FFC488" stopOpacity={intensity * 0.5} />
+          <Stop offset="50%" stopColor={WARM} stopOpacity={intensity * 0.2} />
+          <Stop offset="100%" stopColor={WARM} stopOpacity={0} />
+        </SvgRadialGradient>
+      </Defs>
+      <Rect x={0} y={0} width={SW} height={SH} fill="url(#forgaFlash)" />
+    </Svg>
   );
 }
 
