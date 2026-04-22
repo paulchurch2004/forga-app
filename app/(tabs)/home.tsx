@@ -28,6 +28,8 @@ import { useResponsive } from '../../src/hooks/useResponsive';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
 import { MorningRitual } from '../../src/components/home/MorningRitual';
+import { WeeklyFormCard } from '../../src/components/home/WeeklyFormCard';
+import { CoachFocusCard } from '../../src/components/home/CoachFocusCard';
 
 // ──────────── CARD DATA ────────────
 
@@ -247,8 +249,14 @@ export default function HomeScreen() {
         </View>
 
         {/* Morning Ritual — check-in métal qui adapte le plan du jour */}
-        <View style={{ maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%', paddingHorizontal: spacing.lg, marginTop: spacing.lg }}>
+        <View style={{ maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%', paddingHorizontal: spacing.lg, marginTop: spacing.lg, gap: spacing.md }}>
           <MorningRitual />
+          <WeeklyFormCard score={84} delta={6} />
+          <CoachFocusCard
+            message="Ton dîner est le levier clé. Il te reste 73g de prot."
+            highlight="73g"
+            onPress={() => router.push('/(tabs)/coach')}
+          />
         </View>
 
         {/* 3D Carousel — 4 cartes fixes */}
