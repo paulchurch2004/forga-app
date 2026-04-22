@@ -30,6 +30,8 @@ import { useT } from '../../src/i18n';
 import { MorningRitual } from '../../src/components/home/MorningRitual';
 import { WeeklyFormCard } from '../../src/components/home/WeeklyFormCard';
 import { CoachFocusCard } from '../../src/components/home/CoachFocusCard';
+import { MiniStatsGrid } from '../../src/components/home/MiniStatsGrid';
+import { QuickAccessRow } from '../../src/components/home/QuickAccessTile';
 
 // ──────────── CARD DATA ────────────
 
@@ -248,48 +250,53 @@ export default function HomeScreen() {
           <StreakBadge streak={currentStreak} isActive={isTodayValidated} size="sm" />
         </View>
 
-        {/* Morning Ritual — check-in métal qui adapte le plan du jour */}
+        {/* Stack centrée — tout le contenu redesign */}
         <View style={{ maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%', paddingHorizontal: spacing.lg, marginTop: spacing.lg, gap: spacing.md }}>
+          {/* Morning Ritual — check-in métal qui adapte le plan du jour */}
           <MorningRitual />
+
+          {/* Indice de forme hebdo */}
           <WeeklyFormCard score={84} delta={6} />
+
+          {/* Coach focus */}
           <CoachFocusCard
             message="Ton dîner est le levier clé. Il te reste 73g de prot."
             highlight="73g"
             onPress={() => router.push('/(tabs)/coach')}
           />
+
+          {/* Quick access — Nutrition + Séance */}
+          <Text style={styles.sectionLabel}>AUJOURD'HUI</Text>
+          <QuickAccessRow
+            tiles={[
+              {
+                eyebrow: 'Nutrition',
+                title: 'Plan du jour',
+                subtitle: '1110 / 2280 kcal',
+                imageUri: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80',
+                accent: true,
+                onPress: () => router.push('/nutrition'),
+              },
+              {
+                eyebrow: 'Séance',
+                title: 'Push · 60 min',
+                subtitle: 'Pecs & Épaules',
+                imageUri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
+                onPress: () => router.push('/(tabs)/training'),
+              },
+            ]}
+          />
+
+          {/* Mini stats */}
+          <MiniStatsGrid
+            items={[
+              { label: 'Calories', value: '1110', unit: '/ 2280', progress: 0.48, color: '#FF6B35' },
+              { label: 'Protéines', value: '82', unit: 'g / 155', progress: 0.53, color: '#5B8BFF' },
+              { label: 'Eau', value: '1.4', unit: 'L / 2.5', progress: 0.56, color: '#00D4AA' },
+              { label: 'Pas', value: '6 214', unit: '/ 10 000', progress: 0.62, color: 'rgba(255,255,255,0.6)' },
+            ]}
+          />
         </View>
-
-        {/* 3D Carousel — 4 cartes fixes */}
-        <Animated.ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          snapToInterval={snapInterval}
-          decelerationRate="fast"
-          contentContainerStyle={{
-            paddingHorizontal: cardSpacing,
-            paddingVertical: spacing.md,
-            gap: spacing.lg,
-          }}
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
-          style={{ marginTop: spacing.xl }}
-        >
-          {CARDS.map((card, index) => (
-            <CarouselCard
-              key={card.key}
-              card={card}
-              index={index}
-              scrollX={scrollX}
-              cardWidth={cardWidth}
-              cardHeight={cardHeight}
-              snapInterval={snapInterval}
-              t={t}
-            />
-          ))}
-        </Animated.ScrollView>
-
-        {/* Dot indicator */}
-        <DotIndicator scrollX={scrollX} snapInterval={snapInterval} count={CARDS.length} />
       </Animated.ScrollView>
 
       {/* Tutorial overlay */}
@@ -343,6 +350,15 @@ const useStyles = makeStyles((colors) => ({
     fontSize: fontSizes.sm,
     color: colors.textSecondary,
     marginTop: spacing.xs,
+  },
+  sectionLabel: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    fontWeight: '700',
+    color: colors.textMuted,
+    letterSpacing: 1.4,
+    marginTop: spacing.sm,
+    marginBottom: -spacing.xs,
   },
   carouselCard: {
     borderRadius: borderRadius.xl,
