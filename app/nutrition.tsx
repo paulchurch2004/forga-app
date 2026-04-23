@@ -23,6 +23,7 @@ import { HeroScore } from '../src/components/home/HeroScore';
 import { MealSlotList } from '../src/components/home/MealSlotList';
 import { MacroRingsCard } from '../src/components/home/MacroRingsCard';
 import { PrimaryMealAction } from '../src/components/home/PrimaryMealAction';
+import { MEAL_SLOT_LABELS } from '../src/types/meal';
 import { StreakBadge } from '../src/components/ui/StreakBadge';
 import { CoachCard } from '../src/components/home/CoachCard';
 import { getCoachMessage, type CoachInput } from '../src/engine/coachEngine';
@@ -358,7 +359,7 @@ export default function NutritionScreen() {
         {currentSlot && (
           <Animated.View entering={FadeInDown.delay(450).duration(400)} style={{ marginTop: spacing.md }}>
             <PrimaryMealAction
-              slotLabel={currentSlot.label.toLowerCase()}
+              slotLabel={(MEAL_SLOT_LABELS[currentSlot.slot] ?? 'le prochain repas').toLowerCase()}
               onPress={() => router.push(`/(tabs)/meals?slot=${currentSlot.slot}`)}
             />
           </Animated.View>
