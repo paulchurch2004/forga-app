@@ -11,6 +11,7 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { fonts } from '../../theme/fonts';
+import { useTooltipQueue } from '../../store/tooltipQueue';
 
 const STORAGE_KEY_PREFIX = 'forga.tooltip.seen.';
 const { width: SW } = Dimensions.get('window');
@@ -42,24 +43,39 @@ export function CoachingTooltip({
   cta = 'OK, compris',
   delayMs = 600,
 }: CoachingTooltipProps) {
-  const [visible, setVisible] = useState(false);
+  const [eligible, setEligible] = useState(false); // not seen + delay elapsed
   const [hydrated, setHydrated] = useState(false);
+  const activeId = useTooltipQueue((s) => s.activeId);
+  const request = useTooltipQueue((s) => s.request);
+  const release = useTooltipQueue((s) => s.release);
 
+  // On mount: if not seen, request a slot in the queue after the delay.
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
     AsyncStorage.getItem(STORAGE_KEY_PREFIX + id).then((seen) => {
       if (!seen) {
-        setTimeout(() => setVisible(true), delayMs);
+        timer = setTimeout(() => {
+          setEligible(true);
+          request(id);
+        }, delayMs);
       }
       setHydrated(true);
     });
-  }, [id, delayMs]);
+    return () => {
+      if (timer) clearTimeout(timer);
+      // If we were holding the slot, release it on unmount.
+      release(id);
+    };
+  }, [id, delayMs, request, release]);
 
   const dismiss = () => {
     AsyncStorage.setItem(STORAGE_KEY_PREFIX + id, '1');
-    setVisible(false);
+    setEligible(false);
+    release(id);
   };
 
-  if (!hydrated || !visible) return null;
+  // Only render the Modal when this tooltip is the active one in the queue
+  if (!hydrated || !eligible || activeId !== id) return null;
 
   return (
     <Modal visible transparent animationType="none">
