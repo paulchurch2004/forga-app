@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -33,6 +33,12 @@ import { CoachFocusCard } from '../../src/components/home/CoachFocusCard';
 import { CoachingTooltip } from '../../src/components/coach/CoachingTooltip';
 import { MiniStatsGrid } from '../../src/components/home/MiniStatsGrid';
 import { QuickAccessRow } from '../../src/components/home/QuickAccessTile';
+import { useMealStore } from '../../src/store/mealStore';
+import { useScoreStore } from '../../src/store/scoreStore';
+import { useEngine } from '../../src/hooks/useEngine';
+import { useMealSlot } from '../../src/hooks/useMealSlot';
+import { useWater } from '../../src/hooks/useWater';
+import { MEAL_SLOT_LABELS } from '../../src/types/meal';
 
 // ──────────── CARD DATA ────────────
 
@@ -187,6 +193,92 @@ export default function HomeScreen() {
   const styles = useStyles();
   const { t } = useT();
 
+  // Real macros / score / next slot for the redesign cards
+  const todayMeals = useMealStore((s) => s.todayMeals);
+  const engine = useEngine();
+  const { currentSlot, slots } = useMealSlot();
+  const currentScore = useScoreStore((s) => s.currentScore);
+  const weeklyChange = useScoreStore((s) => s.weeklyChange);
+  const { todayTotal: waterMl, dailyTarget: waterGoal } = useWater();
+
+  const consumed = useMemo(() => {
+    return todayMeals.reduce(
+      (a, m) => ({
+        calories: a.calories + m.actualMacros.calories,
+        protein: a.protein + m.actualMacros.protein,
+        carbs: a.carbs + m.actualMacros.carbs,
+        fat: a.fat + m.actualMacros.fat,
+      }),
+      { calories: 0, protein: 0, carbs: 0, fat: 0 }
+    );
+  }, [todayMeals]);
+
+  const targets = engine?.dailyMacros ?? { calories: 2000, protein: 120, carbs: 220, fat: 60 };
+
+  // Compose the coach focus message from real data
+  const focusMsg = useMemo(() => {
+    const calLeft = Math.max(0, Math.round(targets.calories - consumed.calories));
+    const protLeft = Math.max(0, Math.round(targets.protein - consumed.protein));
+    const protPct = targets.protein ? consumed.protein / targets.protein : 0;
+    const calPct = targets.calories ? consumed.calories / targets.calories : 0;
+
+    // Find the next non-validated slot
+    const nextSlot = slots.find((s) => !s.isValidated && s.status !== 'upcoming') ?? currentSlot;
+    const nextSlotName = nextSlot ? (MEAL_SLOT_LABELS[nextSlot.slot] ?? '').toLowerCase() : null;
+
+    // No data yet today: motivational opener
+    if (todayMeals.length === 0) {
+      return {
+        message: nextSlotName
+          ? `On démarre avec ${nextSlotName}. Vise ${Math.round(targets.protein / (slots.length || 4))}g de prot pour bien lancer la journée.`
+          : 'On démarre la journée. Logge ton premier repas pour calibrer.',
+        highlight: nextSlotName ? `${Math.round(targets.protein / (slots.length || 4))}g` : '',
+      };
+    }
+
+    // Day done?
+    if (calLeft === 0 && protLeft === 0) {
+      return { message: 'Objectifs du jour atteints. Bien joué.', highlight: 'atteints' };
+    }
+
+    // Protein behind, calories on track or behind too: protein-first message
+    if (protPct < calPct - 0.1 && protLeft > 20) {
+      return {
+        message: `${nextSlotName ?? 'Le prochain repas'} est ton levier prot. Il te reste ${protLeft}g.`,
+        highlight: `${protLeft}g`,
+      };
+    }
+
+    // Calories left and last meal of day — call it the dîner lever
+    if (nextSlot?.slot === 'dinner' && calLeft > 200) {
+      return {
+        message: `Ton dîner est le levier clé. Il te reste ${protLeft}g de prot.`,
+        highlight: `${protLeft}g`,
+      };
+    }
+
+    // Generic remaining message
+    return {
+      message: nextSlotName
+        ? `Il te reste ${calLeft} kcal et ${protLeft}g de prot pour ${nextSlotName}.`
+        : `Il te reste ${calLeft} kcal et ${protLeft}g de prot aujourd'hui.`,
+      highlight: `${protLeft}g`,
+    };
+  }, [todayMeals, consumed, targets, currentSlot, slots]);
+
+  // Weekly form score breakdown — derived from currentScore (each subscore
+  // normalised to /100 so the bars are comparable on the card).
+  const formBreakdown = useMemo(() => {
+    const nutritionPct = currentScore ? Math.round((currentScore.nutrition / 40) * 100) : 0;
+    const consistencyPct = currentScore ? Math.round((currentScore.consistency / 30) * 100) : 0;
+    const disciplinePct = currentScore ? Math.round((currentScore.discipline / 10) * 100) : 0;
+    return [
+      { label: 'Nutrition', value: nutritionPct, color: '#FF6B35' },
+      { label: 'Constance', value: consistencyPct, color: '#5B8BFF' },
+      { label: 'Discipline', value: disciplinePct, color: '#00D4AA' },
+    ];
+  }, [currentScore]);
+
   const scrollX = useSharedValue(0);
   const visibleWidth = Math.min(screenWidth, contentMaxWidth);
   const cardWidth = visibleWidth * 0.70;
@@ -257,12 +349,16 @@ export default function HomeScreen() {
           <MorningRitual />
 
           {/* Indice de forme hebdo */}
-          <WeeklyFormCard score={84} delta={6} />
+          <WeeklyFormCard
+            score={Math.round(currentScore?.total ?? 0)}
+            delta={Math.round(weeklyChange ?? 0)}
+            breakdown={formBreakdown}
+          />
 
-          {/* Coach focus */}
+          {/* Coach focus — message dérivé des vraies macros consommées vs cibles */}
           <CoachFocusCard
-            message="Ton dîner est le levier clé. Il te reste 73g de prot."
-            highlight="73g"
+            message={focusMsg.message}
+            highlight={focusMsg.highlight || undefined}
             onPress={() => router.push('/(tabs)/coach')}
           />
 
@@ -288,13 +384,37 @@ export default function HomeScreen() {
             ]}
           />
 
-          {/* Mini stats */}
+          {/* Mini stats — vraies données du jour */}
           <MiniStatsGrid
             items={[
-              { label: 'Calories', value: '1110', unit: '/ 2280', progress: 0.48, color: '#FF6B35' },
-              { label: 'Protéines', value: '82', unit: 'g / 155', progress: 0.53, color: '#5B8BFF' },
-              { label: 'Eau', value: '1.4', unit: 'L / 2.5', progress: 0.56, color: '#00D4AA' },
-              { label: 'Pas', value: '6 214', unit: '/ 10 000', progress: 0.62, color: 'rgba(255,255,255,0.6)' },
+              {
+                label: 'Calories',
+                value: String(Math.round(consumed.calories)),
+                unit: `/ ${Math.round(targets.calories)}`,
+                progress: targets.calories ? consumed.calories / targets.calories : 0,
+                color: '#FF6B35',
+              },
+              {
+                label: 'Protéines',
+                value: String(Math.round(consumed.protein)),
+                unit: `g / ${Math.round(targets.protein)}`,
+                progress: targets.protein ? consumed.protein / targets.protein : 0,
+                color: '#5B8BFF',
+              },
+              {
+                label: 'Eau',
+                value: (waterMl / 1000).toFixed(1),
+                unit: `L / ${(waterGoal / 1000).toFixed(1)}`,
+                progress: waterGoal ? waterMl / waterGoal : 0,
+                color: '#00D4AA',
+              },
+              {
+                label: 'Glucides',
+                value: String(Math.round(consumed.carbs)),
+                unit: `g / ${Math.round(targets.carbs)}`,
+                progress: targets.carbs ? consumed.carbs / targets.carbs : 0,
+                color: '#FFC94D',
+              },
             ]}
           />
         </View>
