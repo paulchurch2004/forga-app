@@ -154,7 +154,7 @@ export default function TrainingScreen() {
 
           {/* Weekly grid — redesign : 7 carrés colorés par status */}
           {weekDays.length > 0 && (
-            <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{ marginTop: spacing.md }}>
+            <Animated.View  style={{ marginTop: spacing.md }}>
               <WeeklyDaysGrid
                 days={weekDays.map<WeekDayItem>((d) => {
                   const date = new Date(d.date);
@@ -172,7 +172,7 @@ export default function TrainingScreen() {
 
           {/* Séance du jour — redesign : intention quote + 3 exos preview + CTA */}
           {todayPlan && todayProgramDay && (
-            <Animated.View entering={FadeInDown.delay(200).duration(400)} style={{ marginTop: spacing.md }}>
+            <Animated.View  style={{ marginTop: spacing.md }}>
               <Text style={styles.sectionTitle}>SÉANCE DU JOUR</Text>
               <TodayWorkoutPreview
                 type={`${t(todayProgramDay.nameKey as any)} · ${todayProgramDay.exercises.length * 12} min`}
@@ -202,7 +202,7 @@ export default function TrainingScreen() {
 
           {/* Quick Stats */}
           {recentWorkouts.length > 0 && (
-            <Animated.View entering={FadeInDown.delay(300).duration(400)}>
+            <Animated.View >
               <QuickStats
                 weeklyCount={weeklyCount}
                 monthlyCount={monthlyCount}
@@ -213,7 +213,7 @@ export default function TrainingScreen() {
 
           {/* Recent history — redesign list */}
           {recentWorkouts.length > 0 ? (
-            <Animated.View entering={FadeInDown.delay(400).duration(400)} style={{ marginTop: spacing.md }}>
+            <Animated.View  style={{ marginTop: spacing.md }}>
               <Text style={styles.sectionTitle}>{t('recentWorkouts')}</Text>
               <SessionHistoryList
                 items={recentWorkouts.slice(0, 5).map<SessionHistoryItem>((w) => {
@@ -233,7 +233,7 @@ export default function TrainingScreen() {
               />
             </Animated.View>
           ) : (
-            <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+            <Animated.View >
               <EmptyState
                 icon={'\uD83D\uDCAA'}
                 title={t('noWorkoutsYet')}
@@ -245,7 +245,7 @@ export default function TrainingScreen() {
           )}
 
           {/* Manual workout button */}
-          <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+          <Animated.View >
             <Pressable
               style={styles.manualBtn}
               onPress={() => {

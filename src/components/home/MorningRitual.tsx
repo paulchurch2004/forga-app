@@ -140,12 +140,7 @@ function MetalButton({ metal, active, onPress }: { metal: Metal; active: boolean
         <View
           style={[
             styles.metalDot,
-            {
-              backgroundColor: metal.color,
-              shadowColor: metal.color,
-              shadowOpacity: active ? 0.8 : 0.5,
-              shadowRadius: active ? 12 : 8,
-            },
+            { backgroundColor: metal.color, borderWidth: active ? 2 : 0, borderColor: 'rgba(255,255,255,0.6)' },
           ]}
         />
         <Text style={styles.metalLabel}>{metal.label}</Text>
@@ -335,8 +330,6 @@ const styles = StyleSheet.create({
     width: 22,
     height: 22,
     borderRadius: 11,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 6,
   },
   metalLabel: {
     fontFamily: fonts.body,

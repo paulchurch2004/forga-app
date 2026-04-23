@@ -190,9 +190,5 @@ const styles = StyleSheet.create({
   barFill: {
     height: '100%',
     borderRadius: 999,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 4,
-    elevation: 2,
   },
 });

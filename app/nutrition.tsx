@@ -330,7 +330,7 @@ export default function NutritionScreen() {
         )}
 
         {/* SCORE FORGA DU JOUR — 4 anneaux macros animés */}
-        <Animated.View entering={FadeInDown.delay(50).duration(400)}>
+        <Animated.View >
           <MacroRingsCard
             macros={[
               { label: 'kcal', value: Math.round(consumedMacros.calories), goal: targetMacros.calories || 1, color: '#FF6B35' },
@@ -342,7 +342,7 @@ export default function NutritionScreen() {
         </Animated.View>
 
         {/* Objective */}
-        <Animated.View entering={FadeInDown.delay(100).duration(400)}>
+        <Animated.View >
           <View style={styles.objectiveCard}>
             <Text style={styles.objectiveText}>
               {t('objectiveLabel', { weight: profile.targetWeight })}
@@ -352,7 +352,7 @@ export default function NutritionScreen() {
         </Animated.View>
 
         {/* Hydratation — 10 segments + quick add */}
-        <Animated.View entering={FadeInDown.delay(150).duration(400)} style={{ marginTop: spacing.md }}>
+        <Animated.View  style={{ marginTop: spacing.md }}>
           <HydrationSegmentsCard
             currentMl={waterMl}
             goalMl={waterGoal}
@@ -362,7 +362,7 @@ export default function NutritionScreen() {
 
         {/* Coach card — message du coach IA */}
         {coachMessage && (
-          <Animated.View entering={FadeInDown.delay(250).duration(400)} style={{ marginTop: spacing.md }}>
+          <Animated.View  style={{ marginTop: spacing.md }}>
             <NutritionCoachCard
               timeLabel={`${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`}
               message={coachMessage.text}
@@ -371,14 +371,14 @@ export default function NutritionScreen() {
         )}
 
         {/* Repas du jour — liste avec photos */}
-        <Animated.View entering={FadeInDown.delay(350).duration(400)} style={{ marginTop: spacing.lg }}>
+        <Animated.View  style={{ marginTop: spacing.lg }}>
           <Text style={styles.sectionLabel}>REPAS DU JOUR</Text>
           <MealSlotPhotoList items={mealItems} />
         </Animated.View>
 
         {/* Primary action — UN seul bouton CTA pour logger le prochain repas (résout friction UX #4) */}
         {currentSlot && (
-          <Animated.View entering={FadeInDown.delay(450).duration(400)} style={{ marginTop: spacing.md }}>
+          <Animated.View  style={{ marginTop: spacing.md }}>
             <PrimaryMealAction
               slotLabel={(MEAL_SLOT_LABELS[currentSlot.slot] ?? 'le prochain repas').toLowerCase()}
               onPress={() => router.push(`/(tabs)/meals?slot=${currentSlot.slot}`)}
@@ -387,7 +387,7 @@ export default function NutritionScreen() {
         )}
 
         {/* Scan actions with images */}
-        <Animated.View entering={FadeInDown.delay(500).duration(400)}>
+        <Animated.View >
           <Text style={styles.sectionLabel}>{t('addMealSection')}</Text>
           <View style={styles.scanActions}>
             <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/barcode')}>
@@ -424,7 +424,7 @@ export default function NutritionScreen() {
         </Animated.View>
 
         {/* Quick actions */}
-        <Animated.View entering={FadeInDown.delay(600).duration(400)}>
+        <Animated.View >
           <View style={styles.quickActions}>
             <Pressable style={styles.quickActionBtn} onPress={() => router.push('/weekly-plan')}>
               <LinearGradient

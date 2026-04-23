@@ -122,10 +122,6 @@ const styles = StyleSheet.create({
     borderRadius: 7,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 6,
-    elevation: 3,
   },
   valueRow: {
     flexDirection: 'row',
@@ -155,9 +151,5 @@ const styles = StyleSheet.create({
   barFill: {
     height: '100%',
     borderRadius: 999,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 4,
-    elevation: 2,
   },
 });

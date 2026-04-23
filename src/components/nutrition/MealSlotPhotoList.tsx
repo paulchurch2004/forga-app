@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Pressable, Image, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { fonts } from '../../theme/fonts';
@@ -52,7 +53,7 @@ function MealRow({ item }: { item: MealSlotPhotoItem }) {
       <View style={styles.imageWrap}>
         {item.imageUri ? (
           <>
-            <Image source={{ uri: item.imageUri }} style={styles.image} resizeMode="cover" />
+            <Image source={{ uri: item.imageUri }} style={styles.image} contentFit="cover" cachePolicy="memory-disk" transition={150} />
             {item.done && (
               <LinearGradient
                 colors={['rgba(0,212,170,0.30)', 'transparent']}

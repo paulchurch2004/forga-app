@@ -33,8 +33,6 @@ export function MetalDays30Card({ days }: MetalDays30CardProps) {
               {
                 backgroundColor: METAL_COLOR[m],
                 opacity: m === 'repos' ? 0.5 : 1,
-                shadowColor: METAL_COLOR[m],
-                shadowOpacity: m === 'repos' ? 0 : 0.4,
               },
             ]}
           />
@@ -80,9 +78,6 @@ const styles = StyleSheet.create({
     width: '6.0%',
     aspectRatio: 1,
     borderRadius: 4,
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 5,
-    elevation: 1,
   },
   footer: {
     flexDirection: 'row',

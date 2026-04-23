@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Pressable, ImageBackground, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fonts } from '../../theme/fonts';
 
@@ -15,13 +16,20 @@ export interface QuickAccessTileProps {
 export function QuickAccessTile({ eyebrow, title, subtitle, imageUri, accent, onPress }: QuickAccessTileProps) {
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.card, accent && styles.cardAccent, pressed && styles.cardPressed]}>
-      <ImageBackground source={{ uri: imageUri }} style={styles.image} imageStyle={styles.imageRadius}>
+      <View style={styles.image}>
+        <Image
+          source={{ uri: imageUri }}
+          style={[StyleSheet.absoluteFill, styles.imageRadius]}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+          transition={150}
+        />
         <LinearGradient
           colors={['transparent', 'rgba(7,7,13,0.9)']}
           locations={[0.3, 1]}
           style={StyleSheet.absoluteFill}
         />
-      </ImageBackground>
+      </View>
       <View style={styles.body}>
         <Text style={styles.eyebrow}>{eyebrow.toUpperCase()}</Text>
         <Text style={styles.title}>{title}</Text>
