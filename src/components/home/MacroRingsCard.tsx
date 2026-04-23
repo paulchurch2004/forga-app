@@ -82,6 +82,7 @@ function Ring({ item, delay }: { item: MacroItem; delay: number }) {
         </View>
       </View>
       <Text style={styles.ringLabel}>{item.label}</Text>
+      <Text style={styles.ringGoal}>/ {item.goal}</Text>
     </View>
   );
 }
@@ -141,5 +142,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: 'rgba(255,255,255,0.62)',
     marginTop: 8,
+  },
+  ringGoal: {
+    fontFamily: fonts.data,
+    fontSize: 9,
+    color: 'rgba(255,255,255,0.38)',
+    marginTop: 2,
   },
 });

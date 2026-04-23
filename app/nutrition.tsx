@@ -23,7 +23,11 @@ import { HeroScore } from '../src/components/home/HeroScore';
 import { MealSlotList } from '../src/components/home/MealSlotList';
 import { MacroRingsCard } from '../src/components/home/MacroRingsCard';
 import { PrimaryMealAction } from '../src/components/home/PrimaryMealAction';
-import { MEAL_SLOT_LABELS } from '../src/types/meal';
+import { HydrationSegmentsCard } from '../src/components/nutrition/HydrationSegmentsCard';
+import { NutritionCoachCard } from '../src/components/nutrition/NutritionCoachCard';
+import { MealSlotPhotoList, type MealSlotPhotoItem } from '../src/components/nutrition/MealSlotPhotoList';
+import { useWater } from '../src/hooks/useWater';
+import { MEAL_SLOT_LABELS, MEAL_SLOT_TIMES } from '../src/types/meal';
 import { StreakBadge } from '../src/components/ui/StreakBadge';
 import { CoachCard } from '../src/components/home/CoachCard';
 import { getCoachMessage, type CoachInput } from '../src/engine/coachEngine';
@@ -63,6 +67,7 @@ export default function NutritionScreen() {
 
   const profile = useUserStore((s) => s.profile);
   const checkIns = useUserStore((s) => s.checkIns);
+  const { todayTotal: waterMl, dailyTarget: waterGoal, add: addWater } = useWater();
   const { currentScore, weeklyChange } = useScoreStore();
   const todayMeals = useMealStore((s) => s.todayMeals);
   const prevMealCountRef = useRef(todayMeals.length);
@@ -153,6 +158,33 @@ export default function NutritionScreen() {
     if (isSunday && daysSince > 6) return true;
     return false;
   }, [checkIns]);
+
+  // Map today's slots → meal items with image / kcal / done
+  const mealItems = useMemo<MealSlotPhotoItem[]>(() => {
+    const SLOT_FALLBACK_IMAGES: Record<string, string> = {
+      breakfast: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&q=70',
+      morning_snack: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&q=70',
+      lunch: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=70',
+      afternoon_snack: 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=400&q=70',
+      dinner: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&q=70',
+      pre_bed: 'https://images.unsplash.com/photo-1567538473848-e07f2da42d4f?w=400&q=70',
+    };
+    return slots.map((s) => {
+      const meal = todayMeals.find((m) => m.slot === s.slot);
+      const label = MEAL_SLOT_LABELS[s.slot] ?? s.slot;
+      return {
+        id: s.slot,
+        label,
+        time: MEAL_SLOT_TIMES[s.slot] ?? s.time,
+        meal: meal?.name ?? null,
+        kcal: meal ? Math.round(meal.actualMacros.calories) : undefined,
+        imageUri: meal ? (meal as any).imageUri ?? SLOT_FALLBACK_IMAGES[s.slot] : undefined,
+        done: s.isValidated,
+        optional: s.slot === 'pre_bed' || s.slot === 'morning_snack',
+        onPress: () => router.push(`/(tabs)/meals?slot=${s.slot}`),
+      };
+    });
+  }, [slots, todayMeals]);
 
   const lastCalorieAdjustment = useMemo(() => {
     return [...checkIns]
@@ -303,16 +335,8 @@ export default function NutritionScreen() {
           </View>
         )}
 
-        {/* Hero Score */}
-        <HeroScore
-          score={currentScore}
-          weeklyChange={weeklyChange}
-          consumed={consumedMacros}
-          target={targetMacros}
-        />
-
-        {/* Macros rings — 4 SVG anneaux animés */}
-        <Animated.View entering={FadeInDown.delay(50).duration(400)} style={{ marginTop: spacing.md }}>
+        {/* SCORE FORGA DU JOUR — 4 anneaux macros animés */}
+        <Animated.View entering={FadeInDown.delay(50).duration(400)}>
           <MacroRingsCard
             macros={[
               { label: 'kcal', value: Math.round(consumedMacros.calories), goal: targetMacros.calories || 1, color: '#FF6B35' },
@@ -333,26 +357,29 @@ export default function NutritionScreen() {
           </View>
         </Animated.View>
 
-        {/* Water tracking */}
-        <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-          <Text style={styles.sectionLabel}>{t('hydrationSection')}</Text>
-          <WaterCard />
+        {/* Hydratation — 10 segments + quick add */}
+        <Animated.View entering={FadeInDown.delay(150).duration(400)} style={{ marginTop: spacing.md }}>
+          <HydrationSegmentsCard
+            currentMl={waterMl}
+            goalMl={waterGoal}
+            onAdd={(ml) => addWater(ml)}
+          />
         </Animated.View>
 
-        {/* Coach Card */}
+        {/* Coach card — message du coach IA */}
         {coachMessage && (
-          <Animated.View entering={FadeInDown.delay(300).duration(400)}>
-            <Text style={styles.sectionLabel}>COACH</Text>
-            <CoachCard message={coachMessage} />
+          <Animated.View entering={FadeInDown.delay(250).duration(400)} style={{ marginTop: spacing.md }}>
+            <NutritionCoachCard
+              timeLabel={`${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`}
+              message={coachMessage.text}
+            />
           </Animated.View>
         )}
 
-        {/* Meal Slots */}
-        <Animated.View entering={FadeInDown.delay(400).duration(400)}>
-          <Text style={styles.sectionLabel}>{t('mealsOfDay')}</Text>
-          <View style={styles.section}>
-            <MealSlotList slots={slots} />
-          </View>
+        {/* Repas du jour — liste avec photos */}
+        <Animated.View entering={FadeInDown.delay(350).duration(400)} style={{ marginTop: spacing.lg }}>
+          <Text style={styles.sectionLabel}>REPAS DU JOUR</Text>
+          <MealSlotPhotoList items={mealItems} />
         </Animated.View>
 
         {/* Primary action — UN seul bouton CTA pour logger le prochain repas (résout friction UX #4) */}
