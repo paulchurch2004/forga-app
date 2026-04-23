@@ -19,6 +19,7 @@ import { MEAL_SLOT_LABELS, type MealSlot } from '../../src/types/meal';
 import { syncMeal } from '../../src/services/userSync';
 import { CelebrationOverlay } from '../../src/components/ui/CelebrationOverlay';
 import { ScreenTopBar } from '../../src/components/ui/ScreenTopBar';
+import { PrimaryGradientButton } from '../../src/components/ui/PrimaryGradientButton';
 
 const SLOTS: MealSlot[] = [
   'breakfast',
@@ -190,10 +191,10 @@ export default function CustomMealScreen() {
           {t('macrosHint')}
         </Text>
 
-        {/* Validate */}
-        <Pressable style={styles.validateButton} onPress={handleValidate} accessibilityRole="button" accessibilityLabel={t('validateMeal')}>
-          <Text style={styles.validateButtonText}>{t('validateMeal')}</Text>
-        </Pressable>
+        {/* Validate — redesign gradient CTA */}
+        <View style={{ marginTop: spacing.xl }}>
+          <PrimaryGradientButton label={t('validateMeal')} onPress={handleValidate} size="lg" />
+        </View>
       </ScrollView>
       <CelebrationOverlay
         visible={showCelebration}

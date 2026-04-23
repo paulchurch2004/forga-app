@@ -10,6 +10,7 @@ import {
 import { IngredientRow } from './IngredientRow';
 import { RecipeSteps } from './RecipeSteps';
 import { Button } from '../ui/Button';
+import { PrimaryGradientButton } from '../ui/PrimaryGradientButton';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius, shadows, MAX_CONTENT_WIDTH } from '../../theme';
 import { useTheme } from '../../context/ThemeContext';
 import { useT } from '../../i18n';
@@ -252,13 +253,11 @@ export function MealDetailSheet({
             <Text style={styles.secondaryActionText}>{t('seeAnother')}</Text>
           </Pressable>
           <View style={styles.primaryActionWrapper}>
-            <Button
-              title={t('validateMeal')}
-              variant="primary"
-              size="lg"
-              fullWidth
+            <PrimaryGradientButton
+              label={t('validateMeal')}
               loading={validating}
               onPress={onValidate}
+              size="lg"
             />
           </View>
         </View>
