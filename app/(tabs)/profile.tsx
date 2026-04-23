@@ -71,7 +71,19 @@ export default function ProfileScreen() {
   const [codeCopied, setCodeCopied] = useState(false);
   const [sheet, setSheet] = useState<null | 'theme' | 'language' | 'logout' | 'delete'>(null);
   const topPRs = useTopPRs(3);
-  const metal30 = useMetalHistoryStore((s) => s.getLastNDays(30));
+  const metalHistory = useMetalHistoryStore((s) => s.history);
+  const metal30 = useMemo(() => {
+    const result: Array<{ date: string; metal: string | null }> = [];
+    const today = new Date();
+    const pad = (n: number) => (n < 10 ? `0${n}` : String(n));
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      const key = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+      result.push({ date: key, metal: metalHistory[key] ?? null });
+    }
+    return result;
+  }, [metalHistory]);
 
   const chartWidth = Math.min(screenWidth - spacing['2xl'] * 2, contentMaxWidth) - spacing.md * 2;
 
