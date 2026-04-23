@@ -7,6 +7,7 @@ import { fonts, fontSizes } from '../../src/theme/fonts';
 import { spacing } from '../../src/theme/spacing';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { Sidebar } from '../../src/components/layout/Sidebar';
+import { CustomTabBar } from '../../src/components/layout/CustomTabBar';
 import { useT } from '../../src/i18n';
 import type { ThemeColors } from '../../src/theme';
 
@@ -64,21 +65,9 @@ export default function TabLayout() {
     <Tabs
       initialRouteName="home"
       backBehavior="initialRoute"
+      tabBar={isDesktop ? () => null : (props) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarStyle: isDesktop
-          ? { display: 'none' as const }
-          : {
-              backgroundColor: 'rgba(7,7,13,0.94)',
-              borderTopWidth: 1,
-              borderTopColor: 'rgba(255,255,255,0.06)',
-              height: Platform.OS === 'ios' ? 88 : 64,
-              paddingBottom: Platform.OS === 'ios' ? 28 : 8,
-              paddingTop: 8,
-              elevation: 0,
-            },
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: colors.textSecondary,
         tabBarShowLabel: false,
       }}
     >
