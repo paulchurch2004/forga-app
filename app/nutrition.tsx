@@ -28,6 +28,7 @@ import { NutritionCoachCard } from '../src/components/nutrition/NutritionCoachCa
 import { MealSlotPhotoList, type MealSlotPhotoItem } from '../src/components/nutrition/MealSlotPhotoList';
 import { useWater } from '../src/hooks/useWater';
 import { MEAL_SLOT_LABELS, MEAL_SLOT_TIMES } from '../src/types/meal';
+import { getMealById } from '../src/data/meals';
 import { StreakBadge } from '../src/components/ui/StreakBadge';
 import { CoachCard } from '../src/components/home/CoachCard';
 import { getCoachMessage, type CoachInput } from '../src/engine/coachEngine';
@@ -159,26 +160,18 @@ export default function NutritionScreen() {
     return false;
   }, [checkIns]);
 
-  // Map today's slots → meal items with image / kcal / done
+  // Map today's slots → meal items with real recipe image / kcal / done
   const mealItems = useMemo<MealSlotPhotoItem[]>(() => {
-    const SLOT_FALLBACK_IMAGES: Record<string, string> = {
-      breakfast: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&q=70',
-      morning_snack: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400&q=70',
-      lunch: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=70',
-      afternoon_snack: 'https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?w=400&q=70',
-      dinner: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=400&q=70',
-      pre_bed: 'https://images.unsplash.com/photo-1567538473848-e07f2da42d4f?w=400&q=70',
-    };
     return slots.map((s) => {
-      const meal = todayMeals.find((m) => m.slot === s.slot);
-      const label = MEAL_SLOT_LABELS[s.slot] ?? s.slot;
+      const dailyMeal = todayMeals.find((m) => m.slot === s.slot);
+      const recipe = dailyMeal ? getMealById(dailyMeal.mealId) : undefined;
       return {
         id: s.slot,
-        label,
+        label: MEAL_SLOT_LABELS[s.slot] ?? s.slot,
         time: MEAL_SLOT_TIMES[s.slot] ?? s.time,
-        meal: meal?.name ?? null,
-        kcal: meal ? Math.round(meal.actualMacros.calories) : undefined,
-        imageUri: meal ? (meal as any).imageUri ?? SLOT_FALLBACK_IMAGES[s.slot] : undefined,
+        meal: dailyMeal ? dailyMeal.customName ?? recipe?.name ?? null : null,
+        kcal: dailyMeal ? Math.round(dailyMeal.actualMacros.calories) : undefined,
+        imageUri: recipe?.photoUrl,
         done: s.isValidated,
         optional: s.slot === 'pre_bed' || s.slot === 'morning_snack',
         onPress: () => router.push(`/(tabs)/meals?slot=${s.slot}`),
