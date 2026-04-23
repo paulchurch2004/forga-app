@@ -15,7 +15,7 @@ const TAGLINE_START = 2300;
 
 const ORANGE = '#FF6B35';
 const ORANGE_DEEP = '#E04A1C';
-const BG = '#0B0B14';
+const BG = '#07070D';
 const WARM = '#FFC488';
 const TEXT_COLOR = '#F4F2EE';
 

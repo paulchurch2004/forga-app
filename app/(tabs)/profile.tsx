@@ -539,15 +539,10 @@ export default function ProfileScreen() {
         )}
 
         {Platform.OS !== 'web' && (
-          <View style={styles.actionRow}>
+          <Pressable style={styles.actionRow} onPress={() => router.push('/notifications-setup')}>
             <Text style={styles.actionText}>{t('notifications')}</Text>
-            <Switch
-              value={notifEnabled}
-              onValueChange={() => toggleNotif(currentStreak)}
-              trackColor={{ false: colors.border, true: colors.primary }}
-              thumbColor={colors.white}
-            />
-          </View>
+            <Text style={styles.actionValue}>{notifEnabled ? 'Activées' : 'Désactivées'} {'›'}</Text>
+          </Pressable>
         )}
 
         <Pressable style={styles.actionRow} onPress={() => router.push('/tdee-calculator')}>

@@ -249,9 +249,9 @@ export default function NutritionScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={styles.backText.color}
-            colors={[styles.backText.color]}
-            progressBackgroundColor={styles.objectiveCard.backgroundColor}
+            tintColor="#FF6B35"
+            colors={['#FF6B35']}
+            progressBackgroundColor="rgba(7,7,13,0.92)"
           />
         }
       >

@@ -30,6 +30,7 @@ import { useT } from '../../src/i18n';
 import { MorningRitual } from '../../src/components/home/MorningRitual';
 import { WeeklyFormCard } from '../../src/components/home/WeeklyFormCard';
 import { CoachFocusCard } from '../../src/components/home/CoachFocusCard';
+import { CoachingTooltip } from '../../src/components/coach/CoachingTooltip';
 import { MiniStatsGrid } from '../../src/components/home/MiniStatsGrid';
 import { QuickAccessRow } from '../../src/components/home/QuickAccessTile';
 
@@ -301,6 +302,20 @@ export default function HomeScreen() {
 
       {/* Tutorial overlay */}
       <TutorialOverlay step={tutorialStep} />
+
+      {/* First-time coaching tooltips — fire one after the other on first home visit */}
+      <CoachingTooltip
+        id="home-morning-ritual-v1"
+        title="Le check-in du matin"
+        body="Touche un métal pour préciser ton état. Plomb si tu es lourd, Or si tu pètes le feu — ton plan du jour s'adapte."
+        delayMs={900}
+      />
+      <CoachingTooltip
+        id="home-coach-focus-v1"
+        title="Ton coach veille"
+        body="Cette carte affiche le levier le plus important pour ta journée. Tape dessus pour ouvrir une conversation."
+        delayMs={5000}
+      />
 
       {/* Weight prompt modal */}
       <WeightPromptModal

@@ -10,12 +10,12 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0B0B14"
+      "backgroundColor": "#07070D"
     },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "fr.forga.ios",
-      "buildNumber": "11",
+      "buildNumber": "22",
       "infoPlist": {
         "NSCameraUsageDescription": "FORGA utilise la camera pour les photos de progression et scanner les aliments.",
         "NSPhotoLibraryUsageDescription": "FORGA accede a tes photos pour les photos de progression et identifier les aliments.",
@@ -30,7 +30,7 @@
       "package": "fr.forga.app",
       "versionCode": 3,
       "adaptiveIcon": {
-        "backgroundColor": "#0B0B14",
+        "backgroundColor": "#07070D",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
@@ -48,8 +48,8 @@
       "name": "FORGA",
       "shortName": "FORGA",
       "description": "Ton coach nutrition intelligent. Suis tes macros, valide tes repas, progresse chaque jour.",
-      "themeColor": "#0B0B14",
-      "backgroundColor": "#0B0B14",
+      "themeColor": "#07070D",
+      "backgroundColor": "#07070D",
       "display": "standalone",
       "orientation": "portrait"
     },
@@ -76,7 +76,8 @@
           "photosPermission": "FORGA accede a tes photos pour identifier les aliments via l'IA."
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "expo-image"
     ],
     "extra": {
       "eas": {
