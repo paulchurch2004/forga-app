@@ -38,6 +38,7 @@ import { useScoreStore } from '../../src/store/scoreStore';
 import { useEngine } from '../../src/hooks/useEngine';
 import { useMealSlot } from '../../src/hooks/useMealSlot';
 import { useWater } from '../../src/hooks/useWater';
+import { useProgram } from '../../src/hooks/useProgram';
 import { MEAL_SLOT_LABELS } from '../../src/types/meal';
 
 // ──────────── CARD DATA ────────────
@@ -200,6 +201,7 @@ export default function HomeScreen() {
   const currentScore = useScoreStore((s) => s.currentScore);
   const weeklyChange = useScoreStore((s) => s.weeklyChange);
   const { todayTotal: waterMl, dailyTarget: waterGoal } = useWater();
+  const { todayProgramDay, hasActivePlan } = useProgram();
 
   const consumed = useMemo(() => {
     return todayMeals.reduce(
@@ -362,25 +364,33 @@ export default function HomeScreen() {
             onPress={() => router.push('/(tabs)/coach')}
           />
 
-          {/* Quick access — Nutrition + Séance */}
+          {/* Quick access — Nutrition + Séance, vraies données */}
           <Text style={styles.sectionLabel}>AUJOURD'HUI</Text>
           <QuickAccessRow
             tiles={[
               {
                 eyebrow: 'Nutrition',
                 title: 'Plan du jour',
-                subtitle: '1110 / 2280 kcal',
+                subtitle: `${Math.round(consumed.calories)} / ${Math.round(targets.calories)} kcal`,
                 imageUri: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80',
                 accent: true,
                 onPress: () => router.push('/nutrition'),
               },
-              {
-                eyebrow: 'Séance',
-                title: 'Push · 60 min',
-                subtitle: 'Pecs & Épaules',
-                imageUri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
-                onPress: () => router.push('/(tabs)/training'),
-              },
+              hasActivePlan && todayProgramDay
+                ? {
+                    eyebrow: 'Séance',
+                    title: `${t(todayProgramDay.nameKey as any)} · ${todayProgramDay.exercises.length * 12} min`,
+                    subtitle: todayProgramDay.muscleGroups.map((g) => t(`muscle_${g}` as any)).join(' & '),
+                    imageUri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
+                    onPress: () => router.push('/(tabs)/training'),
+                  }
+                : {
+                    eyebrow: 'Séance',
+                    title: 'Repos',
+                    subtitle: hasActivePlan ? 'Pas de séance prévue' : 'Choisis un programme',
+                    imageUri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
+                    onPress: () => router.push('/(tabs)/training'),
+                  },
             ]}
           />
 
