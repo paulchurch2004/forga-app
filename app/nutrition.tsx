@@ -26,6 +26,7 @@ import { PrimaryMealAction } from '../src/components/home/PrimaryMealAction';
 import { HydrationSegmentsCard } from '../src/components/nutrition/HydrationSegmentsCard';
 import { NutritionCoachCard } from '../src/components/nutrition/NutritionCoachCard';
 import { MealSlotPhotoList, type MealSlotPhotoItem } from '../src/components/nutrition/MealSlotPhotoList';
+import { QuickLogFAB } from '../src/components/nutrition/QuickLogFAB';
 import { useWater } from '../src/hooks/useWater';
 import { MEAL_SLOT_LABELS, MEAL_SLOT_TIMES } from '../src/types/meal';
 import { getMealById } from '../src/data/meals';
@@ -462,6 +463,15 @@ export default function NutritionScreen() {
         />
       )}
       <BadgeUnlockToast badgeType={toastBadge} onHide={() => setToastBadge(null)} />
+
+      {/* Floating quick-log: scan / photo / search — primary nutrition entry point */}
+      <QuickLogFAB
+        actions={[
+          { label: 'Scanner code-barre', icon: 'barcode', onPress: () => router.push('/scan/barcode') },
+          { label: 'Photo repas', icon: 'camera', onPress: () => router.push('/scan/photo') },
+          { label: 'Recherche recette', icon: 'search', onPress: () => router.push('/recipes') },
+        ]}
+      />
     </View>
   );
 }
