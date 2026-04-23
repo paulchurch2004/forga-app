@@ -11,6 +11,7 @@ import {
   Linking,
   useWindowDimensions,
   ImageBackground,
+  StyleSheet,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,6 +26,8 @@ import { ProfileHeroCard } from '../../src/components/profile/ProfileHeroCard';
 import { MetalDays30Card, type MetalKey } from '../../src/components/profile/MetalDays30Card';
 import { PrList, type PrItem } from '../../src/components/profile/PrCard';
 import { ProfileSheet, SheetOptionRow } from '../../src/components/profile/ProfileSheet';
+import { useTopPRs } from '../../src/hooks/useTopPRs';
+import { useMetalHistoryStore } from '../../src/store/metalHistoryStore';
 import { useScoreStore } from '../../src/store/scoreStore';
 import { useMealStore } from '../../src/store/mealStore';
 import { useWaterStore } from '../../src/store/waterStore';
@@ -66,7 +69,9 @@ export default function ProfileScreen() {
   const setLocale = useSettingsStore((s) => s.setLocale);
   const [exporting, setExporting] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
-  const [sheet, setSheet] = useState<null | 'theme' | 'language'>(null);
+  const [sheet, setSheet] = useState<null | 'theme' | 'language' | 'logout' | 'delete'>(null);
+  const topPRs = useTopPRs(3);
+  const metal30 = useMetalHistoryStore((s) => s.getLastNDays(30));
 
   const chartWidth = Math.min(screenWidth - spacing['2xl'] * 2, contentMaxWidth) - spacing.md * 2;
 
@@ -154,46 +159,33 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleDeleteAccount = () => {
-    Alert.alert(
-      t('deleteAccount'),
-      t('deleteAccountConfirm'),
-      [
-        { text: t('cancel'), style: 'cancel' },
-        {
-          text: t('delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const userId = profile.id;
-              const tables = [
-                { table: 'daily_meals', col: 'user_id' },
-                { table: 'weekly_checkins', col: 'user_id' },
-                { table: 'weight_log', col: 'user_id' },
-                { table: 'badges', col: 'user_id' },
-                { table: 'favorites', col: 'user_id' },
-                { table: 'score_history', col: 'user_id' },
-                { table: 'users', col: 'id' },
-              ];
-              for (const { table, col } of tables) {
-                const { error } = await supabase.from(table).delete().eq(col, userId);
-                if (error) {
-                  console.error(`[DeleteAccount] Failed to delete from ${table}:`, error.message);
-                }
-              }
-              await supabase.auth.signOut();
-              useUserStore.getState().reset();
-              useMealStore.getState().reset();
-              useScoreStore.getState().reset();
-              useAuthStore.getState().reset();
-              useWaterStore.getState().reset();
-            } catch (error: any) {
-              Alert.alert(t('error'), t('errorOccurred'));
-            }
-          },
-        },
-      ],
-    );
+  const handleDeleteAccount = () => setSheet('delete');
+
+  const performDeleteAccount = async () => {
+    try {
+      const userId = profile.id;
+      const tables = [
+        { table: 'daily_meals', col: 'user_id' },
+        { table: 'weekly_checkins', col: 'user_id' },
+        { table: 'weight_log', col: 'user_id' },
+        { table: 'badges', col: 'user_id' },
+        { table: 'favorites', col: 'user_id' },
+        { table: 'score_history', col: 'user_id' },
+        { table: 'users', col: 'id' },
+      ];
+      for (const { table, col } of tables) {
+        const { error } = await supabase.from(table).delete().eq(col, userId);
+        if (error) console.error(`[DeleteAccount] Failed to delete from ${table}:`, error.message);
+      }
+      await supabase.auth.signOut();
+      useUserStore.getState().reset();
+      useMealStore.getState().reset();
+      useScoreStore.getState().reset();
+      useAuthStore.getState().reset();
+      useWaterStore.getState().reset();
+    } catch (error: any) {
+      Alert.alert(t('error'), t('errorOccurred'));
+    }
   };
 
   const handleManageSubscription = async () => {
@@ -209,7 +201,9 @@ export default function ProfileScreen() {
     }
   };
 
-  const handleSignOut = async () => {
+  const handleSignOut = () => setSheet('logout');
+
+  const performSignOut = async () => {
     await supabase.auth.signOut();
     useUserStore.getState().reset();
     useMealStore.getState().reset();
@@ -275,29 +269,21 @@ export default function ProfileScreen() {
         />
       </View>
 
-      {/* 30 derniers jours — frise métaux (placeholder data) */}
+      {/* 30 derniers jours — vraies check-ins métaux du Morning Ritual */}
       <View style={{ marginTop: 24 }}>
         <Text style={styles.sectionTitle}>30 DERNIERS JOURS</Text>
         <MetalDays30Card
-          days={Array.from({ length: 30 }).map((_, i) => {
-            // Mock: alterne pattern réaliste
-            const pattern: MetalKey[] = ['or', 'acier', 'fer', 'acier', 'or', 'repos', 'acier', 'fer', 'or', 'acier', 'bronze', 'fer', 'acier', 'or', 'repos'];
-            return pattern[i % pattern.length];
-          })}
+          days={metal30.map((d) => (d.metal ?? 'repos') as MetalKey)}
         />
       </View>
 
-      {/* PRs forgés — placeholder data, à wirer plus tard sur l'historique workouts */}
-      <View style={{ marginTop: 24 }}>
-        <Text style={styles.sectionTitle}>PRs FORGÉS · CE CYCLE</Text>
-        <PrList
-          items={[
-            { id: '1', exercise: 'Développé couché', value: 82.5, unit: 'kg', previous: 77.5, delta: 5, dateLabel: 'Il y a 3j' },
-            { id: '2', exercise: 'Squat barre', value: 110, unit: 'kg', previous: 105, delta: 5, dateLabel: 'Il y a 5j' },
-            { id: '3', exercise: 'Soulevé de terre', value: 140, unit: 'kg', previous: 130, delta: 10, dateLabel: 'Il y a 9j' },
-          ]}
-        />
-      </View>
+      {/* PRs forgés — vraies données extraites des workouts validés */}
+      {topPRs.length > 0 && (
+        <View style={{ marginTop: 24 }}>
+          <Text style={styles.sectionTitle}>PRs FORGÉS · CE CYCLE</Text>
+          <PrList items={topPRs} />
+        </View>
+      )}
 
       {/* Rapport hebdo — CTA vers la revue de semaine */}
       <Pressable style={styles.weeklyReportBtn} onPress={() => router.push('/weekly-review')}>
@@ -640,9 +626,80 @@ export default function ProfileScreen() {
           />
         ))}
       </ProfileSheet>
+
+      {/* Logout confirm sheet */}
+      <ProfileSheet open={sheet === 'logout'} onClose={() => setSheet(null)} title={t('signOut')} subtitle="Tu pourras te reconnecter quand tu veux.">
+        <Pressable
+          style={({ pressed }) => [confirmStyles.danger, pressed && { opacity: 0.85 }]}
+          onPress={() => {
+            setSheet(null);
+            performSignOut();
+          }}
+        >
+          <Text style={confirmStyles.dangerText}>{t('signOut')}</Text>
+        </Pressable>
+        <Pressable style={({ pressed }) => [confirmStyles.cancel, pressed && { opacity: 0.85 }]} onPress={() => setSheet(null)}>
+          <Text style={confirmStyles.cancelText}>{t('cancel')}</Text>
+        </Pressable>
+      </ProfileSheet>
+
+      {/* Delete account confirm sheet */}
+      <ProfileSheet
+        open={sheet === 'delete'}
+        onClose={() => setSheet(null)}
+        title={t('deleteAccount')}
+        subtitle={t('deleteAccountConfirm')}
+      >
+        <Pressable
+          style={({ pressed }) => [confirmStyles.danger, pressed && { opacity: 0.85 }]}
+          onPress={() => {
+            setSheet(null);
+            performDeleteAccount();
+          }}
+        >
+          <Text style={confirmStyles.dangerText}>{t('delete')}</Text>
+        </Pressable>
+        <Pressable style={({ pressed }) => [confirmStyles.cancel, pressed && { opacity: 0.85 }]} onPress={() => setSheet(null)}>
+          <Text style={confirmStyles.cancelText}>{t('cancel')}</Text>
+        </Pressable>
+      </ProfileSheet>
     </ScrollView>
   );
 }
+
+const confirmStyles = StyleSheet.create({
+  danger: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255,71,87,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,71,87,0.40)',
+    borderRadius: 12,
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  dangerText: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FF4757',
+  },
+  cancel: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  cancelText: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+});
 
 function ProfileRow({ label, value, styles }: { label: string; value: string; styles: any }) {
   return (

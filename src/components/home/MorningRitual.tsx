@@ -13,6 +13,7 @@ import Animated, {
 import { fonts, fontSizes } from '../../theme/fonts';
 import { spacing, borderRadius } from '../../theme/spacing';
 import { useTheme } from '../../context/ThemeContext';
+import { useMetalHistoryStore } from '../../store/metalHistoryStore';
 
 type MetalId = 'lead' | 'bronze' | 'iron' | 'steel' | 'gold';
 
@@ -59,6 +60,9 @@ export function MorningRitual() {
   const chooseMetal = (m: Metal) => {
     setMetal(m.id);
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ date: getTodayKey(), metalId: m.id }));
+    // Persist in the long-term history store so the 30-day frieze on
+    // the profile picks it up.
+    useMetalHistoryStore.getState().setMetalForDate(getTodayKey(), m.id as any);
   };
 
   const reset = () => {

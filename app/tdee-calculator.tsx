@@ -23,6 +23,7 @@ import { useT } from '../src/i18n';
 import { fonts, fontSizes, fontWeights } from '../src/theme/fonts';
 import { spacing, borderRadius } from '../src/theme/spacing';
 import type { Sex, Objective, ActivityLevel } from '../src/types/user';
+import { ScreenTopBar } from '../src/components/ui/ScreenTopBar';
 
 const triggerHaptic = () => {
   if (Platform.OS === 'web') return;
@@ -167,15 +168,7 @@ export default function TDEECalculator() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()} hitSlop={16}>
-            <Text style={styles.backText}>{'←'} {t("back")}</Text>
-          </Pressable>
-        </View>
-
-        {/* Hero */}
-        <Text style={styles.h1}>{t("tdeeCalculator")}</Text>
+        <ScreenTopBar title={t("tdeeCalculator")} onBack={() => router.back()} transparent />
         <Text style={styles.subtitle}>
           {t("tdeeSubtitle")}
         </Text>

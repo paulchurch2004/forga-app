@@ -12,6 +12,7 @@ import { useTheme } from '../src/context/ThemeContext';
 import { useT } from '../src/i18n';
 import { useResponsive } from '../src/hooks/useResponsive';
 import type { BadgeType } from '../src/types/user';
+import { ScreenTopBar } from '../src/components/ui/ScreenTopBar';
 
 export default function ShareScreen() {
   const insets = useSafeAreaInsets();
@@ -42,14 +43,7 @@ export default function ShareScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()} hitSlop={16}>
-            <Text style={styles.backText}>{t("back")}</Text>
-          </Pressable>
-          <Text style={styles.headerTitle}>{t("share")}</Text>
-          <View style={{ width: 60 }} />
-        </View>
+        <ScreenTopBar title={t("share")} onBack={() => router.back()} transparent />
 
         {/* Card preview */}
         <View ref={cardRef} collapsable={false} style={styles.cardWrapper}>
