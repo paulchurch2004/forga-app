@@ -27,6 +27,7 @@ import { HydrationSegmentsCard } from '../src/components/nutrition/HydrationSegm
 import { NutritionCoachCard } from '../src/components/nutrition/NutritionCoachCard';
 import { MealSlotPhotoList, type MealSlotPhotoItem } from '../src/components/nutrition/MealSlotPhotoList';
 import { QuickLogFAB } from '../src/components/nutrition/QuickLogFAB';
+import { ValidatedMealOverlay } from '../src/components/nutrition/ValidatedMealOverlay';
 import { useWater } from '../src/hooks/useWater';
 import { MEAL_SLOT_LABELS, MEAL_SLOT_TIMES } from '../src/types/meal';
 import { getMealById } from '../src/data/meals';
@@ -62,6 +63,7 @@ export default function NutritionScreen() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [toastBadge, setToastBadge] = useState<BadgeType | null>(null);
   const [undoSlot, setUndoSlot] = useState<string | null>(null);
+  const [validatedOverlay, setValidatedOverlay] = useState<{ kcal: number; protein: number } | null>(null);
   const { cardRef, share } = useShareCard();
   const styles = useStyles();
   const { t } = useT();
@@ -95,6 +97,10 @@ export default function NutritionScreen() {
       const newest = todayMeals[todayMeals.length - 1];
       if (newest) {
         setUndoSlot(newest.slot);
+        setValidatedOverlay({
+          kcal: Math.round(newest.actualMacros.calories),
+          protein: Math.round(newest.actualMacros.protein),
+        });
         if (Platform.OS !== 'web') {
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
         }
@@ -471,6 +477,14 @@ export default function NutritionScreen() {
           { label: 'Photo repas', icon: 'camera', onPress: () => router.push('/scan/photo') },
           { label: 'Recherche recette', icon: 'search', onPress: () => router.push('/recipes') },
         ]}
+      />
+
+      {/* Cérémonie post-validation : check vert + +X kcal · +Yg prot */}
+      <ValidatedMealOverlay
+        visible={validatedOverlay !== null}
+        kcal={validatedOverlay?.kcal ?? 0}
+        protein={validatedOverlay?.protein ?? 0}
+        onDone={() => setValidatedOverlay(null)}
       />
     </View>
   );

@@ -28,6 +28,8 @@ import { useProgramStore } from '../src/store/programStore';
 import { useUserStore } from '../src/store/userStore';
 import { getRestConfig, formatRestTime as fmtRest } from '../src/engine/restEngine';
 import { RestCircleTimer } from '../src/components/training/RestCircleTimer';
+import { SessionForgee } from '../src/components/training/SessionForgee';
+import { LiveCoachIntervention, type LiveCoachKind } from '../src/components/coach/LiveCoachIntervention';
 import type { ProgramExercise } from '../src/types/program';
 import type { Workout, WorkoutExercise, ExerciseSet, WorkoutType } from '../src/types/training';
 import Svg, { Path } from 'react-native-svg';
@@ -89,6 +91,7 @@ export default function ActiveWorkoutScreen() {
   const getLastSession = useTrainingStore((s) => s.getLastSessionForExercise);
   const userId = useAuthStore((s) => s.session?.user?.id);
   const objective = useUserStore((s) => s.profile?.objective ?? 'maintain');
+  const profile = useUserStore((s) => s.profile);
 
   const programDay = useMemo(
     () => getProgramDayById(params.programId, params.programDayId),
@@ -128,6 +131,10 @@ export default function ActiveWorkoutScreen() {
   const [prAlert, setPrAlert] = useState<string | null>(null);
   const [showWorkoutGuide, setShowWorkoutGuide] = useState(false);
   const [showFinisherCardio, setShowFinisherCardio] = useState(false);
+  const [showSessionForgee, setShowSessionForgee] = useState(false);
+  const [forgeeStats, setForgeeStats] = useState({ durationMin: 0, volumeKg: 0, prCount: 0 });
+  const [liveCoach, setLiveCoach] = useState<LiveCoachKind | null>(null);
+  const liveCoachShownRef = useRef<Set<string>>(new Set());
   const [finisherTimer, setFinisherTimer] = useState(0);
   const [finisherRunning, setFinisherRunning] = useState(false);
   const [finisherLevel, setFinisherLevel] = useState<'beginner' | 'intermediate' | 'advanced' | null>(null);
@@ -303,6 +310,14 @@ export default function ActiveWorkoutScreen() {
           setRestReasonKey(config.reasonKey);
           startRestTimer(config.restSeconds);
         }
+
+        // Live coach intervention — fire once per exercise on the 2nd set
+        if (setIdx === 1 && !liveCoachShownRef.current.has(ex.exerciseId)) {
+          liveCoachShownRef.current.add(ex.exerciseId);
+          const kinds: LiveCoachKind[] = ['form', 'rest', 'push', 'swap'];
+          const kind = kinds[Math.floor(Math.random() * kinds.length)];
+          setTimeout(() => setLiveCoach(kind), 800);
+        }
       }
     },
     [exercises, startRestTimer, objective]
@@ -405,8 +420,19 @@ export default function ActiveWorkoutScreen() {
       if (userId) syncWorkout(workout, userId);
       markDayCompleted(date, workoutId);
       triggerHaptic('success');
-      // Show finisher cardio option instead of going back immediately
-      setShowFinisherCardio(true);
+
+      // Compute Session Forgée stats from the workout
+      const totalVol = workoutExercises.reduce(
+        (acc, ex) => acc + ex.sets.reduce((s, set) => s + set.weight * set.reps, 0),
+        0
+      );
+      setForgeeStats({
+        durationMin: Math.max(1, Math.ceil(elapsedSeconds / 60)),
+        volumeKg: Math.round(totalVol),
+        prCount: 0,
+      });
+      // Ceremony first; finisher cardio comes after the user closes the modal
+      setShowSessionForgee(true);
     },
     [exercises, elapsedSeconds, addWorkout, markDayCompleted, router, t, userId]
   );
@@ -777,6 +803,27 @@ export default function ActiveWorkoutScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Session Forgée — ceremony after a completed muscu workout */}
+      <SessionForgee
+        visible={showSessionForgee}
+        userName={profile?.name?.split(' ')[0] ?? 'Forgeron'}
+        stats={forgeeStats}
+        onClose={() => {
+          setShowSessionForgee(false);
+          setShowFinisherCardio(true);
+        }}
+      />
+
+      {/* Live coach intervention — fires mid-workout */}
+      {liveCoach && (
+        <LiveCoachIntervention
+          visible
+          kind={liveCoach}
+          onAccept={() => setLiveCoach(null)}
+          onDismiss={() => setLiveCoach(null)}
+        />
+      )}
     </View>
   );
 }
