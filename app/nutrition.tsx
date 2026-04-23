@@ -21,6 +21,8 @@ import { useStreak } from '../src/hooks/useStreak';
 import { useScore } from '../src/hooks/useScore';
 import { HeroScore } from '../src/components/home/HeroScore';
 import { MealSlotList } from '../src/components/home/MealSlotList';
+import { MacroRingsCard } from '../src/components/home/MacroRingsCard';
+import { PrimaryMealAction } from '../src/components/home/PrimaryMealAction';
 import { StreakBadge } from '../src/components/ui/StreakBadge';
 import { CoachCard } from '../src/components/home/CoachCard';
 import { getCoachMessage, type CoachInput } from '../src/engine/coachEngine';
@@ -308,6 +310,18 @@ export default function NutritionScreen() {
           target={targetMacros}
         />
 
+        {/* Macros rings — 4 SVG anneaux animés */}
+        <Animated.View entering={FadeInDown.delay(50).duration(400)} style={{ marginTop: spacing.md }}>
+          <MacroRingsCard
+            macros={[
+              { label: 'kcal', value: Math.round(consumedMacros.calories), goal: targetMacros.calories || 1, color: '#FF6B35' },
+              { label: 'Prot', value: Math.round(consumedMacros.protein), goal: targetMacros.protein || 1, color: '#5B8BFF' },
+              { label: 'Gluc', value: Math.round(consumedMacros.carbs), goal: targetMacros.carbs || 1, color: '#FFC94D' },
+              { label: 'Lip', value: Math.round(consumedMacros.fat), goal: targetMacros.fat || 1, color: '#FF6B6B' },
+            ]}
+          />
+        </Animated.View>
+
         {/* Objective */}
         <Animated.View entering={FadeInDown.delay(100).duration(400)}>
           <View style={styles.objectiveCard}>
@@ -339,6 +353,16 @@ export default function NutritionScreen() {
             <MealSlotList slots={slots} />
           </View>
         </Animated.View>
+
+        {/* Primary action — UN seul bouton CTA pour logger le prochain repas (résout friction UX #4) */}
+        {currentSlot && (
+          <Animated.View entering={FadeInDown.delay(450).duration(400)} style={{ marginTop: spacing.md }}>
+            <PrimaryMealAction
+              slotLabel={currentSlot.label.toLowerCase()}
+              onPress={() => router.push(`/(tabs)/meals?slot=${currentSlot.slot}`)}
+            />
+          </Animated.View>
+        )}
 
         {/* Scan actions with images */}
         <Animated.View entering={FadeInDown.delay(500).duration(400)}>
