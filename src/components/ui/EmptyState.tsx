@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
-import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { fonts } from '../../theme/fonts';
 
 interface EmptyStateProps {
-  icon: string;
+  icon: string; // emoji or short string for the icon medallion
   title: string;
   subtitle?: string;
   actionLabel?: string;
@@ -12,60 +12,95 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({ icon, title, subtitle, actionLabel, onAction }: EmptyStateProps) {
-  const styles = useStyles();
-
   return (
-    <Animated.View entering={FadeIn.duration(400)} style={styles.container}>
-      <Text style={styles.icon}>{icon}</Text>
+    <View style={styles.container}>
+      <View style={styles.medallion}>
+        <View style={styles.medallionInner}>
+          <Text style={styles.icon}>{icon}</Text>
+        </View>
+      </View>
+
       <Text style={styles.title}>{title}</Text>
       {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+
       {actionLabel && onAction ? (
-        <Pressable style={styles.button} onPress={onAction}>
-          <Text style={styles.buttonText}>{actionLabel}</Text>
+        <Pressable onPress={onAction} style={({ pressed }) => [pressed && { opacity: 0.9 }]}>
+          <LinearGradient
+            colors={['#FF8C40', '#FF5A1C']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.button}
+          >
+            <Text style={styles.buttonText}>{actionLabel}</Text>
+          </LinearGradient>
         </Pressable>
       ) : null}
-    </Animated.View>
+    </View>
   );
 }
 
-const useStyles = makeStyles((colors) => ({
+const styles = StyleSheet.create({
   container: {
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    paddingVertical: spacing['3xl'],
-    paddingHorizontal: spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+    paddingHorizontal: 28,
+  },
+  medallion: {
+    width: 76,
+    height: 76,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,107,53,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,107,53,0.30)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 18,
+  },
+  medallionInner: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,107,53,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   icon: {
-    fontSize: 48,
-    marginBottom: spacing.md,
+    fontSize: 28,
   },
   title: {
     fontFamily: fonts.display,
-    fontSize: fontSizes.lg,
-    fontWeight: '700' as const,
-    color: colors.text,
-    textAlign: 'center' as const,
-    marginBottom: spacing.sm,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    letterSpacing: -0.3,
+    marginBottom: 6,
   },
   subtitle: {
     fontFamily: fonts.body,
-    fontSize: fontSizes.sm,
-    color: colors.textSecondary,
-    textAlign: 'center' as const,
-    lineHeight: 20,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.62)',
+    textAlign: 'center',
+    lineHeight: 19,
     maxWidth: 280,
   },
   button: {
-    marginTop: spacing.lg,
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.md,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
+    marginTop: 22,
+    paddingVertical: 14,
+    paddingHorizontal: 26,
+    borderRadius: 999,
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 18,
+    elevation: 8,
   },
   buttonText: {
     fontFamily: fonts.body,
-    fontSize: fontSizes.sm,
-    fontWeight: '700' as const,
-    color: colors.white,
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.4,
   },
-}));
+});

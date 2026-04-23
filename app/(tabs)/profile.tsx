@@ -24,6 +24,7 @@ import { useUserStore } from '../../src/store/userStore';
 import { ProfileHeroCard } from '../../src/components/profile/ProfileHeroCard';
 import { MetalDays30Card, type MetalKey } from '../../src/components/profile/MetalDays30Card';
 import { PrList, type PrItem } from '../../src/components/profile/PrCard';
+import { ProfileSheet, SheetOptionRow } from '../../src/components/profile/ProfileSheet';
 import { useScoreStore } from '../../src/store/scoreStore';
 import { useMealStore } from '../../src/store/mealStore';
 import { useWaterStore } from '../../src/store/waterStore';
@@ -65,6 +66,7 @@ export default function ProfileScreen() {
   const setLocale = useSettingsStore((s) => s.setLocale);
   const [exporting, setExporting] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [sheet, setSheet] = useState<null | 'theme' | 'language'>(null);
 
   const chartWidth = Math.min(screenWidth - spacing['2xl'] * 2, contentMaxWidth) - spacing.md * 2;
 
@@ -297,6 +299,15 @@ export default function ProfileScreen() {
         />
       </View>
 
+      {/* Rapport hebdo — CTA vers la revue de semaine */}
+      <Pressable style={styles.weeklyReportBtn} onPress={() => router.push('/weekly-review')}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.weeklyReportEyebrow}>RAPPORT HEBDO · SEM. EN COURS</Text>
+          <Text style={styles.weeklyReportTitle}>Voir ma revue de semaine</Text>
+        </View>
+        <Text style={styles.weeklyReportArrow}>{'›'}</Text>
+      </Pressable>
+
       {/* Score + Streak */}
       <View style={styles.statsRow}>
         <Pressable style={styles.statCard} onPress={() => router.push('/share?type=score')}>
@@ -509,40 +520,22 @@ export default function ProfileScreen() {
         )}
       </View>
 
-      {/* Appearance */}
+      {/* Appearance — opens sheet */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('appearance')}</Text>
-        <View style={styles.chipRow}>
-          {THEME_OPTIONS.map((opt) => (
-            <Pressable
-              key={opt.value}
-              style={[styles.chip, themeMode === opt.value && styles.chipActive]}
-              onPress={() => setThemeMode(opt.value)}
-            >
-              <Text style={[styles.chipText, themeMode === opt.value && styles.chipTextActive]}>
-                {opt.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
+        <Pressable style={styles.actionRow} onPress={() => setSheet('theme')}>
+          <Text style={styles.actionText}>{t('appearance')}</Text>
+          <Text style={styles.actionValue}>
+            {THEME_OPTIONS.find((o) => o.value === themeMode)?.label ?? ''} {'›'}
+          </Text>
+        </Pressable>
 
-      {/* Language */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>{t('language')}</Text>
-        <View style={styles.chipRow}>
-          {LOCALE_OPTIONS.map((opt) => (
-            <Pressable
-              key={opt.value}
-              style={[styles.chip, locale === opt.value && styles.chipActive]}
-              onPress={() => setLocale(opt.value)}
-            >
-              <Text style={[styles.chipText, locale === opt.value && styles.chipTextActive]}>
-                {opt.label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        {/* Language — opens sheet */}
+        <Pressable style={styles.actionRow} onPress={() => setSheet('language')}>
+          <Text style={styles.actionText}>{t('language')}</Text>
+          <Text style={styles.actionValue}>
+            {LOCALE_OPTIONS.find((o) => o.value === locale)?.label ?? ''} {'›'}
+          </Text>
+        </Pressable>
       </View>
 
       {/* Actions */}
@@ -617,6 +610,36 @@ export default function ProfileScreen() {
           FORGA v{APP_VERSION}
         </Text>
       </View>
+
+      {/* Theme picker sheet */}
+      <ProfileSheet open={sheet === 'theme'} onClose={() => setSheet(null)} title={t('appearance')} subtitle="Sombre, clair ou automatique">
+        {THEME_OPTIONS.map((opt) => (
+          <SheetOptionRow
+            key={opt.value}
+            label={opt.label}
+            selected={themeMode === opt.value}
+            onPress={() => {
+              setThemeMode(opt.value);
+              setSheet(null);
+            }}
+          />
+        ))}
+      </ProfileSheet>
+
+      {/* Language picker sheet */}
+      <ProfileSheet open={sheet === 'language'} onClose={() => setSheet(null)} title={t('language')} subtitle="Choisis ta langue">
+        {LOCALE_OPTIONS.map((opt) => (
+          <SheetOptionRow
+            key={opt.value}
+            label={opt.label}
+            selected={locale === opt.value}
+            onPress={() => {
+              setLocale(opt.value);
+              setSheet(null);
+            }}
+          />
+        ))}
+      </ProfileSheet>
     </ScrollView>
   );
 }
@@ -753,6 +776,38 @@ const useStyles = makeStyles((colors) => ({
     color: colors.text,
     marginBottom: spacing.md,
   },
+  weeklyReportBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    backgroundColor: 'rgba(255,107,53,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,107,53,0.30)',
+    borderRadius: 18,
+    marginTop: 24,
+  },
+  weeklyReportEyebrow: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    color: '#FF6B35',
+    letterSpacing: 1.4,
+    fontWeight: '700',
+  },
+  weeklyReportTitle: {
+    fontFamily: fonts.display,
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginTop: 4,
+  },
+  weeklyReportArrow: {
+    fontFamily: fonts.display,
+    fontSize: 24,
+    color: 'rgba(255,255,255,0.62)',
+    fontWeight: '300',
+  },
   badgeGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -837,6 +892,11 @@ const useStyles = makeStyles((colors) => ({
     fontFamily: fonts.body,
     fontSize: fontSizes.md,
     color: colors.text,
+  },
+  actionValue: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.textMuted,
   },
   adjustmentRow: {
     flexDirection: 'row',
