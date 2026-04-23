@@ -19,6 +19,10 @@ import { TodayWorkoutCard } from '../../src/components/training/TodayWorkoutCard
 import { WorkoutCard } from '../../src/components/training/WorkoutCard';
 import { QuickStats } from '../../src/components/training/QuickStats';
 import { EmptyState } from '../../src/components/ui/EmptyState';
+import { WeeklyDaysGrid, type WeekDayItem, type DayStatus } from '../../src/components/training/WeeklyDaysGrid';
+import { TodayWorkoutPreview, type ExercisePreview } from '../../src/components/training/TodayWorkoutPreview';
+import { SessionHistoryList, type SessionHistoryItem } from '../../src/components/training/SessionHistoryList';
+import { EXERCISES } from '../../src/data/exercises';
 
 const TRAINING_HEADER_IMAGE =
   'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=60';
@@ -148,13 +152,46 @@ export default function TrainingScreen() {
             />
           )}
 
-          {/* Weekly calendar */}
+          {/* Weekly grid — redesign : 7 carrés colorés par status */}
           {weekDays.length > 0 && (
-            <WeeklyPlanCalendar weekDays={weekDays} />
+            <Animated.View entering={FadeInDown.delay(100).duration(400)} style={{ marginTop: spacing.md }}>
+              <WeeklyDaysGrid
+                days={weekDays.map<WeekDayItem>((d) => {
+                  const date = new Date(d.date);
+                  const dayLetters = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+                  const status: DayStatus =
+                    d.status === 'completed' ? 'done'
+                    : d.status === 'today' ? 'today'
+                    : d.status === 'rest' ? 'rest'
+                    : 'plan';
+                  return { letter: dayLetters[date.getDay()], status };
+                })}
+              />
+            </Animated.View>
           )}
 
-          {/* Today's workout */}
-          {todayPlan && (
+          {/* Séance du jour — redesign : intention quote + 3 exos preview + CTA */}
+          {todayPlan && todayProgramDay && (
+            <Animated.View entering={FadeInDown.delay(200).duration(400)} style={{ marginTop: spacing.md }}>
+              <Text style={styles.sectionTitle}>SÉANCE DU JOUR</Text>
+              <TodayWorkoutPreview
+                type={`${t(todayProgramDay.nameKey as any)} · ${todayProgramDay.exercises.length * 12} min`}
+                title={todayProgramDay.muscleGroups.map((g) => t(`muscle_${g}` as any)).join(' & ')}
+                intention={`Consolider ta séance ${t(todayProgramDay.nameKey as any).toLowerCase()}. On garde l'intensité, on soigne l'exécution.`}
+                exercises={todayProgramDay.exercises.map<ExercisePreview>((e) => ({
+                  id: e.exerciseId,
+                  name: EXERCISES[e.exerciseId]?.nameFr ?? e.exerciseId,
+                  sets: e.targetSets,
+                  reps: String(e.targetReps),
+                }))}
+                totalExercises={todayProgramDay.exercises.length}
+                onStart={handleStartWorkout}
+              />
+            </Animated.View>
+          )}
+
+          {/* Fallback if no programDay (rest day) */}
+          {todayPlan && !todayProgramDay && (
             <TodayWorkoutCard
               todayPlan={todayPlan}
               programDay={todayProgramDay}
@@ -174,22 +211,26 @@ export default function TrainingScreen() {
             </Animated.View>
           )}
 
-          {/* Recent history */}
+          {/* Recent history — redesign list */}
           {recentWorkouts.length > 0 ? (
-            <Animated.View entering={FadeInDown.delay(400).duration(400)}>
+            <Animated.View entering={FadeInDown.delay(400).duration(400)} style={{ marginTop: spacing.md }}>
               <Text style={styles.sectionTitle}>{t('recentWorkouts')}</Text>
-              {recentWorkouts.slice(0, 3).map((w) => (
-                <WorkoutCard
-                  key={w.id}
-                  workout={w}
-                  onPress={() =>
-                    router.push({
-                      pathname: '/workout-detail',
-                      params: { workoutId: w.id, date: w.date },
-                    })
-                  }
-                />
-              ))}
+              <SessionHistoryList
+                items={recentWorkouts.slice(0, 5).map<SessionHistoryItem>((w) => {
+                  const date = new Date(w.date);
+                  const today = new Date();
+                  const diffDays = Math.round((today.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+                  const dateLabel = diffDays === 0 ? 'Aujourd\'hui' : diffDays === 1 ? 'Hier' : diffDays === 2 ? 'Avant-hier' : `Il y a ${diffDays}j`;
+                  const totalVol = w.exercises.reduce((acc, ex) => acc + ex.sets.reduce((s, set) => s + (set.weight ?? 0) * (set.reps ?? 0), 0), 0);
+                  return {
+                    id: w.id,
+                    name: w.name ?? t('workoutLabel'),
+                    dateLabel: `${dateLabel} · ${w.durationMinutes ?? '—'} min`,
+                    volumeLabel: totalVol > 0 ? `${totalVol.toLocaleString('fr-FR')} kg vol` : '',
+                    onPress: () => router.push({ pathname: '/workout-detail', params: { workoutId: w.id, date: w.date } }),
+                  };
+                })}
+              />
             </Animated.View>
           ) : (
             <Animated.View entering={FadeInDown.delay(400).duration(400)}>
