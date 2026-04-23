@@ -30,6 +30,7 @@ import { getRestConfig, formatRestTime as fmtRest } from '../src/engine/restEngi
 import { RestCircleTimer } from '../src/components/training/RestCircleTimer';
 import { SessionForgee } from '../src/components/training/SessionForgee';
 import { LiveCoachIntervention, type LiveCoachKind } from '../src/components/coach/LiveCoachIntervention';
+import { WorkoutTopBar } from '../src/components/training/WorkoutTopBar';
 import type { ProgramExercise } from '../src/types/program';
 import type { Workout, WorkoutExercise, ExerciseSet, WorkoutType } from '../src/types/training';
 import Svg, { Path } from 'react-native-svg';
@@ -472,20 +473,10 @@ export default function ActiveWorkoutScreen() {
   }
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable onPress={handleBack} hitSlop={12}>
-          <Text style={styles.backBtn}>{'\u2190'}</Text>
-        </Pressable>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {t(programDay.nameKey as any)}
-        </Text>
-        <View style={styles.timerBox}>
-          <Text style={styles.timerLabel}>{t('elapsedTime')}</Text>
-          <Text style={styles.timerValue}>{formatTime(elapsedSeconds)}</Text>
-        </View>
-      </View>
+    <View style={styles.container}>
+      {/* Top bar — close + pulsing red dot + elapsed time + pause */}
+      <WorkoutTopBar elapsedSeconds={elapsedSeconds} onClose={handleBack} />
+
 
       <ScrollView
         style={styles.scrollView}
