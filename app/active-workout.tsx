@@ -27,6 +27,7 @@ import { useAuthStore } from '../src/store/authStore';
 import { useProgramStore } from '../src/store/programStore';
 import { useUserStore } from '../src/store/userStore';
 import { getRestConfig, formatRestTime as fmtRest } from '../src/engine/restEngine';
+import { RestCircleTimer } from '../src/components/training/RestCircleTimer';
 import type { ProgramExercise } from '../src/types/program';
 import type { Workout, WorkoutExercise, ExerciseSet, WorkoutType } from '../src/types/training';
 import Svg, { Path } from 'react-native-svg';
@@ -120,6 +121,7 @@ export default function ActiveWorkoutScreen() {
 
   // Rest timer
   const [restSeconds, setRestSeconds] = useState(0);
+  const [restTotalSeconds, setRestTotalSeconds] = useState(0);
   const [isResting, setIsResting] = useState(false);
   const [restReasonKey, setRestReasonKey] = useState('');
   const [isTransitionRest, setIsTransitionRest] = useState(false);
@@ -147,6 +149,7 @@ export default function ActiveWorkoutScreen() {
 
   const startRestTimer = useCallback((seconds: number) => {
     setRestSeconds(seconds);
+    setRestTotalSeconds(seconds);
     setIsResting(true);
     if (restRef.current) clearInterval(restRef.current);
     restRef.current = setInterval(() => {
@@ -628,19 +631,21 @@ export default function ActiveWorkoutScreen() {
         </Animated.View>
       )}
 
-      {/* Rest timer overlay */}
+      {/* Rest timer overlay — redesign : circle SVG + accent orange */}
       {isResting && (
         <View style={styles.restOverlay}>
-          <Text style={styles.restLabel}>
-            {isTransitionRest ? t('restTransition' as any) : t('restTimer')}
-          </Text>
-          <Text style={styles.restTime}>{formatTime(restSeconds)}</Text>
-          {restReasonKey !== '' && (
-            <Text style={styles.restReason}>{t(restReasonKey as any)}</Text>
-          )}
-          <Pressable style={styles.skipBtn} onPress={skipRest}>
-            <Text style={styles.skipBtnText}>{t('skipRest')}</Text>
-          </Pressable>
+          <RestCircleTimer
+            secondsLeft={restSeconds}
+            totalSeconds={restTotalSeconds || 1}
+            hint={
+              restReasonKey !== ''
+                ? t(restReasonKey as any)
+                : isTransitionRest
+                ? t('restTransition' as any)
+                : 'Reconstitution phosphocréatine pour force max.'
+            }
+            onSkip={skipRest}
+          />
         </View>
       )}
 

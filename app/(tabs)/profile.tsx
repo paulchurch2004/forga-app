@@ -21,6 +21,9 @@ import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useUserStore } from '../../src/store/userStore';
+import { ProfileHeroCard } from '../../src/components/profile/ProfileHeroCard';
+import { MetalDays30Card, type MetalKey } from '../../src/components/profile/MetalDays30Card';
+import { PrList, type PrItem } from '../../src/components/profile/PrCard';
 import { useScoreStore } from '../../src/store/scoreStore';
 import { useMealStore } from '../../src/store/mealStore';
 import { useWaterStore } from '../../src/store/waterStore';
@@ -257,6 +260,42 @@ export default function ProfileScreen() {
           )}
         </LinearGradient>
       </ImageBackground>
+
+      {/* Redesign hero — archétype + identité + 3 stats key */}
+      <View style={{ paddingHorizontal: 0, marginTop: 16 }}>
+        <ProfileHeroCard
+          name={profile.name}
+          archetype={useUserStore.getState().onboardingData.archetype}
+          cycleLabel={`Jour ${currentStreak} · Cycle consolidation`}
+          streak={currentStreak}
+          formScore={score.total}
+          weight={weightLog[weightLog.length - 1]?.weight ?? profile.currentWeight ?? 0}
+        />
+      </View>
+
+      {/* 30 derniers jours — frise métaux (placeholder data) */}
+      <View style={{ marginTop: 24 }}>
+        <Text style={styles.sectionTitle}>30 DERNIERS JOURS</Text>
+        <MetalDays30Card
+          days={Array.from({ length: 30 }).map((_, i) => {
+            // Mock: alterne pattern réaliste
+            const pattern: MetalKey[] = ['or', 'acier', 'fer', 'acier', 'or', 'repos', 'acier', 'fer', 'or', 'acier', 'bronze', 'fer', 'acier', 'or', 'repos'];
+            return pattern[i % pattern.length];
+          })}
+        />
+      </View>
+
+      {/* PRs forgés — placeholder data, à wirer plus tard sur l'historique workouts */}
+      <View style={{ marginTop: 24 }}>
+        <Text style={styles.sectionTitle}>PRs FORGÉS · CE CYCLE</Text>
+        <PrList
+          items={[
+            { id: '1', exercise: 'Développé couché', value: 82.5, unit: 'kg', previous: 77.5, delta: 5, dateLabel: 'Il y a 3j' },
+            { id: '2', exercise: 'Squat barre', value: 110, unit: 'kg', previous: 105, delta: 5, dateLabel: 'Il y a 5j' },
+            { id: '3', exercise: 'Soulevé de terre', value: 140, unit: 'kg', previous: 130, delta: 10, dateLabel: 'Il y a 9j' },
+          ]}
+        />
+      </View>
 
       {/* Score + Streak */}
       <View style={styles.statsRow}>
