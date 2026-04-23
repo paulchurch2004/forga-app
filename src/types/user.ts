@@ -48,7 +48,13 @@ export interface UserProfile {
   updatedAt: string;
 }
 
+export type Archetype = 'warrior' | 'craftsman' | 'explorer';
+export type IntensityLevel = 1 | 2 | 3 | 4 | 5;
+
 export interface OnboardingData {
+  archetype?: Archetype;
+  intensity?: IntensityLevel;
+  name?: string;
   sex?: Sex;
   age?: number;
   heightCm?: number;

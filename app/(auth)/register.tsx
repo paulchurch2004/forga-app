@@ -134,7 +134,7 @@ export default function RegisterScreen() {
       } as any);
       useAuthStore.getState().setOnboarded(false);
       setLoading(false);
-      router.replace('/(onboarding)/step1-identity');
+      router.replace('/(onboarding)/step0-archetype');
       return;
     }
 
@@ -158,7 +158,7 @@ export default function RegisterScreen() {
       if (trimmedCode && isValidReferralCode(trimmedCode)) {
         setOnboardingData({ referredByCode: trimmedCode });
       }
-      router.replace('/(onboarding)/step1-identity');
+      router.replace('/(onboarding)/step0-archetype');
     }
   };
 
