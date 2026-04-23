@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Modal, Dimensions } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Animated, {
   useSharedValue,
@@ -74,17 +74,17 @@ export function CoachingTooltip({
     release(id);
   };
 
-  // Only render the Modal when this tooltip is the active one in the queue
+  // Only render the overlay when this tooltip is the active one in the queue
   if (!hydrated || !eligible || activeId !== id) return null;
 
   return (
-    <Modal visible transparent animationType="none">
+    <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       <Pressable style={styles.backdrop} onPress={dismiss}>
         <View style={[styles.cardWrap, anchorY !== undefined && { top: anchorY - 90 }]}>
           <Card title={title} body={body} cta={cta} arrow={arrow} onDismiss={dismiss} />
         </View>
       </Pressable>
-    </Modal>
+    </View>
   );
 }
 
