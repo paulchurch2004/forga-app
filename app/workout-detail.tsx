@@ -7,6 +7,7 @@ import { useResponsive } from '../src/hooks/useResponsive';
 import { useT } from '../src/i18n';
 import { useTrainingStore } from '../src/store/trainingStore';
 import { getWorkoutTypeIcon, getWorkoutTypeKey, getIntensityKey } from '../src/hooks/useTraining';
+import { ScreenTopBar } from '../src/components/ui/ScreenTopBar';
 
 export default function WorkoutDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -46,16 +47,13 @@ export default function WorkoutDetailScreen() {
   };
 
   return (
-    <ScrollView
-      style={[styles.wrapper, { paddingTop: insets.top }]}
-      contentContainerStyle={[styles.content, { maxWidth: contentMaxWidth }]}
-      showsVerticalScrollIndicator={false}
-    >
-      <Pressable onPress={() => router.back()} hitSlop={16} style={styles.headerRow}>
-        <Text style={styles.backText}>{'\u2039'} {t('back')}</Text>
-      </Pressable>
-
-      <Text style={styles.pageTitle}>{t('workoutDetail')}</Text>
+    <View style={{ flex: 1 }}>
+      <ScreenTopBar title={t('workoutDetail')} onBack={() => router.back()} transparent />
+      <ScrollView
+        style={styles.wrapper}
+        contentContainerStyle={[styles.content, { maxWidth: contentMaxWidth }]}
+        showsVerticalScrollIndicator={false}
+      >
 
       {/* Summary card */}
       <View style={styles.summaryCard}>
@@ -115,7 +113,8 @@ export default function WorkoutDetailScreen() {
       </Pressable>
 
       <View style={{ height: spacing['5xl'] }} />
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 

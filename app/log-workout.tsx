@@ -13,6 +13,7 @@ import { ExerciseRow } from '../src/components/training/ExerciseRow';
 import { ExercisePicker } from '../src/components/training/ExercisePicker';
 import { EXERCISES } from '../src/data/exercises';
 import type { WorkoutType, Intensity, WorkoutExercise, ExerciseSet, Exercise } from '../src/types/training';
+import { ScreenTopBar } from '../src/components/ui/ScreenTopBar';
 
 export default function LogWorkoutScreen() {
   const insets = useSafeAreaInsets();
@@ -94,13 +95,7 @@ export default function LogWorkoutScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header */}
-        <View style={styles.headerRow}>
-          <Pressable onPress={() => router.back()} hitSlop={16}>
-            <Text style={styles.backText}>{'\u2039'} {t('back')}</Text>
-          </Pressable>
-        </View>
-        <Text style={styles.pageTitle}>{t('logWorkout')}</Text>
+        <ScreenTopBar title={t('logWorkout')} onBack={() => router.back()} transparent />
 
         {/* Step 1: Workout Type */}
         <View style={styles.section}>

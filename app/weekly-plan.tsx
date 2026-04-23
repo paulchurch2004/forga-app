@@ -23,6 +23,7 @@ import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../src/them
 import { useT } from '../src/i18n';
 import { EmptyState } from '../src/components/ui/EmptyState';
 import { useResponsive } from '../src/hooks/useResponsive';
+import { ScreenTopBar } from '../src/components/ui/ScreenTopBar';
 
 const DAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 
@@ -237,16 +238,16 @@ export default function WeeklyPlanScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()} hitSlop={16}>
-            <Text style={styles.backText}>{t('back')}</Text>
-          </Pressable>
-          <Text style={styles.headerTitle}>{t('planAndShopping')}</Text>
-          <Pressable onPress={handleGenerate} hitSlop={12}>
-            <Text style={styles.regenerateText}>{days.length > 0 ? 'Refaire' : t('generatePlan')}</Text>
-          </Pressable>
-        </View>
+        <ScreenTopBar
+          title={t('planAndShopping')}
+          onBack={() => router.back()}
+          transparent
+          right={
+            <Pressable onPress={handleGenerate} hitSlop={12}>
+              <Text style={styles.regenerateText}>{days.length > 0 ? 'Refaire' : t('generatePlan')}</Text>
+            </Pressable>
+          }
+        />
 
         {/* Tab bar */}
         {days.length > 0 && (

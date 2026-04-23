@@ -18,6 +18,7 @@ import { supabase } from '../src/services/supabase';
 import { syncProfile } from '../src/services/userSync';
 import { events } from '../src/services/analytics';
 import type { AdaptiveInput } from '../src/types/engine';
+import { ScreenTopBar } from '../src/components/ui/ScreenTopBar';
 
 type Rating = 1 | 2 | 3 | 4 | 5;
 type SmallRating = 1 | 2 | 3 | 4;
@@ -180,15 +181,10 @@ export default function CheckInScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()}>
-          <Text style={styles.backText}>{t('back')}</Text>
-        </Pressable>
-      </View>
-
-      <Text style={styles.title}>{t('weeklyCheckIn')}</Text>
-      <Text style={styles.subtitle}>{t('checkinSubtitle')}</Text>
+    <View style={{ flex: 1 }}>
+      <ScreenTopBar title={t('weeklyCheckIn')} onBack={() => router.back()} transparent />
+      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <Text style={styles.subtitle}>{t('checkinSubtitle')}</Text>
 
       {/* Weight */}
       <View style={styles.field}>
@@ -256,7 +252,8 @@ export default function CheckInScreen() {
           {loading ? t('loading') : t('send')}
         </Text>
       </Pressable>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 

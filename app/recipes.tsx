@@ -18,6 +18,7 @@ import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../src/them
 import { useTheme } from '../src/context/ThemeContext';
 import { useResponsive } from '../src/hooks/useResponsive';
 import { useT } from '../src/i18n';
+import { ScreenTopBar } from '../src/components/ui/ScreenTopBar';
 import type { Meal, MealSlot } from '../src/types/meal';
 
 // ──────────── FILTER TYPES ────────────
@@ -165,14 +166,12 @@ export default function RecipesScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top, maxWidth: contentMaxWidth }]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={16}>
-          <Text style={styles.backText}>{'\u2039'} {t('home')}</Text>
-        </Pressable>
-        <Text style={styles.title}>{locale === 'en' ? 'Recipes' : 'Recettes'}</Text>
-        <Text style={styles.countBadge}>{filteredMeals.length}</Text>
-      </View>
+      <ScreenTopBar
+        title={locale === 'en' ? 'Recipes' : 'Recettes'}
+        subtitle={`${filteredMeals.length} ${locale === 'en' ? 'results' : 'r\u00e9sultats'}`}
+        onBack={() => router.back()}
+        transparent
+      />
 
       {/* Search */}
       <View style={styles.searchRow}>
