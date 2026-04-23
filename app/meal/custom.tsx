@@ -18,6 +18,7 @@ import { useAuthStore } from '../../src/store/authStore';
 import { MEAL_SLOT_LABELS, type MealSlot } from '../../src/types/meal';
 import { syncMeal } from '../../src/services/userSync';
 import { CelebrationOverlay } from '../../src/components/ui/CelebrationOverlay';
+import { ScreenTopBar } from '../../src/components/ui/ScreenTopBar';
 
 const SLOTS: MealSlot[] = [
   'breakfast',
@@ -100,11 +101,7 @@ export default function CustomMealScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()}>
-          <Text style={styles.backText}>{'\u2190'} {t('back')}</Text>
-        </Pressable>
-      </View>
+      <ScreenTopBar title={t('addCustomMeal')} onBack={() => router.back()} />
 
       <ScrollView
         style={styles.scroll}

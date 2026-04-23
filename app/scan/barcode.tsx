@@ -16,6 +16,7 @@ import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { fetchProductByBarcode, type OpenFoodFactsProduct } from '../../src/services/openFoodFacts';
+import { ScreenTopBar } from '../../src/components/ui/ScreenTopBar';
 
 export default function BarcodeScanScreen() {
   const insets = useSafeAreaInsets();
@@ -148,14 +149,7 @@ function ScannerContent({
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top + spacing.md }]}>
-        <Pressable onPress={() => router.back()} hitSlop={16}>
-          <Text style={styles.headerBack}>{t("back")}</Text>
-        </Pressable>
-        <Text style={styles.headerTitle}>{t("scanner")}</Text>
-        <View style={{ width: 60 }} />
-      </View>
+      <ScreenTopBar title={t("scanner")} onBack={() => router.back()} />
 
       {status === 'scanning' && (
         <View style={styles.cameraContainer}>
@@ -358,14 +352,7 @@ function WebBarcodeEntry({
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()} hitSlop={16}>
-            <Text style={styles.headerBack}>{t("back")}</Text>
-          </Pressable>
-          <Text style={styles.headerTitle}>{t("scanner")}</Text>
-          <View style={{ width: 60 }} />
-        </View>
+        <ScreenTopBar title={t("scanner")} onBack={() => router.back()} transparent />
 
         {/* Toggle camera / manual */}
         {hasCamera && status === 'scanning' && (

@@ -17,6 +17,7 @@ import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { analyzeFoodPhoto, isVisionAvailable, type FoodAnalysisResult } from '../../src/services/foodVision';
+import { ScreenTopBar } from '../../src/components/ui/ScreenTopBar';
 
 type Status = 'idle' | 'capturing' | 'analyzing' | 'result' | 'error';
 
@@ -143,14 +144,7 @@ export default function PhotoScanScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()} hitSlop={16}>
-            <Text style={styles.headerBack}>{t("back")}</Text>
-          </Pressable>
-          <Text style={styles.headerTitle}>{t("photoAI")}</Text>
-          <View style={{ width: 60 }} />
-        </View>
+        <ScreenTopBar title={t("photoAI")} onBack={() => router.back()} transparent />
 
         {status === 'idle' && (
           <View style={styles.idleContent}>
