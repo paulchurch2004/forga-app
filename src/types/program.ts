@@ -3,7 +3,27 @@ import type { Objective } from './user';
 
 // ── Program Template (static data) ──
 
-export type ProgramId = 'full_body' | 'upper_lower' | 'ppl' | 'stronglifts_5x5';
+/**
+ * Program identifiers.
+ * v1 ids ('full_body', 'upper_lower', 'ppl') are kept for backwards compat
+ * with users who already have an activePlan in AsyncStorage. New users get
+ * the v2 sex-aware variants below.
+ */
+export type ProgramId =
+  // v2 — sex-aware
+  | 'full_body_h'
+  | 'full_body_f'
+  | 'upper_lower_h'
+  | 'upper_lower_f'
+  | 'ppl_h'
+  | 'ppl_f'
+  | 'stronglifts_5x5'
+  // v1 legacy — alias-resolved at runtime in programEngine
+  | 'full_body'
+  | 'upper_lower'
+  | 'ppl';
+
+export type Level = 'beginner' | 'intermediate' | 'advanced';
 
 export type ProgramDayType = 'muscu' | 'cardio' | 'rest';
 
@@ -37,6 +57,10 @@ export interface TrainingProgram {
   levelKey: string;
   rotation: ProgramDay[];
   trainingSlots: number[]; // 0=Mon..6=Sun
+  /** Which sex this program is calibrated for. 'unisex' = both. */
+  sexVariant?: 'male' | 'female' | 'unisex';
+  /** Recommended level (used by recommendProgram + program selector UI). */
+  level?: Level;
 }
 
 // ── Generated Plan (user's active instance) ──
