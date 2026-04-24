@@ -23,13 +23,15 @@ import { useUserStore } from '../../src/store/userStore';
 import { fonts, fontSizes } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
 import type { Archetype } from '../../src/types/user';
+import { useT } from '../../src/i18n';
+import type { TranslationKey } from '../../src/i18n/locales/fr';
 
 interface ArchetypeData {
   id: Archetype;
-  name: string;
-  tagline: string;
-  desc: string;
-  traits: string[];
+  nameKey: TranslationKey;
+  taglineKey: TranslationKey;
+  descKey: TranslationKey;
+  traitKeys: TranslationKey[];
   hue: number;
   imageUri: string;
   plan: { calories: number; protein: number; sessionsPerWeek: number };
@@ -38,42 +40,42 @@ interface ArchetypeData {
 const ARCHETYPES: ArchetypeData[] = [
   {
     id: 'warrior',
-    name: 'Guerrier',
-    tagline: 'Force pure. Discipline.',
-    desc: "Tu veux être plus fort, plus dense, plus imposant. La charge, c'est ta médecine. Tu viens chercher la performance brute.",
-    traits: ['Prise de masse', 'Force 1RM', 'Entraînement intense', 'Alimentation dense'],
+    nameKey: 'archetypeWarriorName',
+    taglineKey: 'archetypeWarriorTagline',
+    descKey: 'archetypeWarriorDesc',
+    traitKeys: ['archetypeWarriorTrait1', 'archetypeWarriorTrait2', 'archetypeWarriorTrait3', 'archetypeWarriorTrait4'],
     hue: 20,
     imageUri: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=800&q=80',
     plan: { calories: 2680, protein: 185, sessionsPerWeek: 5 },
   },
   {
     id: 'craftsman',
-    name: 'Artisan',
-    tagline: 'Précision. Progression.',
-    desc: 'Tu veux sculpter ta forme, affiner, équilibrer. Le travail est méthodique, la patience ta force. Chaque séance est un coup de ciseau.',
-    traits: ['Recomposition', 'Technique fine', 'Suivi rigoureux', 'Équilibre macros'],
+    nameKey: 'archetypeCraftsmanName',
+    taglineKey: 'archetypeCraftsmanTagline',
+    descKey: 'archetypeCraftsmanDesc',
+    traitKeys: ['archetypeCraftsmanTrait1', 'archetypeCraftsmanTrait2', 'archetypeCraftsmanTrait3', 'archetypeCraftsmanTrait4'],
     hue: 35,
     imageUri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
     plan: { calories: 2280, protein: 155, sessionsPerWeek: 4 },
   },
   {
     id: 'explorer',
-    name: 'Explorateur',
-    tagline: 'Endurance. Liberté.',
-    desc: 'Tu veux te sentir bien, bouger longtemps, voyager léger. Performance sans obsession, forme durable. Le corps comme outil.',
-    traits: ['Forme générale', 'Endurance', 'Mobilité', 'Alimentation flexible'],
+    nameKey: 'archetypeExplorerName',
+    taglineKey: 'archetypeExplorerTagline',
+    descKey: 'archetypeExplorerDesc',
+    traitKeys: ['archetypeExplorerTrait1', 'archetypeExplorerTrait2', 'archetypeExplorerTrait3', 'archetypeExplorerTrait4'],
     hue: 180,
     imageUri: 'https://images.unsplash.com/photo-1517963879433-6ad2b056d712?w=800&q=80',
     plan: { calories: 2100, protein: 155, sessionsPerWeek: 3 },
   },
 ];
 
-const INTENSITY_LABELS: Record<number, string> = {
-  1: 'Doux',
-  2: 'Modéré',
-  3: 'Soutenu',
-  4: 'Intense',
-  5: 'Extrême',
+const INTENSITY_LABEL_KEYS: Record<number, TranslationKey> = {
+  1: 'archetypeIntensity1',
+  2: 'archetypeIntensity2',
+  3: 'archetypeIntensity3',
+  4: 'archetypeIntensity4',
+  5: 'archetypeIntensity5',
 };
 
 function hsl(h: number, s: number, l: number, a = 1): string {
@@ -130,6 +132,7 @@ export default function ArchetypeScreen() {
 /* ─── STEP 0 — CHOOSE ARCHETYPE ─────────────────────────── */
 
 function ChooseStep({ onChoose }: { onChoose: (a: ArchetypeData) => void }) {
+  const { t } = useT();
   return (
     <ScrollView
       contentContainerStyle={[styles.scrollContent, { maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center', width: '100%' }]}
@@ -140,11 +143,9 @@ function ChooseStep({ onChoose }: { onChoose: (a: ArchetypeData) => void }) {
       </Pressable>
 
       <View style={styles.header}>
-        <Text style={styles.eyebrow}>ÉTAPE 1 · ARCHÉTYPE</Text>
-        <Text style={styles.title}>{'Quel type de\nforgeron es-tu ?'}</Text>
-        <Text style={styles.subtitle}>
-          Ton archétype calibre tout : macros, charges, style de coaching. Tu pourras l'affiner plus tard.
-        </Text>
+        <Text style={styles.eyebrow}>{t('archetypeStep1Eyebrow')}</Text>
+        <Text style={styles.title}>{t('archetypeStep1Title')}</Text>
+        <Text style={styles.subtitle}>{t('archetypeStep1Subtitle')}</Text>
       </View>
 
       <View style={styles.archetypeList}>
@@ -157,6 +158,7 @@ function ChooseStep({ onChoose }: { onChoose: (a: ArchetypeData) => void }) {
 }
 
 function ArchetypeCard({ archetype, onPress }: { archetype: ArchetypeData; onPress: () => void }) {
+  const { t } = useT();
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.archetypeCard, pressed && { opacity: 0.85 }]}>
       <ImageBackground source={{ uri: archetype.imageUri }} style={styles.archetypeImage} imageStyle={styles.archetypeImageRadius}>
@@ -181,21 +183,21 @@ function ArchetypeCard({ archetype, onPress }: { archetype: ArchetypeData; onPre
           >
             <ArchetypeIcon id={archetype.id} />
           </View>
-          <Text style={[styles.archetypeBadgeLabel, { color: hsl(archetype.hue, 100, 70) }]}>ARCHÉTYPE</Text>
+          <Text style={[styles.archetypeBadgeLabel, { color: hsl(archetype.hue, 100, 70) }]}>{t('archetypeBadge')}</Text>
         </View>
 
         <View style={styles.archetypeNameWrap}>
-          <Text style={styles.archetypeName}>{archetype.name}</Text>
-          <Text style={styles.archetypeTagline}>{archetype.tagline}</Text>
+          <Text style={styles.archetypeName}>{t(archetype.nameKey)}</Text>
+          <Text style={styles.archetypeTagline}>{t(archetype.taglineKey)}</Text>
         </View>
       </ImageBackground>
 
       <View style={styles.archetypeBody}>
-        <Text style={styles.archetypeDesc}>{archetype.desc}</Text>
+        <Text style={styles.archetypeDesc}>{t(archetype.descKey)}</Text>
         <View style={styles.traitsRow}>
-          {archetype.traits.map((t) => (
-            <View key={t} style={styles.traitPill}>
-              <Text style={styles.traitText}>{t}</Text>
+          {archetype.traitKeys.map((traitKey) => (
+            <View key={traitKey} style={styles.traitPill}>
+              <Text style={styles.traitText}>{t(traitKey)}</Text>
             </View>
           ))}
         </View>
@@ -225,6 +227,7 @@ function ConfirmStep({
   onNext: () => void;
   bottomInset: number;
 }) {
+  const { t } = useT();
   const accent = hsl(archetype.hue, 100, 60);
   const accentLight = hsl(archetype.hue, 100, 65);
   const accentSoft = hsl(archetype.hue, 100, 70);
@@ -244,12 +247,8 @@ function ConfirmStep({
         </Pressable>
 
         <View style={styles.header}>
-          <Text style={[styles.eyebrow, { color: accentSoft }]}>ÉTAPE 2 · CALIBRAGE</Text>
-          <Text style={styles.title}>
-            {'Tu es un '}
-            <Text style={{ color: accentLight }}>{archetype.name}</Text>
-            {'.\nOn précise.'}
-          </Text>
+          <Text style={[styles.eyebrow, { color: accentSoft }]}>{t('archetypeStep2Eyebrow')}</Text>
+          <Text style={styles.title}>{t('archetypeStep2Title', { archetype: t(archetype.nameKey) })}</Text>
         </View>
 
         {/* Identity card */}
@@ -271,14 +270,14 @@ function ConfirmStep({
             <ArchetypeIcon id={archetype.id} size={22} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.identityName}>{archetype.name}</Text>
-            <Text style={styles.identityTagline}>{archetype.tagline}</Text>
+            <Text style={styles.identityName}>{t(archetype.nameKey)}</Text>
+            <Text style={styles.identityTagline}>{t(archetype.taglineKey)}</Text>
           </View>
         </View>
 
         {/* Name input */}
         <View style={styles.field}>
-          <Text style={styles.fieldLabel}>TON PRÉNOM</Text>
+          <Text style={styles.fieldLabel}>{t('archetypeFirstNameLabel')}</Text>
           <TextInput
             value={name}
             onChangeText={setName}
@@ -293,7 +292,7 @@ function ConfirmStep({
 
         {/* Intensity */}
         <View style={styles.field}>
-          <Text style={styles.fieldLabel}>INTENSITÉ VOULUE</Text>
+          <Text style={styles.fieldLabel}>{t('archetypeIntensityLabel')}</Text>
           <View style={styles.intensityRow}>
             {[1, 2, 3, 4, 5].map((i) => {
               const active = intensity >= i;
@@ -315,7 +314,7 @@ function ConfirmStep({
                       { color: active ? '#FFFFFF' : 'rgba(255,255,255,0.38)' },
                     ]}
                   >
-                    {INTENSITY_LABELS[i]}
+                    {t(INTENSITY_LABEL_KEYS[i])}
                   </Text>
                 </Pressable>
               );
@@ -325,11 +324,11 @@ function ConfirmStep({
 
         {/* Plan card */}
         <View style={styles.planCard}>
-          <Text style={[styles.planLabel, { color: accentSoft }]}>TON PLAN CALIBRÉ</Text>
+          <Text style={[styles.planLabel, { color: accentSoft }]}>{t('archetypePlanLabel')}</Text>
           <View style={styles.planRow}>
-            <PlanStat value={archetype.plan.calories.toString()} unit="kcal" label="Calories" color={accentLight} />
-            <PlanStat value={archetype.plan.protein.toString()} unit="g" label="Protéines" color={accentLight} />
-            <PlanStat value={archetype.plan.sessionsPerWeek.toString()} unit="/sem" label="Séances" color={accentLight} />
+            <PlanStat value={archetype.plan.calories.toString()} unit="kcal" label={t('archetypePlanCalories')} color={accentLight} />
+            <PlanStat value={archetype.plan.protein.toString()} unit="g" label={t('archetypePlanProteins')} color={accentLight} />
+            <PlanStat value={archetype.plan.sessionsPerWeek.toString()} unit={t('archetypePlanSessionsUnit')} label={t('archetypePlanSessions')} color={accentLight} />
           </View>
         </View>
       </ScrollView>
@@ -344,7 +343,7 @@ function ConfirmStep({
         />
         <Pressable onPress={onNext} style={({ pressed }) => [pressed && { opacity: 0.92 }]}>
           <View style={[styles.ctaButton, { backgroundColor: accent, shadowColor: accent }]}>
-            <Text style={styles.ctaText}>FORGER MON PLAN  →</Text>
+            <Text style={styles.ctaText}>{t('archetypeForgeCta')}</Text>
           </View>
         </Pressable>
       </View>

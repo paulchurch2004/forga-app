@@ -16,6 +16,7 @@ import { useEngine } from '../src/hooks/useEngine';
 import { useWater } from '../src/hooks/useWater';
 import { useTopPRs } from '../src/hooks/useTopPRs';
 import { useMemo } from 'react';
+import { useT } from '../src/i18n';
 
 const RADIUS = 26;
 const SIZE = 64;
@@ -24,6 +25,7 @@ const C = 2 * Math.PI * RADIUS;
 
 export default function WeeklyReviewScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useT();
   const profile = useUserStore((s) => s.profile);
   const { currentScore, weeklyChange } = useScoreStore();
   const { currentStreak, bestStreak } = useStreak();
@@ -96,9 +98,9 @@ export default function WeeklyReviewScreen() {
   }, [waterGoal]);
 
   const adhesion = [
-    { label: 'Nutrition', value: weekStats.nutritionAdhesion, color: '#FF6B35' },
-    { label: 'Training', value: weekStats.trainingAdhesion, color: '#00D4AA' },
-    { label: 'Hydratation', value: waterAdhesion, color: '#5B8BFF' },
+    { label: t('weeklyReviewAdhesionNutrition'), value: weekStats.nutritionAdhesion, color: '#FF6B35' },
+    { label: t('weeklyReviewAdhesionTraining'), value: weekStats.trainingAdhesion, color: '#00D4AA' },
+    { label: t('weeklyReviewAdhesionWater'), value: waterAdhesion, color: '#5B8BFF' },
   ];
 
   // Coach analysis — composé selon les vraies stats
@@ -106,31 +108,31 @@ export default function WeeklyReviewScreen() {
     const firstName = profile?.name?.split(' ')[0] ?? '';
     const opener =
       weekStats.nutritionAdhesion >= 80
-        ? `Excellente semaine ${firstName}.`
+        ? t('weeklyReviewCoachOpenerExcellent', { name: firstName })
         : weekStats.nutritionAdhesion >= 60
-        ? `Bonne semaine ${firstName}.`
-        : `Semaine en demi-teinte ${firstName}.`;
+        ? t('weeklyReviewCoachOpenerGood', { name: firstName })
+        : t('weeklyReviewCoachOpenerMixed', { name: firstName });
 
     const strongPoint =
       weekStats.nutritionAdhesion >= 80
-        ? `Adhésion nutrition ${weekStats.nutritionAdhesion}%`
+        ? t('weeklyReviewCoachStrongNutrition', { pct: weekStats.nutritionAdhesion })
         : weekStats.trainingAdhesion >= 80
-        ? `Discipline training ${weekStats.trainingAdhesion}%`
+        ? t('weeklyReviewCoachStrongTraining', { pct: weekStats.trainingAdhesion })
         : weekStats.workouts7d.length >= 3
-        ? `${weekStats.workouts7d.length} séances`
-        : 'Streak qui tient';
+        ? t('weeklyReviewCoachStrongSessions', { count: weekStats.workouts7d.length })
+        : t('weeklyReviewCoachStrongStreak');
 
     const weakPoint =
       waterAdhesion < 80
-        ? `hydratation à ${waterAdhesion}%`
+        ? t('weeklyReviewCoachWeakWater', { pct: waterAdhesion })
         : weekStats.trainingAdhesion < 80
-        ? `training à ${weekStats.trainingAdhesion}%`
+        ? t('weeklyReviewCoachWeakTraining', { pct: weekStats.trainingAdhesion })
         : weekStats.nutritionAdhesion < 80
-        ? `nutrition à ${weekStats.nutritionAdhesion}%`
+        ? t('weeklyReviewCoachWeakNutrition', { pct: weekStats.nutritionAdhesion })
         : null;
 
     return { opener, strongPoint, weakPoint };
-  }, [profile, weekStats, waterAdhesion]);
+  }, [profile, weekStats, waterAdhesion, t]);
 
   // Highlights — derivés des vraies données
   const highlights = useMemo(() => {
@@ -142,8 +144,10 @@ export default function WeeklyReviewScreen() {
       items.push({
         id: 'pr',
         icon: 'trophy',
-        label: `PR · ${pr.exercise}`,
-        value: pr.delta ? `${pr.value} ${pr.unit} (+${pr.delta})` : `${pr.value} ${pr.unit}`,
+        label: t('weeklyReviewHlPr', { exercise: pr.exercise }),
+        value: pr.delta
+          ? t('weeklyReviewHlPrDelta', { value: pr.value, unit: pr.unit, delta: pr.delta })
+          : `${pr.value} ${pr.unit}`,
         color: '#FF6B35',
       });
     }
@@ -152,8 +156,8 @@ export default function WeeklyReviewScreen() {
     items.push({
       id: 'streak',
       icon: 'flame',
-      label: `Streak ${currentStreak} jours`,
-      value: currentStreak === bestStreak ? 'Meilleure série' : `Record ${bestStreak}`,
+      label: t('weeklyReviewHlStreak', { days: currentStreak }),
+      value: currentStreak === bestStreak ? t('weeklyReviewHlStreakBest') : t('weeklyReviewHlStreakRecord', { best: bestStreak }),
       color: '#FF6B35',
     });
 
@@ -162,7 +166,7 @@ export default function WeeklyReviewScreen() {
       items.push({
         id: 'vol',
         icon: 'trending',
-        label: 'Poids total déplacé',
+        label: t('weeklyReviewHlVolume'),
         value: `${weekStats.totalVolKg.toLocaleString('fr-FR')} kg`,
         color: '#00D4AA',
       });
@@ -172,13 +176,13 @@ export default function WeeklyReviewScreen() {
     items.push({
       id: 'target',
       icon: 'target',
-      label: 'Objectif nutrition atteint',
-      value: `${weekStats.nutritionDaysOnTarget} jours / 7`,
+      label: t('weeklyReviewHlNutritionTarget'),
+      value: t('weeklyReviewHlNutritionDays', { days: weekStats.nutritionDaysOnTarget }),
       color: weekStats.nutritionDaysOnTarget >= 5 ? '#00D4AA' : '#FFC94D',
     });
 
     return items;
-  }, [topPRs, currentStreak, bestStreak, weekStats]);
+  }, [topPRs, currentStreak, bestStreak, weekStats, t]);
 
   const weekLabel = useWeekLabel();
 
@@ -189,7 +193,7 @@ export default function WeeklyReviewScreen() {
           <BackIcon />
         </Pressable>
         <View style={{ flex: 1 }}>
-          <Text style={styles.topTitle}>Rapport hebdo</Text>
+          <Text style={styles.topTitle}>{t('weeklyReviewTitle')}</Text>
           <Text style={styles.topSubtitle}>{weekLabel}</Text>
         </View>
       </View>
@@ -201,18 +205,18 @@ export default function WeeklyReviewScreen() {
         {/* Hero score */}
         <View style={styles.heroCard}>
           <View style={styles.heroGlow} pointerEvents="none" />
-          <Text style={styles.eyebrow}>SCORE DE LA SEMAINE</Text>
+          <Text style={styles.eyebrow}>{t('weeklyReviewScoreEyebrow')}</Text>
           <View style={styles.heroValueRow}>
             <Text style={styles.heroValue}>{weekScore}</Text>
             <Text style={styles.heroPct}>%</Text>
           </View>
           <Text style={[styles.heroDelta, { color: trend >= 0 ? '#00D4AA' : '#FF6B6B' }]}>
-            {trend >= 0 ? '+' : ''}{trend} pts vs semaine dernière
+            {trend >= 0 ? t('weeklyReviewDeltaPositive', { delta: trend }) : t('weeklyReviewDeltaNegative', { delta: trend })}
           </Text>
         </View>
 
         {/* Adhesion rings */}
-        <Text style={styles.sectionLabel}>ADHÉSION</Text>
+        <Text style={styles.sectionLabel}>{t('weeklyReviewAdhesionLabel')}</Text>
         <View style={styles.adhesionRow}>
           {adhesion.map((m) => (
             <AdhesionCard key={m.label} label={m.label} value={m.value} color={m.color} />
@@ -220,7 +224,7 @@ export default function WeeklyReviewScreen() {
         </View>
 
         {/* Coach analysis */}
-        <Text style={styles.sectionLabel}>TON COACH ANALYSE</Text>
+        <Text style={styles.sectionLabel}>{t('weeklyReviewCoachLabel')}</Text>
         <View style={styles.coachCard}>
           <LinearGradient
             colors={['#FF8C40', '#CC5424']}
@@ -233,21 +237,21 @@ export default function WeeklyReviewScreen() {
           <Text style={styles.coachText}>
             {coachAnalysis.opener}{' '}
             <Text style={styles.coachBold}>{coachAnalysis.strongPoint}</Text>
-            {coachAnalysis.strongPoint.includes('nutrition')
-              ? ' sur ton plan, '
-              : ' cette semaine, '}
+            {coachAnalysis.strongPoint.toLowerCase().includes('nutrition')
+              ? t('weeklyReviewCoachStrongAfterNutrition')
+              : t('weeklyReviewCoachStrongAfterOther')}
             {coachAnalysis.weakPoint ? (
               <>
-                point d'amélioration : <Text style={styles.coachBold}>{coachAnalysis.weakPoint}</Text>.
+                {t('weeklyReviewCoachWeak')}<Text style={styles.coachBold}>{coachAnalysis.weakPoint}</Text>.
               </>
             ) : (
-              <>tout est solide. On garde le cap.</>
+              <>{t('weeklyReviewCoachAllGood')}</>
             )}
           </Text>
         </View>
 
         {/* Highlights */}
-        <Text style={styles.sectionLabel}>HIGHLIGHTS</Text>
+        <Text style={styles.sectionLabel}>{t('weeklyReviewHighlightsLabel')}</Text>
         <View style={{ gap: 8 }}>
           {highlights.map((h) => (
             <View key={h.id} style={styles.highlightRow}>
@@ -261,7 +265,7 @@ export default function WeeklyReviewScreen() {
         </View>
 
         {/* Progress photo */}
-        <Text style={styles.sectionLabel}>PHOTO DE PROGRESSION</Text>
+        <Text style={styles.sectionLabel}>{t('weeklyReviewPhotoLabel')}</Text>
         <View style={styles.photoRow}>
           <View style={styles.photo}>
             <Image
@@ -280,7 +284,7 @@ export default function WeeklyReviewScreen() {
               cachePolicy="memory-disk"
             />
             <View style={styles.newBadge}>
-              <Text style={styles.newBadgeText}>NOUVELLE</Text>
+              <Text style={styles.newBadgeText}>{t('weeklyReviewPhotoNew')}</Text>
             </View>
           </View>
         </View>

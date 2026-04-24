@@ -553,7 +553,7 @@ export default function ProfileScreen() {
         {Platform.OS !== 'web' && (
           <Pressable style={styles.actionRow} onPress={() => router.push('/notifications-setup')}>
             <Text style={styles.actionText}>{t('notifications')}</Text>
-            <Text style={styles.actionValue}>{notifEnabled ? 'Activées' : 'Désactivées'} {'›'}</Text>
+            <Text style={styles.actionValue}>{notifEnabled ? t('notifsEnabled') : t('notifsDisabled')} {'›'}</Text>
           </Pressable>
         )}
 

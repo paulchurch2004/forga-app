@@ -9,40 +9,30 @@ import { PrimaryGradientButton } from '../src/components/ui/PrimaryGradientButto
 import { fonts } from '../src/theme/fonts';
 import { useNotifications } from '../src/hooks/useNotifications';
 import { useStreak } from '../src/hooks/useStreak';
+import { useT } from '../src/i18n';
+import { useUserStore } from '../src/store/userStore';
+import type { TranslationKey } from '../src/i18n/locales/fr';
 
 interface PreviewCard {
   time: string;
-  title: string;
-  body: string;
-  icon: 'morning' | 'meal' | 'workout';
+  titleKey: import("../src/i18n/locales/fr").TranslationKey;
+  bodyKey: import("../src/i18n/locales/fr").TranslationKey;
+  icon: "morning" | "meal" | "workout";
 }
 
 const PREVIEWS: PreviewCard[] = [
-  {
-    time: '07:30',
-    title: 'Bonjour Paul. Comment tu te sens ?',
-    body: 'Touche un métal pour calibrer ton plan du jour.',
-    icon: 'morning',
-  },
-  {
-    time: '12:30',
-    title: 'Déjeuner dans 15 min',
-    body: 'Bowl poulet quinoa · 520 kcal — prêt à valider.',
-    icon: 'meal',
-  },
-  {
-    time: '18:00',
-    title: 'Séance Push prévue',
-    body: 'Pecs & épaules · 60 min. On y va ?',
-    icon: 'workout',
-  },
+  { time: "07:30", titleKey: "notifSetupPreview1Title", bodyKey: "notifSetupPreview1Body", icon: "morning" },
+  { time: "12:30", titleKey: "notifSetupPreview2Title", bodyKey: "notifSetupPreview2Body", icon: "meal" },
+  { time: "18:00", titleKey: "notifSetupPreview3Title", bodyKey: "notifSetupPreview3Body", icon: "workout" },
 ];
-
 export default function NotificationsSetupScreen() {
   const insets = useSafeAreaInsets();
+  const { t } = useT();
+  const profile = useUserStore((s) => s.profile);
   const { isEnabled, toggle } = useNotifications();
   const { currentStreak } = useStreak();
   const [busy, setBusy] = useState(false);
+  const firstName = profile?.name?.split(' ')[0] ?? '';
 
   const handleEnable = async () => {
     setBusy(true);
@@ -58,7 +48,7 @@ export default function NotificationsSetupScreen() {
 
   return (
     <View style={[styles.root, { paddingBottom: insets.bottom }]}>
-      <ScreenTopBar title="Notifications" onBack={() => router.back()} transparent />
+      <ScreenTopBar title={t('notifSetupTitle')} onBack={() => router.back()} transparent />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.heroIconWrap}>
@@ -67,21 +57,17 @@ export default function NotificationsSetupScreen() {
           </View>
         </View>
 
-        <Text style={styles.title}>Le coach te parle{'\n'}au bon moment.</Text>
-        <Text style={styles.subtitle}>
-          3 rappels essentiels par jour. Pas de spam, jamais le soir.
-        </Text>
+        <Text style={styles.title}>{t('notifSetupHeroTitle')}</Text>
+        <Text style={styles.subtitle}>{t('notifSetupHeroSubtitle')}</Text>
 
         <View style={styles.previewList}>
           {PREVIEWS.map((p, i) => (
-            <PreviewItem key={i} item={p} />
+            <PreviewItem key={i} item={p} name={firstName} />
           ))}
         </View>
 
         <View style={styles.disclaimer}>
-          <Text style={styles.disclaimerText}>
-            Tu peux désactiver chaque type de notif depuis ton profil à tout moment.
-          </Text>
+          <Text style={styles.disclaimerText}>{t('notifSetupDisclaimer')}</Text>
         </View>
       </ScrollView>
 
@@ -95,11 +81,11 @@ export default function NotificationsSetupScreen() {
         {isEnabled ? (
           <View style={styles.enabledRow}>
             <View style={styles.enabledDot} />
-            <Text style={styles.enabledText}>Notifications activées</Text>
+            <Text style={styles.enabledText}>{t('notifSetupActivated')}</Text>
           </View>
         ) : (
           <PrimaryGradientButton
-            label="Activer les notifications"
+            label={t('notifSetupCta')}
             onPress={handleEnable}
             loading={busy}
             size="lg"
@@ -110,7 +96,8 @@ export default function NotificationsSetupScreen() {
   );
 }
 
-function PreviewItem({ item }: { item: PreviewCard }) {
+function PreviewItem({ item, name }: { item: PreviewCard; name: string }) {
+  const { t } = useT();
   return (
     <View style={styles.preview}>
       <View style={styles.previewIconWrap}>
@@ -121,8 +108,8 @@ function PreviewItem({ item }: { item: PreviewCard }) {
           <Text style={styles.previewApp}>FORGA</Text>
           <Text style={styles.previewTime}>{item.time}</Text>
         </View>
-        <Text style={styles.previewTitle} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.previewBody} numberOfLines={2}>{item.body}</Text>
+        <Text style={styles.previewTitle} numberOfLines={1}>{t(item.titleKey, { name })}</Text>
+        <Text style={styles.previewBody} numberOfLines={2}>{t(item.bodyKey)}</Text>
       </View>
     </View>
   );
