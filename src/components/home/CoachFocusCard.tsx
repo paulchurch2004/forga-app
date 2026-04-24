@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
 
 interface CoachFocusCardProps {
   message: string;
@@ -11,6 +12,7 @@ interface CoachFocusCardProps {
 }
 
 export function CoachFocusCard({ message, highlight, onPress }: CoachFocusCardProps) {
+  const { t } = useT();
   const parts = highlight && message.includes(highlight) ? message.split(highlight) : null;
 
   return (
@@ -25,7 +27,7 @@ export function CoachFocusCard({ message, highlight, onPress }: CoachFocusCardPr
       </LinearGradient>
 
       <View style={styles.textCol}>
-        <Text style={styles.eyebrow}>COACH · À L'INSTANT</Text>
+        <Text style={styles.eyebrow}>{t('coachFocusEyebrow')}</Text>
         <Text style={styles.message} numberOfLines={2}>
           {parts ? (
             <>

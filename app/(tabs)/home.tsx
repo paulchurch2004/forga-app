@@ -224,49 +224,42 @@ export default function HomeScreen() {
     const protPct = targets.protein ? consumed.protein / targets.protein : 0;
     const calPct = targets.calories ? consumed.calories / targets.calories : 0;
 
-    // Find the next non-validated slot
     const nextSlot = slots.find((s) => !s.isValidated && s.status !== 'upcoming') ?? currentSlot;
     const nextSlotName = nextSlot ? (MEAL_SLOT_LABELS[nextSlot.slot] ?? '').toLowerCase() : null;
 
-    // No data yet today: motivational opener
+    // No data yet today
     if (todayMeals.length === 0) {
-      return {
-        message: nextSlotName
-          ? `On démarre avec ${nextSlotName}. Vise ${Math.round(targets.protein / (slots.length || 4))}g de prot pour bien lancer la journée.`
-          : 'On démarre la journée. Logge ton premier repas pour calibrer.',
-        highlight: nextSlotName ? `${Math.round(targets.protein / (slots.length || 4))}g` : '',
-      };
+      const grams = Math.round(targets.protein / (slots.length || 4));
+      return nextSlotName
+        ? { message: t('coachFocusOpenerWithSlot', { slot: nextSlotName, grams }), highlight: `${grams}g` }
+        : { message: t('coachFocusOpener'), highlight: '' };
     }
 
-    // Day done?
     if (calLeft === 0 && protLeft === 0) {
-      return { message: 'Objectifs du jour atteints. Bien joué.', highlight: 'atteints' };
+      return { message: t('coachFocusDayDone'), highlight: '' };
     }
 
-    // Protein behind, calories on track or behind too: protein-first message
     if (protPct < calPct - 0.1 && protLeft > 20) {
       return {
-        message: `${nextSlotName ?? 'Le prochain repas'} est ton levier prot. Il te reste ${protLeft}g.`,
+        message: t('coachFocusProteinLever', { slot: nextSlotName ?? t('primaryMealActionFallback'), grams: protLeft }),
         highlight: `${protLeft}g`,
       };
     }
 
-    // Calories left and last meal of day — call it the dîner lever
     if (nextSlot?.slot === 'dinner' && calLeft > 200) {
       return {
-        message: `Ton dîner est le levier clé. Il te reste ${protLeft}g de prot.`,
+        message: t('coachFocusDinnerLever', { grams: protLeft }),
         highlight: `${protLeft}g`,
       };
     }
 
-    // Generic remaining message
     return {
       message: nextSlotName
-        ? `Il te reste ${calLeft} kcal et ${protLeft}g de prot pour ${nextSlotName}.`
-        : `Il te reste ${calLeft} kcal et ${protLeft}g de prot aujourd'hui.`,
+        ? t('coachFocusGenericForSlot', { kcal: calLeft, grams: protLeft, slot: nextSlotName })
+        : t('coachFocusGenericRest', { kcal: calLeft, grams: protLeft }),
       highlight: `${protLeft}g`,
     };
-  }, [todayMeals, consumed, targets, currentSlot, slots]);
+  }, [todayMeals, consumed, targets, currentSlot, slots, t]);
 
   // Weekly form score breakdown — derived from currentScore (each subscore
   // normalised to /100 so the bars are comparable on the card).
@@ -365,29 +358,32 @@ export default function HomeScreen() {
           />
 
           {/* Quick access — Nutrition + Séance, vraies données */}
-          <Text style={styles.sectionLabel}>AUJOURD'HUI</Text>
+          <Text style={styles.sectionLabel}>{t('homeTodayLabel')}</Text>
           <QuickAccessRow
             tiles={[
               {
-                eyebrow: 'Nutrition',
-                title: 'Plan du jour',
-                subtitle: `${Math.round(consumed.calories)} / ${Math.round(targets.calories)} kcal`,
+                eyebrow: t('tileNutritionEyebrow'),
+                title: t('tileNutritionTitle'),
+                subtitle: t('tileNutritionSubtitle', {
+                  consumed: Math.round(consumed.calories),
+                  target: Math.round(targets.calories),
+                }),
                 imageUri: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80',
                 accent: true,
                 onPress: () => router.push('/nutrition'),
               },
               hasActivePlan && todayProgramDay
                 ? {
-                    eyebrow: 'Séance',
-                    title: `${t(todayProgramDay.nameKey as any)} · ${todayProgramDay.exercises.length * 12} min`,
+                    eyebrow: t('tileSeanceEyebrow'),
+                    title: `${t(todayProgramDay.nameKey as any)} · ${todayProgramDay.exercises.length * 12} ${t('tileSeanceMin')}`,
                     subtitle: todayProgramDay.muscleGroups.map((g) => t(`muscle_${g}` as any)).join(' & '),
                     imageUri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
                     onPress: () => router.push('/(tabs)/training'),
                   }
                 : {
-                    eyebrow: 'Séance',
-                    title: 'Repos',
-                    subtitle: hasActivePlan ? 'Pas de séance prévue' : 'Choisis un programme',
+                    eyebrow: t('tileSeanceEyebrow'),
+                    title: t('tileSeanceRestTitle'),
+                    subtitle: hasActivePlan ? t('tileSeanceRestSubNoToday') : t('tileSeanceRestSubNoPlan'),
                     imageUri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
                     onPress: () => router.push('/(tabs)/training'),
                   },
@@ -398,28 +394,28 @@ export default function HomeScreen() {
           <MiniStatsGrid
             items={[
               {
-                label: 'Calories',
+                label: t('miniStatCalories'),
                 value: String(Math.round(consumed.calories)),
                 unit: `/ ${Math.round(targets.calories)}`,
                 progress: targets.calories ? consumed.calories / targets.calories : 0,
                 color: '#FF6B35',
               },
               {
-                label: 'Protéines',
+                label: t('miniStatProteins'),
                 value: String(Math.round(consumed.protein)),
                 unit: `g / ${Math.round(targets.protein)}`,
                 progress: targets.protein ? consumed.protein / targets.protein : 0,
                 color: '#5B8BFF',
               },
               {
-                label: 'Eau',
+                label: t('miniStatWater'),
                 value: (waterMl / 1000).toFixed(1),
                 unit: `L / ${(waterGoal / 1000).toFixed(1)}`,
                 progress: waterGoal ? waterMl / waterGoal : 0,
                 color: '#00D4AA',
               },
               {
-                label: 'Glucides',
+                label: t('miniStatCarbs'),
                 value: String(Math.round(consumed.carbs)),
                 unit: `g / ${Math.round(targets.carbs)}`,
                 progress: targets.carbs ? consumed.carbs / targets.carbs : 0,
@@ -436,14 +432,14 @@ export default function HomeScreen() {
       {/* First-time coaching tooltips — fire one after the other on first home visit */}
       <CoachingTooltip
         id="home-morning-ritual-v1"
-        title="Le check-in du matin"
-        body="Touche un métal pour préciser ton état. Plomb si tu es lourd, Or si tu pètes le feu — ton plan du jour s'adapte."
+        title={t('tooltipMorningRitualTitle')}
+        body={t('tooltipMorningRitualBody')}
         delayMs={900}
       />
       <CoachingTooltip
         id="home-coach-focus-v1"
-        title="Ton coach veille"
-        body="Cette carte affiche le levier le plus important pour ta journée. Tape dessus pour ouvrir une conversation."
+        title={t('tooltipCoachFocusTitle')}
+        body={t('tooltipCoachFocusBody')}
         delayMs={5000}
       />
 

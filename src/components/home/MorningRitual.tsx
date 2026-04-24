@@ -14,23 +14,24 @@ import { fonts, fontSizes } from '../../theme/fonts';
 import { spacing, borderRadius } from '../../theme/spacing';
 import { useTheme } from '../../context/ThemeContext';
 import { useMetalHistoryStore } from '../../store/metalHistoryStore';
+import { useT } from '../../i18n';
+import type { TranslationKey } from '../../i18n/locales/fr';
 
 type MetalId = 'lead' | 'bronze' | 'iron' | 'steel' | 'gold';
 
 interface Metal {
   id: MetalId;
-  label: string;
-  sub: string;
+  labelKey: TranslationKey;
   color: string;
-  impact: string;
+  impactKey: TranslationKey;
 }
 
 const METALS: Metal[] = [
-  { id: 'lead', label: 'Plomb', sub: 'Lourd, pas en forme', color: '#6b6b7a', impact: 'Séance allégée · charges −15% · focus récup' },
-  { id: 'bronze', label: 'Bronze', sub: 'Fatigué mais OK', color: '#cd7f32', impact: 'Volume −10% · intensité modérée · rappels hydratation' },
-  { id: 'iron', label: 'Fer', sub: 'Prêt, focus', color: '#8a9099', impact: 'Plan standard · charges habituelles · full program' },
-  { id: 'steel', label: 'Acier', sub: 'Fort, confiant', color: '#b4c0d0', impact: 'Intensité ↑ · 1 série bonus suggérée · macros pleines' },
-  { id: 'gold', label: 'Or', sub: 'En pleine forme', color: '#ffc94d', impact: 'Jour de PR · charges +5% · défi du jour débloqué' },
+  { id: 'lead', labelKey: 'ritualMetalPlomb', color: '#6b6b7a', impactKey: 'ritualImpactPlomb' },
+  { id: 'bronze', labelKey: 'ritualMetalBronze', color: '#cd7f32', impactKey: 'ritualImpactBronze' },
+  { id: 'iron', labelKey: 'ritualMetalFer', color: '#8a9099', impactKey: 'ritualImpactFer' },
+  { id: 'steel', labelKey: 'ritualMetalAcier', color: '#b4c0d0', impactKey: 'ritualImpactAcier' },
+  { id: 'gold', labelKey: 'ritualMetalOr', color: '#ffc94d', impactKey: 'ritualImpactOr' },
 ];
 
 const STORAGE_KEY = 'forga-metal-today';
@@ -41,6 +42,7 @@ function getTodayKey(): string {
 
 export function MorningRitual() {
   const { colors } = useTheme();
+  const { t } = useT();
   const [metal, setMetal] = useState<MetalId | null>(null);
   const [preview, setPreview] = useState<MetalId | null>(null);
   const [hydrated, setHydrated] = useState(false);
@@ -92,15 +94,14 @@ function ChooseCard({
   onPreview: (id: MetalId) => void;
   onConfirm: (m: Metal) => void;
 }) {
+  const { t } = useT();
   return (
     <View style={styles.card}>
       <CornerGlow color="#FF6B35" intensity={0.35} />
 
-      <Text style={styles.eyebrow}>CHECK-IN DU MATIN · 15 SEC</Text>
-      <Text style={styles.cardTitle}>Comment tu te sens ?</Text>
-      <Text style={styles.cardSubtitle}>
-        Ton plan s'adapte automatiquement : charges, volume, macros. Choisis ton état.
-      </Text>
+      <Text style={styles.eyebrow}>{t('ritualEyebrow')}</Text>
+      <Text style={styles.cardTitle}>{t('ritualTitle')}</Text>
+      <Text style={styles.cardSubtitle}>{t('ritualSubtitle')}</Text>
 
       <View style={styles.metalsRow}>
         {METALS.map((m) => (
@@ -121,6 +122,7 @@ function ChooseCard({
 }
 
 function MetalButton({ metal, active, onPress }: { metal: Metal; active: boolean; onPress: () => void }) {
+  const { t } = useT();
   const translateY = useSharedValue(0);
 
   useEffect(() => {
@@ -147,13 +149,14 @@ function MetalButton({ metal, active, onPress }: { metal: Metal; active: boolean
             { backgroundColor: metal.color, borderWidth: active ? 2 : 0, borderColor: 'rgba(255,255,255,0.6)' },
           ]}
         />
-        <Text style={styles.metalLabel}>{metal.label}</Text>
+        <Text style={styles.metalLabel}>{t(metal.labelKey)}</Text>
       </Pressable>
     </Animated.View>
   );
 }
 
 function PreviewPanel({ metal }: { metal: Metal | null }) {
+  const { t } = useT();
   const opacity = useSharedValue(0);
 
   useEffect(() => {
@@ -177,13 +180,14 @@ function PreviewPanel({ metal }: { metal: Metal | null }) {
         style={[styles.sparkleDot, { backgroundColor: metal ? metal.color : 'rgba(255,255,255,0.38)' }]}
       />
       <Text style={[styles.previewText, !metal && styles.previewTextMuted]} numberOfLines={2}>
-        {metal ? metal.impact : 'Touche un métal pour voir comment ton plan s\'adapte…'}
+        {metal ? t(metal.impactKey) : t('ritualHint')}
       </Text>
     </Animated.View>
   );
 }
 
 function ConfirmButton({ metal, onPress }: { metal: Metal; onPress: () => void }) {
+  const { t } = useT();
   const scale = useSharedValue(1);
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(8);
@@ -219,7 +223,7 @@ function ConfirmButton({ metal, onPress }: { metal: Metal; onPress: () => void }
           end={{ x: 1, y: 1 }}
           style={[styles.confirmButton, { shadowColor: metal.color }]}
         >
-          <Text style={[styles.confirmText, { color: textColor }]}>FORGER MA JOURNÉE · {metal.label.toUpperCase()}</Text>
+          <Text style={[styles.confirmText, { color: textColor }]}>{t('ritualConfirmCta').toUpperCase()} · {t(metal.labelKey).toUpperCase()}</Text>
         </LinearGradient>
       </Pressable>
     </Animated.View>
@@ -227,6 +231,7 @@ function ConfirmButton({ metal, onPress }: { metal: Metal; onPress: () => void }
 }
 
 function ChosenCard({ metal, onChange }: { metal: Metal; onChange: () => void }) {
+  const { t } = useT();
   return (
     <View style={styles.card}>
       <CornerGlow color={metal.color} intensity={0.45} />
@@ -242,19 +247,17 @@ function ChosenCard({ metal, onChange }: { metal: Metal; onChange: () => void })
           ]}
         />
         <View style={styles.chosenTextWrap}>
-          <Text style={styles.eyebrow}>AUJOURD'HUI TU ES</Text>
-          <Text style={styles.chosenLabel}>
-            {metal.label} <Text style={styles.chosenSub}>· {metal.sub}</Text>
-          </Text>
+          <Text style={styles.eyebrow}>{t('ritualEyebrow')}</Text>
+          <Text style={styles.chosenLabel}>{t(metal.labelKey)}</Text>
         </View>
         <Pressable onPress={onChange} style={styles.changeButton}>
-          <Text style={styles.changeButtonText}>CHANGER</Text>
+          <Text style={styles.changeButtonText}>{t('ritualResetCta').toUpperCase()}</Text>
         </Pressable>
       </View>
 
       <View style={[styles.impactBox, { borderLeftColor: metal.color }]}>
-        <Text style={styles.impactLabel}>PLAN DU JOUR RECALIBRÉ</Text>
-        <Text style={styles.impactText}>{metal.impact}</Text>
+        <Text style={styles.impactLabel}>{t('ritualPreviewLabel')}</Text>
+        <Text style={styles.impactText}>{t(metal.impactKey)}</Text>
       </View>
     </View>
   );
