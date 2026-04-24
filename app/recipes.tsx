@@ -19,6 +19,7 @@ import { useTheme } from '../src/context/ThemeContext';
 import { useResponsive } from '../src/hooks/useResponsive';
 import { useT } from '../src/i18n';
 import { ScreenTopBar } from '../src/components/ui/ScreenTopBar';
+import { EmptyState } from '../src/components/ui/EmptyState';
 import type { Meal, MealSlot } from '../src/types/meal';
 
 // ──────────── FILTER TYPES ────────────
@@ -248,15 +249,7 @@ export default function RecipesScreen() {
 
       {/* Results */}
       {filteredMeals.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>{'\uD83C\uDF7D'}</Text>
-          <Text style={styles.emptyTitle}>
-            {locale === 'en' ? 'No recipes found' : 'Aucune recette trouvee'}
-          </Text>
-          <Text style={styles.emptySub}>
-            {locale === 'en' ? 'Try different filters or keywords' : 'Essaie d\'autres filtres ou mots-cles'}
-          </Text>
-        </View>
+        <EmptyState icon="🍽️" title={locale === 'en' ? 'No recipes found' : 'Aucune recette trouvee'} subtitle={locale === 'en' ? 'Try different filters or keywords' : "Essaie d'autres filtres ou mots-cles"} />
       ) : (
         <View style={styles.grid}>
           {filteredMeals.map((meal) => (

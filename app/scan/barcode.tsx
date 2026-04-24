@@ -17,6 +17,7 @@ import { useT } from '../../src/i18n';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { fetchProductByBarcode, type OpenFoodFactsProduct } from '../../src/services/openFoodFacts';
 import { ScreenTopBar } from '../../src/components/ui/ScreenTopBar';
+import { ErrorState } from '../../src/components/ui/ErrorState';
 
 export default function BarcodeScanScreen() {
   const insets = useSafeAreaInsets();
@@ -177,16 +178,15 @@ function ScannerContent({
 
       {status === 'not_found' && (
         <View style={styles.centerContent}>
-          <Text style={styles.notFoundIcon}>{'🔍'}</Text>
-          <Text style={styles.notFoundTitle}>{t("productNotFound")}</Text>
-          <Text style={styles.notFoundSubtitle}>
-            {t("productNotFoundMessage")}
-          </Text>
-          <Pressable style={styles.primaryBtn} onPress={() => router.replace('/meal/custom')}>
-            <Text style={styles.primaryBtnText}>{t("manualEntry")}</Text>
-          </Pressable>
-          <Pressable style={styles.secondaryBtn} onPress={handleRetry}>
-            <Text style={styles.secondaryBtnText}>{t("retry")}</Text>
+          <ErrorState
+            variant="generic"
+            title={t("productNotFound")}
+            message={t("productNotFoundMessage")}
+            retryLabel={t("retry")}
+            onRetry={handleRetry}
+          />
+          <Pressable style={styles.secondaryBtn} onPress={() => router.replace('/meal/custom')}>
+            <Text style={styles.secondaryBtnText}>{t("manualEntry")}</Text>
           </Pressable>
         </View>
       )}

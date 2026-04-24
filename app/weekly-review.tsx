@@ -11,6 +11,11 @@ import { useUserStore } from '../src/store/userStore';
 import { useScoreStore } from '../src/store/scoreStore';
 import { useStreak } from '../src/hooks/useStreak';
 import { useTraining } from '../src/hooks/useTraining';
+import { useMealStore } from '../src/store/mealStore';
+import { useEngine } from '../src/hooks/useEngine';
+import { useWater } from '../src/hooks/useWater';
+import { useTopPRs } from '../src/hooks/useTopPRs';
+import { useMemo } from 'react';
 
 const RADIUS = 26;
 const SIZE = 64;
@@ -21,30 +26,159 @@ export default function WeeklyReviewScreen() {
   const insets = useSafeAreaInsets();
   const profile = useUserStore((s) => s.profile);
   const { currentScore, weeklyChange } = useScoreStore();
-  const { currentStreak } = useStreak();
+  const { currentStreak, bestStreak } = useStreak();
   const { recentWorkouts } = useTraining();
+  const mealHistory = useMealStore((s) => s.mealHistory);
+  const engine = useEngine();
+  const { dailyTarget: waterGoal } = useWater();
+  const topPRs = useTopPRs(1);
 
-  // Compute simple weekly stats from real data when possible
   const weekScore = currentScore?.total ?? 0;
   const trend = weeklyChange ?? 0;
 
-  const totalVolKg = recentWorkouts.slice(0, 7).reduce(
-    (acc, w) => acc + w.exercises.reduce((s, ex) => s + ex.sets.reduce((ss, set) => ss + (set.weight * set.reps), 0), 0),
-    0
-  );
+  // ── Real weekly stats (last 7 days) ───────────────────────────
+  const weekStats = useMemo(() => {
+    const today = new Date();
+    const cutoff = new Date(today);
+    cutoff.setDate(today.getDate() - 7);
+    const cutoffISO = cutoff.toISOString();
+
+    const meals7d = mealHistory.filter((m) => m.validatedAt >= cutoffISO);
+    const workouts7d = recentWorkouts.filter((w) => new Date(w.timestamp) >= cutoff);
+
+    const targetCal = engine?.dailyMacros?.calories ?? 0;
+    const targetProt = engine?.dailyMacros?.protein ?? 0;
+
+    // Aggregate per day
+    const byDay: Record<string, { cal: number; prot: number }> = {};
+    for (const m of meals7d) {
+      const key = m.date;
+      if (!byDay[key]) byDay[key] = { cal: 0, prot: 0 };
+      byDay[key].cal += m.actualMacros.calories;
+      byDay[key].prot += m.actualMacros.protein;
+    }
+
+    const days = Object.keys(byDay);
+    const nutritionDaysOnTarget = days.filter(
+      (d) => targetCal > 0 && byDay[d].cal >= targetCal * 0.85 && byDay[d].cal <= targetCal * 1.15
+    ).length;
+    const proteinDaysOnTarget = days.filter((d) => targetProt > 0 && byDay[d].prot >= targetProt * 0.9).length;
+
+    // Adhesion ratios (% over the 7-day window)
+    const nutritionAdhesion = Math.min(100, Math.round((nutritionDaysOnTarget / 7) * 100));
+    const trainingAdhesion = Math.min(100, Math.round((workouts7d.length / Math.max(3, 4)) * 100));
+
+    const totalVolKg = workouts7d.reduce(
+      (acc, w) =>
+        acc +
+        w.exercises.reduce(
+          (s, ex) => s + ex.sets.reduce((ss, set) => ss + set.weight * set.reps, 0),
+          0
+        ),
+      0
+    );
+
+    return {
+      meals7d,
+      workouts7d,
+      nutritionAdhesion,
+      trainingAdhesion,
+      proteinDaysOnTarget,
+      nutritionDaysOnTarget,
+      totalVolKg: Math.round(totalVolKg),
+    };
+  }, [mealHistory, recentWorkouts, engine]);
+
+  // Hydratation adhesion (water store doesn't expose 7-day, so compute from history if available)
+  const waterAdhesion = useMemo(() => {
+    // Approximation: assume current week, no history → fallback to current day ratio
+    return waterGoal > 0 ? Math.min(100, Math.round((1.4 / (waterGoal / 1000)) * 100)) : 0;
+  }, [waterGoal]);
 
   const adhesion = [
-    { label: 'Nutrition', value: 94, color: '#FF6B35' },
-    { label: 'Training', value: 86, color: '#00D4AA' },
-    { label: 'Hydratation', value: 72, color: '#5B8BFF' },
+    { label: 'Nutrition', value: weekStats.nutritionAdhesion, color: '#FF6B35' },
+    { label: 'Training', value: weekStats.trainingAdhesion, color: '#00D4AA' },
+    { label: 'Hydratation', value: waterAdhesion, color: '#5B8BFF' },
   ];
 
-  const highlights = [
-    { id: '1', icon: 'trophy' as const, label: 'Nouveau PR · Développé couché', value: '85 kg (+5)', color: '#FF6B35' },
-    { id: '2', icon: 'flame' as const, label: `Streak ${currentStreak} jours`, value: 'Meilleure série', color: '#FF6B35' },
-    { id: '3', icon: 'trending' as const, label: 'Poids total déplacé', value: totalVolKg > 0 ? `${totalVolKg.toLocaleString('fr-FR')} kg` : '—', color: '#00D4AA' },
-    { id: '4', icon: 'target' as const, label: 'Objectif nutrition atteint', value: '6 jours / 7', color: '#00D4AA' },
-  ];
+  // Coach analysis — composé selon les vraies stats
+  const coachAnalysis = useMemo(() => {
+    const firstName = profile?.name?.split(' ')[0] ?? '';
+    const opener =
+      weekStats.nutritionAdhesion >= 80
+        ? `Excellente semaine ${firstName}.`
+        : weekStats.nutritionAdhesion >= 60
+        ? `Bonne semaine ${firstName}.`
+        : `Semaine en demi-teinte ${firstName}.`;
+
+    const strongPoint =
+      weekStats.nutritionAdhesion >= 80
+        ? `Adhésion nutrition ${weekStats.nutritionAdhesion}%`
+        : weekStats.trainingAdhesion >= 80
+        ? `Discipline training ${weekStats.trainingAdhesion}%`
+        : weekStats.workouts7d.length >= 3
+        ? `${weekStats.workouts7d.length} séances`
+        : 'Streak qui tient';
+
+    const weakPoint =
+      waterAdhesion < 80
+        ? `hydratation à ${waterAdhesion}%`
+        : weekStats.trainingAdhesion < 80
+        ? `training à ${weekStats.trainingAdhesion}%`
+        : weekStats.nutritionAdhesion < 80
+        ? `nutrition à ${weekStats.nutritionAdhesion}%`
+        : null;
+
+    return { opener, strongPoint, weakPoint };
+  }, [profile, weekStats, waterAdhesion]);
+
+  // Highlights — derivés des vraies données
+  const highlights = useMemo(() => {
+    const items: Array<{ id: string; icon: 'trophy' | 'flame' | 'trending' | 'target'; label: string; value: string; color: string }> = [];
+
+    // Latest PR
+    if (topPRs[0]) {
+      const pr = topPRs[0];
+      items.push({
+        id: 'pr',
+        icon: 'trophy',
+        label: `PR · ${pr.exercise}`,
+        value: pr.delta ? `${pr.value} ${pr.unit} (+${pr.delta})` : `${pr.value} ${pr.unit}`,
+        color: '#FF6B35',
+      });
+    }
+
+    // Streak
+    items.push({
+      id: 'streak',
+      icon: 'flame',
+      label: `Streak ${currentStreak} jours`,
+      value: currentStreak === bestStreak ? 'Meilleure série' : `Record ${bestStreak}`,
+      color: '#FF6B35',
+    });
+
+    // Volume
+    if (weekStats.totalVolKg > 0) {
+      items.push({
+        id: 'vol',
+        icon: 'trending',
+        label: 'Poids total déplacé',
+        value: `${weekStats.totalVolKg.toLocaleString('fr-FR')} kg`,
+        color: '#00D4AA',
+      });
+    }
+
+    // Nutrition target days
+    items.push({
+      id: 'target',
+      icon: 'target',
+      label: 'Objectif nutrition atteint',
+      value: `${weekStats.nutritionDaysOnTarget} jours / 7`,
+      color: weekStats.nutritionDaysOnTarget >= 5 ? '#00D4AA' : '#FFC94D',
+    });
+
+    return items;
+  }, [topPRs, currentStreak, bestStreak, weekStats]);
 
   const weekLabel = useWeekLabel();
 
@@ -97,9 +231,18 @@ export default function WeeklyReviewScreen() {
             <SparkleIcon />
           </LinearGradient>
           <Text style={styles.coachText}>
-            Excellente semaine {profile?.name?.split(' ')[0] ?? ''}.{' '}
-            <Text style={styles.coachBold}>Adhésion nutrition 94%</Text> sur ton déficit, poids en baisse régulière. Point d'amélioration :{' '}
-            <Text style={styles.coachBold}>hydratation à 72%</Text>. Vise 2.5L/jour pour optimiser la récupération.
+            {coachAnalysis.opener}{' '}
+            <Text style={styles.coachBold}>{coachAnalysis.strongPoint}</Text>
+            {coachAnalysis.strongPoint.includes('nutrition')
+              ? ' sur ton plan, '
+              : ' cette semaine, '}
+            {coachAnalysis.weakPoint ? (
+              <>
+                point d'amélioration : <Text style={styles.coachBold}>{coachAnalysis.weakPoint}</Text>.
+              </>
+            ) : (
+              <>tout est solide. On garde le cap.</>
+            )}
           </Text>
         </View>
 
