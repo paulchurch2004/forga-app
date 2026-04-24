@@ -818,7 +818,6 @@ export const fr = {
   sessionsThisWeek: '{count} cette semaine',
   sessionsThisMonth: '{count} ce mois',
   favoriteType: 'Type favori',
-  noWorkoutsYet: 'Aucune seance enregistree',
   noWorkoutsSubtitle: 'Commence par logger ta premiere seance !',
   startFirstWorkout: 'Ma premiere seance',
   yourWeek: 'Ta semaine',
@@ -963,10 +962,6 @@ export const fr = {
   totalVolume: 'Volume total',
   noProgressionData: 'Pas encore de donnees',
   noProgressionSubtitle: 'Log plusieurs seances pour voir ta courbe',
-  period7d: '7j',
-  period30d: '30j',
-  period90d: '90j',
-  periodAll: 'Tout',
 
   // Workout detail
   workoutDetail: 'Detail de la seance',
@@ -1242,7 +1237,6 @@ export const fr = {
   lastMonth: 'Mois dernier',
   adherenceLabel: 'Adherence',
   avgScoreLabel: 'Score moyen',
-  weightLabel: 'Poids',
   waterLabel2: 'Eau',
   daysLabel: 'jours',
   onTarget: 'objectif',
@@ -1278,8 +1272,6 @@ export const fr = {
 
   // ── Progress photos ──
   progressPhotosTitle: 'Photos de progression',
-  takePhoto: 'Prendre une photo',
-  fromGallery: 'Galerie',
   compareBeforeAfter: 'Comparer avant/apres',
   cancelCompare: 'Annuler',
   selectPhotosToCompare: 'Selectionne {count} photo(s) a comparer',

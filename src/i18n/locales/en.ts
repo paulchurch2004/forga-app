@@ -820,7 +820,6 @@ export const en: Record<TranslationKey, string> = {
   sessionsThisWeek: '{count} this week',
   sessionsThisMonth: '{count} this month',
   favoriteType: 'Favorite type',
-  noWorkoutsYet: 'No workouts logged',
   noWorkoutsSubtitle: 'Start by logging your first workout!',
   startFirstWorkout: 'My first workout',
   yourWeek: 'Your week',
@@ -965,10 +964,6 @@ export const en: Record<TranslationKey, string> = {
   totalVolume: 'Total volume',
   noProgressionData: 'No data yet',
   noProgressionSubtitle: 'Log multiple sessions to see your curve',
-  period7d: '7d',
-  period30d: '30d',
-  period90d: '90d',
-  periodAll: 'All',
 
   // Workout detail
   workoutDetail: 'Workout detail',
@@ -1244,7 +1239,6 @@ export const en: Record<TranslationKey, string> = {
   lastMonth: 'Last month',
   adherenceLabel: 'Adherence',
   avgScoreLabel: 'Avg score',
-  weightLabel: 'Weight',
   waterLabel2: 'Water',
   daysLabel: 'days',
   onTarget: 'on target',
@@ -1280,8 +1274,6 @@ export const en: Record<TranslationKey, string> = {
 
   // ── Progress photos ──
   progressPhotosTitle: 'Progress Photos',
-  takePhoto: 'Take photo',
-  fromGallery: 'From gallery',
   compareBeforeAfter: 'Compare before/after',
   cancelCompare: 'Cancel',
   selectPhotosToCompare: 'Select {count} photo(s) to compare',
