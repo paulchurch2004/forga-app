@@ -7,6 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useTraining } from '../../src/hooks/useTraining';
+import { useStreak } from '../../src/hooks/useStreak';
 import { useProgram } from '../../src/hooks/useProgram';
 import { useProgramStore } from '../../src/store/programStore';
 import { useUserStore } from '../../src/store/userStore';
@@ -25,6 +26,8 @@ import { SessionHistoryList, type SessionHistoryItem } from '../../src/component
 import { TrainingHero } from '../../src/components/training/TrainingHero';
 import { WeekNavigator } from '../../src/components/training/WeekNavigator';
 import { WeekDayCalendar, type WeekCalendarDay, type WeekDayStatus } from '../../src/components/training/WeekDayCalendar';
+import { QuickStatsRow, type QuickStatItem } from '../../src/components/training/QuickStatsRow';
+import { SelectedDayCard, type SelectedDayState, type SelectedDayExercise } from '../../src/components/training/SelectedDayCard';
 import { EXERCISES } from '../../src/data/exercises';
 
 const TRAINING_HEADER_IMAGE =
@@ -127,6 +130,79 @@ export default function TrainingScreen() {
     if (weekOffset < 0) return `Il y a ${-weekOffset} sem.`;
     return `Dans ${weekOffset} sem.`;
   }, [weekOffset]);
+
+  // ─── Stats for QuickStatsRow ──────────────────────────────────
+  const { currentStreak, bestStreak } = useStreak();
+  const weeklyVolumeKg = useMemo(() => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 7);
+    return Math.round(
+      recentWorkouts
+        .filter((w) => new Date(w.date) >= cutoff)
+        .reduce(
+          (acc, w) =>
+            acc +
+            w.exercises.reduce(
+              (s, ex) => s + ex.sets.reduce((ss, set) => ss + (set.weight ?? 0) * (set.reps ?? 0), 0),
+              0
+            ),
+          0
+        )
+    );
+  }, [recentWorkouts]);
+  const weeklyVolumeTargetKg = activeProgram ? activeProgram.daysPerWeek * 4500 : 0;
+
+  // ─── Selected day card data (today / done / rest / plan) ─────
+  const selectedDayCardData = useMemo(() => {
+    const day = selectedDayIndex !== null ? calendarDays[selectedDayIndex] : null;
+    const isSelectedToday = day?.status === 'today';
+    const isSelectedDone = day?.status === 'done';
+    const isSelectedRest = day?.status === 'rest';
+
+    let state: SelectedDayState = 'plan';
+    if (isSelectedRest) state = 'rest';
+    else if (isSelectedDone) state = 'done';
+    else if (isSelectedToday) state = 'today';
+
+    const sectionLabel = isSelectedToday
+      ? 'SÉANCE DU JOUR'
+      : isSelectedDone
+      ? 'SÉANCE TERMINÉE'
+      : isSelectedRest
+      ? 'JOUR DE REPOS'
+      : 'SÉANCE PRÉVUE';
+
+    const typeLabel = todayProgramDay ? t(todayProgramDay.nameKey as any) : '';
+    const durationMin = todayProgramDay ? todayProgramDay.exercises.length * 12 : 0;
+    const title = todayProgramDay
+      ? todayProgramDay.muscleGroups.map((g) => t(`muscle_${g}` as any)).join(' & ')
+      : typeLabel;
+
+    const exercisesPreview: SelectedDayExercise[] | undefined = todayProgramDay
+      ? todayProgramDay.exercises.map((e) => ({
+          id: e.exerciseId,
+          name: EXERCISES[e.exerciseId]?.nameFr ?? e.exerciseId,
+          sets: e.targetSets,
+          reps: String(e.targetReps),
+          restSec: e.restSeconds,
+        }))
+      : undefined;
+
+    return {
+      state,
+      sectionLabel,
+      typeLabel,
+      durationMin,
+      title,
+      intentionQuote: isSelectedToday
+        ? `Consolider ta séance ${typeLabel.toLowerCase()}. On garde l'intensité, on soigne l'exécution.`
+        : undefined,
+      muscleChips: todayProgramDay?.muscleGroups.map((g) => t(`muscle_${g}` as any)),
+      exercisesPreview,
+      totalExercises: todayProgramDay?.exercises.length,
+      volumeKg: undefined,
+    };
+  }, [calendarDays, selectedDayIndex, todayProgramDay, t]);
 
   // ─── Header data for the new TrainingHero ────────────────────
   const heroData = useMemo(() => {
@@ -235,65 +311,63 @@ export default function TrainingScreen() {
           </Pressable>
         </Animated.View>
       ) : (
-        /* ── Mode B: Active Plan ── */
+        /* ── Mode B: Active Plan (V2 design) ── */
         <>
-          {/* Current program card */}
-          {activeProgram && (
-            <ProgramCard
-              program={activeProgram}
-              onChangePress={changeProgram}
-            />
-          )}
+          {/* Quick stats row : 3 mini cards (Volume / Sessions / Streak) */}
+          <QuickStatsRow
+            items={[
+              {
+                id: 'volume',
+                label: 'Volume',
+                value: weeklyVolumeKg >= 1000 ? (weeklyVolumeKg / 1000).toFixed(1) : String(weeklyVolumeKg),
+                unit: weeklyVolumeKg >= 1000 ? 'k' : 'kg',
+                hint: weeklyVolumeTargetKg > 0 ? `${Math.round((weeklyVolumeKg / weeklyVolumeTargetKg) * 100)}% obj.` : undefined,
+              },
+              {
+                id: 'sessions',
+                label: 'Séances',
+                value: String(weeklyCount),
+                unit: hasActivePlan && activeProgram ? `/${activeProgram.daysPerWeek}` : undefined,
+                hint: weeklyCount > 0 ? 'Sur les rails' : undefined,
+                hintColor: 'rgba(255,255,255,0.38)',
+              },
+              {
+                id: 'streak',
+                label: 'Streak',
+                value: String(currentStreak),
+                unit: 'j',
+                hint: currentStreak >= bestStreak && currentStreak > 0 ? 'Record ✦' : undefined,
+                hintColor: 'rgba(255,255,255,0.38)',
+              },
+            ]}
+          />
 
-          {/* Weekly grid — redesign : 7 carrés colorés par status */}
-          {weekDays.length > 0 && (
-            <Animated.View  style={{ marginTop: spacing.md }}>
-              <WeeklyDaysGrid
-                days={weekDays.map<WeekDayItem>((d) => {
-                  const date = new Date(d.date);
-                  const dayLetters = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
-                  const status: DayStatus =
-                    d.status === 'completed' ? 'done'
-                    : d.status === 'today' ? 'today'
-                    : d.status === 'rest' ? 'rest'
-                    : 'plan';
-                  return { letter: dayLetters[date.getDay()], status };
-                })}
-              />
-            </Animated.View>
-          )}
+          {/* Section label for the selected-day card */}
+          <Text style={[styles.sectionTitle, { marginTop: 24 }]}>
+            {selectedDayCardData.sectionLabel}
+          </Text>
 
-          {/* Séance du jour — redesign : intention quote + 3 exos preview + CTA */}
-          {todayPlan && todayProgramDay && (
-            <Animated.View  style={{ marginTop: spacing.md }}>
-              <Text style={styles.sectionTitle}>SÉANCE DU JOUR</Text>
-              <TodayWorkoutPreview
-                type={`${t(todayProgramDay.nameKey as any)} · ${todayProgramDay.exercises.length * 12} min`}
-                title={todayProgramDay.muscleGroups.map((g) => t(`muscle_${g}` as any)).join(' & ')}
-                intention={`Consolider ta séance ${t(todayProgramDay.nameKey as any).toLowerCase()}. On garde l'intensité, on soigne l'exécution.`}
-                exercises={todayProgramDay.exercises.map<ExercisePreview>((e) => ({
-                  id: e.exerciseId,
-                  name: EXERCISES[e.exerciseId]?.nameFr ?? e.exerciseId,
-                  sets: e.targetSets,
-                  reps: String(e.targetReps),
-                }))}
-                totalExercises={todayProgramDay.exercises.length}
-                onStart={handleStartWorkout}
-              />
-            </Animated.View>
-          )}
+          {/* Selected day card — switches between today / done / rest / plan */}
+          <SelectedDayCard
+            state={selectedDayCardData.state}
+            typeLabel={selectedDayCardData.typeLabel}
+            durationMin={selectedDayCardData.durationMin}
+            title={selectedDayCardData.title}
+            intentionQuote={selectedDayCardData.intentionQuote}
+            muscleChips={selectedDayCardData.muscleChips}
+            exercisesPreview={selectedDayCardData.exercisesPreview}
+            totalExercises={selectedDayCardData.totalExercises}
+            volumeKg={selectedDayCardData.volumeKg}
+            onStart={handleStartWorkout}
+            onActions={() => triggerHaptic()}
+            onMoveUp={() => triggerHaptic()}
+            onSkip={handleSkipDay}
+            onSeeSummary={() => router.back()}
+            onDuplicate={() => triggerHaptic()}
+            onForceWorkout={() => router.push('/log-workout')}
+          />
 
-          {/* Fallback if no programDay (rest day) */}
-          {todayPlan && !todayProgramDay && (
-            <TodayWorkoutCard
-              todayPlan={todayPlan}
-              programDay={todayProgramDay}
-              onStartWorkout={handleStartWorkout}
-              onSkipDay={handleSkipDay}
-            />
-          )}
-
-          {/* Quick Stats */}
+          {/* Quick Stats (legacy — kept while history list lives below) */}
           {recentWorkouts.length > 0 && (
             <Animated.View >
               <QuickStats
