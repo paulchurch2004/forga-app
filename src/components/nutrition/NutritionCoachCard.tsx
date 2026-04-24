@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
 
 interface NutritionCoachCardProps {
   timeLabel?: string;
@@ -11,6 +12,7 @@ interface NutritionCoachCardProps {
 }
 
 export function NutritionCoachCard({ timeLabel, message, highlights }: NutritionCoachCardProps) {
+  const { t } = useT();
   const renderMessage = () => {
     if (!highlights || highlights.length === 0) {
       return <Text style={styles.message}>{message}</Text>;
@@ -44,7 +46,7 @@ export function NutritionCoachCard({ timeLabel, message, highlights }: Nutrition
         <SparkleIcon />
       </LinearGradient>
       <View style={styles.body}>
-        <Text style={styles.eyebrow}>COACH{timeLabel ? ` · ${timeLabel}` : ''}</Text>
+        <Text style={styles.eyebrow}>{t('nutritionCoachEyebrow')}{timeLabel ? ` · ${timeLabel}` : ''}</Text>
         {renderMessage()}
       </View>
     </View>

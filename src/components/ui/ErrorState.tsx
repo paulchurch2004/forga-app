@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
 
 interface ErrorStateProps {
   variant?: 'network' | 'generic';
@@ -12,19 +13,12 @@ interface ErrorStateProps {
   onRetry?: () => void;
 }
 
-const COPY = {
-  network: {
-    title: 'Pas de connexion',
-    message: "Vérifie ton wifi ou ta data, on retentera tout de suite après.",
-  },
-  generic: {
-    title: 'Quelque chose a coincé',
-    message: 'On a pas pu charger cette section. Réessaie dans un instant.',
-  },
-};
-
-export function ErrorState({ variant = 'generic', title, message, retryLabel = 'Réessayer', onRetry }: ErrorStateProps) {
-  const c = COPY[variant];
+export function ErrorState({ variant = 'generic', title, message, retryLabel, onRetry }: ErrorStateProps) {
+  const { t } = useT();
+  const c = variant === 'network'
+    ? { title: t('errorStateNetworkTitle'), message: t('errorStateNetworkMessage') }
+    : { title: t('errorStateGenericTitle'), message: t('errorStateGenericMessage') };
+  const resolvedRetry = retryLabel ?? t('errorStateRetry');
   return (
     <View style={styles.container}>
       <View style={styles.medallion}>
@@ -42,7 +36,7 @@ export function ErrorState({ variant = 'generic', title, message, retryLabel = '
             end={{ x: 1, y: 1 }}
             style={styles.retry}
           >
-            <Text style={styles.retryText}>{retryLabel}</Text>
+            <Text style={styles.retryText}>{resolvedRetry}</Text>
           </LinearGradient>
         </Pressable>
       ) : null}

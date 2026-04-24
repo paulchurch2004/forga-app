@@ -374,7 +374,7 @@ export default function NutritionScreen() {
 
         {/* Repas du jour — liste avec photos */}
         <Animated.View  style={{ marginTop: spacing.lg }}>
-          <Text style={styles.sectionLabel}>REPAS DU JOUR</Text>
+          <Text style={styles.sectionLabel}>{t('mealsOfDayLabelUpper')}</Text>
           <MealSlotPhotoList items={mealItems} />
         </Animated.View>
 
@@ -469,9 +469,9 @@ export default function NutritionScreen() {
       {/* Floating quick-log: scan / photo / search — primary nutrition entry point */}
       <QuickLogFAB
         actions={[
-          { label: 'Scanner code-barre', icon: 'barcode', onPress: () => router.push('/scan/barcode') },
-          { label: 'Photo repas', icon: 'camera', onPress: () => router.push('/scan/photo') },
-          { label: 'Recherche recette', icon: 'search', onPress: () => router.push('/recipes') },
+          { label: t('fabScanBarcode'), icon: 'barcode', onPress: () => router.push('/scan/barcode') },
+          { label: t('fabPhoto'), icon: 'camera', onPress: () => router.push('/scan/photo') },
+          { label: t('fabSearch'), icon: 'search', onPress: () => router.push('/recipes') },
         ]}
       />
 

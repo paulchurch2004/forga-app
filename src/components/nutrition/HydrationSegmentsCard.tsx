@@ -10,6 +10,7 @@ import Animated, {
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
 
 const SEGMENT_COUNT = 10;
 const ACCENT = '#00D4AA';
@@ -21,6 +22,7 @@ interface HydrationSegmentsCardProps {
 }
 
 export function HydrationSegmentsCard({ currentMl, goalMl, onAdd }: HydrationSegmentsCardProps) {
+  const { t } = useT();
   const filledSegments = Math.min(SEGMENT_COUNT, Math.floor((currentMl / goalMl) * SEGMENT_COUNT));
   const currentL = (currentMl / 1000).toFixed(1);
   const goalL = (goalMl / 1000).toFixed(1);
@@ -30,7 +32,7 @@ export function HydrationSegmentsCard({ currentMl, goalMl, onAdd }: HydrationSeg
       <View style={styles.headerRow}>
         <View style={styles.titleRow}>
           <DropletIcon />
-          <Text style={styles.title}>Hydratation</Text>
+          <Text style={styles.title}>{t('hydrationTitle')}</Text>
         </View>
         <Text style={styles.amount}>
           {currentL} <Text style={styles.amountGoal}>/ {goalL} L</Text>
@@ -45,10 +47,10 @@ export function HydrationSegmentsCard({ currentMl, goalMl, onAdd }: HydrationSeg
 
       <View style={styles.actionsRow}>
         <Pressable onPress={() => onAdd(250)} style={({ pressed }) => [styles.actionButton, pressed && styles.actionPressed]}>
-          <Text style={styles.actionText}>+ 250 ml</Text>
+          <Text style={styles.actionText}>{t('hydrationAdd250')}</Text>
         </Pressable>
         <Pressable onPress={() => onAdd(500)} style={({ pressed }) => [styles.actionButton, pressed && styles.actionPressed]}>
-          <Text style={styles.actionText}>+ 500 ml</Text>
+          <Text style={styles.actionText}>{t('hydrationAdd500')}</Text>
         </Pressable>
       </View>
     </View>

@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
 
 export interface QuickLogAction {
   label: string;

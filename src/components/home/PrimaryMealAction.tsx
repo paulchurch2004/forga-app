@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
 
 interface PrimaryMealActionProps {
   slotLabel: string;
@@ -10,7 +11,9 @@ interface PrimaryMealActionProps {
   onPress: () => void;
 }
 
-export function PrimaryMealAction({ slotLabel, hint = 'Photo, scan, ou recherche', onPress }: PrimaryMealActionProps) {
+export function PrimaryMealAction({ slotLabel, hint, onPress }: PrimaryMealActionProps) {
+  const { t } = useT();
+  const resolvedHint = hint ?? t('primaryMealActionHint');
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [pressed && { opacity: 0.92 }]}>
       <LinearGradient
@@ -24,8 +27,8 @@ export function PrimaryMealAction({ slotLabel, hint = 'Photo, scan, ou recherche
             <PlusIcon />
           </View>
           <View>
-            <Text style={styles.title}>Logger {slotLabel}</Text>
-            <Text style={styles.hint}>{hint}</Text>
+            <Text style={styles.title}>{t('primaryMealActionTitle', { slot: slotLabel })}</Text>
+            <Text style={styles.hint}>{resolvedHint}</Text>
           </View>
         </View>
         <ChevronRight />

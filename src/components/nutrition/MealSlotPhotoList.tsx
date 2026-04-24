@@ -4,6 +4,7 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
 
 const SUCCESS = '#00D4AA';
 const ROW_HEIGHT = 84;
@@ -36,6 +37,7 @@ export function MealSlotPhotoList({ items }: MealSlotPhotoListProps) {
 }
 
 function MealRow({ item }: { item: MealSlotPhotoItem }) {
+  const { t } = useT();
   const isEmpty = !item.meal;
   const dimmed = item.optional && isEmpty;
 
@@ -83,7 +85,7 @@ function MealRow({ item }: { item: MealSlotPhotoItem }) {
           )}
         </View>
         <Text style={styles.mealName} numberOfLines={1}>
-          {item.meal ?? 'Ajouter un repas'}
+          {item.meal ?? t('mealSlotEmpty')}
         </Text>
         {item.kcal !== undefined && item.meal ? (
           <Text style={styles.kcal}>{item.kcal} kcal</Text>

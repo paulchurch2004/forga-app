@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
 
 const SUCCESS = '#00D4AA';
 
@@ -38,6 +39,7 @@ export function ValidatedMealOverlay({ visible, kcal, protein, onDone, autoDismi
 }
 
 function Inner({ kcal, protein }: { kcal: number; protein: number }) {
+  const { t } = useT();
   const checkScale = useSharedValue(0);
   const titleOpacity = useSharedValue(0);
   const titleY = useSharedValue(12);
@@ -61,9 +63,9 @@ function Inner({ kcal, protein }: { kcal: number; protein: number }) {
           <Path d="M5 12 L10 17 L19 7" stroke="#000000" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />
         </Svg>
       </Animated.View>
-      <Animated.Text style={[styles.title, titleStyle]}>Repas validé</Animated.Text>
+      <Animated.Text style={[styles.title, titleStyle]}>{t('validatedMealTitle')}</Animated.Text>
       <Animated.Text style={[styles.sub, subStyle]}>
-        +{kcal} kcal · +{protein}g prot
+        {t('validatedMealSubtitle', { kcal, protein })}
       </Animated.Text>
     </View>
   );
