@@ -3,6 +3,7 @@ import { View, Text, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
 
 export interface PresenceFocus {
   timeLabel: string; // e.g. "16:04"
@@ -28,6 +29,7 @@ interface PresenceViewProps {
 }
 
 export function PresenceView({ focus, observations, onSwitchToConversation }: PresenceViewProps) {
+  const { t } = useT();
   return (
     <ScrollView
       style={styles.scroll}
@@ -36,7 +38,7 @@ export function PresenceView({ focus, observations, onSwitchToConversation }: Pr
     >
       <FocusCard focus={focus} />
 
-      <Text style={styles.sectionLabel}>CE QU'IL A OBSERVÉ</Text>
+      <Text style={styles.sectionLabel}>{t('presenceObservedLabel')}</Text>
 
       <View style={styles.timelineWrap}>
         <View style={styles.timelineLine} pointerEvents="none" />
@@ -49,7 +51,7 @@ export function PresenceView({ focus, observations, onSwitchToConversation }: Pr
 
       <Pressable onPress={onSwitchToConversation} style={styles.switchButton}>
         <ChatIcon />
-        <Text style={styles.switchButtonText}>Une question ? Passe en conversation</Text>
+        <Text style={styles.switchButtonText}>{t('presenceSwitchToConversation')}</Text>
       </Pressable>
     </ScrollView>
   );
@@ -58,6 +60,7 @@ export function PresenceView({ focus, observations, onSwitchToConversation }: Pr
 /* ─── FOCUS CARD ─────────────────────────────────── */
 
 function FocusCard({ focus }: { focus: PresenceFocus }) {
+  const { t } = useT();
   // Render the message highlighting the parts in focus.highlights
   const renderMessage = () => {
     if (!focus.highlights || focus.highlights.length === 0) {
@@ -88,7 +91,7 @@ function FocusCard({ focus }: { focus: PresenceFocus }) {
     <View style={styles.focusCard}>
       <View style={styles.focusGlow} pointerEvents="none" />
       <View>
-        <Text style={styles.focusEyebrow}>FOCUS DU JOUR · {focus.timeLabel}</Text>
+        <Text style={styles.focusEyebrow}>{t('presenceFocusEyebrow', { time: focus.timeLabel })}</Text>
         {renderMessage()}
 
         <View style={styles.focusActions}>

@@ -40,9 +40,11 @@ export function CoachingTooltip({
   body,
   anchorY,
   arrow = 'none',
-  cta = 'OK, compris',
+  cta,
   delayMs = 600,
 }: CoachingTooltipProps) {
+  const { t } = useT();
+  const resolvedCta = cta ?? t('tooltipDefaultCta');
   const [eligible, setEligible] = useState(false); // not seen + delay elapsed
   const [hydrated, setHydrated] = useState(false);
   const activeId = useTooltipQueue((s) => s.activeId);
@@ -81,7 +83,7 @@ export function CoachingTooltip({
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
       <Pressable style={styles.backdrop} onPress={dismiss}>
         <View style={[styles.cardWrap, anchorY !== undefined && { top: anchorY - 90 }]}>
-          <Card title={title} body={body} cta={cta} arrow={arrow} onDismiss={dismiss} />
+          <Card title={title} body={body} cta={resolvedCta} arrow={arrow} onDismiss={dismiss} />
         </View>
       </Pressable>
     </View>
@@ -101,6 +103,7 @@ function Card({
   arrow: 'up' | 'down' | 'none';
   onDismiss: () => void;
 }) {
+  const { t } = useT();
   const opacity = useSharedValue(0);
   const ty = useSharedValue(arrow === 'up' ? -10 : 10);
 
@@ -127,7 +130,7 @@ function Card({
           <View style={styles.iconWrap}>
             <SparkleIcon />
           </View>
-          <Text style={styles.eyebrow}>COACH · ASTUCE</Text>
+          <Text style={styles.eyebrow}>{t('tooltipEyebrow')}</Text>
         </View>
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.body}>{body}</Text>

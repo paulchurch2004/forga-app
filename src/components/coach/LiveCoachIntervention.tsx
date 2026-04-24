@@ -12,34 +12,16 @@ import Animated, {
 } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
+import type { TranslationKey } from '../../i18n/locales/fr';
 
 export type LiveCoachKind = 'form' | 'rest' | 'push' | 'swap';
 
-const VARIANTS: Record<LiveCoachKind, { tag: string; title: string; body: string; action: string }> = {
-  form: {
-    tag: 'Observation',
-    title: 'Ralentis la descente',
-    body: 'Tu descends en 0.8s. Cible 2-3s. Le temps sous tension fait le muscle — pas le nombre de reps.',
-    action: "OK, j'applique",
-  },
-  rest: {
-    tag: 'Récup',
-    title: '+30s de repos',
-    body: 'Ton HR est encore à 142. Pour garder la force sur la série suivante, laisse-le redescendre sous 120.',
-    action: "D'accord",
-  },
-  push: {
-    tag: 'Opportunité',
-    title: 'Tente +2kg',
-    body: 'Ta dernière série à 80kg était propre (RPE 7). Tu as la réserve pour tester 82kg sur la suivante.',
-    action: 'Je tente',
-  },
-  swap: {
-    tag: 'Ajustement',
-    title: "Je remplace l'exo 4",
-    body: "Tu es à 85% du volume cible et tes épaules fatiguent. On zappe l'élévation latérale, on garde l'essentiel.",
-    action: 'Valider',
-  },
+const VARIANT_KEYS: Record<LiveCoachKind, { tag: TranslationKey; title: TranslationKey; body: TranslationKey; action: TranslationKey }> = {
+  form: { tag: 'liveCoachFormTag', title: 'liveCoachFormTitle', body: 'liveCoachFormBody', action: 'liveCoachFormAction' },
+  rest: { tag: 'liveCoachRestTag', title: 'liveCoachRestTitle', body: 'liveCoachRestBody', action: 'liveCoachRestAction' },
+  push: { tag: 'liveCoachPushTag', title: 'liveCoachPushTitle', body: 'liveCoachPushBody', action: 'liveCoachPushAction' },
+  swap: { tag: 'liveCoachSwapTag', title: 'liveCoachSwapTitle', body: 'liveCoachSwapBody', action: 'liveCoachSwapAction' },
 };
 
 interface LiveCoachInterventionProps {
@@ -60,6 +42,7 @@ export function LiveCoachIntervention({
   onDismiss,
 }: LiveCoachInterventionProps) {
   const insets = useSafeAreaInsets();
+  const { t } = useT();
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(-16);
   const scale = useSharedValue(0.96);
@@ -82,9 +65,9 @@ export function LiveCoachIntervention({
   }));
 
   if (!visible) return null;
-  const v = VARIANTS[kind];
-  const title = customTitle ?? v.title;
-  const body = customBody ?? v.body;
+  const v = VARIANT_KEYS[kind];
+  const title = customTitle ?? t(v.title);
+  const body = customBody ?? t(v.body);
 
   return (
     <Animated.View style={[styles.wrap, { top: insets.top + 60 }, animStyle]}>
@@ -98,9 +81,9 @@ export function LiveCoachIntervention({
           <PulsingAvatar />
           <View style={styles.body}>
             <View style={styles.headerRow}>
-              <Text style={styles.eyebrow}>COACH · LIVE</Text>
+              <Text style={styles.eyebrow}>{t('liveCoachEyebrow')}</Text>
               <View style={styles.greenDot} />
-              <Text style={styles.tag}>{v.tag}</Text>
+              <Text style={styles.tag}>{t(v.tag)}</Text>
             </View>
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.bodyText}>{body}</Text>
@@ -112,7 +95,7 @@ export function LiveCoachIntervention({
 
         <View style={styles.actionsRow}>
           <Pressable onPress={onDismiss} style={({ pressed }) => [styles.btnSecondary, pressed && styles.pressed]}>
-            <Text style={styles.btnSecondaryText}>Plus tard</Text>
+            <Text style={styles.btnSecondaryText}>{t('liveCoachLater')}</Text>
           </Pressable>
           <Pressable onPress={onAccept} style={({ pressed }) => [styles.btnPrimary, pressed && styles.pressed]}>
             <LinearGradient
@@ -121,7 +104,7 @@ export function LiveCoachIntervention({
               end={{ x: 1, y: 1 }}
               style={styles.btnPrimaryInner}
             >
-              <Text style={styles.btnPrimaryText}>{v.action}</Text>
+              <Text style={styles.btnPrimaryText}>{t(v.action)}</Text>
             </LinearGradient>
           </Pressable>
         </View>

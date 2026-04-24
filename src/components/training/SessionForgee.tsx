@@ -12,6 +12,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
 
 const LOGO = require('../../../assets/logo/logo_sans_fond.png');
 
@@ -73,6 +74,7 @@ export function SessionForgee({ visible, userName = 'Paul', stats, onClose }: Se
 /* ─── PHASES ─────────────────────────────────── */
 
 function PhaseHeat() {
+  const { t } = useT();
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(16);
 
@@ -88,7 +90,7 @@ function PhaseHeat() {
 
   return (
     <Animated.View style={animStyle}>
-      <Text style={styles.phaseHint}>LE MÉTAL CHAUFFE…</Text>
+      <Text style={styles.phaseHint}>{t('sessionForgeeHeating')}</Text>
     </Animated.View>
   );
 }
@@ -120,6 +122,7 @@ function PhaseStrike() {
 }
 
 function PhaseReveal({ userName, stats }: { userName: string; stats: SessionForgeeStats }) {
+  const { t } = useT();
   const fade1 = useEntrance(100);
   const fade2 = useEntrance(250);
   const fade3 = useEntrance(400);
@@ -147,16 +150,13 @@ function PhaseReveal({ userName, stats }: { userName: string; stats: SessionForg
         <Image source={LOGO} style={styles.anvilSmall} resizeMode="contain" />
       </Animated.View>
 
-      <Animated.Text style={[styles.eyebrow, fade1]}>SESSION FORGÉE</Animated.Text>
-      <Animated.Text style={[styles.bigTitle, fade2]}>
-        Bien joué,{'\n'}
-        {userName}.
-      </Animated.Text>
+      <Animated.Text style={[styles.eyebrow, fade1]}>{t('sessionForgeeTitle')}</Animated.Text>
+      <Animated.Text style={[styles.bigTitle, fade2]}>{t('sessionForgeeWellDone', { name: userName })}</Animated.Text>
 
       <Animated.View style={[styles.statsRow, fade3]}>
-        <Stat value={stats.durationMin.toString()} unit="min" label="Durée" />
-        <Stat value={stats.volumeKg.toLocaleString('fr-FR')} unit="kg" label="Volume" />
-        <Stat value={`×${stats.prCount}`} unit="" label="PR" />
+        <Stat value={stats.durationMin.toString()} unit={t('sessionForgeeDurationUnit')} label={t('sessionForgeeDuration')} />
+        <Stat value={stats.volumeKg.toLocaleString('fr-FR')} unit={t('sessionForgeeVolumeUnit')} label={t('sessionForgeeVolume')} />
+        <Stat value={`×${stats.prCount}`} unit="" label={t('sessionForgeePr')} />
       </Animated.View>
 
       {stats.prCount > 0 && stats.prDetails && (
@@ -170,7 +170,7 @@ function PhaseReveal({ userName, stats }: { userName: string; stats: SessionForg
             <TrophyIcon />
           </LinearGradient>
           <View style={{ flex: 1 }}>
-            <Text style={styles.prLabel}>NOUVEAU RECORD</Text>
+            <Text style={styles.prLabel}>{t('sessionForgeeNewRecord')}</Text>
             <Text style={styles.prText}>
               {stats.prDetails.exercise} · <Text style={styles.prTextBold}>{stats.prDetails.performance}</Text>
             </Text>

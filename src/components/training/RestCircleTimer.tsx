@@ -8,6 +8,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -27,9 +28,11 @@ interface RestCircleTimerProps {
 export function RestCircleTimer({
   secondsLeft,
   totalSeconds,
-  hint = 'Reconstitution phosphocréatine pour force max.',
+  hint,
   onSkip,
 }: RestCircleTimerProps) {
+  const { t } = useT();
+  const resolvedHint = hint ?? t('restDefaultHint');
   const progress = useSharedValue(secondsLeft / totalSeconds);
 
   useEffect(() => {
@@ -69,10 +72,10 @@ export function RestCircleTimer({
       </View>
 
       <View style={styles.body}>
-        <Text style={styles.eyebrow}>REPOS OPTIMAL</Text>
-        <Text style={styles.hint}>{hint}</Text>
+        <Text style={styles.eyebrow}>{t('restOptimal')}</Text>
+        <Text style={styles.hint}>{resolvedHint}</Text>
         <Pressable onPress={onSkip} style={({ pressed }) => [styles.skipButton, pressed && styles.skipPressed]}>
-          <Text style={styles.skipText}>Passer</Text>
+          <Text style={styles.skipText}>{t('restSkip')}</Text>
         </Pressable>
       </View>
     </View>

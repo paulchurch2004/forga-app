@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
 
 export interface CompareFeature {
   text: string;
@@ -13,12 +14,13 @@ interface CompareTableProps {
 }
 
 export function CompareTable({ features }: CompareTableProps) {
+  const { t } = useT();
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
-        <Text style={[styles.headerCell, styles.headerCellLeft]}>FONCTIONNALITÉ</Text>
-        <Text style={[styles.headerCell, styles.headerCellMid]}>GRATUIT</Text>
-        <Text style={[styles.headerCell, styles.headerCellPro]}>PRO</Text>
+        <Text style={[styles.headerCell, styles.headerCellLeft]}>{t('compareFeatureCol')}</Text>
+        <Text style={[styles.headerCell, styles.headerCellMid]}>{t('compareFreeCol')}</Text>
+        <Text style={[styles.headerCell, styles.headerCellPro]}>{t('compareProCol')}</Text>
       </View>
 
       {features.map((f, i) => (

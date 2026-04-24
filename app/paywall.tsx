@@ -23,15 +23,6 @@ import { calculatePremiumUntil } from '../src/services/referrals';
 import { events } from '../src/services/analytics';
 import { CompareTable } from '../src/components/paywall/CompareTable';
 
-const COMPARE_FEATURES = [
-  { text: '510 recettes premium', free: '5 recettes seulement' },
-  { text: 'Recettes étape par étape', free: "Liste d'ingrédients" },
-  { text: 'Coach IA illimité', free: '3 messages / jour' },
-  { text: "Plans d'entraînement avancés", free: '1 programme basique' },
-  { text: 'Scan code-barre illimité', free: '5 scans / jour' },
-  { text: 'Analyses & graphiques', free: 'Historique 7j' },
-  { text: 'Export de données', free: 'unavailable' as const },
-];
 
 const showAlert = (title: string, message: string) => {
   if (Platform.OS === 'web') {
@@ -180,7 +171,17 @@ export default function PaywallScreen() {
 
       {/* Compare table — Free vs Pro */}
       <View style={styles.features}>
-        <CompareTable features={COMPARE_FEATURES} />
+        <CompareTable
+          features={[
+            { text: t('compareFeature1'), free: t('compareFeature1Free') },
+            { text: t('compareFeature2'), free: t('compareFeature2Free') },
+            { text: t('compareFeature3'), free: t('compareFeature3Free') },
+            { text: t('compareFeature4'), free: t('compareFeature4Free') },
+            { text: t('compareFeature5'), free: t('compareFeature5Free') },
+            { text: t('compareFeature6'), free: t('compareFeature6Free') },
+            { text: t('compareFeature7'), free: 'unavailable' },
+          ]}
+        />
       </View>
 
       {/* Plans */}
