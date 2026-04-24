@@ -3,6 +3,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fonts } from '../../theme/fonts';
 import type { Archetype } from '../../types/user';
+import { useT } from '../../i18n';
+import type { TranslationKey } from '../../i18n/locales/fr';
 
 interface ProfileHeroCardProps {
   name: string;
@@ -13,15 +15,16 @@ interface ProfileHeroCardProps {
   weight: number;
 }
 
-const ARCHETYPE_LABEL: Record<Archetype, string> = {
-  warrior: 'Guerrier',
-  craftsman: 'Artisan',
-  explorer: 'Explorateur',
+const ARCHETYPE_LABEL_KEY: Record<Archetype, TranslationKey> = {
+  warrior: 'archetypeWarriorName',
+  craftsman: 'archetypeCraftsmanName',
+  explorer: 'archetypeExplorerName',
 };
 
 export function ProfileHeroCard({ name, archetype, cycleLabel, streak, formScore, weight }: ProfileHeroCardProps) {
+  const { t } = useT();
   const initial = name.charAt(0).toUpperCase();
-  const archetypeLabel = archetype ? ARCHETYPE_LABEL[archetype] : '—';
+  const archetypeLabel = archetype ? t(ARCHETYPE_LABEL_KEY[archetype]) : t('profileArchetypeUnknown');
 
   return (
     <View style={styles.card}>
@@ -36,7 +39,7 @@ export function ProfileHeroCard({ name, archetype, cycleLabel, streak, formScore
           <Text style={styles.avatarLetter}>{initial}</Text>
         </LinearGradient>
         <View style={{ flex: 1 }}>
-          <Text style={styles.eyebrow}>ARCHÉTYPE · {archetypeLabel.toUpperCase()}</Text>
+          <Text style={styles.eyebrow}>{t('profileArchetypeEyebrow', { name: archetypeLabel.toUpperCase() })}</Text>
           <Text style={styles.name}>{name}</Text>
           {cycleLabel && <Text style={styles.cycle}>{cycleLabel}</Text>}
         </View>
@@ -45,9 +48,9 @@ export function ProfileHeroCard({ name, archetype, cycleLabel, streak, formScore
       <View style={styles.divider} />
 
       <View style={styles.statsRow}>
-        <Stat label="STREAK" value={String(streak)} unit="j" />
-        <Stat label="FORME" value={String(formScore)} unit="" valueColor="#00D4AA" />
-        <Stat label="POIDS" value={weight.toFixed(1)} unit="kg" small />
+        <Stat label={t('profileStreakLabel')} value={String(streak)} unit={t('profileStreakUnit')} />
+        <Stat label={t('profileFormLabel')} value={String(formScore)} unit="" valueColor="#00D4AA" />
+        <Stat label={t('profileWeightLabel')} value={weight.toFixed(1)} unit={t('profileWeightUnit')} small />
       </View>
     </View>
   );

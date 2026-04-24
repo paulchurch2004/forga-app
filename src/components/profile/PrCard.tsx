@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
 
 export interface PrItem {
   id: string;
@@ -28,6 +29,7 @@ export function PrList({ items }: PrListProps) {
 }
 
 function PrCard({ item }: { item: PrItem }) {
+  const { t } = useT();
   return (
     <View style={styles.card}>
       <View style={styles.iconWrap}>
@@ -37,7 +39,7 @@ function PrCard({ item }: { item: PrItem }) {
         <Text style={styles.exo} numberOfLines={1}>{item.exercise}</Text>
         {item.previous !== undefined && (
           <Text style={styles.previous}>
-            Précédent {item.previous} {item.unit} · {item.dateLabel}
+            {t('prPreviousLabel', { value: item.previous, unit: item.unit, date: item.dateLabel })}
           </Text>
         )}
         {item.previous === undefined && <Text style={styles.previous}>{item.dateLabel}</Text>}

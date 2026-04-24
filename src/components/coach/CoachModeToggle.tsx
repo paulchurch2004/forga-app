@@ -3,6 +3,7 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
 
 export type CoachMode = 'presence' | 'conversation';
 
@@ -12,16 +13,15 @@ interface CoachModeToggleProps {
 }
 
 export function CoachModeToggle({ mode, onChange }: CoachModeToggleProps) {
+  const { t } = useT();
   return (
     <View style={styles.wrap}>
       <View style={styles.track}>
-        <ToggleButton label="Présence" icon={<EyeIcon active={mode === 'presence'} />} active={mode === 'presence'} onPress={() => onChange('presence')} />
-        <ToggleButton label="Conversation" icon={<ChatIcon active={mode === 'conversation'} />} active={mode === 'conversation'} onPress={() => onChange('conversation')} />
+        <ToggleButton label={t('coachModePresence')} icon={<EyeIcon active={mode === 'presence'} />} active={mode === 'presence'} onPress={() => onChange('presence')} />
+        <ToggleButton label={t('coachModeConversation')} icon={<ChatIcon active={mode === 'conversation'} />} active={mode === 'conversation'} onPress={() => onChange('conversation')} />
       </View>
       <Text style={styles.helpText}>
-        {mode === 'presence'
-          ? "Il t'observe, note ce qu'il voit, et t'alerte au bon moment."
-          : 'Pose tes questions, demande des conseils. Réponse instantanée.'}
+        {mode === 'presence' ? t('coachModePresenceHelp') : t('coachModeConversationHelp')}
       </Text>
     </View>
   );

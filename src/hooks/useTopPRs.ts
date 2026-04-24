@@ -2,20 +2,12 @@ import { useMemo } from 'react';
 import { useTrainingStore } from '../store/trainingStore';
 import { EXERCISES } from '../data/exercises';
 import type { PrItem } from '../components/profile/PrCard';
+import { useT } from '../i18n';
 
 function daysAgo(dateStr: string): number {
   const d = new Date(dateStr);
   const now = new Date();
   return Math.floor((now.getTime() - d.getTime()) / 86400000);
-}
-
-function dateLabel(dateStr: string): string {
-  const days = daysAgo(dateStr);
-  if (days === 0) return "Aujourd'hui";
-  if (days === 1) return 'Hier';
-  if (days < 7) return `Il y a ${days}j`;
-  if (days < 30) return `Il y a ${Math.floor(days / 7)}sem`;
-  return `Il y a ${Math.floor(days / 30)}mois`;
 }
 
 interface ExerciseBest {
@@ -32,6 +24,16 @@ interface ExerciseBest {
  */
 export function useTopPRs(limit = 3): PrItem[] {
   const workouts = useTrainingStore((s) => s.workouts);
+  const { t } = useT();
+
+  const dateLabel = (dateStr: string): string => {
+    const days = daysAgo(dateStr);
+    if (days === 0) return t('prDateToday');
+    if (days === 1) return t('prDateYesterday');
+    if (days < 7) return t('prDateDaysAgo', { n: days });
+    if (days < 30) return t('prDateWeeksAgo', { n: Math.floor(days / 7) });
+    return t('prDateMonthsAgo', { n: Math.floor(days / 30) });
+  };
 
   return useMemo(() => {
     // Collect all weights per exercise across all workouts, oldest first
@@ -83,5 +85,5 @@ export function useTopPRs(limit = 3): PrItem[] {
         dateLabel: dateLabel(b.date),
       };
     });
-  }, [workouts, limit]);
+  }, [workouts, limit, t]);
 }

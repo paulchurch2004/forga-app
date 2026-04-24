@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { fonts } from '../../theme/fonts';
+import { useT } from '../../i18n';
+import type { TranslationKey } from '../../i18n/locales/fr';
 
 export type MetalKey = 'plomb' | 'bronze' | 'fer' | 'acier' | 'or' | 'repos';
 
@@ -18,9 +20,15 @@ interface MetalDays30CardProps {
 }
 
 export function MetalDays30Card({ days }: MetalDays30CardProps) {
-  // Pad to 30 with 'repos' if shorter
+  const { t } = useT();
   const padded = days.length >= 30 ? days.slice(0, 30) : [...days, ...Array(30 - days.length).fill('repos' as MetalKey)];
   const solidCount = padded.filter((d) => d !== 'repos' && d !== 'plomb').length;
+  const LEGEND_LABEL_KEY: Record<string, TranslationKey> = {
+    or: 'metalLegendOr',
+    acier: 'metalLegendAcier',
+    fer: 'metalLegendFer',
+    bronze: 'metalLegendBronze',
+  };
 
   return (
     <View style={styles.card}>
@@ -44,22 +52,15 @@ export function MetalDays30Card({ days }: MetalDays30CardProps) {
           {(['or', 'acier', 'fer', 'bronze'] as MetalKey[]).map((k) => (
             <View key={k} style={styles.legendItem}>
               <View style={[styles.legendDot, { backgroundColor: METAL_COLOR[k] }]} />
-              <Text style={styles.legendLabel}>{LEGEND_LABEL[k]}</Text>
+              <Text style={styles.legendLabel}>{t(LEGEND_LABEL_KEY[k])}</Text>
             </View>
           ))}
         </View>
-        <Text style={styles.solidLabel}>{solidCount}/30 solides</Text>
+        <Text style={styles.solidLabel}>{t('metalSolidsCount', { count: solidCount })}</Text>
       </View>
     </View>
   );
 }
-
-const LEGEND_LABEL: Record<string, string> = {
-  or: 'Or',
-  acier: 'Acier',
-  fer: 'Fer',
-  bronze: 'Bronze',
-};
 
 const styles = StyleSheet.create({
   card: {

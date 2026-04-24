@@ -274,7 +274,7 @@ export default function ProfileScreen() {
         <ProfileHeroCard
           name={profile.name}
           archetype={useUserStore.getState().onboardingData.archetype}
-          cycleLabel={`Jour ${currentStreak} · Cycle consolidation`}
+          cycleLabel={t('profileCycleLabel', { streak: currentStreak })}
           streak={currentStreak}
           formScore={score.total}
           weight={weightLog[weightLog.length - 1]?.weight ?? profile.currentWeight ?? 0}
@@ -283,7 +283,7 @@ export default function ProfileScreen() {
 
       {/* 30 derniers jours — vraies check-ins métaux du Morning Ritual */}
       <View style={{ marginTop: 24 }}>
-        <Text style={styles.sectionTitle}>30 DERNIERS JOURS</Text>
+        <Text style={styles.sectionTitle}>{t('profileLast30DaysLabel')}</Text>
         <MetalDays30Card
           days={metal30.map((d) => (d.metal ?? 'repos') as MetalKey)}
         />
@@ -292,7 +292,7 @@ export default function ProfileScreen() {
       {/* PRs forgés — vraies données extraites des workouts validés */}
       {topPRs.length > 0 && (
         <View style={{ marginTop: 24 }}>
-          <Text style={styles.sectionTitle}>PRs FORGÉS · CE CYCLE</Text>
+          <Text style={styles.sectionTitle}>{t('profilePrsLabel')}</Text>
           <PrList items={topPRs} />
         </View>
       )}
@@ -300,8 +300,8 @@ export default function ProfileScreen() {
       {/* Rapport hebdo — CTA vers la revue de semaine */}
       <Pressable style={styles.weeklyReportBtn} onPress={() => router.push('/weekly-review')}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.weeklyReportEyebrow}>RAPPORT HEBDO · SEM. EN COURS</Text>
-          <Text style={styles.weeklyReportTitle}>Voir ma revue de semaine</Text>
+          <Text style={styles.weeklyReportEyebrow}>{t('profileWeeklyReportEyebrow')}</Text>
+          <Text style={styles.weeklyReportTitle}>{t('profileWeeklyReportTitle')}</Text>
         </View>
         <Text style={styles.weeklyReportArrow}>{'›'}</Text>
       </Pressable>
