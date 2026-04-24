@@ -1,14 +1,22 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useProgramStore } from '../store/programStore';
 import { useUserStore } from '../store/userStore';
 import { recommendProgram, toLocalDateStr } from '../engine/programEngine';
 import { getProgramDayById, PROGRAMS } from '../data/programs';
 import type { ProgramId, PlannedDay, ProgramDay } from '../types/program';
+import type { Objective } from '../types/user';
 
 export function useProgram() {
   const activePlan = useProgramStore((s) => s.activePlan);
   const completedDays = useProgramStore((s) => s.completedDays);
-  const selectProgram = useProgramStore((s) => s.selectProgram);
+  const selectProgramRaw = useProgramStore((s) => s.selectProgram);
+  // Wrapper that automatically injects the user's sex from the profile.
+  const selectProgram = useCallback(
+    (programId: ProgramId, objective: Objective) => {
+      selectProgramRaw(programId, objective, profile?.sex ?? 'male');
+    },
+    [selectProgramRaw, profile?.sex]
+  );
   const changeProgram = useProgramStore((s) => s.changeProgram);
   const markDayCompleted = useProgramStore((s) => s.markDayCompleted);
   const getCurrentWeek = useProgramStore((s) => s.getCurrentWeek);
@@ -19,9 +27,12 @@ export function useProgram() {
   const hasActivePlan = !!activePlan;
 
   const recommendedProgramId: ProgramId = useMemo(() => {
-    if (!profile) return 'full_body';
-    return recommendProgram(profile.activityLevel, profile.objective);
-  }, [profile?.activityLevel, profile?.objective]);
+    if (!profile) return 'full_body_h';
+    // Use sex-aware v2 selection. Falls back to 'male' if sex is unset
+    // (defensive: existing accounts without onboarding sex set).
+    const sex = profile.sex ?? 'male';
+    return recommendProgram(sex, profile.activityLevel, profile.objective);
+  }, [profile?.sex, profile?.activityLevel, profile?.objective]);
 
   const currentWeek = useMemo(() => {
     return getCurrentWeek();

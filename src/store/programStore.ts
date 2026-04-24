@@ -6,7 +6,7 @@ import type {
   GeneratedPlan,
   PlannedDay,
 } from '../types/program';
-import type { Objective } from '../types/user';
+import type { Objective, Sex } from '../types/user';
 import { generatePlan, toLocalDateStr } from '../engine/programEngine';
 
 function syncProgramLazy() {
@@ -28,7 +28,7 @@ interface ProgramState {
   activePlan: GeneratedPlan | null;
   completedDays: Record<string, string>; // date → workoutId
 
-  selectProgram: (programId: ProgramId, objective: Objective) => void;
+  selectProgram: (programId: ProgramId, objective: Objective, sex?: Sex) => void;
   markDayCompleted: (date: string, workoutId: string) => void;
   markDaySkipped: (date: string) => void;
   changeProgram: () => void;
@@ -44,8 +44,9 @@ export const useProgramStore = create<ProgramState>()(
       activePlan: null,
       completedDays: {},
 
-      selectProgram: (programId, objective) => {
-        const plan = generatePlan(programId, objective);
+      selectProgram: (programId, objective, sex) => {
+        // sex-aware plan generation (v2). Falls back to male for legacy callers.
+        const plan = generatePlan(programId, sex ?? 'male', objective);
         set({ activePlan: plan, completedDays: {} });
         syncProgramLazy();
       },
