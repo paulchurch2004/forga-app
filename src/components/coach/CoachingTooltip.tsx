@@ -12,6 +12,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { fonts } from '../../theme/fonts';
 import { useTooltipQueue } from '../../store/tooltipQueue';
+import { useT } from '../../i18n';
 
 const STORAGE_KEY_PREFIX = 'forga.tooltip.seen.';
 const { width: SW } = Dimensions.get('window');

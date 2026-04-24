@@ -84,10 +84,11 @@ class ErrorBoundary extends Component<
           <Text style={{ color: '#ff8888', fontSize: 14, marginTop: 16 }}>
             {this.state.error?.message}
           </Text>
-          {/* Always show the stack so we can pinpoint prod crashes from a screenshot. */}
-          <Text style={{ color: '#888', fontSize: 11, marginTop: 12, fontFamily: 'monospace' }} selectable>
-            {this.state.error?.stack ?? 'No stack available'}
-          </Text>
+          {__DEV__ && (
+            <Text style={{ color: '#888', fontSize: 12, marginTop: 12 }}>
+              {this.state.error?.stack}
+            </Text>
+          )}
         </ScrollView>
       );
     }
