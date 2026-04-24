@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, ScrollView, Pressable, Platform, ImageBackground } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,6 +22,9 @@ import { EmptyState } from '../../src/components/ui/EmptyState';
 import { WeeklyDaysGrid, type WeekDayItem, type DayStatus } from '../../src/components/training/WeeklyDaysGrid';
 import { TodayWorkoutPreview, type ExercisePreview } from '../../src/components/training/TodayWorkoutPreview';
 import { SessionHistoryList, type SessionHistoryItem } from '../../src/components/training/SessionHistoryList';
+import { TrainingHero } from '../../src/components/training/TrainingHero';
+import { WeekNavigator } from '../../src/components/training/WeekNavigator';
+import { WeekDayCalendar, type WeekCalendarDay, type WeekDayStatus } from '../../src/components/training/WeekDayCalendar';
 import { EXERCISES } from '../../src/data/exercises';
 
 const TRAINING_HEADER_IMAGE =
@@ -63,6 +66,83 @@ export default function TrainingScreen() {
   const objective = profile?.objective ?? 'maintain';
   const markDaySkipped = useProgramStore((s) => s.markDaySkipped);
 
+  // ─── Week navigator + calendar state ─────────────────────────
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+
+  const calendarDays = useMemo<WeekCalendarDay[]>(() => {
+    const today = new Date();
+    const todayDow = (today.getDay() + 6) % 7; // 0=Mon..6=Sun
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - todayDow + weekOffset * 7);
+
+    const letters = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+    return Array.from({ length: 7 }).map((_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const planDay = weekDays.find((p) => {
+        const pd = new Date(p.date);
+        return pd.getFullYear() === d.getFullYear() && pd.getMonth() === d.getMonth() && pd.getDate() === d.getDate();
+      });
+      let status: WeekDayStatus = 'plan';
+      if (planDay) {
+        if (planDay.status === 'completed') status = 'done';
+        else if (planDay.status === 'today') status = 'today';
+        else if (planDay.status === 'rest') status = 'rest';
+        else if (planDay.status === 'skipped') status = 'skipped';
+      } else {
+        // No plan loaded: still show today/rest based on the date
+        const isToday = d.toDateString() === today.toDateString();
+        if (isToday) status = 'today';
+        else status = 'rest';
+      }
+      return {
+        letter: letters[i],
+        date: String(d.getDate()),
+        status,
+      };
+    });
+  }, [weekDays, weekOffset]);
+
+  // Auto-select today when offset = 0 on first render
+  React.useEffect(() => {
+    if (selectedDayIndex !== null) return;
+    const todayIdx = calendarDays.findIndex((d) => d.status === 'today');
+    if (todayIdx >= 0) setSelectedDayIndex(todayIdx);
+  }, [calendarDays, selectedDayIndex]);
+
+  const weekRangeLabel = useMemo(() => {
+    const today = new Date();
+    const todayDow = (today.getDay() + 6) % 7;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() - todayDow + weekOffset * 7);
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    const fmt = (d: Date) => `${d.getDate()} ${d.toLocaleDateString('fr-FR', { month: 'short' })}`;
+    return `${monday.getDate()} — ${fmt(sunday)}`;
+  }, [weekOffset]);
+
+  const weekOffsetLabel = useMemo(() => {
+    if (weekOffset === 0) return 'Cette semaine';
+    if (weekOffset < 0) return `Il y a ${-weekOffset} sem.`;
+    return `Dans ${weekOffset} sem.`;
+  }, [weekOffset]);
+
+  // ─── Header data for the new TrainingHero ────────────────────
+  const heroData = useMemo(() => {
+    const date = new Date();
+    const dateLabel = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    const programName = activeProgram ? t(activeProgram.nameKey as any) : t('selectProgram' as any);
+    const totalWeeks = 8;
+    const weekLabel = hasActivePlan ? `Semaine ${currentWeek} / ${totalWeeks}` : '';
+    const subtitle = todayProgramDay
+      ? `${t(todayProgramDay.nameKey as any)} · ${todayProgramDay.exercises.length * 12} min prévues`
+      : todayPlan?.status === 'rest'
+      ? 'Jour de repos'
+      : 'Pas de séance';
+    return { dateLabel: dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1), programName, weekLabel, subtitle };
+  }, [activeProgram, currentWeek, hasActivePlan, todayPlan, todayProgramDay, t]);
+
   const handleSkipDay = () => {
     if (!todayPlan) return;
     triggerHaptic();
@@ -83,34 +163,47 @@ export default function TrainingScreen() {
   };
 
   return (
+    <View style={styles.container}>
+      {/* New Hero v2 — full bleed image + program pill + history button + date block */}
+      <TrainingHero
+        weekLabel={heroData.weekLabel || (hasActivePlan ? '' : ' ')}
+        dateLabel={heroData.dateLabel}
+        subtitle={heroData.subtitle}
+        programName={heroData.programName}
+        onProgramPress={() => {
+          triggerHaptic();
+          changeProgram();
+        }}
+        onHistoryPress={() => {
+          triggerHaptic();
+          // Open recent workouts list — for now scroll into view; sheet to come.
+        }}
+      />
+
     <ScrollView
       style={styles.container}
       contentContainerStyle={[
         styles.content,
-        { paddingTop: insets.top, maxWidth: contentMaxWidth },
+        { maxWidth: contentMaxWidth },
       ]}
       showsVerticalScrollIndicator={false}
     >
-      {/* Hero Header */}
-      <ImageBackground
-        source={{ uri: TRAINING_HEADER_IMAGE }}
-        style={styles.headerBg}
-        imageStyle={styles.headerBgImage}
-      >
-        <LinearGradient
-          colors={['rgba(0,0,0,0.3)', colors.background]}
-          style={styles.headerOverlay}
-        >
-          <View style={styles.headerRow}>
-            <Text style={styles.pageTitle}>{t('trainingTitle')}</Text>
-            {hasActivePlan && !isPlanExpired && (
-              <Text style={styles.weekBadge}>
-                {t('weekLabel', { current: currentWeek })}
-              </Text>
-            )}
-          </View>
-        </LinearGradient>
-      </ImageBackground>
+      {/* Week navigator + 7-day calendar (always shown when a plan exists) */}
+      {hasActivePlan && !isPlanExpired && (
+        <View style={{ paddingTop: 18 }}>
+          <WeekNavigator
+            label={weekOffsetLabel}
+            rangeLabel={weekRangeLabel}
+            onPrev={() => setWeekOffset((w) => w - 1)}
+            onNext={() => setWeekOffset((w) => w + 1)}
+          />
+          <WeekDayCalendar
+            days={calendarDays}
+            selectedIndex={selectedDayIndex ?? 0}
+            onSelect={(i) => setSelectedDayIndex(i)}
+          />
+        </View>
+      )}
 
       {!hasActivePlan || isPlanExpired ? (
         /* ── Mode A: Program Selection ── */
@@ -263,6 +356,7 @@ export default function TrainingScreen() {
 
       <View style={styles.bottomSpacer} />
     </ScrollView>
+    </View>
   );
 }
 
