@@ -28,6 +28,11 @@ import { WeekNavigator } from '../../src/components/training/WeekNavigator';
 import { WeekDayCalendar, type WeekCalendarDay, type WeekDayStatus } from '../../src/components/training/WeekDayCalendar';
 import { QuickStatsRow, type QuickStatItem } from '../../src/components/training/QuickStatsRow';
 import { SelectedDayCard, type SelectedDayState, type SelectedDayExercise } from '../../src/components/training/SelectedDayCard';
+import { ProgramSelectorSheet } from '../../src/components/training/ProgramSelectorSheet';
+import { HistorySheet, type HistoryItem } from '../../src/components/training/HistorySheet';
+import { ReplaceExerciseSheet, type SubstituteOption } from '../../src/components/training/ReplaceExerciseSheet';
+import { StatsSheet } from '../../src/components/training/StatsSheet';
+import { PROGRAMS, PROGRAM_IDS } from '../../src/data/programs';
 import { EXERCISES } from '../../src/data/exercises';
 
 const TRAINING_HEADER_IMAGE =
@@ -72,6 +77,8 @@ export default function TrainingScreen() {
   // ─── Week navigator + calendar state ─────────────────────────
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+  const [activeSheet, setActiveSheet] = useState<null | 'program' | 'history' | 'replace' | 'stats'>(null);
+  const [replaceTarget, setReplaceTarget] = useState<SelectedDayExercise | null>(null);
 
   const calendarDays = useMemo<WeekCalendarDay[]>(() => {
     const today = new Date();
@@ -248,11 +255,11 @@ export default function TrainingScreen() {
         programName={heroData.programName}
         onProgramPress={() => {
           triggerHaptic();
-          changeProgram();
+          setActiveSheet('program');
         }}
         onHistoryPress={() => {
           triggerHaptic();
-          // Open recent workouts list — for now scroll into view; sheet to come.
+          setActiveSheet('history');
         }}
       />
 
@@ -315,6 +322,10 @@ export default function TrainingScreen() {
         <>
           {/* Quick stats row : 3 mini cards (Volume / Sessions / Streak) */}
           <QuickStatsRow
+            onPress={() => {
+              triggerHaptic();
+              setActiveSheet('stats');
+            }}
             items={[
               {
                 id: 'volume',
@@ -365,6 +376,11 @@ export default function TrainingScreen() {
             onSeeSummary={() => router.back()}
             onDuplicate={() => triggerHaptic()}
             onForceWorkout={() => router.push('/log-workout')}
+            onExercisePress={(ex) => {
+              triggerHaptic();
+              setReplaceTarget(ex);
+              setActiveSheet('replace');
+            }}
           />
 
           {/* Quick Stats (legacy — kept while history list lives below) */}
@@ -430,8 +446,106 @@ export default function TrainingScreen() {
 
       <View style={styles.bottomSpacer} />
     </ScrollView>
+
+    {/* ─── Sheets ───────────────────────────────────── */}
+    <ProgramSelectorSheet
+      open={activeSheet === 'program'}
+      onClose={() => setActiveSheet(null)}
+      programs={PROGRAM_IDS.map((id) => PROGRAMS[id]).filter(Boolean)}
+      currentId={activeProgram?.id}
+      recommendedId={recommendedProgramId}
+      onSelect={(id) => {
+        triggerHaptic();
+        selectProgram(id, objective);
+      }}
+      t={t as unknown as (key: string) => string}
+    />
+
+    <HistorySheet
+      open={activeSheet === 'history'}
+      onClose={() => setActiveSheet(null)}
+      items={recentWorkouts.slice(0, 30).map<HistoryItem>((w) => {
+        const date = new Date(w.date);
+        const today = new Date();
+        const diffDays = Math.round((today.getTime() - date.getTime()) / 86400000);
+        const dateLabel =
+          diffDays === 0 ? "Aujourd'hui"
+          : diffDays === 1 ? 'Hier'
+          : diffDays === 2 ? 'Avant-hier'
+          : `Il y a ${diffDays}j`;
+        const totalVol = w.exercises.reduce(
+          (acc, ex) => acc + ex.sets.reduce((s, set) => s + (set.weight ?? 0) * (set.reps ?? 0), 0),
+          0
+        );
+        return {
+          id: w.id,
+          name: w.name ?? t('workoutLabel'),
+          dateLabel: `${dateLabel} · ${w.durationMinutes ?? '—'} min`,
+          volumeLabel: totalVol > 0 ? `${totalVol.toLocaleString('fr-FR')} kg` : '',
+          onPress: () => router.push({ pathname: '/workout-detail', params: { workoutId: w.id, date: w.date } }),
+        };
+      })}
+    />
+
+    <ReplaceExerciseSheet
+      open={activeSheet === 'replace'}
+      onClose={() => {
+        setActiveSheet(null);
+        setReplaceTarget(null);
+      }}
+      originalName={replaceTarget?.name}
+      substitutes={replaceTarget ? buildSubstitutesFor(replaceTarget) : []}
+      onPick={() => triggerHaptic()}
+    />
+
+    <StatsSheet
+      open={activeSheet === 'stats'}
+      onClose={() => setActiveSheet(null)}
+      weeklyVolumeKg={weeklyVolumeKg}
+      weeklyVolumeTargetKg={weeklyVolumeTargetKg}
+      weeklyCount={weeklyCount}
+      weeklyTarget={activeProgram?.daysPerWeek ?? 4}
+      monthlyCount={monthlyCount}
+      totalDurationMin={recentWorkouts.reduce((a, w) => a + (w.durationMinutes ?? 0), 0)}
+      currentStreak={currentStreak}
+      bestStreak={bestStreak}
+    />
     </View>
   );
+}
+
+/** Build a list of suggested substitute exercises for a given exercise. */
+function buildSubstitutesFor(target: SelectedDayExercise): SubstituteOption[] {
+  const map: Record<string, SubstituteOption[]> = {
+    bench_press: [
+      { id: 'incline_db_press', name: 'Développé incliné haltères', sets: target.sets, reps: target.reps, match: 95 },
+      { id: 'incline_press', name: 'Développé incliné barre', sets: target.sets, reps: target.reps, match: 92 },
+      { id: 'dips', name: 'Dips pectoraux', sets: target.sets, reps: '8-12', match: 78 },
+      { id: 'cable_fly', name: 'Écarté à la poulie', sets: target.sets, reps: '12-15', match: 65 },
+    ],
+    squat: [
+      { id: 'front_squat', name: 'Front Squat', sets: target.sets, reps: target.reps, match: 92 },
+      { id: 'goblet_squat', name: 'Goblet Squat', sets: target.sets, reps: target.reps, match: 85 },
+      { id: 'leg_press', name: 'Presse à cuisses', sets: target.sets, reps: '10-12', match: 80 },
+      { id: 'bulgarian_split_squat', name: 'Bulgarian Split Squat', sets: target.sets, reps: '10-12/jambe', match: 75 },
+    ],
+    deadlift: [
+      { id: 'sumo_deadlift', name: 'Soulevé de terre Sumo', sets: target.sets, reps: target.reps, match: 92 },
+      { id: 'romanian_deadlift', name: 'Soulevé de terre roumain', sets: target.sets, reps: '8-10', match: 85 },
+      { id: 'rack_pull', name: 'Rack Pull', sets: target.sets, reps: target.reps, match: 80 },
+    ],
+    barbell_rows: [
+      { id: 't_bar_row', name: 'T-Bar Row', sets: target.sets, reps: target.reps, match: 92 },
+      { id: 'pendlay_row', name: 'Pendlay Row', sets: target.sets, reps: target.reps, match: 88 },
+      { id: 'seated_cable_row', name: 'Rowing assis à la poulie', sets: target.sets, reps: '10-12', match: 80 },
+    ],
+    hip_thrust: [
+      { id: 'single_leg_hip_thrust', name: 'Hip Thrust unilatéral', sets: target.sets, reps: '10-12/jambe', match: 90 },
+      { id: 'glute_bridge', name: 'Glute Bridge', sets: target.sets, reps: '15-20', match: 80 },
+      { id: 'cable_kickbacks', name: 'Cable Kickbacks', sets: target.sets, reps: '12-15/jambe', match: 70 },
+    ],
+  };
+  return map[target.id] ?? [];
 }
 
 const useStyles = makeStyles((colors) => ({
