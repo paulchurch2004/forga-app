@@ -10,19 +10,24 @@ export function useProgram() {
   const activePlan = useProgramStore((s) => s.activePlan);
   const completedDays = useProgramStore((s) => s.completedDays);
   const selectProgramRaw = useProgramStore((s) => s.selectProgram);
-  // Wrapper that automatically injects the user's sex from the profile.
-  const selectProgram = useCallback(
-    (programId: ProgramId, objective: Objective) => {
-      selectProgramRaw(programId, objective, profile?.sex ?? 'male');
-    },
-    [selectProgramRaw, profile?.sex]
-  );
   const changeProgram = useProgramStore((s) => s.changeProgram);
   const markDayCompleted = useProgramStore((s) => s.markDayCompleted);
   const getCurrentWeek = useProgramStore((s) => s.getCurrentWeek);
   const getWeekDays = useProgramStore((s) => s.getWeekDays);
   const getTodayPlan = useProgramStore((s) => s.getTodayPlan);
   const profile = useUserStore((s) => s.profile);
+
+  // Wrapper that automatically injects the user's sex from the profile.
+  // MUST be declared AFTER profile (TDZ: accessing profile in the deps
+  // array before its `const` binding throws ReferenceError, which the
+  // RN runtime surfaces as a confusing "Property 'useT' doesn't exist"
+  // crash on every screen that consumed this hook).
+  const selectProgram = useCallback(
+    (programId: ProgramId, objective: Objective) => {
+      selectProgramRaw(programId, objective, profile?.sex ?? 'male');
+    },
+    [selectProgramRaw, profile?.sex]
+  );
 
   const hasActivePlan = !!activePlan;
 
