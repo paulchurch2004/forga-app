@@ -3,7 +3,12 @@ import { useUserStore } from '../store/userStore';
 import { useTrainingStore } from '../store/trainingStore';
 import { useMealStore } from '../store/mealStore';
 import { useProgramStore } from '../store/programStore';
-import { computeUserState, type UserState } from '../engine/userStateEngine';
+import {
+  computeUserState,
+  computeUserDecision,
+  type UserState,
+  type UserDecision,
+} from '../engine/userStateEngine';
 
 function todayLocalIso(): string {
   const d = new Date();
@@ -31,4 +36,14 @@ export function useUserState(): UserState {
       }),
     [profile, checkIns, weightLog, workoutsByDate, mealsByDate, activePlan]
   );
+}
+
+/**
+ * Recommendation derived from the current UserState.
+ * v1: returned for display only (debug card / future explanation layer).
+ * Nothing is mutated, no plan is modified.
+ */
+export function useUserDecision(): UserDecision {
+  const state = useUserState();
+  return useMemo(() => computeUserDecision(state), [state]);
 }

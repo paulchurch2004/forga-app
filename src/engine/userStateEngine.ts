@@ -299,3 +299,106 @@ export function computeUserState(input: UserStateInput): UserState {
 //   recovery has 3 signals instead of 2.
 // - add a daily energy slider so readinessScore is fresh every day, not stale
 //   for 6 of 7 days.
+
+// ─── Decision layer ──────────────────────────────────────────
+//
+// Pure function on top of UserState. Returns a *recommendation*,
+// never enforced. v1: thresholds are placeholder (40/70) — they will be
+// recalibrated after ~1 week of real data. Confidence drops sharply
+// when key signals (recovery) are unavailable.
+
+export type DecisionAction = 'PUSH' | 'MAINTAIN' | 'REDUCE' | 'RECOVERY' | 'INSUFFICIENT_DATA';
+
+export interface UserDecision {
+  action: DecisionAction;
+  /** Suggested training volume multiplier (display-only in v1). 1 = no change. */
+  trainingMultiplier: number;
+  /** Suggested daily kcal delta vs current target (display-only in v1). */
+  caloriesDeltaKcal: number;
+  /** 0-1, how confident FORGA is in this call given available signals. */
+  confidence: number;
+  /** One-line message safe to show to the user. */
+  message: string;
+  /** Ordered list of reasons that drove the decision. */
+  reasons: string[];
+}
+
+export function computeUserDecision(state: UserState): UserDecision {
+  const { fatigueIndex, readinessScore } = state.derived;
+  const { adherenceScore, lastWorkoutDaysAgo } = state.training;
+
+  // Confidence = 1.0 if we have all 4 recovery inputs, scales down otherwise.
+  const recoverySignals = [state.recovery.energy, state.recovery.sleepQuality, state.recovery.soreness]
+    .filter((v) => v !== null).length;
+  const confidence = Math.min(1, 0.3 + recoverySignals * 0.25); // 0.3 .. 1.0
+
+  // No derived metrics = nothing to say.
+  if (fatigueIndex === null || readinessScore === null) {
+    return {
+      action: 'INSUFFICIENT_DATA',
+      trainingMultiplier: 1,
+      caloriesDeltaKcal: 0,
+      confidence: 0,
+      message: 'Pas assez de signaux pour une recommandation. Fais un check-in pour activer le coach.',
+      reasons: ['fatigueIndex non calculable (recovery manquante)'],
+    };
+  }
+
+  const reasons: string[] = [];
+
+  // RECOVERY — system needs rest.
+  if (fatigueIndex > 70) {
+    reasons.push(`fatigueIndex élevé (${fatigueIndex})`);
+    if (state.recovery.energy !== null && state.recovery.energy < 40) reasons.push(`énergie basse (${state.recovery.energy}/100)`);
+    if (state.recovery.sleepQuality !== null && state.recovery.sleepQuality < 40) reasons.push(`sommeil dégradé (${state.recovery.sleepQuality}/100)`);
+    return {
+      action: 'RECOVERY',
+      trainingMultiplier: 0.7,
+      caloriesDeltaKcal: -100,
+      confidence,
+      message: 'Ton système est en fatigue élevée. FORGA suggère une journée de récupération.',
+      reasons,
+    };
+  }
+
+  // REDUCE — fatigue moderate, ease off.
+  if (fatigueIndex > 55) {
+    reasons.push(`fatigueIndex modéré (${fatigueIndex})`);
+    if (adherenceScore < 60) reasons.push(`adherence en baisse (${adherenceScore}%)`);
+    return {
+      action: 'REDUCE',
+      trainingMultiplier: 0.85,
+      caloriesDeltaKcal: -50,
+      confidence,
+      message: 'Charge cumulée. FORGA propose de réduire le volume de 15% aujourd\'hui.',
+      reasons,
+    };
+  }
+
+  // PUSH — high readiness + good adherence.
+  if (readinessScore > 75 && adherenceScore >= 70) {
+    reasons.push(`readinessScore élevé (${readinessScore})`);
+    reasons.push(`adherence forte (${adherenceScore}%)`);
+    if (lastWorkoutDaysAgo !== null && lastWorkoutDaysAgo >= 1) reasons.push('repos récent');
+    return {
+      action: 'PUSH',
+      trainingMultiplier: 1.1,
+      caloriesDeltaKcal: 0,
+      confidence,
+      message: 'Conditions optimales. FORGA suggère de pousser légèrement l\'intensité.',
+      reasons,
+    };
+  }
+
+  // Fallback — stable.
+  reasons.push(`fatigueIndex ${fatigueIndex} · readinessScore ${readinessScore}`);
+  reasons.push(`adherence ${adherenceScore}%`);
+  return {
+    action: 'MAINTAIN',
+    trainingMultiplier: 1,
+    caloriesDeltaKcal: 0,
+    confidence,
+    message: 'Système stable. FORGA recommande de garder le cap.',
+    reasons,
+  };
+}
