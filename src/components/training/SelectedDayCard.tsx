@@ -162,6 +162,15 @@ function PlannedCard({
 
       <View style={styles.divider} />
 
+      {(!exercisesPreview || exercisesPreview.length === 0) && (
+        <View style={styles.emptyExercisesBox}>
+          <Text style={styles.emptyExercisesTitle}>Aucune séance détaillée pour ce jour</Text>
+          <Text style={styles.emptyExercisesSub}>
+            Soit ton programme n'a pas encore commencé, soit ce jour est libre. Logge une séance manuelle si tu veux t'entraîner quand même.
+          </Text>
+        </View>
+      )}
+
       {exercisesPreview && exercisesPreview.length > 0 && (
         <>
           {exercisesPreview.slice(0, previewLimit).map((ex, i) => (
@@ -528,5 +537,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  emptyExercisesBox: {
+    paddingVertical: 18,
+    paddingHorizontal: 14,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+  emptyExercisesTitle: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.85)',
+  },
+  emptyExercisesSub: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.55)',
+    marginTop: 4,
+    lineHeight: 16,
   },
 });

@@ -83,6 +83,25 @@ export default function TrainingScreen() {
   >(null);
   const [replaceTarget, setReplaceTarget] = useState<SelectedDayExercise | null>(null);
 
+  // Index ALL plan days by ISO date (the program week and the calendar week
+  // don't necessarily align, so we can't restrict to weekDays).
+  const completedDays = useProgramStore((s) => s.completedDays);
+  const planByDate = useMemo(() => {
+    const map: Record<string, typeof weekDays[number]> = {};
+    if (!activePlan) return map;
+    const today = new Date();
+    const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    for (const d of activePlan.days) {
+      const completedId = completedDays[d.date] ?? d.workoutId;
+      let status = d.status;
+      if (completedId) status = 'completed';
+      else if (d.date === todayIso && d.status !== 'rest') status = 'today';
+      else if (d.date < todayIso && d.status === 'upcoming') status = 'skipped';
+      map[d.date] = { ...d, status, workoutId: completedId ?? d.workoutId };
+    }
+    return map;
+  }, [activePlan, completedDays]);
+
   // calendarCells = parallel array of ISO date + planDay reference for each cell.
   const calendarCells = useMemo(() => {
     const today = new Date();
@@ -95,7 +114,7 @@ export default function TrainingScreen() {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
       const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-      const planDay = weekDays.find((p) => p.date === iso);
+      const planDay = planByDate[iso] ?? null;
       let status: WeekDayStatus = 'plan';
       if (planDay) {
         if (planDay.status === 'completed') status = 'done';
@@ -112,10 +131,10 @@ export default function TrainingScreen() {
         date: String(d.getDate()),
         iso,
         status,
-        planDay: planDay ?? null,
+        planDay,
       };
     });
-  }, [weekDays, weekOffset]);
+  }, [planByDate, weekOffset]);
 
   const calendarDays = useMemo<WeekCalendarDay[]>(
     () => calendarCells.map(({ letter, date, status }) => ({ letter, date, status })),
@@ -220,15 +239,33 @@ export default function TrainingScreen() {
       title = selectedDayWorkout.name ?? t('workoutLabel');
     }
 
-    const exercisesPreview: SelectedDayExercise[] | undefined = selectedProgramDay
-      ? selectedProgramDay.exercises.map((e) => ({
-          id: e.exerciseId,
-          name: EXERCISES[e.exerciseId]?.nameFr ?? e.exerciseId,
-          sets: e.targetSets,
-          reps: String(e.targetReps),
-          restSec: e.restSeconds,
-        }))
-      : undefined;
+    // Build exercise list. For cardio days, surface the cardio block as a single row
+    // so the user always sees what the day contains.
+    let exercisesPreview: SelectedDayExercise[] | undefined;
+    if (selectedProgramDay) {
+      if (selectedProgramDay.exercises.length > 0) {
+        exercisesPreview = selectedProgramDay.exercises.map((e) => {
+          const ex = EXERCISES[e.exerciseId];
+          return {
+            id: e.exerciseId,
+            name: ex?.nameKey ? t(ex.nameKey as any) : e.exerciseId,
+            sets: e.targetSets,
+            reps: String(e.targetReps),
+            restSec: e.restSeconds,
+          };
+        });
+      } else if (selectedProgramDay.cardio) {
+        const cardio = selectedProgramDay.cardio;
+        exercisesPreview = [
+          {
+            id: cardio.exerciseId,
+            name: t(EXERCISES[cardio.exerciseId]?.nameKey as any) || cardio.exerciseId,
+            sets: 1,
+            reps: `${cardio.durationMinutes} min`,
+          },
+        ];
+      }
+    }
 
     const volumeKg = selectedDayWorkout
       ? Math.round(

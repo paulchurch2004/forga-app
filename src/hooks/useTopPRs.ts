@@ -77,7 +77,7 @@ export function useTopPRs(limit = 3): PrItem[] {
       const delta = b.previousWeight !== undefined ? b.weight - b.previousWeight : undefined;
       return {
         id: `${b.exerciseId}-${b.date}-${i}`,
-        exercise: exo?.nameFr ?? b.exerciseId,
+        exercise: exo?.nameKey ? t(exo.nameKey as any) : b.exerciseId,
         value: b.weight,
         unit: 'kg',
         previous: b.previousWeight,
