@@ -9,11 +9,7 @@ import {
   type UserState,
   type UserSuggestion,
 } from '../engine/userStateEngine';
-
-function todayLocalIso(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
+import { todayLocalIso } from '../utils/date';
 
 export function useUserState(): UserState {
   const profile = useUserStore((s) => s.profile);

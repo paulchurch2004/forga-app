@@ -16,6 +16,7 @@ import { makeStyles, fonts, fontSizes } from '../../src/theme';
 import { useT } from '../../src/i18n';
 import { syncMeal } from '../../src/services/userSync';
 import { CelebrationOverlay } from '../../src/components/ui/CelebrationOverlay';
+import { todayLocalIso } from '../../src/utils/date';
 
 function generateId(): string {
   return `dm_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -80,7 +81,7 @@ export default function MealDetailScreen() {
 
     setValidating(true);
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = todayLocalIso();
       const wasTodayValidated = isTodayValidated;
 
       const validatedMeal = {

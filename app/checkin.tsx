@@ -19,6 +19,7 @@ import { syncProfile } from '../src/services/userSync';
 import { events } from '../src/services/analytics';
 import type { AdaptiveInput } from '../src/types/engine';
 import { ScreenTopBar } from '../src/components/ui/ScreenTopBar';
+import { localIso, todayLocalIso } from '../src/utils/date';
 
 type Rating = 1 | 2 | 3 | 4 | 5;
 type SmallRating = 1 | 2 | 3 | 4;
@@ -75,8 +76,8 @@ export default function CheckInScreen() {
     // Save check-in
     const weekStart = new Date();
     weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-    const weekStartStr = weekStart.toISOString().split('T')[0];
-    const today = new Date().toISOString().split('T')[0];
+    const weekStartStr = localIso(weekStart);
+    const today = todayLocalIso();
 
     const checkIn = {
       id: crypto.randomUUID?.() ?? `${Date.now()}`,

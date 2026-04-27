@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { DailyMeal, MealSlot, DayPlan } from '../types/meal';
+import { todayLocalIso } from '../utils/date';
 
 interface MealState {
   todayMeals: DailyMeal[];
@@ -33,7 +34,7 @@ export const useMealStore = create<MealState>()(
   persist(
     (set, get) => ({
       todayMeals: [],
-      lastMealDate: new Date().toISOString().split('T')[0],
+      lastMealDate: todayLocalIso(),
       dayPlan: null,
       favorites: [],
       likedMeals: [],
@@ -104,7 +105,7 @@ export const useMealStore = create<MealState>()(
       getValidatedCount: () => get().todayMeals.length,
       getHistoryForDate: (date) => get().mealHistory[date] ?? [],
       checkDayReset: () => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = todayLocalIso();
         const { lastMealDate, todayMeals, mealHistory } = get();
         if (lastMealDate && lastMealDate !== today) {
           // Archive yesterday's meals to history if not already there
@@ -117,7 +118,7 @@ export const useMealStore = create<MealState>()(
           set({ lastMealDate: today });
         }
       },
-      reset: () => set({ todayMeals: [], lastMealDate: new Date().toISOString().split('T')[0], dayPlan: null, favorites: [], likedMeals: [], dislikedMeals: [], mealHistory: {} }),
+      reset: () => set({ todayMeals: [], lastMealDate: todayLocalIso(), dayPlan: null, favorites: [], likedMeals: [], dislikedMeals: [], mealHistory: {} }),
     }),
     {
       name: 'forga-meal-store',

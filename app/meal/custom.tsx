@@ -20,6 +20,7 @@ import { syncMeal } from '../../src/services/userSync';
 import { CelebrationOverlay } from '../../src/components/ui/CelebrationOverlay';
 import { ScreenTopBar } from '../../src/components/ui/ScreenTopBar';
 import { PrimaryGradientButton } from '../../src/components/ui/PrimaryGradientButton';
+import { todayLocalIso } from '../../src/utils/date';
 
 const SLOTS: MealSlot[] = [
   'breakfast',
@@ -73,7 +74,7 @@ export default function CustomMealScreen() {
       return;
     }
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayLocalIso();
 
     const meal = {
       id: `custom-${Date.now()}`,

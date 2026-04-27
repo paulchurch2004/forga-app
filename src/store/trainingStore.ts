@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Workout, WorkoutType } from '../types/training';
+import { todayLocalIso } from '../utils/date';
 
 interface TrainingState {
   workouts: Record<string, Workout[]>; // key = 'YYYY-MM-DD'
@@ -29,7 +30,7 @@ export const useTrainingStore = create<TrainingState>()(
   persist(
     (set, get) => ({
       workouts: {},
-      lastWorkoutDate: new Date().toISOString().split('T')[0],
+      lastWorkoutDate: todayLocalIso(),
 
       addWorkout: (workout) =>
         set((state) => ({
@@ -210,14 +211,14 @@ export const useTrainingStore = create<TrainingState>()(
       },
 
       checkDayReset: () => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = todayLocalIso();
         const { lastWorkoutDate } = get();
         if (!lastWorkoutDate || lastWorkoutDate !== today) {
           set({ lastWorkoutDate: today });
         }
       },
 
-      reset: () => set({ workouts: {}, lastWorkoutDate: new Date().toISOString().split('T')[0] }),
+      reset: () => set({ workouts: {}, lastWorkoutDate: todayLocalIso() }),
     }),
     {
       name: 'forga-training-store',

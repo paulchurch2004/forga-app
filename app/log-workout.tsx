@@ -14,6 +14,7 @@ import { ExercisePicker } from '../src/components/training/ExercisePicker';
 import { EXERCISES } from '../src/data/exercises';
 import type { WorkoutType, Intensity, WorkoutExercise, ExerciseSet, Exercise } from '../src/types/training';
 import { ScreenTopBar } from '../src/components/ui/ScreenTopBar';
+import { localIso } from '../src/utils/date';
 
 export default function LogWorkoutScreen() {
   const insets = useSafeAreaInsets();
@@ -63,7 +64,7 @@ export default function LogWorkoutScreen() {
     const today = new Date();
     const workout = {
       id: `t_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-      date: today.toISOString().split('T')[0],
+      date: localIso(today),
       timestamp: today.toISOString(),
       type: workoutType,
       durationMinutes: dur,
