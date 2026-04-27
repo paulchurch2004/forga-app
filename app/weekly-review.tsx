@@ -45,7 +45,9 @@ export default function WeeklyReviewScreen() {
     cutoff.setDate(today.getDate() - 7);
     const cutoffISO = cutoff.toISOString();
 
-    const meals7d = mealHistory.filter((m) => m.validatedAt >= cutoffISO);
+    // mealHistory is Record<dateIso, DailyMeal[]> — flatten before filtering.
+    const allMeals = Object.values(mealHistory).flat();
+    const meals7d = allMeals.filter((m) => m.validatedAt >= cutoffISO);
     const workouts7d = recentWorkouts.filter((w) => new Date(w.timestamp) >= cutoff);
 
     const targetCal = engine?.dailyMacros?.calories ?? 0;
