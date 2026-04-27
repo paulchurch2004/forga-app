@@ -11,11 +11,13 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Constants from 'expo-constants';
 import { makeStyles, fonts, fontSizes, fontWeights, spacing, borderRadius, MAX_CONTENT_WIDTH } from '../src/theme';
 import { useTheme } from '../src/context/ThemeContext';
 import { useT } from '../src/i18n';
 import { useUserStore } from '../src/store/userStore';
 import { useAuthStore } from '../src/store/authStore';
+import { useSettingsStore } from '../src/store/settingsStore';
 import { supabase, isDemoMode } from '../src/services/supabase';
 import { calculateTDEE } from '../src/engine/tdee';
 import { calculateMacros } from '../src/engine/macros';
@@ -406,6 +408,10 @@ export default function SettingsScreen() {
             <Text style={styles.previewValue}>{computed.mealsPerDay}</Text>
           </View>
         </View>
+
+        {/* Hidden dev toggle: long-press the version line to enable
+            the FORGA Core State debug card on the profile. */}
+        <VersionFooter />
       </ScrollView>
 
       {/* Save button */}
@@ -423,6 +429,40 @@ export default function SettingsScreen() {
         </Pressable>
       </View>
     </View>
+  );
+}
+
+function VersionFooter() {
+  const showDebug = useSettingsStore((s) => s.showCoreStateDebug);
+  const setShowDebug = useSettingsStore((s) => s.setShowCoreStateDebug);
+  const version = Constants.expoConfig?.version ?? '1.0.0';
+  const build =
+    (Constants.expoConfig?.ios as any)?.buildNumber ??
+    (Constants.expoConfig?.android as any)?.versionCode ??
+    '—';
+
+  const handleLongPress = () => {
+    const next = !showDebug;
+    setShowDebug(next);
+    Alert.alert(
+      'FORGA Core State',
+      next
+        ? 'Debug card activé sur le profil.'
+        : 'Debug card désactivé.',
+    );
+  };
+
+  return (
+    <Pressable
+      onLongPress={handleLongPress}
+      delayLongPress={1500}
+      style={{ alignItems: 'center', marginTop: 24, paddingVertical: 12 }}
+      hitSlop={8}
+    >
+      <Text style={{ fontFamily: 'System', fontSize: 11, color: 'rgba(255,255,255,0.30)' }}>
+        FORGA · v{version} (build {build}){showDebug ? ' · debug ON' : ''}
+      </Text>
+    </Pressable>
   );
 }
 

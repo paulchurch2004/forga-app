@@ -31,6 +31,10 @@ interface SettingsState {
   locale: Locale;
   tutorialStep: number; // 0 = not started, 1-5 = current step, -1 = completed
   weightPromptDismissedDate: string | null;
+  /** DEV/observation flag — shows the Core State debug card on the profile.
+   *  Off by default. Toggle hidden behind a long-press on the app version
+   *  in Settings to keep it out of the regular UX. */
+  showCoreStateDebug: boolean;
 
   setNotificationsEnabled: (enabled: boolean) => void;
   setMealReminders: (enabled: boolean) => void;
@@ -40,6 +44,7 @@ interface SettingsState {
   setLocale: (locale: Locale) => void;
   setTutorialStep: (step: number) => void;
   setWeightPromptDismissedDate: (date: string | null) => void;
+  setShowCoreStateDebug: (enabled: boolean) => void;
   reset: () => void;
 }
 
@@ -54,6 +59,7 @@ export const useSettingsStore = create<SettingsState>()(
       locale: 'fr' as Locale,
       tutorialStep: 0,
       weightPromptDismissedDate: null,
+      showCoreStateDebug: false,
 
       setNotificationsEnabled: (notificationsEnabled) => {
         set({ notificationsEnabled });
@@ -84,6 +90,7 @@ export const useSettingsStore = create<SettingsState>()(
         syncSettingToProfile({ tutorial_step: tutorialStep });
       },
       setWeightPromptDismissedDate: (weightPromptDismissedDate) => set({ weightPromptDismissedDate }),
+      setShowCoreStateDebug: (showCoreStateDebug) => set({ showCoreStateDebug }),
       reset: () =>
         set({
           notificationsEnabled: true,
@@ -94,6 +101,7 @@ export const useSettingsStore = create<SettingsState>()(
           locale: 'fr' as Locale,
           tutorialStep: 0,
           weightPromptDismissedDate: null,
+          showCoreStateDebug: false,
         }),
     }),
     {
@@ -108,6 +116,7 @@ export const useSettingsStore = create<SettingsState>()(
         weeklyCheckInReminder: state.weeklyCheckInReminder,
         tutorialStep: state.tutorialStep,
         weightPromptDismissedDate: state.weightPromptDismissedDate,
+        showCoreStateDebug: state.showCoreStateDebug,
       }),
     }
   )

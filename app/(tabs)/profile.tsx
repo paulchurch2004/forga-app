@@ -49,6 +49,12 @@ const APP_VERSION = appJson.expo.version;
 const PROFILE_HEADER_IMAGE =
   'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&q=60';
 
+function CoreStateDebugMount() {
+  const showDebug = useSettingsStore((s) => s.showCoreStateDebug);
+  if (!__DEV__ && !showDebug) return null;
+  return <UserStateDebugCard />;
+}
+
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { contentMaxWidth } = useResponsive();
@@ -298,8 +304,9 @@ export default function ProfileScreen() {
         </View>
       )}
 
-      {/* FORGA Core State debug — DEV-only observation panel (Phase 1). */}
-      {__DEV__ && <UserStateDebugCard />}
+      {/* FORGA Core State debug — observation panel (Phase 1).
+          Visible if __DEV__ OR if the hidden settings toggle is on. */}
+      <CoreStateDebugMount />
 
       {/* Rapport hebdo — CTA vers la revue de semaine */}
       <Pressable style={styles.weeklyReportBtn} onPress={() => router.push('/weekly-review')}>
