@@ -31,6 +31,11 @@ import { RestCircleTimer } from '../src/components/training/RestCircleTimer';
 import { SessionForgee } from '../src/components/training/SessionForgee';
 import { LiveCoachIntervention, type LiveCoachKind } from '../src/components/coach/LiveCoachIntervention';
 import { WorkoutTopBar } from '../src/components/training/WorkoutTopBar';
+import { ExerciseHeader } from '../src/components/training/ExerciseHeader';
+import { ExerciseDemoCard } from '../src/components/training/ExerciseDemoCard';
+import { FormCuesCard } from '../src/components/training/FormCuesCard';
+import { SetCardV2, type SetCardState } from '../src/components/training/SetCardV2';
+import { PrNearAlert } from '../src/components/training/PrNearAlert';
 import type { ProgramExercise } from '../src/types/program';
 import type { Workout, WorkoutExercise, ExerciseSet, WorkoutType } from '../src/types/training';
 import Svg, { Path } from 'react-native-svg';
@@ -41,6 +46,50 @@ const CARDIO_TYPE_MAP: Record<string, WorkoutType> = {
   running: 'running',
   swimming: 'swimming',
   marche: 'marche',
+};
+
+// Form cues per exercise — 3 short execution tips
+const FORM_CUES: Record<string, string[]> = {
+  bench_press: [
+    'Dos plaqué, omoplates serrées',
+    'Pieds ancrés, fessiers contractés',
+    'Descente contrôlée · 2 sec',
+  ],
+  squat: [
+    'Pieds largeur épaules, légèrement ouverts',
+    'Genoux dans l\'axe des pieds',
+    'Descends jusqu\'à parallèle',
+  ],
+  deadlift: [
+    'Dos neutre, gainage activé',
+    'Barre proche du tibia, pousse le sol',
+    'Hanches et épaules montent ensemble',
+  ],
+  overhead_press: [
+    'Coudes légèrement en avant',
+    'Pousse à la verticale, pas vers l\'avant',
+    'Gainage ferme, fesses contractées',
+  ],
+  barbell_rows: [
+    'Dos parallèle au sol',
+    'Tire vers le bas du sternum',
+    'Coudes près du corps',
+  ],
+  pull_ups: [
+    'Démarre bras tendus, contrôle la descente',
+    'Tire en serrant les omoplates',
+    'Menton au-dessus de la barre',
+  ],
+  hip_thrust: [
+    'Talons sous les genoux',
+    'Pousse par les talons, contracte les fessiers en haut',
+    'Descente contrôlée · 2 sec',
+  ],
+  romanian_deadlift: [
+    'Genoux légèrement fléchis, fixes',
+    'Hanches en arrière, dos neutre',
+    'Sentir l\'étirement des ischios',
+  ],
 };
 
 const triggerHaptic = (style: 'light' | 'medium' | 'success' = 'light') => {
@@ -496,143 +545,80 @@ export default function ActiveWorkoutScreen() {
           </Animated.View>
         )}
 
-        {/* Muscu exercises */}
+        {/* Muscu exercises — V2 design : header + demo + cues + sets v2 + PR alert */}
         {exercises.map((ex, exIdx) => {
-          const allSetsCompleted = ex.sets.every((s) => s.completed);
-          const restConfig = getRestConfig(ex.exerciseId, ex.programExercise.targetReps, objective);
+          const lastSession = useTrainingStore.getState().getLastSessionForExercise(ex.exerciseId);
+          const pr = useTrainingStore.getState().getPersonalRecord(ex.exerciseId);
+
+          // Build "Dernière fois" line + trend
+          let lastPerfLabel: string | undefined;
+          let trendKg: number | undefined;
+          if (lastSession && lastSession.length > 0) {
+            const top = [...lastSession].sort((a, b) => b.weight - a.weight)[0];
+            lastPerfLabel = `Dernière fois : ${top.weight}kg × ${top.reps}`;
+            const currentTop = ex.sets.reduce((max, s) => {
+              const w = parseFloat(s.weight) || 0;
+              return w > max ? w : max;
+            }, 0);
+            if (currentTop > 0 && currentTop > top.weight) {
+              trendKg = Math.round((currentTop - top.weight) * 10) / 10;
+            }
+          }
+
+          // Current set = first non-completed
+          const currentSetIdx = ex.sets.findIndex((s) => !s.completed);
+
+          // PR-near = any set's weight within 2kg of the PR (but not yet over)
+          const heaviestEntered = ex.sets.reduce((m, s) => Math.max(m, parseFloat(s.weight) || 0), 0);
+          const showPrAlert = !!pr && heaviestEntered > 0 && heaviestEntered >= pr.weight - 2 && heaviestEntered < pr.weight;
+
           return (
-            <Animated.View
-              key={ex.exerciseId}
-              entering={FadeInDown.delay(exIdx * 80).duration(400)}
-              style={[styles.exerciseCard, allSetsCompleted && styles.exerciseCardDone]}
-            >
-              <View style={styles.exerciseHeader}>
-                <Text style={styles.exerciseName}>{t(ex.nameKey as any)}</Text>
-                {hasTutorial(ex.exerciseId) && (
-                  <Pressable
-                    onPress={() => {
-                      triggerHaptic('light');
-                      setTutorialExerciseId(ex.exerciseId);
-                    }}
-                    hitSlop={8}
-                    style={styles.infoBtn}
-                  >
-                    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-                      <Path
-                        d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 5a1 1 0 110 2 1 1 0 010-2zm-1 4h2v6h-2v-6z"
-                        fill={colors.textMuted}
-                      />
-                    </Svg>
-                  </Pressable>
-                )}
-                <View style={styles.exerciseTargetRow}>
-                  <Text style={styles.exerciseTarget}>
-                    {ex.adjustedSets}x{ex.adjustedReps}
-                  </Text>
-                  <Text style={styles.exerciseRestBadge}>
-                    {'\u23F1'} {fmtRest(restConfig.restSeconds)}
-                  </Text>
-                </View>
-              </View>
+            <Animated.View key={ex.exerciseId} style={{ marginTop: exIdx === 0 ? 0 : 32 }}>
+              <ExerciseHeader
+                index={exIdx + 1}
+                total={exercises.length}
+                name={t(ex.nameKey as any)}
+                lastPerformance={lastPerfLabel}
+                trendKg={trendKg}
+              />
 
-              {/* Weight tip */}
-              {ex.weightTip && (
-                <Text style={styles.weightTip}>{'\uD83D\uDCA1'} {ex.weightTip}</Text>
+              <ExerciseDemoCard
+                imageUri={EXERCISES[ex.exerciseId]?.gifUrl}
+                onPlayDemo={() => {
+                  triggerHaptic('light');
+                  setTutorialExerciseId(ex.exerciseId);
+                }}
+                onShowForm={() => triggerHaptic('light')}
+              />
+
+              <FormCuesCard cues={FORM_CUES[ex.exerciseId] ?? []} />
+
+              <Text style={styles.sectionLabelV2}>SÉRIES</Text>
+
+              {ex.sets.map((set, setIdx) => {
+                const setState: SetCardState = set.completed
+                  ? 'done'
+                  : setIdx === currentSetIdx
+                  ? 'current'
+                  : 'upcoming';
+                return (
+                  <SetCardV2
+                    key={set.id}
+                    index={setIdx + 1}
+                    state={setState}
+                    weight={set.weight}
+                    reps={set.actualReps}
+                    targetReps={set.targetReps}
+                    onChangeWeight={(v) => updateSet(exIdx, setIdx, 'weight', v.replace(/[^0-9.]/g, ''))}
+                    onChangeReps={(v) => updateSet(exIdx, setIdx, 'actualReps', v.replace(/[^0-9]/g, ''))}
+                    onValidate={() => toggleSet(exIdx, setIdx)}
+                  />
+                );
+              })}
+
+              {showPrAlert && pr && (
+                <PrNearAlert currentPrKg={pr.weight} targetKg={pr.weight + 2} />
               )}
-
-              {/* Rest time info */}
-              <View style={styles.restInfoRow}>
-                <Text style={styles.restInfoBadge}>
-                  {fmtRest(restConfig.restSeconds)}
-                </Text>
-                <Text style={styles.restInfoText}>
-                  {t(restConfig.reasonKey as any)}
-                </Text>
-              </View>
-
-              {/* Exercise GIF demo */}
-              {EXERCISES[ex.exerciseId]?.gifUrl && (
-                <Pressable
-                  style={styles.gifContainer}
-                  onPress={() => {
-                    triggerHaptic('light');
-                    setTutorialExerciseId(ex.exerciseId);
-                  }}
-                >
-                  <Image
-                    source={{ uri: EXERCISES[ex.exerciseId].gifUrl }}
-                    style={styles.exerciseGif}
-                    resizeMode="contain"
-                    defaultSource={undefined}
-                    onError={() => {
-                      if (__DEV__) console.warn(`[GIF] Failed to load: ${ex.exerciseId}`);
-                    }}
-                  />
-                  <Text style={styles.gifHint}>{t('tapForTutorial' as any)}</Text>
-                </Pressable>
-              )}
-
-              {/* Sets table header */}
-              <View style={styles.tableHeader}>
-                <Text style={[styles.colHeader, styles.colNum]}>#</Text>
-                <Text style={[styles.colHeader, styles.colTarget]}>{t('targetLabel')}</Text>
-                <Text style={[styles.colHeader, styles.colReps]}>{t('actualReps')}</Text>
-                <Text style={[styles.colHeader, styles.colWeight]}>{t('weightInput')}</Text>
-                <Text style={[styles.colHeader, styles.colCheck]}> </Text>
-              </View>
-
-              {/* Sets */}
-              {ex.sets.map((set, setIdx) => (
-                <View
-                  key={set.id}
-                  style={[styles.setRow, set.completed && styles.setRowDone]}
-                >
-                  <Text style={[styles.colCell, styles.colNum]}>{setIdx + 1}</Text>
-                  <Text style={[styles.colCell, styles.colTarget, styles.colTargetText]}>
-                    {set.targetReps}
-                  </Text>
-                  <TextInput
-                    style={[styles.colInput, styles.colReps, set.completed && styles.colInputDone]}
-                    value={set.actualReps}
-                    onChangeText={(v) => {
-                      const clean = v.replace(/[^0-9]/g, '');
-                      updateSet(exIdx, setIdx, 'actualReps', clean);
-                    }}
-                    keyboardType="number-pad"
-                    maxLength={3}
-                    selectTextOnFocus
-                  />
-                  <TextInput
-                    style={[styles.colInput, styles.colWeight, set.completed && styles.colInputDone]}
-                    value={set.weight}
-                    onChangeText={(v) => updateSet(exIdx, setIdx, 'weight', v.replace(/[^0-9.]/g, ''))}
-                    keyboardType="decimal-pad"
-                    maxLength={5}
-                    placeholder="kg"
-                    placeholderTextColor={colors.textMuted}
-                    selectTextOnFocus
-                  />
-                  <Pressable
-                    style={[styles.checkBtn, set.completed && styles.checkBtnDone]}
-                    onPress={() => toggleSet(exIdx, setIdx)}
-                    hitSlop={8}
-                  >
-                    {set.completed ? (
-                      <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-                        <Path
-                          d="M20 6L9 17l-5-5"
-                          stroke={colors.white}
-                          strokeWidth={3}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </Svg>
-                    ) : (
-                      <Text style={styles.checkText}>{t('markSetDone')}</Text>
-                    )}
-                  </Pressable>
-                </View>
-              ))}
             </Animated.View>
           );
         })}
@@ -823,6 +809,16 @@ const useStyles = makeStyles((colors) => ({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  sectionLabelV2: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.38)',
+    letterSpacing: 1.4,
+    fontWeight: '700' as const,
+    textTransform: 'uppercase' as const,
+    marginTop: 22,
+    marginBottom: 12,
   },
   header: {
     flexDirection: 'row' as const,
