@@ -43,6 +43,7 @@ import { useT } from '../../src/i18n';
 import { router } from 'expo-router';
 import { CoachModeToggle, type CoachMode } from '../../src/components/coach/CoachModeToggle';
 import { PresenceView, type PresenceFocus, type PresenceObservation } from '../../src/components/coach/PresenceView';
+import { useCoachObservations } from '../../src/hooks/useCoachObservations';
 
 // ──────────── SPEECH HELPERS (Web only) ────────────
 
@@ -198,6 +199,8 @@ export default function CoachScreen() {
   const { currentStreak, isTodayValidated } = useStreak();
 
   const [coachMode, setCoachMode] = useState<CoachMode>('presence');
+  // Real observations from the user's stores (replaces hardcoded samples).
+  const coachObservations = useCoachObservations();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [quickReplies, setQuickReplies] = useState<QuickReply[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -429,12 +432,7 @@ export default function CoachScreen() {
             primaryAction: { label: 'Ouvrir nutrition', onPress: () => router.push('/nutrition') },
             secondaryAction: { label: 'Suggère un dîner', onPress: () => setCoachMode('conversation') },
           }}
-          observations={[
-            { id: '1', timeLabel: 'Il y a 8 min', tag: 'Nutrition', color: '#FF6B35', title: 'Objectif protéines presque atteint', body: '82g sur 155g. Le skyr de 16h va tout régler.' },
-            { id: '2', timeLabel: 'Il y a 2h', tag: 'Workout', color: '#FFB870', title: 'PR au développé couché', body: '82kg × 8. Tu gagnes 4kg en 30 jours sur cet exo.' },
-            { id: '3', timeLabel: 'Hier', tag: 'Check-in', color: '#00D4AA', title: 'Sommeil en baisse', body: '5h20 de moyenne cette semaine. Je recommande une séance légère demain.' },
-            { id: '4', timeLabel: 'Lundi', tag: 'Habitude', color: '#5B8BFF', title: 'Tu bois mieux en matinée', body: '1.6L avant midi cette semaine. C\'est +32% vs la semaine passée.' },
-          ]}
+          observations={coachObservations}
           onSwitchToConversation={() => setCoachMode('conversation')}
         />
       ) : (

@@ -43,9 +43,16 @@ export function PresenceView({ focus, observations, onSwitchToConversation }: Pr
       <View style={styles.timelineWrap}>
         <View style={styles.timelineLine} pointerEvents="none" />
         <View style={styles.timelineList}>
-          {observations.map((obs) => (
-            <ObservationCard key={obs.id} observation={obs} />
-          ))}
+          {observations.length > 0 ? (
+            observations.map((obs) => <ObservationCard key={obs.id} observation={obs} />)
+          ) : (
+            <View style={styles.emptyObsBox}>
+              <Text style={styles.emptyObsTitle}>Pas encore d'observations</Text>
+              <Text style={styles.emptyObsBody}>
+                FORGA commencera à parler après tes premiers logs : repas, séances, check-in.
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 
@@ -320,6 +327,28 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.62)',
     marginTop: 4,
     lineHeight: 17,
+  },
+  emptyObsBox: {
+    paddingVertical: 18,
+    paddingHorizontal: 16,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 14,
+    marginLeft: 26,
+  },
+  emptyObsTitle: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.85)',
+  },
+  emptyObsBody: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.55)',
+    marginTop: 4,
+    lineHeight: 16,
   },
   switchButton: {
     flexDirection: 'row',
