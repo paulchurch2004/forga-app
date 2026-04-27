@@ -80,25 +80,29 @@ function detectRecentPR(input: ObservationFeedInput): CoachObservation[] {
   // Track running PR per exerciseId as we iterate forward in time.
   const runningPR: Record<string, number> = {};
   for (const w of all) {
+    const exList = Array.isArray(w.exercises) ? w.exercises : [];
     if (w.date < cutoff) {
       // Pre-window workouts only update the baseline, no observation emitted.
-      for (const ex of w.exercises) {
-        const max = ex.sets.reduce((m, s) => Math.max(m, s.weight ?? 0), 0);
+      for (const ex of exList) {
+        const sets = Array.isArray(ex?.sets) ? ex.sets : [];
+        const max = sets.reduce((m, s) => Math.max(m, s?.weight ?? 0), 0);
         if (max > (runningPR[ex.exerciseId] ?? 0)) runningPR[ex.exerciseId] = max;
       }
       continue;
     }
-    for (const ex of w.exercises) {
-      const sets = ex.sets;
-      const maxSet = sets.reduce((m, s) => ((s.weight ?? 0) > (m?.weight ?? 0) ? s : m), sets[0]);
+    for (const ex of exList) {
+      const sets = Array.isArray(ex?.sets) ? ex.sets.filter(Boolean) : [];
+      if (sets.length === 0) continue;
+      const maxSet = sets.reduce((m, s) => ((s?.weight ?? 0) > (m?.weight ?? 0) ? s : m), sets[0]);
       if (!maxSet) continue;
       const previous = runningPR[ex.exerciseId] ?? 0;
-      if ((maxSet.weight ?? 0) > previous && (maxSet.weight ?? 0) > 0) {
+      const maxWeight = maxSet.weight ?? 0;
+      if (maxWeight > previous && maxWeight > 0) {
         const exerciseName =
           input.tExercise && EXERCISES[ex.exerciseId]?.nameKey
             ? input.tExercise(EXERCISES[ex.exerciseId].nameKey)
             : EXERCISES[ex.exerciseId]?.nameKey ?? ex.exerciseId;
-        const delta = previous > 0 ? Math.round((maxSet.weight - previous) * 10) / 10 : null;
+        const delta = previous > 0 ? Math.round((maxWeight - previous) * 10) / 10 : null;
         out.push({
           id: `pr-${w.id}-${ex.exerciseId}`,
           timestamp: new Date(w.timestamp),
@@ -107,12 +111,12 @@ function detectRecentPR(input: ObservationFeedInput): CoachObservation[] {
           title: previous > 0 ? `Nouveau PR · ${exerciseName}` : `Premier set lourd · ${exerciseName}`,
           body:
             previous > 0
-              ? `${maxSet.weight}kg × ${maxSet.reps} (+${delta}kg vs ton record précédent).`
-              : `${maxSet.weight}kg × ${maxSet.reps}. Premier ancrage sur cet exercice.`,
+              ? `${maxWeight}kg × ${maxSet.reps ?? '?'} (+${delta}kg vs ton record précédent).`
+              : `${maxWeight}kg × ${maxSet.reps ?? '?'}. Premier ancrage sur cet exercice.`,
         });
-        runningPR[ex.exerciseId] = maxSet.weight;
+        runningPR[ex.exerciseId] = maxWeight;
       } else {
-        const max = sets.reduce((m, s) => Math.max(m, s.weight ?? 0), 0);
+        const max = sets.reduce((m, s) => Math.max(m, s?.weight ?? 0), 0);
         if (max > previous) runningPR[ex.exerciseId] = max;
       }
     }
@@ -162,8 +166,12 @@ function detectSessionDone(input: ObservationFeedInput): CoachObservation[] {
     const iso = daysAgoIso(input.todayIso, offset);
     const list = input.workoutsByDate[iso] ?? [];
     for (const w of list) {
-      const totalVol = w.exercises.reduce(
-        (acc, ex) => acc + ex.sets.reduce((s, set) => s + (set.weight ?? 0) * (set.reps ?? 0), 0),
+      const exList = Array.isArray(w.exercises) ? w.exercises : [];
+      const totalVol = exList.reduce(
+        (acc, ex) => {
+          const sets = Array.isArray(ex?.sets) ? ex.sets : [];
+          return acc + sets.reduce((s, set) => s + (set?.weight ?? 0) * (set?.reps ?? 0), 0);
+        },
         0
       );
       out.push({
@@ -283,7 +291,7 @@ function totalForDate(
   iso: string
 ): number {
   const entries = waterByDate[iso] ?? [];
-  return entries.reduce((s, e) => s + e.amount, 0);
+  return entries.reduce((s, e) => s + (e?.amount ?? 0), 0);
 }
 
 /**

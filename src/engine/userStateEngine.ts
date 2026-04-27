@@ -113,15 +113,16 @@ export function computeUserState(input: UserStateInput): UserState {
     const list = workoutsByDate[iso] ?? [];
     return (
       acc +
-      list.reduce(
-        (s, w) =>
+      list.reduce((s, w) => {
+        const exList = Array.isArray(w.exercises) ? w.exercises : [];
+        return (
           s +
-          w.exercises.reduce(
-            (ss, ex) => ss + ex.sets.reduce((sss, set) => sss + (set.weight ?? 0) * (set.reps ?? 0), 0),
-            0
-          ),
-        0
-      )
+          exList.reduce((ss, ex) => {
+            const sets = Array.isArray(ex?.sets) ? ex.sets : [];
+            return ss + sets.reduce((sss, set) => sss + (set?.weight ?? 0) * (set?.reps ?? 0), 0);
+          }, 0)
+        );
+      }, 0)
     );
   }, 0);
 

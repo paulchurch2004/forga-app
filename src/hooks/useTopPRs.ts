@@ -44,11 +44,15 @@ export function useTopPRs(limit = 3): PrItem[] {
 
     const dates = Object.keys(workouts).sort(); // ascending
     for (const date of dates) {
-      for (const w of workouts[date]) {
-        for (const ex of w.exercises) {
+      const dayList = workouts[date] ?? [];
+      for (const w of dayList) {
+        const exList = Array.isArray(w.exercises) ? w.exercises : [];
+        for (const ex of exList) {
+          if (!ex?.exerciseId) continue;
           if (!perExercise[ex.exerciseId]) perExercise[ex.exerciseId] = [];
-          for (const s of ex.sets) {
-            if (s.weight > 0) {
+          const sets = Array.isArray(ex.sets) ? ex.sets : [];
+          for (const s of sets) {
+            if (s && typeof s.weight === 'number' && s.weight > 0) {
               perExercise[ex.exerciseId].push({ weight: s.weight, date });
             }
           }
@@ -57,17 +61,19 @@ export function useTopPRs(limit = 3): PrItem[] {
     }
 
     // For each exercise, find current PR + previous-best (next-highest weight ever lifted)
-    const bests: ExerciseBest[] = Object.entries(perExercise).map(([exerciseId, lifts]) => {
-      const sorted = [...lifts].sort((a, b) => b.weight - a.weight);
-      const current = sorted[0]!;
-      const previous = sorted.find((l) => l.weight < current.weight);
-      return {
-        exerciseId,
-        weight: current.weight,
-        date: current.date,
-        previousWeight: previous?.weight,
-      };
-    });
+    const bests: ExerciseBest[] = Object.entries(perExercise)
+      .filter(([, lifts]) => lifts.length > 0)
+      .map(([exerciseId, lifts]) => {
+        const sorted = [...lifts].sort((a, b) => b.weight - a.weight);
+        const current = sorted[0]!;
+        const previous = sorted.find((l) => l.weight < current.weight);
+        return {
+          exerciseId,
+          weight: current.weight,
+          date: current.date,
+          previousWeight: previous?.weight,
+        };
+      });
 
     // Sort by date desc (most recent PRs first), then take top N
     bests.sort((a, b) => (a.date < b.date ? 1 : -1));

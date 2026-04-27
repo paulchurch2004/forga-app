@@ -159,12 +159,17 @@ export const useTrainingStore = create<TrainingState>()(
         const result: { date: string; sets: { reps: number; weight: number }[] }[] = [];
         const dates = Object.keys(get().workouts).sort();
         for (const date of dates) {
-          for (const w of get().workouts[date]) {
-            for (const ex of w.exercises) {
-              if (ex.exerciseId === exerciseId) {
+          const list = get().workouts[date] ?? [];
+          for (const w of list) {
+            const exList = Array.isArray(w?.exercises) ? w.exercises : [];
+            for (const ex of exList) {
+              if (ex?.exerciseId === exerciseId) {
+                const sets = Array.isArray(ex.sets) ? ex.sets : [];
                 result.push({
                   date,
-                  sets: ex.sets.map((s) => ({ reps: s.reps, weight: s.weight })),
+                  sets: sets
+                    .filter((s) => s && typeof s.reps === 'number' && typeof s.weight === 'number')
+                    .map((s) => ({ reps: s.reps, weight: s.weight })),
                 });
               }
             }
@@ -176,10 +181,15 @@ export const useTrainingStore = create<TrainingState>()(
       getLastSessionForExercise: (exerciseId) => {
         const dates = Object.keys(get().workouts).sort().reverse();
         for (const date of dates) {
-          for (const w of get().workouts[date]) {
-            for (const ex of w.exercises) {
-              if (ex.exerciseId === exerciseId) {
-                return ex.sets.map((s) => ({ reps: s.reps, weight: s.weight }));
+          const list = get().workouts[date] ?? [];
+          for (const w of list) {
+            const exList = Array.isArray(w?.exercises) ? w.exercises : [];
+            for (const ex of exList) {
+              if (ex?.exerciseId === exerciseId) {
+                const sets = Array.isArray(ex.sets) ? ex.sets : [];
+                return sets
+                  .filter((s) => s && typeof s.reps === 'number' && typeof s.weight === 'number')
+                  .map((s) => ({ reps: s.reps, weight: s.weight }));
               }
             }
           }
@@ -190,12 +200,16 @@ export const useTrainingStore = create<TrainingState>()(
       getPersonalRecord: (exerciseId) => {
         let best: { weight: number; reps: number; date: string } | null = null;
         for (const [date, dayWorkouts] of Object.entries(get().workouts)) {
-          for (const w of dayWorkouts) {
-            for (const ex of w.exercises) {
-              if (ex.exerciseId === exerciseId) {
-                for (const s of ex.sets) {
+          const list = dayWorkouts ?? [];
+          for (const w of list) {
+            const exList = Array.isArray(w?.exercises) ? w.exercises : [];
+            for (const ex of exList) {
+              if (ex?.exerciseId === exerciseId) {
+                const sets = Array.isArray(ex.sets) ? ex.sets : [];
+                for (const s of sets) {
+                  if (!s || typeof s.weight !== 'number') continue;
                   if (!best || s.weight > best.weight) {
-                    best = { weight: s.weight, reps: s.reps, date };
+                    best = { weight: s.weight, reps: s.reps ?? 0, date };
                   }
                 }
               }
