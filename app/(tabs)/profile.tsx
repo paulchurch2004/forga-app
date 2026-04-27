@@ -25,6 +25,7 @@ import { useUserStore } from '../../src/store/userStore';
 import { ProfileHeroCard } from '../../src/components/profile/ProfileHeroCard';
 import { MetalDays30Card, type MetalKey } from '../../src/components/profile/MetalDays30Card';
 import { PrList, type PrItem } from '../../src/components/profile/PrCard';
+import { UserStateDebugCard } from '../../src/components/profile/UserStateDebugCard';
 import { ProfileSheet, SheetOptionRow } from '../../src/components/profile/ProfileSheet';
 import { useTopPRs } from '../../src/hooks/useTopPRs';
 import { useMetalHistoryStore } from '../../src/store/metalHistoryStore';
@@ -296,6 +297,9 @@ export default function ProfileScreen() {
           <PrList items={topPRs} />
         </View>
       )}
+
+      {/* FORGA Core State debug — DEV-only observation panel (Phase 1). */}
+      {__DEV__ && <UserStateDebugCard />}
 
       {/* Rapport hebdo — CTA vers la revue de semaine */}
       <Pressable style={styles.weeklyReportBtn} onPress={() => router.push('/weekly-review')}>
