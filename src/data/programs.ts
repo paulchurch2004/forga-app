@@ -599,7 +599,18 @@ export function getProgramDayById(programId: string, dayId: string): ProgramDay 
   if (dayId === 'cardio_liss') return CARDIO_LISS;
   if (dayId === 'cardio_hiit') return CARDIO_HIIT;
 
-  const program = PROGRAMS[programId];
+  // Defensive: persisted plans from v1 may have stored legacy program IDs
+  // (e.g. 'full_body' instead of 'full_body_h'). Try the v2 mapping if direct
+  // lookup fails so old plans keep resolving without forcing a re-generation.
+  let program = PROGRAMS[programId];
+  if (!program) {
+    const v2Male = resolveLegacyProgramId(programId, 'male');
+    if (v2Male !== programId) program = PROGRAMS[v2Male];
+  }
+  if (!program) {
+    const v2Female = resolveLegacyProgramId(programId, 'female');
+    if (v2Female !== programId) program = PROGRAMS[v2Female];
+  }
   if (!program) return null;
   return program.rotation.find((d) => d.id === dayId) ?? null;
 }

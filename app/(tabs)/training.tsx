@@ -581,6 +581,11 @@ export default function TrainingScreen() {
             onSeeSummary={handleSeeSummary}
             onDuplicate={handleDuplicate}
             onForceWorkout={() => router.push('/log-workout')}
+            onEmptyStateCta={() => {
+              triggerHaptic();
+              router.push('/log-workout');
+            }}
+            emptyStateCtaLabel="Logger une séance manuelle"
             onExercisePress={(ex) => {
               triggerHaptic();
               setReplaceTarget(ex);

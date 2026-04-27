@@ -45,6 +45,9 @@ interface SelectedDayCardProps {
   onDuplicate?: () => void;
   onForceWorkout?: () => void;
   onExercisePress?: (exercise: SelectedDayExercise) => void;
+  /** When the card has no exercises, the empty state shows a CTA. */
+  onEmptyStateCta?: () => void;
+  emptyStateCtaLabel?: string;
 }
 
 const ACCENT = '#FF6B35';
@@ -126,10 +129,13 @@ function PlannedCard({
   onMoveUp,
   onSkip,
   onExercisePress,
+  onEmptyStateCta,
+  emptyStateCtaLabel,
 }: SelectedDayCardProps) {
   const isToday = state === 'today';
   const previewLimit = 3;
   const hasMore = (totalExercises ?? 0) > previewLimit;
+  const hasExercises = !!exercisesPreview && exercisesPreview.length > 0;
 
   return (
     <View style={styles.card}>
@@ -162,12 +168,20 @@ function PlannedCard({
 
       <View style={styles.divider} />
 
-      {(!exercisesPreview || exercisesPreview.length === 0) && (
+      {!hasExercises && (
         <View style={styles.emptyExercisesBox}>
           <Text style={styles.emptyExercisesTitle}>Aucune séance détaillée pour ce jour</Text>
           <Text style={styles.emptyExercisesSub}>
             Soit ton programme n'a pas encore commencé, soit ce jour est libre. Logge une séance manuelle si tu veux t'entraîner quand même.
           </Text>
+          {onEmptyStateCta && (
+            <Pressable
+              onPress={onEmptyStateCta}
+              style={({ pressed }) => [styles.emptyExercisesBtn, pressed && styles.pressed]}
+            >
+              <Text style={styles.emptyExercisesBtnText}>{emptyStateCtaLabel ?? 'Logger une séance'}</Text>
+            </Pressable>
+          )}
         </View>
       )}
 
@@ -200,7 +214,7 @@ function PlannedCard({
         </>
       )}
 
-      {isToday && onStart && (
+      {isToday && onStart && hasExercises && (
         <Pressable onPress={onStart} style={({ pressed }) => [pressed && styles.pressed]}>
           <LinearGradient
             colors={['#FF8C40', '#FF5A1C']}
@@ -559,5 +573,20 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.55)',
     marginTop: 4,
     lineHeight: 16,
+  },
+  emptyExercisesBtn: {
+    marginTop: 12,
+    alignSelf: 'flex-start',
+    paddingVertical: 9,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+    backgroundColor: ACCENT,
+  },
+  emptyExercisesBtnText: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.4,
   },
 });
