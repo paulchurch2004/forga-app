@@ -47,10 +47,13 @@ export function useProgram() {
     return getTodayPlan();
   }, [activePlan, completedDays, getTodayPlan]);
 
+  const getProgramDayForDate = useProgramStore((s) => s.getProgramDayForDate);
+
   const todayProgramDay: ProgramDay | null = useMemo(() => {
     if (!todayPlan?.programDayId || !activePlan) return null;
-    return getProgramDayById(activePlan.programId, todayPlan.programDayId);
-  }, [todayPlan, activePlan]);
+    // Apply per-day overrides (replaceExerciseInDay).
+    return getProgramDayForDate(todayPlan.date) ?? getProgramDayById(activePlan.programId, todayPlan.programDayId);
+  }, [todayPlan, activePlan, getProgramDayForDate]);
 
   const weekDays: PlannedDay[] = useMemo(() => {
     return getWeekDays(currentWeek);

@@ -9,6 +9,8 @@ interface TrainingState {
 
   addWorkout: (workout: Workout) => void;
   removeWorkout: (date: string, workoutId: string) => void;
+  /** Clone an existing workout to a target date with a fresh id. Returns the new workout id, or null if source not found. */
+  duplicateWorkoutToDate: (sourceWorkoutId: string, targetDate: string) => string | null;
   getWorkoutsForDate: (date: string) => Workout[];
   getRecentWorkouts: (limit: number) => Workout[];
   getActiveDaysLast7: (todayDate: string) => number;
@@ -45,6 +47,44 @@ export const useTrainingStore = create<TrainingState>()(
             [date]: (state.workouts[date] ?? []).filter((w) => w.id !== workoutId),
           },
         })),
+
+      duplicateWorkoutToDate: (sourceWorkoutId, targetDate) => {
+        const all = get().workouts;
+        let source: Workout | null = null;
+        for (const list of Object.values(all)) {
+          const found = list.find((w) => w.id === sourceWorkoutId);
+          if (found) {
+            source = found;
+            break;
+          }
+        }
+        if (!source) return null;
+
+        const newId = `t_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+        const cloned: Workout = {
+          ...source,
+          id: newId,
+          date: targetDate,
+          timestamp: new Date().toISOString(),
+          exercises: source.exercises.map((ex) => ({
+            ...ex,
+            id: `we_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            sets: ex.sets.map((s) => ({
+              ...s,
+              id: `s_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            })),
+          })),
+        };
+
+        set((state) => ({
+          workouts: {
+            ...state.workouts,
+            [targetDate]: [...(state.workouts[targetDate] ?? []), cloned],
+          },
+          lastWorkoutDate: targetDate,
+        }));
+        return newId;
+      },
 
       getWorkoutsForDate: (date) => get().workouts[date] ?? [],
 

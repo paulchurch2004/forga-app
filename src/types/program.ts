@@ -88,4 +88,6 @@ export interface GeneratedPlan {
   endDate: string;
   days: PlannedDay[];
   cardioRecommendation: CardioRecommendation;
+  /** Per-day exercise swaps. date → originalExerciseId → newExerciseId. */
+  exerciseOverrides?: Record<string, Record<string, string>>;
 }

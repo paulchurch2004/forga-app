@@ -5,9 +5,11 @@ import type {
   ProgramId,
   GeneratedPlan,
   PlannedDay,
+  ProgramDay,
 } from '../types/program';
 import type { Objective, Sex } from '../types/user';
 import { generatePlan, toLocalDateStr } from '../engine/programEngine';
+import { getProgramDayById } from '../data/programs';
 
 function syncProgramLazy() {
   setTimeout(() => {
@@ -35,6 +37,12 @@ interface ProgramState {
   getTodayPlan: () => PlannedDay | null;
   getWeekDays: (weekNumber: number) => PlannedDay[];
   getCurrentWeek: () => number;
+  /** Swap the programDayId + status between two days (used by "Avancer"). */
+  swapPlannedDays: (fromDate: string, toDate: string) => void;
+  /** Persistently replace one exercise in a planned day (used by ReplaceExerciseSheet). */
+  replaceExerciseInDay: (date: string, originalExerciseId: string, newExerciseId: string) => void;
+  /** Resolve the ProgramDay for a date, applying any user overrides. */
+  getProgramDayForDate: (date: string) => ProgramDay | null;
   reset: () => void;
 }
 
@@ -141,6 +149,87 @@ export const useProgramStore = create<ProgramState>()(
         return Math.min(week, 4);
       },
 
+      swapPlannedDays: (fromDate, toDate) => {
+        const { activePlan } = get();
+        if (!activePlan || fromDate === toDate) return;
+
+        const fromDay = activePlan.days.find((d) => d.date === fromDate);
+        const toDay = activePlan.days.find((d) => d.date === toDate);
+        if (!fromDay || !toDay) return;
+
+        // Don't disrupt completed days.
+        if (fromDay.status === 'completed' || toDay.status === 'completed') return;
+
+        const updatedDays = activePlan.days.map((d) => {
+          if (d.date === fromDate) {
+            return {
+              ...d,
+              programDayId: toDay.programDayId,
+              status: toDay.status === 'today' ? 'upcoming' : toDay.status,
+            };
+          }
+          if (d.date === toDate) {
+            return {
+              ...d,
+              programDayId: fromDay.programDayId,
+              status: toDay.status,
+            };
+          }
+          return d;
+        });
+
+        set({ activePlan: { ...activePlan, days: updatedDays } });
+      },
+
+      replaceExerciseInDay: (date, originalExerciseId, newExerciseId) => {
+        const { activePlan } = get();
+        if (!activePlan) return;
+
+        const dayOverrides = { ...(activePlan.exerciseOverrides?.[date] ?? {}) };
+        if (originalExerciseId === newExerciseId) {
+          delete dayOverrides[originalExerciseId];
+        } else {
+          dayOverrides[originalExerciseId] = newExerciseId;
+        }
+
+        const nextOverrides = { ...(activePlan.exerciseOverrides ?? {}) };
+        if (Object.keys(dayOverrides).length === 0) {
+          delete nextOverrides[date];
+        } else {
+          nextOverrides[date] = dayOverrides;
+        }
+
+        set({
+          activePlan: {
+            ...activePlan,
+            exerciseOverrides: nextOverrides,
+          },
+        });
+      },
+
+      getProgramDayForDate: (date) => {
+        const { activePlan } = get();
+        if (!activePlan) return null;
+
+        const day = activePlan.days.find((d) => d.date === date);
+        if (!day?.programDayId) return null;
+
+        const programDay = getProgramDayById(activePlan.programId, day.programDayId);
+        if (!programDay) return null;
+
+        const overrides = activePlan.exerciseOverrides?.[date];
+        if (!overrides) return programDay;
+
+        return {
+          ...programDay,
+          exercises: programDay.exercises.map((ex) =>
+            overrides[ex.exerciseId]
+              ? { ...ex, exerciseId: overrides[ex.exerciseId] }
+              : ex
+          ),
+        };
+      },
+
       reset: () => {
         set({ activePlan: null, completedDays: {} });
       },
@@ -149,7 +238,7 @@ export const useProgramStore = create<ProgramState>()(
       name: 'forga-program-store',
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
-        activePlan: state.activePlan,
+        activePlan: state.activePlan, // includes exerciseOverrides
         completedDays: state.completedDays,
       }),
     }

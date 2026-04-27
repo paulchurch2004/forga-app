@@ -1,38 +1,34 @@
 import React, { useMemo, useState } from 'react';
-import { View, Text, ScrollView, Pressable, Platform, ImageBackground } from 'react-native';
+import { View, Text, ScrollView, Pressable, Platform, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { LinearGradient } from 'expo-linear-gradient';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useTraining } from '../../src/hooks/useTraining';
 import { useStreak } from '../../src/hooks/useStreak';
 import { useProgram } from '../../src/hooks/useProgram';
 import { useProgramStore } from '../../src/store/programStore';
+import { useTrainingStore } from '../../src/store/trainingStore';
 import { useUserStore } from '../../src/store/userStore';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
 import { ProgramSelector } from '../../src/components/training/ProgramSelector';
-import { ProgramCard } from '../../src/components/training/ProgramCard';
-import { WeeklyPlanCalendar } from '../../src/components/training/WeeklyPlanCalendar';
-import { TodayWorkoutCard } from '../../src/components/training/TodayWorkoutCard';
-import { WorkoutCard } from '../../src/components/training/WorkoutCard';
 import { QuickStats } from '../../src/components/training/QuickStats';
 import { EmptyState } from '../../src/components/ui/EmptyState';
-import { WeeklyDaysGrid, type WeekDayItem, type DayStatus } from '../../src/components/training/WeeklyDaysGrid';
-import { TodayWorkoutPreview, type ExercisePreview } from '../../src/components/training/TodayWorkoutPreview';
 import { SessionHistoryList, type SessionHistoryItem } from '../../src/components/training/SessionHistoryList';
 import { TrainingHero } from '../../src/components/training/TrainingHero';
 import { WeekNavigator } from '../../src/components/training/WeekNavigator';
 import { WeekDayCalendar, type WeekCalendarDay, type WeekDayStatus } from '../../src/components/training/WeekDayCalendar';
-import { QuickStatsRow, type QuickStatItem } from '../../src/components/training/QuickStatsRow';
+import { QuickStatsRow } from '../../src/components/training/QuickStatsRow';
 import { SelectedDayCard, type SelectedDayState, type SelectedDayExercise } from '../../src/components/training/SelectedDayCard';
 import { ProgramSelectorSheet } from '../../src/components/training/ProgramSelectorSheet';
 import { HistorySheet, type HistoryItem } from '../../src/components/training/HistorySheet';
 import { ReplaceExerciseSheet, type SubstituteOption } from '../../src/components/training/ReplaceExerciseSheet';
 import { StatsSheet } from '../../src/components/training/StatsSheet';
-import { PROGRAMS, PROGRAM_IDS } from '../../src/data/programs';
+import { SessionActionsSheet, type SessionAction } from '../../src/components/training/SessionActionsSheet';
+import { SessionPreviewSheet } from '../../src/components/training/SessionPreviewSheet';
+import { PROGRAMS, PROGRAM_IDS, getProgramDayById } from '../../src/data/programs';
 import { EXERCISES } from '../../src/data/exercises';
 
 const TRAINING_HEADER_IMAGE =
@@ -60,6 +56,7 @@ export default function TrainingScreen() {
   } = useTraining();
   const {
     hasActivePlan,
+    activePlan,
     activeProgram,
     recommendedProgramId,
     currentWeek,
@@ -73,27 +70,32 @@ export default function TrainingScreen() {
 
   const objective = profile?.objective ?? 'maintain';
   const markDaySkipped = useProgramStore((s) => s.markDaySkipped);
+  const swapPlannedDays = useProgramStore((s) => s.swapPlannedDays);
+  const replaceExerciseInDay = useProgramStore((s) => s.replaceExerciseInDay);
+  const getProgramDayForDate = useProgramStore((s) => s.getProgramDayForDate);
+  const duplicateWorkoutToDate = useTrainingStore((s) => s.duplicateWorkoutToDate);
 
   // ─── Week navigator + calendar state ─────────────────────────
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
-  const [activeSheet, setActiveSheet] = useState<null | 'program' | 'history' | 'replace' | 'stats'>(null);
+  const [activeSheet, setActiveSheet] = useState<
+    null | 'program' | 'history' | 'replace' | 'stats' | 'actions' | 'preview'
+  >(null);
   const [replaceTarget, setReplaceTarget] = useState<SelectedDayExercise | null>(null);
 
-  const calendarDays = useMemo<WeekCalendarDay[]>(() => {
+  // calendarCells = parallel array of ISO date + planDay reference for each cell.
+  const calendarCells = useMemo(() => {
     const today = new Date();
-    const todayDow = (today.getDay() + 6) % 7; // 0=Mon..6=Sun
+    const todayDow = (today.getDay() + 6) % 7;
     const monday = new Date(today);
     monday.setDate(today.getDate() - todayDow + weekOffset * 7);
-
     const letters = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+
     return Array.from({ length: 7 }).map((_, i) => {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
-      const planDay = weekDays.find((p) => {
-        const pd = new Date(p.date);
-        return pd.getFullYear() === d.getFullYear() && pd.getMonth() === d.getMonth() && pd.getDate() === d.getDate();
-      });
+      const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const planDay = weekDays.find((p) => p.date === iso);
       let status: WeekDayStatus = 'plan';
       if (planDay) {
         if (planDay.status === 'completed') status = 'done';
@@ -101,7 +103,6 @@ export default function TrainingScreen() {
         else if (planDay.status === 'rest') status = 'rest';
         else if (planDay.status === 'skipped') status = 'skipped';
       } else {
-        // No plan loaded: still show today/rest based on the date
         const isToday = d.toDateString() === today.toDateString();
         if (isToday) status = 'today';
         else status = 'rest';
@@ -109,10 +110,17 @@ export default function TrainingScreen() {
       return {
         letter: letters[i],
         date: String(d.getDate()),
+        iso,
         status,
+        planDay: planDay ?? null,
       };
     });
   }, [weekDays, weekOffset]);
+
+  const calendarDays = useMemo<WeekCalendarDay[]>(
+    () => calendarCells.map(({ letter, date, status }) => ({ letter, date, status })),
+    [calendarCells]
+  );
 
   // Auto-select today when offset = 0 on first render
   React.useEffect(() => {
@@ -159,12 +167,33 @@ export default function TrainingScreen() {
   }, [recentWorkouts]);
   const weeklyVolumeTargetKg = activeProgram ? activeProgram.daysPerWeek * 4500 : 0;
 
-  // ─── Selected day card data (today / done / rest / plan) ─────
+  // ─── Selected day card data (driven by the SELECTED day, not today) ─
+  const selectedCell = selectedDayIndex !== null ? calendarCells[selectedDayIndex] ?? null : null;
+  const allWorkouts = useTrainingStore((s) => s.workouts);
+
+  // ProgramDay for the selected date — applies overrides from replaceExerciseInDay.
+  // activePlan is in deps so swaps re-trigger this when overrides change.
+  const selectedProgramDay = useMemo(() => {
+    if (!selectedCell?.planDay?.programDayId || !activeProgram) return null;
+    return (
+      getProgramDayForDate(selectedCell.iso) ??
+      getProgramDayById(activeProgram.id, selectedCell.planDay.programDayId)
+    );
+  }, [selectedCell, activeProgram, getProgramDayForDate, activePlan?.exerciseOverrides]);
+
+  // Workout that completed the selected day (for "Voir le résumé" + volumeKg).
+  const selectedDayWorkout = useMemo(() => {
+    if (!selectedCell || selectedCell.status !== 'done') return null;
+    const list = allWorkouts[selectedCell.iso] ?? [];
+    const id = selectedCell.planDay?.workoutId;
+    return id ? list.find((w) => w.id === id) ?? list[0] ?? null : list[0] ?? null;
+  }, [selectedCell, allWorkouts]);
+
   const selectedDayCardData = useMemo(() => {
-    const day = selectedDayIndex !== null ? calendarDays[selectedDayIndex] : null;
-    const isSelectedToday = day?.status === 'today';
-    const isSelectedDone = day?.status === 'done';
-    const isSelectedRest = day?.status === 'rest';
+    const status = selectedCell?.status ?? 'plan';
+    const isSelectedToday = status === 'today';
+    const isSelectedDone = status === 'done';
+    const isSelectedRest = status === 'rest';
 
     let state: SelectedDayState = 'plan';
     if (isSelectedRest) state = 'rest';
@@ -179,20 +208,35 @@ export default function TrainingScreen() {
       ? 'JOUR DE REPOS'
       : 'SÉANCE PRÉVUE';
 
-    const typeLabel = todayProgramDay ? t(todayProgramDay.nameKey as any) : '';
-    const durationMin = todayProgramDay ? todayProgramDay.exercises.length * 12 : 0;
-    const title = todayProgramDay
-      ? todayProgramDay.muscleGroups.map((g) => t(`muscle_${g}` as any)).join(' & ')
-      : typeLabel;
+    const typeLabel = selectedProgramDay ? t(selectedProgramDay.nameKey as any) : '';
+    const durationMin = selectedProgramDay
+      ? selectedProgramDay.exercises.length * 12
+      : selectedDayWorkout?.durationMinutes ?? 0;
 
-    const exercisesPreview: SelectedDayExercise[] | undefined = todayProgramDay
-      ? todayProgramDay.exercises.map((e) => ({
+    let title = selectedProgramDay
+      ? selectedProgramDay.muscleGroups.map((g) => t(`muscle_${g}` as any)).join(' & ')
+      : typeLabel;
+    if (isSelectedDone && !selectedProgramDay && selectedDayWorkout) {
+      title = selectedDayWorkout.name ?? t('workoutLabel');
+    }
+
+    const exercisesPreview: SelectedDayExercise[] | undefined = selectedProgramDay
+      ? selectedProgramDay.exercises.map((e) => ({
           id: e.exerciseId,
           name: EXERCISES[e.exerciseId]?.nameFr ?? e.exerciseId,
           sets: e.targetSets,
           reps: String(e.targetReps),
           restSec: e.restSeconds,
         }))
+      : undefined;
+
+    const volumeKg = selectedDayWorkout
+      ? Math.round(
+          selectedDayWorkout.exercises.reduce(
+            (acc, ex) => acc + ex.sets.reduce((s, set) => s + (set.weight ?? 0) * (set.reps ?? 0), 0),
+            0
+          )
+        )
       : undefined;
 
     return {
@@ -204,12 +248,12 @@ export default function TrainingScreen() {
       intentionQuote: isSelectedToday
         ? `Consolider ta séance ${typeLabel.toLowerCase()}. On garde l'intensité, on soigne l'exécution.`
         : undefined,
-      muscleChips: todayProgramDay?.muscleGroups.map((g) => t(`muscle_${g}` as any)),
+      muscleChips: selectedProgramDay?.muscleGroups.map((g) => t(`muscle_${g}` as any)),
       exercisesPreview,
-      totalExercises: todayProgramDay?.exercises.length,
-      volumeKg: undefined,
+      totalExercises: selectedProgramDay?.exercises.length,
+      volumeKg,
     };
-  }, [calendarDays, selectedDayIndex, todayProgramDay, t]);
+  }, [selectedCell, selectedProgramDay, selectedDayWorkout, t]);
 
   // ─── Header data for the new TrainingHero ────────────────────
   const heroData = useMemo(() => {
@@ -226,10 +270,12 @@ export default function TrainingScreen() {
     return { dateLabel: dateLabel.charAt(0).toUpperCase() + dateLabel.slice(1), programName, weekLabel, subtitle };
   }, [activeProgram, currentWeek, hasActivePlan, todayPlan, todayProgramDay, t]);
 
+  // Skip the SELECTED day (not just today). Falls back to today.
   const handleSkipDay = () => {
-    if (!todayPlan) return;
+    const date = selectedCell?.iso ?? todayPlan?.date;
+    if (!date) return;
     triggerHaptic();
-    markDaySkipped(todayPlan.date);
+    markDaySkipped(date);
   };
 
   const handleStartWorkout = () => {
@@ -244,6 +290,121 @@ export default function TrainingScreen() {
       },
     });
   };
+
+  // Move the selected planned day to today by swapping the two dates' content.
+  const handleMoveUp = () => {
+    if (!selectedCell || !todayPlan || selectedCell.iso === todayPlan.date) return;
+    triggerHaptic();
+    swapPlannedDays(todayPlan.date, selectedCell.iso);
+    // After swap, jump the calendar selection to today so the user sees the moved session.
+    const todayIdx = calendarCells.findIndex((c) => c.status === 'today');
+    if (todayIdx >= 0) setSelectedDayIndex(todayIdx);
+  };
+
+  // Open workout-detail for the done session.
+  const handleSeeSummary = () => {
+    if (!selectedDayWorkout || !selectedCell) return;
+    triggerHaptic();
+    router.push({
+      pathname: '/workout-detail',
+      params: { workoutId: selectedDayWorkout.id, date: selectedCell.iso },
+    });
+  };
+
+  // Duplicate the done session: clone the workout to today's date.
+  const handleDuplicate = () => {
+    if (!selectedDayWorkout) return;
+    const today = new Date();
+    const todayIso = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    const performAction = () => {
+      const newId = duplicateWorkoutToDate(selectedDayWorkout.id, todayIso);
+      if (newId) {
+        triggerHaptic();
+        router.push({ pathname: '/workout-detail', params: { workoutId: newId, date: todayIso } });
+      }
+    };
+    if (Platform.OS === 'web') {
+      if (window.confirm('Dupliquer cette séance pour aujourd’hui ?')) performAction();
+      return;
+    }
+    Alert.alert(
+      'Dupliquer la séance ?',
+      'Une copie identique sera enregistrée à la date d’aujourd’hui.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Dupliquer', style: 'default', onPress: performAction },
+      ]
+    );
+  };
+
+  const handleReplacePick = (pick: SubstituteOption) => {
+    if (!replaceTarget || !selectedCell) return;
+    triggerHaptic();
+    replaceExerciseInDay(selectedCell.iso, replaceTarget.id, pick.id);
+  };
+
+  // Build the action sheet rows based on the selected day's state.
+  const sessionActions: SessionAction[] = useMemo(() => {
+    const acts: SessionAction[] = [];
+    const status = selectedCell?.status ?? 'plan';
+
+    if (status === 'today') {
+      acts.push({
+        id: 'preview',
+        label: 'Voir tous les exercices',
+        description: `${selectedProgramDay?.exercises.length ?? 0} exercices, tap pour remplacer`,
+        icon: 'eye',
+        onPress: () => setActiveSheet('preview'),
+      });
+      acts.push({
+        id: 'skip',
+        label: 'Sauter la séance',
+        description: 'Marquer comme skippée — ne casse pas le streak',
+        icon: 'skip',
+        onPress: handleSkipDay,
+      });
+    } else if (status === 'plan') {
+      acts.push({
+        id: 'moveUp',
+        label: 'Avancer à aujourd’hui',
+        description: 'Échange le contenu avec la séance du jour',
+        icon: 'up',
+        disabled: !todayPlan,
+        onPress: handleMoveUp,
+      });
+      acts.push({
+        id: 'preview',
+        label: 'Voir tous les exercices',
+        description: `${selectedProgramDay?.exercises.length ?? 0} exercices`,
+        icon: 'eye',
+        onPress: () => setActiveSheet('preview'),
+      });
+      acts.push({
+        id: 'skip',
+        label: 'Sauter cette séance',
+        description: 'Marquer comme skippée',
+        icon: 'skip',
+        onPress: handleSkipDay,
+      });
+    } else if (status === 'done' && selectedDayWorkout) {
+      acts.push({
+        id: 'summary',
+        label: 'Voir le résumé',
+        description: 'Détail des séries, volume, durée',
+        icon: 'eye',
+        onPress: handleSeeSummary,
+      });
+      acts.push({
+        id: 'duplicate',
+        label: 'Dupliquer pour aujourd’hui',
+        description: 'Clone cette séance avec ses séries',
+        icon: 'replace',
+        onPress: handleDuplicate,
+      });
+    }
+    return acts;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCell, selectedProgramDay, selectedDayWorkout, todayPlan]);
 
   return (
     <View style={styles.container}>
@@ -370,11 +531,18 @@ export default function TrainingScreen() {
             totalExercises={selectedDayCardData.totalExercises}
             volumeKg={selectedDayCardData.volumeKg}
             onStart={handleStartWorkout}
-            onActions={() => triggerHaptic()}
-            onMoveUp={() => triggerHaptic()}
+            onActions={() => {
+              triggerHaptic();
+              setActiveSheet('actions');
+            }}
+            onSeeAll={() => {
+              triggerHaptic();
+              setActiveSheet('preview');
+            }}
+            onMoveUp={handleMoveUp}
             onSkip={handleSkipDay}
-            onSeeSummary={() => router.back()}
-            onDuplicate={() => triggerHaptic()}
+            onSeeSummary={handleSeeSummary}
+            onDuplicate={handleDuplicate}
             onForceWorkout={() => router.push('/log-workout')}
             onExercisePress={(ex) => {
               triggerHaptic();
@@ -495,7 +663,26 @@ export default function TrainingScreen() {
       }}
       originalName={replaceTarget?.name}
       substitutes={replaceTarget ? buildSubstitutesFor(replaceTarget) : []}
-      onPick={() => triggerHaptic()}
+      onPick={handleReplacePick}
+    />
+
+    <SessionActionsSheet
+      open={activeSheet === 'actions'}
+      onClose={() => setActiveSheet(null)}
+      title={selectedDayCardData.title || 'Actions de séance'}
+      subtitle={selectedDayCardData.sectionLabel}
+      actions={sessionActions}
+    />
+
+    <SessionPreviewSheet
+      open={activeSheet === 'preview'}
+      onClose={() => setActiveSheet(null)}
+      title={selectedDayCardData.title || 'Séance'}
+      exercises={selectedDayCardData.exercisesPreview ?? []}
+      onExercisePress={(ex) => {
+        setReplaceTarget(ex);
+        setActiveSheet('replace');
+      }}
     />
 
     <StatsSheet
