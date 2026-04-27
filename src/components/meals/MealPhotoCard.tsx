@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, Platform } from 'react-native';
-import { Image } from 'expo-image';
+import { View, Text, Pressable, Platform, Image } from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -69,8 +68,7 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
         <Image
           source={{ uri: meal.photoUrl }}
           style={styles.image}
-          contentFit="cover"
-          cachePolicy="memory-disk"
+          resizeMode="cover"
         />
         <View style={styles.gradient} />
 
