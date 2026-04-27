@@ -1,11 +1,6 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Image,
-  Pressable,
-  Platform,
-} from 'react-native';
+import { View, Text, Pressable, Platform } from 'react-native';
+import { Image } from 'expo-image';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -14,7 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { makeStyles, fonts, fontSizes, spacing, borderRadius, shadows } from '../../theme';
+import { makeStyles, fonts } from '../../theme';
 import { useTheme } from '../../context/ThemeContext';
 import { useMealStore } from '../../store/mealStore';
 import { useUserStore } from '../../store/userStore';
@@ -54,94 +49,81 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
     transform: [{ scale: scale.value }],
   }));
 
-  const handlePressIn = () => {
-    scale.value = withSpring(0.96, { damping: 15, stiffness: 300 });
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSpring(1, { damping: 15, stiffness: 300 });
-  };
-
-  const handlePress = () => {
-    router.push(slot ? `/meal/${meal.id}?slot=${slot}` : `/meal/${meal.id}`);
-  };
-
-  const budgetLabel = meal.budget === 'eco' ? 'eco' : 'premium';
-  const budgetColor = meal.budget === 'eco' ? colors.success : colors.fat;
-
   const dynamicCardStyle = cardWidth ? { width: cardWidth } : { flex: 1 };
-  const imageHeight = cardWidth ? cardWidth * 0.75 : 140;
+  const imageHeight = cardWidth ? cardWidth : 160; // aspect 1:1
 
   return (
     <AnimatedPressable
       style={[styles.card, dynamicCardStyle, animatedStyle]}
-      onPress={handlePress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
+      onPress={() => router.push(slot ? `/meal/${meal.id}?slot=${slot}` : `/meal/${meal.id}`)}
+      onPressIn={() => {
+        scale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
+      }}
+      onPressOut={() => {
+        scale.value = withSpring(1, { damping: 15, stiffness: 300 });
+      }}
       accessibilityRole="button"
       accessibilityLabel={`${meal.name}, ${Math.round(meal.baseMacros.calories)} calories`}
     >
-      {/* Photo */}
-      <View style={[styles.imageContainer, { height: imageHeight }]}>
+      <View style={[styles.imageWrap, { height: imageHeight }]}>
         <Image
           source={{ uri: meal.photoUrl }}
           style={styles.image}
-          resizeMode="cover"
+          contentFit="cover"
+          cachePolicy="memory-disk"
         />
-        {/* Gradient overlay */}
         <View style={styles.gradient} />
 
-        {/* Budget tag */}
-        <View style={[styles.budgetTag, { backgroundColor: budgetColor }]}>
-          <Text style={styles.budgetText}>{budgetLabel}</Text>
-        </View>
-
-        {/* Favorite button */}
         <Pressable
           style={styles.favButton}
           onPress={(e) => {
             e.stopPropagation?.();
             toggleFavorite(meal.id);
             triggerHaptic();
-            favScale.value = withSequence(withSpring(1.4, { damping: 6 }), withSpring(1, { damping: 10 }));
+            favScale.value = withSequence(
+              withSpring(1.4, { damping: 6 }),
+              withSpring(1, { damping: 10 })
+            );
           }}
           hitSlop={8}
         >
           <Animated.Text style={[styles.favIcon, isFav && styles.favIconActive, favAnimStyle]}>
-            {isFav ? '\u2665' : '\u2661'}
+            {isFav ? '♥' : '♡'}
           </Animated.Text>
         </Pressable>
+
+        {meal.budget === 'eco' && (
+          <View style={styles.budgetBadge}>
+            <Text style={styles.budgetBadgeText}>ECO</Text>
+          </View>
+        )}
       </View>
 
-      {/* Info */}
       <View style={styles.info}>
         <Text style={styles.mealName} numberOfLines={2}>
           {meal.name}
         </Text>
-        <View style={styles.macrosRow}>
-          <MacroChip
-            value={Math.round(meal.baseMacros.protein)}
-            unit="g P"
-            color={colors.protein}
-          />
-          <MacroChip
-            value={Math.round(meal.baseMacros.calories)}
-            unit="kcal"
-            color={colors.calories}
-          />
+
+        <View style={styles.bottomRow}>
+          <View style={styles.kcalWrap}>
+            <Text style={styles.kcalValue}>{Math.round(meal.baseMacros.calories)}</Text>
+            <Text style={styles.kcalUnit}>kcal</Text>
+          </View>
+          <View style={styles.dots}>
+            <Text style={[styles.dot, { color: colors.protein }]}>
+              {Math.round(meal.baseMacros.protein)}
+            </Text>
+            <Text style={[styles.dot, { color: colors.carbs }]}>
+              {Math.round(meal.baseMacros.carbs)}
+            </Text>
+            <Text style={[styles.dot, { color: colors.fat }]}>
+              {Math.round(meal.baseMacros.fat)}
+            </Text>
+          </View>
         </View>
+
         <View style={styles.metaRow}>
-          <Text style={styles.metaText}>
-            {meal.prepTimeMin} min
-          </Text>
-          <Text style={styles.metaDot}>{'\u00B7'}</Text>
-          <Text style={styles.metaText}>
-            {meal.difficulty === 1
-              ? 'Facile'
-              : meal.difficulty === 2
-              ? 'Moyen'
-              : 'Avance'}
-          </Text>
+          <Text style={styles.metaText}>{meal.prepTimeMin} min</Text>
           <View style={styles.feedbackRow}>
             <Pressable
               onPress={(e) => {
@@ -150,8 +132,7 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
                 triggerHaptic();
                 const userId = useUserStore.getState().profile?.id;
                 if (userId) {
-                  const nowLiked = !isLiked;
-                  syncMealPreference(meal.id, userId, nowLiked ? 'like' : null);
+                  syncMealPreference(meal.id, userId, !isLiked ? 'like' : null);
                 }
               }}
               hitSlop={6}
@@ -159,7 +140,7 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
             >
               <Ionicons
                 name={isLiked ? 'thumbs-up' : 'thumbs-up-outline'}
-                size={14}
+                size={13}
                 color={isLiked ? colors.success : colors.textMuted}
               />
             </Pressable>
@@ -170,8 +151,7 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
                 triggerHaptic();
                 const userId = useUserStore.getState().profile?.id;
                 if (userId) {
-                  const nowDisliked = !isDisliked;
-                  syncMealPreference(meal.id, userId, nowDisliked ? 'dislike' : null);
+                  syncMealPreference(meal.id, userId, !isDisliked ? 'dislike' : null);
                 }
               }}
               hitSlop={6}
@@ -179,7 +159,7 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
             >
               <Ionicons
                 name={isDisliked ? 'thumbs-down' : 'thumbs-down-outline'}
-                size={14}
+                size={13}
                 color={isDisliked ? colors.error : colors.textMuted}
               />
             </Pressable>
@@ -190,138 +170,123 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
   );
 }
 
-function MacroChip({
-  value,
-  unit,
-  color,
-}: {
-  value: number;
-  unit: string;
-  color: string;
-}) {
-  const styles = useStyles();
-  return (
-    <View style={[styles.macroChip, { borderColor: color }]}>
-      <Text style={[styles.macroChipValue, { color }]}>
-        {value}
-      </Text>
-      <Text style={[styles.macroChipUnit, { color }]}>{unit}</Text>
-    </View>
-  );
-}
-
 const useStyles = makeStyles((colors) => ({
   card: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 18,
     borderWidth: 1,
-    borderColor: colors.border,
-    overflow: 'hidden',
-    ...shadows.card,
+    borderColor: 'rgba(255,255,255,0.08)',
+    overflow: 'hidden' as const,
   },
-  imageContainer: {
-    width: '100%',
-    position: 'relative',
+  imageWrap: {
+    width: '100%' as const,
+    position: 'relative' as const,
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: '100%' as const,
+    height: '100%' as const,
   },
   gradient: {
-    position: 'absolute',
+    position: 'absolute' as const,
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.15)',
-  },
-  budgetTag: {
-    position: 'absolute',
-    top: spacing.sm,
-    left: spacing.sm,
-    borderRadius: borderRadius.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-  },
-  budgetText: {
-    fontFamily: fonts.body,
-    fontSize: fontSizes.xs,
-    fontWeight: '700',
-    color: colors.white,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  info: {
-    padding: spacing.sm,
-  },
-  mealName: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes.sm,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: spacing.xs,
-    lineHeight: 18,
-  },
-  macrosRow: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-    marginBottom: spacing.xs,
-  },
-  macroChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: borderRadius.sm,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 2,
-    gap: 3,
-  },
-  macroChipValue: {
-    fontFamily: fonts.data,
-    fontSize: 10,
-    fontWeight: '700',
-  },
-  macroChipUnit: {
-    fontFamily: fonts.data,
-    fontSize: 9,
-    fontWeight: '500',
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  metaText: {
-    fontFamily: fonts.body,
-    fontSize: 10,
-    color: colors.textMuted,
-  },
-  metaDot: {
-    color: colors.textMuted,
-    fontSize: 10,
+    backgroundColor: 'rgba(7,7,13,0.10)',
   },
   favButton: {
-    position: 'absolute',
-    top: spacing.sm,
-    right: spacing.sm,
+    position: 'absolute' as const,
+    top: 8,
+    right: 8,
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
   },
   favIcon: {
     fontSize: 16,
-    color: colors.white,
+    color: '#FFFFFF',
   },
   favIconActive: {
     color: colors.error,
   },
+  budgetBadge: {
+    position: 'absolute' as const,
+    top: 8,
+    left: 8,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    borderRadius: 999,
+    backgroundColor: 'rgba(0,212,170,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(0,212,170,0.4)',
+  },
+  budgetBadgeText: {
+    fontFamily: fonts.body,
+    fontSize: 9,
+    fontWeight: '700' as const,
+    color: '#00D4AA',
+    letterSpacing: 0.8,
+  },
+  info: {
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  mealName: {
+    fontFamily: fonts.display,
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#FFFFFF',
+    lineHeight: 18,
+    minHeight: 36,
+  },
+  bottomRow: {
+    flexDirection: 'row' as const,
+    justifyContent: 'space-between' as const,
+    alignItems: 'baseline' as const,
+    marginTop: 8,
+  },
+  kcalWrap: {
+    flexDirection: 'row' as const,
+    alignItems: 'baseline' as const,
+    gap: 2,
+  },
+  kcalValue: {
+    fontFamily: fonts.data,
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: '#FFFFFF',
+  },
+  kcalUnit: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.38)',
+  },
+  dots: {
+    flexDirection: 'row' as const,
+    gap: 6,
+  },
+  dot: {
+    fontFamily: fonts.data,
+    fontSize: 11,
+    fontWeight: '700' as const,
+  },
+  metaRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+    marginTop: 6,
+  },
+  metaText: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.38)',
+  },
   feedbackRow: {
-    flexDirection: 'row',
-    gap: spacing.xs,
-    marginLeft: 'auto',
+    flexDirection: 'row' as const,
+    gap: 8,
   },
   feedbackBtn: {
     padding: 2,
