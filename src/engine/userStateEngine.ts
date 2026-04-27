@@ -300,105 +300,94 @@ export function computeUserState(input: UserStateInput): UserState {
 // - add a daily energy slider so readinessScore is fresh every day, not stale
 //   for 6 of 7 days.
 
-// ─── Decision layer ──────────────────────────────────────────
+// ─── Cognitive layer (interpretation only, no action) ──────────────
 //
-// Pure function on top of UserState. Returns a *recommendation*,
-// never enforced. v1: thresholds are placeholder (40/70) — they will be
-// recalibrated after ~1 week of real data. Confidence drops sharply
-// when key signals (recovery) are unavailable.
+// Pure function on top of UserState. Returns a *reading* of the user's
+// situation — what FORGA understands and what it would suggest.
+//
+// Strict separation from any action layer: NO multipliers, NO numerical
+// adjustments. If/when an action layer is built (Phase 3), it will live
+// in a separate file and consume this output explicitly.
+//
+// v1: thresholds (40/70/75) are placeholder — recalibrated after ~1 week
+// of real data. Confidence is intentionally low (cap 0.7 in v1) until
+// validated.
 
-export type DecisionAction = 'PUSH' | 'MAINTAIN' | 'REDUCE' | 'RECOVERY' | 'INSUFFICIENT_DATA';
+export type SuggestionState = 'PUSH' | 'MAINTAIN' | 'REDUCE' | 'RECOVERY' | 'INSUFFICIENT_DATA';
 
-export interface UserDecision {
-  action: DecisionAction;
-  /** Suggested training volume multiplier (display-only in v1). 1 = no change. */
-  trainingMultiplier: number;
-  /** Suggested daily kcal delta vs current target (display-only in v1). */
-  caloriesDeltaKcal: number;
-  /** 0-1, how confident FORGA is in this call given available signals. */
+export interface UserSuggestion {
+  state: SuggestionState;
+  /** Human-readable observations about the user's current condition. */
+  insights: string[];
+  /** Human-readable suggestions (NOT enforced anywhere). */
+  recommendations: string[];
+  /** 0-1. Capped at 0.7 in v1 — we have not validated the model yet. */
   confidence: number;
-  /** One-line message safe to show to the user. */
-  message: string;
-  /** Ordered list of reasons that drove the decision. */
-  reasons: string[];
 }
 
-export function computeUserDecision(state: UserState): UserDecision {
+export function computeUserSuggestion(state: UserState): UserSuggestion {
   const { fatigueIndex, readinessScore } = state.derived;
   const { adherenceScore, lastWorkoutDaysAgo } = state.training;
 
-  // Confidence = 1.0 if we have all 4 recovery inputs, scales down otherwise.
+  // Confidence scales with available recovery signals, capped at 0.7 in v1.
   const recoverySignals = [state.recovery.energy, state.recovery.sleepQuality, state.recovery.soreness]
     .filter((v) => v !== null).length;
-  const confidence = Math.min(1, 0.3 + recoverySignals * 0.25); // 0.3 .. 1.0
+  const confidence = Math.min(0.7, 0.2 + recoverySignals * 0.18);
 
-  // No derived metrics = nothing to say.
   if (fatigueIndex === null || readinessScore === null) {
     return {
-      action: 'INSUFFICIENT_DATA',
-      trainingMultiplier: 1,
-      caloriesDeltaKcal: 0,
+      state: 'INSUFFICIENT_DATA',
+      insights: ['Signaux de récupération manquants — fatigueIndex non calculable.'],
+      recommendations: ['Faire un check-in pour activer le coach.'],
       confidence: 0,
-      message: 'Pas assez de signaux pour une recommandation. Fais un check-in pour activer le coach.',
-      reasons: ['fatigueIndex non calculable (recovery manquante)'],
     };
   }
 
-  const reasons: string[] = [];
+  const insights: string[] = [];
+  const recommendations: string[] = [];
 
-  // RECOVERY — system needs rest.
+  // ── Insights (what FORGA observes) ──
   if (fatigueIndex > 70) {
-    reasons.push(`fatigueIndex élevé (${fatigueIndex})`);
-    if (state.recovery.energy !== null && state.recovery.energy < 40) reasons.push(`énergie basse (${state.recovery.energy}/100)`);
-    if (state.recovery.sleepQuality !== null && state.recovery.sleepQuality < 40) reasons.push(`sommeil dégradé (${state.recovery.sleepQuality}/100)`);
-    return {
-      action: 'RECOVERY',
-      trainingMultiplier: 0.7,
-      caloriesDeltaKcal: -100,
-      confidence,
-      message: 'Ton système est en fatigue élevée. FORGA suggère une journée de récupération.',
-      reasons,
-    };
+    insights.push(`Fatigue élevée détectée (${fatigueIndex}/100).`);
+  } else if (fatigueIndex > 55) {
+    insights.push(`Charge cumulée modérée (fatigue ${fatigueIndex}/100).`);
   }
 
-  // REDUCE — fatigue moderate, ease off.
-  if (fatigueIndex > 55) {
-    reasons.push(`fatigueIndex modéré (${fatigueIndex})`);
-    if (adherenceScore < 60) reasons.push(`adherence en baisse (${adherenceScore}%)`);
-    return {
-      action: 'REDUCE',
-      trainingMultiplier: 0.85,
-      caloriesDeltaKcal: -50,
-      confidence,
-      message: 'Charge cumulée. FORGA propose de réduire le volume de 15% aujourd\'hui.',
-      reasons,
-    };
+  if (readinessScore < 40) {
+    insights.push(`Faible disponibilité physiologique (readiness ${readinessScore}/100).`);
+  } else if (readinessScore > 75) {
+    insights.push(`État favorable à la progression (readiness ${readinessScore}/100).`);
   }
 
-  // PUSH — high readiness + good adherence.
-  if (readinessScore > 75 && adherenceScore >= 70) {
-    reasons.push(`readinessScore élevé (${readinessScore})`);
-    reasons.push(`adherence forte (${adherenceScore}%)`);
-    if (lastWorkoutDaysAgo !== null && lastWorkoutDaysAgo >= 1) reasons.push('repos récent');
-    return {
-      action: 'PUSH',
-      trainingMultiplier: 1.1,
-      caloriesDeltaKcal: 0,
-      confidence,
-      message: 'Conditions optimales. FORGA suggère de pousser légèrement l\'intensité.',
-      reasons,
-    };
+  if (state.recovery.energy !== null && state.recovery.energy < 40) {
+    insights.push(`Énergie basse au dernier check-in (${state.recovery.energy}/100).`);
+  }
+  if (state.recovery.sleepQuality !== null && state.recovery.sleepQuality < 40) {
+    insights.push(`Sommeil dégradé au dernier check-in (${state.recovery.sleepQuality}/100).`);
+  }
+  if (adherenceScore < 50) {
+    insights.push(`Adhérence en baisse cette semaine (${adherenceScore}%).`);
+  }
+  if (lastWorkoutDaysAgo !== null && lastWorkoutDaysAgo >= 4) {
+    insights.push(`Pas d'entraînement depuis ${lastWorkoutDaysAgo} jours.`);
   }
 
-  // Fallback — stable.
-  reasons.push(`fatigueIndex ${fatigueIndex} · readinessScore ${readinessScore}`);
-  reasons.push(`adherence ${adherenceScore}%`);
-  return {
-    action: 'MAINTAIN',
-    trainingMultiplier: 1,
-    caloriesDeltaKcal: 0,
-    confidence,
-    message: 'Système stable. FORGA recommande de garder le cap.',
-    reasons,
-  };
+  // ── Recommendations (what FORGA would suggest, never enforced) ──
+  let suggestionState: SuggestionState = 'MAINTAIN';
+
+  if (fatigueIndex > 70) {
+    suggestionState = 'RECOVERY';
+    recommendations.push("Prioriser la récupération aujourd'hui.");
+    recommendations.push("Réduire le volume d'entraînement ou décaler la séance.");
+  } else if (fatigueIndex > 55) {
+    suggestionState = 'REDUCE';
+    recommendations.push("Réduire légèrement le volume aujourd'hui.");
+  } else if (readinessScore > 75 && adherenceScore >= 70) {
+    suggestionState = 'PUSH';
+    recommendations.push("Maintenir ou augmenter légèrement l'intensité.");
+  } else {
+    recommendations.push('Garder le cap, le système est stable.');
+  }
+
+  return { state: suggestionState, insights, recommendations, confidence };
 }

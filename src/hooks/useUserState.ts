@@ -5,9 +5,9 @@ import { useMealStore } from '../store/mealStore';
 import { useProgramStore } from '../store/programStore';
 import {
   computeUserState,
-  computeUserDecision,
+  computeUserSuggestion,
   type UserState,
-  type UserDecision,
+  type UserSuggestion,
 } from '../engine/userStateEngine';
 
 function todayLocalIso(): string {
@@ -39,11 +39,12 @@ export function useUserState(): UserState {
 }
 
 /**
- * Recommendation derived from the current UserState.
- * v1: returned for display only (debug card / future explanation layer).
- * Nothing is mutated, no plan is modified.
+ * Cognitive layer output — what FORGA understands and would suggest.
+ * Display-only. Returns insights + recommendations as text.
+ * Action layer (Phase 3) will live in a separate file and explicitly
+ * consume this output before mutating anything.
  */
-export function useUserDecision(): UserDecision {
+export function useUserSuggestion(): UserSuggestion {
   const state = useUserState();
-  return useMemo(() => computeUserDecision(state), [state]);
+  return useMemo(() => computeUserSuggestion(state), [state]);
 }

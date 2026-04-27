@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { fonts } from '../../theme/fonts';
-import { useUserState, useUserDecision } from '../../hooks/useUserState';
-import type { DecisionAction } from '../../engine/userStateEngine';
+import { useUserState, useUserSuggestion } from '../../hooks/useUserState';
+import type { SuggestionState } from '../../engine/userStateEngine';
 
 /**
  * Read-only debug card for FORGA Core State.
@@ -11,7 +11,7 @@ import type { DecisionAction } from '../../engine/userStateEngine';
  */
 export function UserStateDebugCard() {
   const state = useUserState();
-  const decision = useUserDecision();
+  const suggestion = useUserSuggestion();
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -23,24 +23,33 @@ export function UserStateDebugCard() {
         </Pressable>
       </View>
 
-      {/* Decision recommendation — display-only in v1, never modifies the plan. */}
-      <View style={[styles.decisionBox, { borderColor: ACTION_COLORS[decision.action] }]}>
-        <View style={styles.decisionHeaderRow}>
-          <Text style={[styles.decisionAction, { color: ACTION_COLORS[decision.action] }]}>
-            {decision.action}
+      {/* Cognitive layer — interpretation only, never enforced. */}
+      <View style={[styles.suggestionBox, { borderColor: STATE_COLORS[suggestion.state] }]}>
+        <View style={styles.suggestionHeaderRow}>
+          <Text style={[styles.suggestionState, { color: STATE_COLORS[suggestion.state] }]}>
+            {suggestion.state}
           </Text>
-          <Text style={styles.decisionConfidence}>
-            confiance {Math.round(decision.confidence * 100)}%
+          <Text style={styles.suggestionConfidence}>
+            confiance {Math.round(suggestion.confidence * 100)}%
           </Text>
         </View>
-        <Text style={styles.decisionMessage}>{decision.message}</Text>
-        <Text style={styles.decisionSuggest}>
-          Suggéré · vol ×{decision.trainingMultiplier.toFixed(2)} · kcal {decision.caloriesDeltaKcal >= 0 ? '+' : ''}{decision.caloriesDeltaKcal}
-          <Text style={styles.decisionMutedSmall}>  (non appliqué)</Text>
-        </Text>
-        {decision.reasons.length > 0 && (
-          <Text style={styles.decisionReasons}>↳ {decision.reasons.join(' · ')}</Text>
+        {suggestion.insights.length > 0 && (
+          <View style={{ marginTop: 8 }}>
+            <Text style={styles.suggestionLabel}>FORGA observe</Text>
+            {suggestion.insights.map((s, i) => (
+              <Text key={i} style={styles.suggestionLine}>· {s}</Text>
+            ))}
+          </View>
         )}
+        {suggestion.recommendations.length > 0 && (
+          <View style={{ marginTop: 8 }}>
+            <Text style={styles.suggestionLabel}>FORGA suggère</Text>
+            {suggestion.recommendations.map((r, i) => (
+              <Text key={i} style={styles.suggestionLine}>· {r}</Text>
+            ))}
+          </View>
+        )}
+        <Text style={styles.suggestionFootnote}>Lecture seule — aucune modification appliquée.</Text>
       </View>
 
       {/* Always-visible derived metrics — the 3 numbers that matter */}
@@ -182,7 +191,7 @@ function Row({
   );
 }
 
-const ACTION_COLORS: Record<DecisionAction, string> = {
+const STATE_COLORS: Record<SuggestionState, string> = {
   PUSH: '#00D4AA',
   MAINTAIN: '#FFC94D',
   REDUCE: '#FF8C40',
@@ -223,53 +232,50 @@ const styles = StyleSheet.create({
     gap: 8,
     marginTop: 12,
   },
-  decisionBox: {
+  suggestionBox: {
     padding: 12,
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
     borderRadius: 12,
   },
-  decisionHeaderRow: {
+  suggestionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  decisionAction: {
+  suggestionState: {
     fontFamily: fonts.data,
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.8,
   },
-  decisionConfidence: {
+  suggestionConfidence: {
     fontFamily: fonts.data,
     fontSize: 10,
     color: 'rgba(255,255,255,0.55)',
   },
-  decisionMessage: {
+  suggestionLabel: {
     fontFamily: fonts.body,
-    fontSize: 12,
-    color: '#FFFFFF',
-    marginTop: 6,
-    lineHeight: 16,
+    fontSize: 9,
+    letterSpacing: 1.2,
+    color: 'rgba(255,107,53,0.85)',
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    marginBottom: 4,
   },
-  decisionSuggest: {
-    fontFamily: fonts.data,
+  suggestionLine: {
+    fontFamily: fonts.body,
     fontSize: 11,
     color: 'rgba(255,255,255,0.85)',
-    marginTop: 6,
+    lineHeight: 16,
+    marginBottom: 2,
   },
-  decisionMutedSmall: {
+  suggestionFootnote: {
     fontFamily: fonts.body,
     fontSize: 10,
     color: 'rgba(255,255,255,0.38)',
     fontStyle: 'italic',
-  },
-  decisionReasons: {
-    fontFamily: fonts.body,
-    fontSize: 10,
-    color: 'rgba(255,255,255,0.55)',
-    marginTop: 4,
-    lineHeight: 14,
+    marginTop: 8,
   },
   tile: {
     flex: 1,
