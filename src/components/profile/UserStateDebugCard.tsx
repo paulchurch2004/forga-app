@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { fonts } from '../../theme/fonts';
 import { useUserState, useUserSuggestion } from '../../hooks/useUserState';
-import type { SuggestionState } from '../../engine/userStateEngine';
+import type { SuggestionState, SuggestionPriority, SuggestionItem } from '../../engine/userStateEngine';
 
 /**
  * Read-only debug card for FORGA Core State.
@@ -37,7 +37,7 @@ export function UserStateDebugCard() {
           <View style={{ marginTop: 8 }}>
             <Text style={styles.suggestionLabel}>FORGA observe</Text>
             {suggestion.insights.map((s, i) => (
-              <Text key={i} style={styles.suggestionLine}>· {s}</Text>
+              <SuggestionRow key={i} item={s} />
             ))}
           </View>
         )}
@@ -45,7 +45,7 @@ export function UserStateDebugCard() {
           <View style={{ marginTop: 8 }}>
             <Text style={styles.suggestionLabel}>FORGA suggère</Text>
             {suggestion.recommendations.map((r, i) => (
-              <Text key={i} style={styles.suggestionLine}>· {r}</Text>
+              <SuggestionRow key={i} item={r} />
             ))}
           </View>
         )}
@@ -114,6 +114,15 @@ export function UserStateDebugCard() {
           </Section>
         </View>
       )}
+    </View>
+  );
+}
+
+function SuggestionRow({ item }: { item: SuggestionItem }) {
+  return (
+    <View style={styles.suggestionRow}>
+      <View style={[styles.priorityDot, { backgroundColor: PRIORITY_COLORS[item.priority] }]} />
+      <Text style={styles.suggestionLine}>{item.text}</Text>
     </View>
   );
 }
@@ -199,6 +208,12 @@ const STATE_COLORS: Record<SuggestionState, string> = {
   INSUFFICIENT_DATA: 'rgba(255,255,255,0.38)',
 };
 
+const PRIORITY_COLORS: Record<SuggestionPriority, string> = {
+  HIGH: '#FF6B6B',
+  MEDIUM: '#FFC94D',
+  LOW: 'rgba(255,255,255,0.30)',
+};
+
 const styles = StyleSheet.create({
   card: {
     marginTop: 18,
@@ -263,12 +278,24 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: 4,
   },
+  suggestionRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    marginBottom: 3,
+  },
+  priorityDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginTop: 6,
+  },
   suggestionLine: {
+    flex: 1,
     fontFamily: fonts.body,
     fontSize: 11,
     color: 'rgba(255,255,255,0.85)',
     lineHeight: 16,
-    marginBottom: 2,
   },
   suggestionFootnote: {
     fontFamily: fonts.body,

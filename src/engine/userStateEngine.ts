@@ -314,14 +314,20 @@ export function computeUserState(input: UserStateInput): UserState {
 // validated.
 
 export type SuggestionState = 'PUSH' | 'MAINTAIN' | 'REDUCE' | 'RECOVERY' | 'INSUFFICIENT_DATA';
+export type SuggestionPriority = 'HIGH' | 'MEDIUM' | 'LOW';
+
+export interface SuggestionItem {
+  text: string;
+  priority: SuggestionPriority;
+}
 
 export interface UserSuggestion {
   state: SuggestionState;
-  /** Human-readable observations about the user's current condition. */
-  insights: string[];
-  /** Human-readable suggestions (NOT enforced anywhere). */
-  recommendations: string[];
-  /** 0-1. Capped at 0.7 in v1 — we have not validated the model yet. */
+  /** What FORGA observes about the user's current condition. Sorted HIGH→LOW. */
+  insights: SuggestionItem[];
+  /** What FORGA would suggest (NOT enforced anywhere). Sorted HIGH→LOW. */
+  recommendations: SuggestionItem[];
+  /** 0-1. Capped at 0.7 in v1 — model not yet validated on real data. */
   confidence: number;
 }
 
@@ -337,57 +343,62 @@ export function computeUserSuggestion(state: UserState): UserSuggestion {
   if (fatigueIndex === null || readinessScore === null) {
     return {
       state: 'INSUFFICIENT_DATA',
-      insights: ['Signaux de récupération manquants — fatigueIndex non calculable.'],
-      recommendations: ['Faire un check-in pour activer le coach.'],
+      insights: [{ text: 'Signaux de récupération manquants — fatigueIndex non calculable.', priority: 'HIGH' }],
+      recommendations: [{ text: 'Faire un check-in pour activer le coach.', priority: 'HIGH' }],
       confidence: 0,
     };
   }
 
-  const insights: string[] = [];
-  const recommendations: string[] = [];
+  const insights: SuggestionItem[] = [];
+  const recommendations: SuggestionItem[] = [];
 
-  // ── Insights (what FORGA observes) ──
+  // ── Insights ──
   if (fatigueIndex > 70) {
-    insights.push(`Fatigue élevée détectée (${fatigueIndex}/100).`);
+    insights.push({ text: `Fatigue élevée détectée (${fatigueIndex}/100).`, priority: 'HIGH' });
   } else if (fatigueIndex > 55) {
-    insights.push(`Charge cumulée modérée (fatigue ${fatigueIndex}/100).`);
+    insights.push({ text: `Charge cumulée modérée (fatigue ${fatigueIndex}/100).`, priority: 'MEDIUM' });
   }
 
   if (readinessScore < 40) {
-    insights.push(`Faible disponibilité physiologique (readiness ${readinessScore}/100).`);
+    insights.push({ text: `Faible disponibilité physiologique (readiness ${readinessScore}/100).`, priority: 'HIGH' });
   } else if (readinessScore > 75) {
-    insights.push(`État favorable à la progression (readiness ${readinessScore}/100).`);
+    insights.push({ text: `État favorable à la progression (readiness ${readinessScore}/100).`, priority: 'MEDIUM' });
   }
 
   if (state.recovery.energy !== null && state.recovery.energy < 40) {
-    insights.push(`Énergie basse au dernier check-in (${state.recovery.energy}/100).`);
+    insights.push({ text: `Énergie basse au dernier check-in (${state.recovery.energy}/100).`, priority: 'MEDIUM' });
   }
   if (state.recovery.sleepQuality !== null && state.recovery.sleepQuality < 40) {
-    insights.push(`Sommeil dégradé au dernier check-in (${state.recovery.sleepQuality}/100).`);
+    insights.push({ text: `Sommeil dégradé au dernier check-in (${state.recovery.sleepQuality}/100).`, priority: 'MEDIUM' });
   }
   if (adherenceScore < 50) {
-    insights.push(`Adhérence en baisse cette semaine (${adherenceScore}%).`);
+    insights.push({ text: `Adhérence en baisse cette semaine (${adherenceScore}%).`, priority: 'LOW' });
   }
   if (lastWorkoutDaysAgo !== null && lastWorkoutDaysAgo >= 4) {
-    insights.push(`Pas d'entraînement depuis ${lastWorkoutDaysAgo} jours.`);
+    insights.push({ text: `Pas d'entraînement depuis ${lastWorkoutDaysAgo} jours.`, priority: 'LOW' });
   }
 
-  // ── Recommendations (what FORGA would suggest, never enforced) ──
+  // ── Recommendations ──
   let suggestionState: SuggestionState = 'MAINTAIN';
 
   if (fatigueIndex > 70) {
     suggestionState = 'RECOVERY';
-    recommendations.push("Prioriser la récupération aujourd'hui.");
-    recommendations.push("Réduire le volume d'entraînement ou décaler la séance.");
+    recommendations.push({ text: "Prioriser la récupération aujourd'hui.", priority: 'HIGH' });
+    recommendations.push({ text: "Réduire le volume d'entraînement ou décaler la séance.", priority: 'MEDIUM' });
   } else if (fatigueIndex > 55) {
     suggestionState = 'REDUCE';
-    recommendations.push("Réduire légèrement le volume aujourd'hui.");
+    recommendations.push({ text: "Réduire légèrement le volume aujourd'hui.", priority: 'MEDIUM' });
   } else if (readinessScore > 75 && adherenceScore >= 70) {
     suggestionState = 'PUSH';
-    recommendations.push("Maintenir ou augmenter légèrement l'intensité.");
+    recommendations.push({ text: "Maintenir ou augmenter légèrement l'intensité.", priority: 'MEDIUM' });
   } else {
-    recommendations.push('Garder le cap, le système est stable.');
+    recommendations.push({ text: 'Garder le cap, le système est stable.', priority: 'LOW' });
   }
+
+  // Sort HIGH → MEDIUM → LOW so consumers can naively `.slice(0, n)`.
+  const order: Record<SuggestionPriority, number> = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+  insights.sort((a, b) => order[a.priority] - order[b.priority]);
+  recommendations.sort((a, b) => order[a.priority] - order[b.priority]);
 
   return { state: suggestionState, insights, recommendations, confidence };
 }
