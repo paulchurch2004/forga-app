@@ -30,6 +30,8 @@ import { useT } from '../../src/i18n';
 import { MorningRitual } from '../../src/components/home/MorningRitual';
 import { WeeklyFormCard } from '../../src/components/home/WeeklyFormCard';
 import { CoachFocusCard } from '../../src/components/home/CoachFocusCard';
+import { PremiumUpgradeCard } from '../../src/components/home/PremiumUpgradeCard';
+import { usePremium } from '../../src/hooks/usePremium';
 import { CoachingTooltip } from '../../src/components/coach/CoachingTooltip';
 import { MiniStatsGrid } from '../../src/components/home/MiniStatsGrid';
 import { QuickAccessRow } from '../../src/components/home/QuickAccessTile';
@@ -191,6 +193,7 @@ export default function HomeScreen() {
   const setTutorialStep = useSettingsStore((s) => s.setTutorialStep);
   const { shouldPrompt, daysSinceLastWeighIn } = useWeightPrompt();
   const [showWeightModal, setShowWeightModal] = useState(false);
+  const { isPremium } = usePremium();
   const styles = useStyles();
   const { t } = useT();
 
@@ -342,6 +345,11 @@ export default function HomeScreen() {
         <View style={{ maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%', paddingHorizontal: spacing.lg, marginTop: spacing.lg, gap: spacing.md }}>
           {/* Morning Ritual — check-in métal qui adapte le plan du jour */}
           <MorningRitual />
+
+          {/* Premium upgrade CTA — visible only for non-premium users */}
+          {!isPremium && (
+            <PremiumUpgradeCard onPress={() => router.push('/paywall')} />
+          )}
 
           {/* Indice de forme hebdo */}
           <WeeklyFormCard

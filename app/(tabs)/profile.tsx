@@ -26,6 +26,7 @@ import { ProfileHeroCard } from '../../src/components/profile/ProfileHeroCard';
 import { MetalDays30Card, type MetalKey } from '../../src/components/profile/MetalDays30Card';
 import { PrList, type PrItem } from '../../src/components/profile/PrCard';
 import { UserStateDebugCard } from '../../src/components/profile/UserStateDebugCard';
+import { PremiumUpgradeCard } from '../../src/components/home/PremiumUpgradeCard';
 import { ProfileSheet, SheetOptionRow } from '../../src/components/profile/ProfileSheet';
 import { useTopPRs } from '../../src/hooks/useTopPRs';
 import { useMetalHistoryStore } from '../../src/store/metalHistoryStore';
@@ -550,9 +551,10 @@ export default function ProfileScreen() {
       {/* Actions */}
       <View style={styles.section}>
         {!isPremium && (
-          <Pressable style={styles.upgradeButton} onPress={() => router.push('/paywall')}>
-            <Text style={styles.upgradeText}>{t('upgradeToForga')}</Text>
-          </Pressable>
+          <PremiumUpgradeCard
+            onPress={() => router.push('/paywall')}
+            headline="Passer à FORGA PRO"
+          />
         )}
 
         {isPremium && (
