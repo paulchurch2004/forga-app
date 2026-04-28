@@ -6,6 +6,7 @@ import {
   Pressable,
   FlatList,
   TextInput,
+  Platform,
   useWindowDimensions,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -284,6 +285,10 @@ export default function MealsScreen() {
           { maxWidth: contentMaxWidth, alignSelf: 'center' as const, width: '100%' as const },
         ]}
         showsVerticalScrollIndicator={false}
+        initialNumToRender={8}
+        maxToRenderPerBatch={6}
+        windowSize={5}
+        removeClippedSubviews={Platform.OS !== 'web'}
         ListEmptyComponent={
           searchQuery.trim() ? (
             <EmptyState

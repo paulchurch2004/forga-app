@@ -28,20 +28,19 @@ interface MealPhotoCardProps {
   slot?: string;
 }
 
-export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
+function MealPhotoCardImpl({ meal, cardWidth, slot }: MealPhotoCardProps) {
   const { colors } = useTheme();
   const styles = useStyles();
-  const favorites = useMealStore((s) => s.favorites);
+  // Per-meal boolean selectors — only re-render this card when *this meal's*
+  // favorite/like/dislike status changes, not when any other meal is touched.
+  const isFav = useMealStore((s) => s.favorites.includes(meal.id));
+  const isLiked = useMealStore((s) => s.likedMeals.includes(meal.id));
+  const isDisliked = useMealStore((s) => s.dislikedMeals.includes(meal.id));
   const toggleFavorite = useMealStore((s) => s.toggleFavorite);
-  const favScale = useSharedValue(1);
-  const favAnimStyle = useAnimatedStyle(() => ({ transform: [{ scale: favScale.value }] }));
-  const likedMeals = useMealStore((s) => s.likedMeals);
-  const dislikedMeals = useMealStore((s) => s.dislikedMeals);
   const toggleLike = useMealStore((s) => s.toggleLike);
   const toggleDislike = useMealStore((s) => s.toggleDislike);
-  const isFav = favorites.includes(meal.id);
-  const isLiked = likedMeals.includes(meal.id);
-  const isDisliked = dislikedMeals.includes(meal.id);
+  const favScale = useSharedValue(1);
+  const favAnimStyle = useAnimatedStyle(() => ({ transform: [{ scale: favScale.value }] }));
   const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -67,8 +66,9 @@ export function MealPhotoCard({ meal, cardWidth, slot }: MealPhotoCardProps) {
       <View style={[styles.imageWrap, { height: imageHeight }]}>
         <Image
           source={{ uri: meal.photoUrl }}
-          style={styles.image}
+          style={[styles.image, { width: cardWidth ?? '100%', height: imageHeight }]}
           resizeMode="cover"
+          fadeDuration={0}
         />
         <View style={styles.gradient} />
 
@@ -290,5 +290,13 @@ const useStyles = makeStyles((colors) => ({
     padding: 2,
   },
 }));
+
+export const MealPhotoCard = React.memo(
+  MealPhotoCardImpl,
+  (prev, next) =>
+    prev.meal.id === next.meal.id &&
+    prev.cardWidth === next.cardWidth &&
+    prev.slot === next.slot
+);
 
 export default MealPhotoCard;
