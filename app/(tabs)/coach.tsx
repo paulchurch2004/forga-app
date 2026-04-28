@@ -46,6 +46,11 @@ import { PresenceView, type PresenceFocus, type PresenceObservation } from '../.
 import { useCoachObservations } from '../../src/hooks/useCoachObservations';
 import { parseCoachActions } from '../../src/services/coachActions';
 import { ActionProposalCard } from '../../src/components/coach/ActionProposalCard';
+import { useProgramStore } from '../../src/store/programStore';
+import { useTrainingStore } from '../../src/store/trainingStore';
+import { useWaterStore } from '../../src/store/waterStore';
+import { getProgramDayById, PROGRAMS } from '../../src/data/programs';
+import { todayLocalIso } from '../../src/utils/date';
 
 // ──────────── SPEECH HELPERS (Web only) ────────────
 
@@ -214,6 +219,13 @@ export default function CoachScreen() {
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
 
+  // Pull extended context for the coach so it can take meaningful actions.
+  const programState = useProgramStore((s) => s.activePlan);
+  const checkIns = useUserStore((s) => s.checkIns);
+  const allWorkouts = useTrainingStore((s) => s.workouts);
+  const waterToday = useWaterStore((s) => s.history);
+  const waterTarget = useWaterStore((s) => s.dailyTargetMl);
+
   // Build context from current state
   const coachContext = useMemo((): CoachContext | null => {
     if (!profile) return null;
@@ -227,6 +239,60 @@ export default function CoachScreen() {
     }
 
     const target = engine?.dailyMacros ?? { calories: 0, protein: 0, carbs: 0, fat: 0 };
+
+    // Today plan
+    const todayIso = todayLocalIso();
+    const todayPlan = programState?.days.find((d) => d.date === todayIso);
+    const todayProgramDay = todayPlan?.programDayId
+      ? getProgramDayById(programState!.programId, todayPlan.programDayId)
+      : null;
+    const activeProgram = programState ? PROGRAMS[programState.programId] : null;
+
+    // Recent workouts (last 5)
+    const recentWorkouts: NonNullable<CoachContext['recentWorkouts']> = [];
+    const sortedDates = Object.keys(allWorkouts).sort().reverse();
+    for (const d of sortedDates) {
+      for (const w of allWorkouts[d] ?? []) {
+        const vol = (w.exercises ?? []).reduce(
+          (acc, ex) =>
+            acc + (ex.sets ?? []).reduce((s, set) => s + (set?.weight ?? 0) * (set?.reps ?? 0), 0),
+          0
+        );
+        recentWorkouts.push({
+          date: d,
+          type: w.type,
+          durationMinutes: w.durationMinutes ?? 0,
+          volumeKg: vol > 0 ? Math.round(vol) : undefined,
+        });
+        if (recentWorkouts.length >= 5) break;
+      }
+      if (recentWorkouts.length >= 5) break;
+    }
+
+    // Last weekly check-in
+    const sortedCheckIns = [...checkIns].sort((a, b) => a.weekStart.localeCompare(b.weekStart));
+    const last = sortedCheckIns.at(-1);
+    const lastCheckIn = last
+      ? {
+          weekStart: last.weekStart,
+          energy: last.energy,
+          sleep: last.sleep,
+          performance: last.performance,
+          weight: last.weight,
+        }
+      : undefined;
+
+    // Water today
+    const consumedWaterMl = (waterToday[todayIso] ?? []).reduce((s, e) => s + (e?.amount ?? 0), 0);
+
+    // Compute current week (1..4) of the program
+    let currentWeek: number | undefined;
+    if (programState) {
+      const start = new Date(programState.startDate + 'T00:00:00');
+      const now = new Date(todayIso + 'T00:00:00');
+      const diffDays = Math.floor((now.getTime() - start.getTime()) / 86400000);
+      if (diffDays >= 0) currentWeek = Math.min(4, Math.floor(diffDays / 7) + 1);
+    }
 
     return {
       firstName: profile.name.split(' ')[0],
@@ -246,8 +312,31 @@ export default function CoachScreen() {
       targetCarbs: Math.round(target.carbs),
       consumedFat: Math.round(consumed.fat),
       targetFat: Math.round(target.fat),
+      activeProgramName: activeProgram?.nameKey,
+      currentWeek,
+      todayPlanType: todayProgramDay?.type ?? (todayPlan ? 'rest' : 'none'),
+      todayPlanName: todayProgramDay?.nameKey,
+      todayProgramDayId: todayProgramDay?.id,
+      todayDateIso: todayIso,
+      recentWorkouts,
+      lastCheckIn,
+      consumedWaterMl,
+      targetWaterMl: waterTarget,
     };
-  }, [profile, todayMeals, engine, currentSlot, currentStreak, isTodayValidated, currentScore]);
+  }, [
+    profile,
+    todayMeals,
+    engine,
+    currentSlot,
+    currentStreak,
+    isTodayValidated,
+    currentScore,
+    programState,
+    checkIns,
+    allWorkouts,
+    waterToday,
+    waterTarget,
+  ]);
 
   // Add coach messages with typing delay
   const addCoachMessages = useCallback((texts: string[], replies: QuickReply[]) => {

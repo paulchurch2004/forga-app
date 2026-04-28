@@ -3,7 +3,12 @@ import { View, Text, Pressable, StyleSheet } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fonts } from '../../theme/fonts';
-import { describeAction, executeCoachAction, type CoachAction } from '../../services/coachActions';
+import {
+  describeAction,
+  executeCoachAction,
+  DESTRUCTIVE_ACTIONS,
+  type CoachAction,
+} from '../../services/coachActions';
 
 interface ActionProposalCardProps {
   action: CoachAction;
@@ -13,17 +18,25 @@ interface ActionProposalCardProps {
 }
 
 export function ActionProposalCard({ action, initialState = 'pending', onStateChange }: ActionProposalCardProps) {
-  const [state, setState] = useState<'pending' | 'confirmed' | 'dismissed' | 'busy'>(initialState);
+  const [state, setState] = useState<'pending' | 'confirmed' | 'dismissed' | 'busy' | 'awaiting-confirm'>(initialState);
   const meta = describeAction(action);
+  const isDestructive = DESTRUCTIVE_ACTIONS.includes(action.type);
 
-  const handleConfirm = async () => {
+  const handleConfirmFirst = () => {
+    if (isDestructive) {
+      setState('awaiting-confirm');
+    } else {
+      void doExecute();
+    }
+  };
+
+  const doExecute = async () => {
     setState('busy');
     try {
       await executeCoachAction(action);
       setState('confirmed');
       onStateChange?.('confirmed');
     } catch {
-      // Revert to pending so user can retry
       setState('pending');
     }
   };
@@ -52,8 +65,35 @@ export function ActionProposalCard({ action, initialState = 'pending', onStateCh
       {state === 'confirmed' ? (
         <View style={styles.confirmedRow}>
           <CheckIcon />
-          <Text style={styles.confirmedText}>Ajouté</Text>
+          <Text style={styles.confirmedText}>Appliqué</Text>
         </View>
+      ) : state === 'awaiting-confirm' ? (
+        <>
+          <Text style={styles.warnText}>
+            ⚠️ Cette action modifie tes paramètres / ton plan. Confirme une seconde fois.
+          </Text>
+          <View style={styles.actionsRow}>
+            <Pressable
+              onPress={() => setState('pending')}
+              style={({ pressed }) => [styles.btnSecondary, pressed && styles.pressed]}
+            >
+              <Text style={styles.btnSecondaryText}>Retour</Text>
+            </Pressable>
+            <Pressable
+              onPress={doExecute}
+              style={({ pressed }) => [styles.btnPrimaryWrap, pressed && styles.pressed]}
+            >
+              <LinearGradient
+                colors={['#FF6B6B', '#CC5424']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.btnPrimary}
+              >
+                <Text style={styles.btnPrimaryText}>Confirmer</Text>
+              </LinearGradient>
+            </Pressable>
+          </View>
+        </>
       ) : (
         <View style={styles.actionsRow}>
           <Pressable
@@ -64,17 +104,17 @@ export function ActionProposalCard({ action, initialState = 'pending', onStateCh
             <Text style={styles.btnSecondaryText}>Annuler</Text>
           </Pressable>
           <Pressable
-            onPress={handleConfirm}
+            onPress={handleConfirmFirst}
             disabled={state === 'busy'}
             style={({ pressed }) => [styles.btnPrimaryWrap, pressed && styles.pressed]}
           >
             <LinearGradient
-              colors={['#FF8C40', '#FF5A1C']}
+              colors={isDestructive ? ['#FFC94D', '#FF8C40'] : ['#FF8C40', '#FF5A1C']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.btnPrimary}
             >
-              <Text style={styles.btnPrimaryText}>{state === 'busy' ? '…' : 'Valider'}</Text>
+              <Text style={styles.btnPrimaryText}>{state === 'busy' ? '…' : isDestructive ? 'Examiner' : 'Valider'}</Text>
             </LinearGradient>
           </Pressable>
         </View>
@@ -183,6 +223,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#00D4AA',
     fontWeight: '700',
+  },
+  warnText: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: '#FFC94D',
+    marginTop: 10,
+    lineHeight: 15,
   },
   dismissed: {
     marginTop: 8,

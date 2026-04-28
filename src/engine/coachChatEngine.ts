@@ -43,6 +43,32 @@ export interface CoachContext {
   targetCarbs: number;
   consumedFat: number;
   targetFat: number;
+  // Extended fields used by the coach to make smarter suggestions and actions.
+  // All optional so callers can fill them progressively.
+  activeProgramName?: string;
+  currentWeek?: number; // 1-4 in the active 28-day plan
+  todayPlanType?: 'muscu' | 'cardio' | 'rest' | 'none';
+  todayPlanName?: string; // e.g. "Push" / "Full Body A"
+  todayProgramDayId?: string;
+  todayDateIso?: string; // YYYY-MM-DD
+  /** Up to 5 most recent finished workouts. */
+  recentWorkouts?: Array<{
+    date: string;
+    type: string;
+    durationMinutes: number;
+    volumeKg?: number;
+  }>;
+  /** Last weekly check-in if any. */
+  lastCheckIn?: {
+    weekStart: string;
+    energy: 1 | 2 | 3 | 4 | 5;
+    sleep: 1 | 2 | 3 | 4;
+    performance: 1 | 2 | 3 | 4;
+    weight: number;
+  };
+  /** User's daily water intake so far (ml) and target. */
+  consumedWaterMl?: number;
+  targetWaterMl?: number;
 }
 
 // ──────────── HELPERS ────────────

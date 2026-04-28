@@ -43,7 +43,31 @@ export type CoachAction =
       date: string; // YYYY-MM-DD
       originalExerciseId: string;
       newExerciseId: string;
+    }
+  | {
+      type: 'adjust_calories';
+      /** Either deltaPct (e.g. -5) OR newDailyCalories absolute. Coach should prefer deltaPct. */
+      deltaPct?: number;
+      newDailyCalories?: number;
+      reason?: string;
+    }
+  | {
+      type: 'move_workout_day';
+      /** Move the workout currently planned on `fromDate` to `toDate` (swap content). */
+      fromDate: string;
+      toDate: string;
+    }
+  | {
+      type: 'mark_day_skipped';
+      date: string;
+    }
+  | {
+      type: 'set_water_goal';
+      newDailyMl: number;
     };
+
+/** Actions whose UI card should require an extra confirmation step. */
+export const DESTRUCTIVE_ACTIONS: ActionType[] = ['adjust_calories', 'move_workout_day', 'set_water_goal'];
 
 export type ActionType = CoachAction['type'];
 
@@ -140,6 +164,35 @@ function validateAction(type: string, payload: any): CoachAction | null {
       }
       return null;
     }
+    case 'adjust_calories': {
+      const hasDelta = isFiniteNum(payload?.deltaPct);
+      const hasAbs = isFiniteNum(payload?.newDailyCalories);
+      if (!hasDelta && !hasAbs) return null;
+      return {
+        type: 'adjust_calories',
+        deltaPct: hasDelta ? Math.max(-15, Math.min(15, payload.deltaPct)) : undefined, // hard cap ±15%
+        newDailyCalories: hasAbs ? Math.max(1000, Math.min(5000, Math.round(payload.newDailyCalories))) : undefined,
+        reason: typeof payload?.reason === 'string' ? payload.reason : undefined,
+      };
+    }
+    case 'move_workout_day': {
+      if (typeof payload?.fromDate === 'string' && typeof payload?.toDate === 'string' && payload.fromDate !== payload.toDate) {
+        return { type: 'move_workout_day', fromDate: payload.fromDate, toDate: payload.toDate };
+      }
+      return null;
+    }
+    case 'mark_day_skipped': {
+      if (typeof payload?.date === 'string') {
+        return { type: 'mark_day_skipped', date: payload.date };
+      }
+      return null;
+    }
+    case 'set_water_goal': {
+      if (isFiniteNum(payload?.newDailyMl)) {
+        return { type: 'set_water_goal', newDailyMl: Math.max(500, Math.min(5000, Math.round(payload.newDailyMl))) };
+      }
+      return null;
+    }
     default:
       return null;
   }
@@ -166,6 +219,14 @@ export async function executeCoachAction(action: CoachAction): Promise<void> {
       return executeLogWater(action);
     case 'swap_exercise':
       return executeSwapExercise(action);
+    case 'adjust_calories':
+      return executeAdjustCalories(action);
+    case 'move_workout_day':
+      return executeMoveWorkoutDay(action);
+    case 'mark_day_skipped':
+      return executeMarkDaySkipped(action);
+    case 'set_water_goal':
+      return executeSetWaterGoal(action);
   }
 }
 
@@ -228,6 +289,55 @@ async function executeSwapExercise(a: Extract<CoachAction, { type: 'swap_exercis
     .replaceExerciseInDay(a.date, a.originalExerciseId, a.newExerciseId);
 }
 
+async function executeAdjustCalories(a: Extract<CoachAction, { type: 'adjust_calories' }>) {
+  const profile = useUserStore.getState().profile;
+  if (!profile) return;
+  let next = profile.dailyCalories;
+  if (typeof a.newDailyCalories === 'number') {
+    next = a.newDailyCalories;
+  } else if (typeof a.deltaPct === 'number') {
+    next = Math.round(profile.dailyCalories * (1 + a.deltaPct / 100));
+  }
+  // Clamp safety net.
+  next = Math.max(1000, Math.min(5000, next));
+  // Re-derive macro split keeping the same protein/carb/fat ratios.
+  const totalOld = profile.dailyCalories;
+  const proteinRatio = totalOld > 0 ? profile.dailyProtein / totalOld : 0.3 / 4;
+  const carbsRatio = totalOld > 0 ? profile.dailyCarbs / totalOld : 0.45 / 4;
+  const fatRatio = totalOld > 0 ? profile.dailyFat / totalOld : 0.25 / 9;
+  useUserStore.getState().updateProfile({
+    dailyCalories: next,
+    dailyProtein: Math.round(next * proteinRatio),
+    dailyCarbs: Math.round(next * carbsRatio),
+    dailyFat: Math.round(next * fatRatio),
+  });
+  const userId = useAuthStore.getState().session?.user?.id;
+  if (userId) {
+    const { syncProfile } = await import('./userSync');
+    syncProfile(
+      {
+        daily_calories: next,
+        daily_protein: Math.round(next * proteinRatio),
+        daily_carbs: Math.round(next * carbsRatio),
+        daily_fat: Math.round(next * fatRatio),
+      },
+      userId
+    );
+  }
+}
+
+async function executeMoveWorkoutDay(a: Extract<CoachAction, { type: 'move_workout_day' }>) {
+  useProgramStore.getState().swapPlannedDays(a.fromDate, a.toDate);
+}
+
+async function executeMarkDaySkipped(a: Extract<CoachAction, { type: 'mark_day_skipped' }>) {
+  useProgramStore.getState().markDaySkipped(a.date);
+}
+
+async function executeSetWaterGoal(a: Extract<CoachAction, { type: 'set_water_goal' }>) {
+  useWaterStore.getState().setDailyTarget(a.newDailyMl);
+}
+
 // ─── Display helpers (used by the proposal card) ─────────────
 
 export function describeAction(action: CoachAction): { tag: string; title: string; subtitle: string } {
@@ -258,6 +368,39 @@ export function describeAction(action: CoachAction): { tag: string; title: strin
         title: 'Remplacer un exercice',
         subtitle: `${action.originalExerciseId} → ${action.newExerciseId}`,
       };
+    case 'adjust_calories': {
+      const profile = useUserStore.getState().profile;
+      const current = profile?.dailyCalories ?? 0;
+      let target = current;
+      if (typeof action.newDailyCalories === 'number') target = action.newDailyCalories;
+      else if (typeof action.deltaPct === 'number') target = Math.round(current * (1 + action.deltaPct / 100));
+      const sign = target > current ? '+' : '';
+      return {
+        tag: 'Calories · cible',
+        title: `${current} → ${target} kcal/j`,
+        subtitle: action.reason ?? `Ajustement ${sign}${target - current} kcal/jour. Macros recalibrées au pro-rata.`,
+      };
+    }
+    case 'move_workout_day':
+      return {
+        tag: 'Plan training',
+        title: 'Déplacer une séance',
+        subtitle: `${action.fromDate} ↔ ${action.toDate}`,
+      };
+    case 'mark_day_skipped':
+      return {
+        tag: 'Plan training',
+        title: 'Marquer comme skippée',
+        subtitle: `${action.date}. La séance ne casse pas le streak.`,
+      };
+    case 'set_water_goal': {
+      const current = useWaterStore.getState().dailyTargetMl;
+      return {
+        tag: 'Hydratation · cible',
+        title: `${current}ml → ${action.newDailyMl}ml/j`,
+        subtitle: 'Nouvelle cible quotidienne.',
+      };
+    }
   }
 }
 
