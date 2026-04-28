@@ -8,7 +8,9 @@ import { useAuthStore } from '../../store/authStore';
 import { useT } from '../../i18n';
 import { supabase, isDemoMode } from '../../services/supabase';
 import { syncProfile } from '../../services/userSync';
+import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
+import { todayLocalIso } from '../../utils/date';
 
 interface WeightPromptModalProps {
   visible: boolean;
@@ -33,7 +35,7 @@ export function WeightPromptModal({
       return;
     }
 
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayLocalIso();
     const profile = useUserStore.getState().profile;
     if (!profile) return;
 
@@ -73,7 +75,7 @@ export function WeightPromptModal({
   };
 
   const handleSkip = () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayLocalIso();
     useSettingsStore.getState().setWeightPromptDismissedDate(today);
     setWeightInput('');
     setError(false);
@@ -94,19 +96,22 @@ export function WeightPromptModal({
     >
       <View style={styles.backdrop}>
         <View style={styles.card}>
+          {/* Ambient glow behind the card */}
+          <View style={styles.glow} pointerEvents="none" />
+
           {/* Close button */}
           <Pressable style={styles.closeBtn} onPress={handleSkip} hitSlop={12}>
-            <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+            <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
               <Path
                 d="M18 6L6 18M6 6l12 12"
-                stroke={styles.closeIcon.color}
+                stroke="rgba(255,255,255,0.55)"
                 strokeWidth={2.5}
                 strokeLinecap="round"
               />
             </Svg>
           </Pressable>
 
-          <Text style={styles.title}>{t('weightPromptTitle')}</Text>
+          <Text style={styles.eyebrow}>{t('weightPromptTitle')}</Text>
           <Text style={styles.subtitle}>{subtitle}</Text>
 
           <View style={[styles.inputRow, error && styles.inputError]}>
@@ -118,10 +123,11 @@ export function WeightPromptModal({
                 setError(false);
               }}
               placeholder={t('weightPromptPlaceholder')}
-              placeholderTextColor={styles.placeholder.color}
+              placeholderTextColor="rgba(255,255,255,0.30)"
               keyboardType="decimal-pad"
               returnKeyType="done"
               onSubmitEditing={handleSave}
+              autoFocus
             />
             <Text style={styles.unit}>{t('weightUnit')}</Text>
           </View>
@@ -130,8 +136,15 @@ export function WeightPromptModal({
             <Text style={styles.errorText}>{t('invalidWeight')}</Text>
           )}
 
-          <Pressable style={styles.saveBtn} onPress={handleSave}>
-            <Text style={styles.saveBtnText}>{t('weightPromptSave')}</Text>
+          <Pressable style={styles.saveBtnWrap} onPress={handleSave}>
+            <LinearGradient
+              colors={['#FF8C40', '#FF5A1C']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.saveBtn}
+            >
+              <Text style={styles.saveBtnText}>{t('weightPromptSave')}</Text>
+            </LinearGradient>
           </Pressable>
 
           <Pressable style={styles.skipBtn} onPress={handleSkip}>
@@ -148,7 +161,7 @@ export function WeightPromptModal({
 const useStyles = makeStyles((colors) => ({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.85)', // darker for better focus
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,
@@ -156,99 +169,121 @@ const useStyles = makeStyles((colors) => ({
   card: {
     width: '100%',
     maxWidth: 380,
-    backgroundColor: colors.surface,
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: 0,
-    padding: spacing['2xl'],
+    backgroundColor: '#0E0E14',
+    borderWidth: 1,
+    borderColor: 'rgba(255,107,53,0.30)',
+    borderRadius: 22,
+    padding: 24,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  glow: {
+    position: 'absolute',
+    top: -60,
+    left: '50%',
+    width: 240,
+    height: 160,
+    borderRadius: 120,
+    backgroundColor: 'rgba(255,107,53,0.20)',
+    opacity: 0.6,
+    transform: [{ translateX: -120 }],
   },
   closeBtn: {
     position: 'absolute',
-    top: spacing.md,
-    right: spacing.md,
+    top: 12,
+    right: 12,
     width: 32,
     height: 32,
     alignItems: 'center',
     justifyContent: 'center',
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    zIndex: 10,
   },
-  closeIcon: {
-    color: colors.textSecondary,
-  },
-  title: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes.xl,
-    fontWeight: '800',
-    color: colors.text,
-    letterSpacing: 1,
+  eyebrow: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: '#FF6B35',
+    letterSpacing: 1.6,
+    fontWeight: '700',
     textTransform: 'uppercase',
-    marginBottom: spacing.xs,
+    marginBottom: 6,
   },
   subtitle: {
     fontFamily: fonts.body,
-    fontSize: fontSizes.sm,
-    color: colors.textSecondary,
-    marginBottom: spacing.xl,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.62)',
+    marginBottom: 20,
+    lineHeight: 18,
   },
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: colors.border,
-    borderRadius: 0,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    marginBottom: spacing.sm,
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    marginBottom: 6,
   },
   inputError: {
-    borderColor: colors.error,
+    borderColor: '#FF6B6B',
   },
   input: {
     flex: 1,
     fontFamily: fonts.data,
-    fontSize: fontSizes['2xl'],
+    fontSize: 28,
     fontWeight: '700',
-    color: colors.text,
+    color: '#FFFFFF',
     padding: 0,
+    minHeight: 32,
   },
   unit: {
     fontFamily: fonts.data,
-    fontSize: fontSizes.lg,
+    fontSize: 16,
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: 'rgba(255,255,255,0.55)',
     marginLeft: spacing.sm,
-  },
-  placeholder: {
-    color: colors.textMuted,
   },
   errorText: {
     fontFamily: fonts.body,
-    fontSize: fontSizes.xs,
-    color: colors.error,
-    marginBottom: spacing.sm,
+    fontSize: 11,
+    color: '#FF6B6B',
+    marginBottom: 6,
+  },
+  saveBtnWrap: {
+    marginTop: 14,
+    borderRadius: 999,
+    overflow: 'hidden',
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 8,
   },
   saveBtn: {
-    backgroundColor: colors.primary,
-    borderRadius: 0,
-    paddingVertical: spacing.lg,
+    paddingVertical: 14,
     alignItems: 'center',
-    marginTop: spacing.sm,
   },
   saveBtnText: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes.md,
-    fontWeight: '800',
-    color: colors.white,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontFamily: fonts.body,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.6,
   },
   skipBtn: {
     alignSelf: 'center',
-    marginTop: spacing.lg,
-    paddingVertical: spacing.sm,
+    marginTop: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 20,
   },
   skipText: {
     fontFamily: fonts.body,
-    fontSize: fontSizes.sm,
-    color: colors.textSecondary,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.55)',
   },
 }));
