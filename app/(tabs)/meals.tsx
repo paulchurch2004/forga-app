@@ -176,6 +176,13 @@ export default function MealsScreen() {
             <Text style={styles.headerTitle}>{slotLabel}</Text>
           </View>
           <Pressable
+            onPress={() => router.push(`/meal/custom?slot=${selectedSlot}` as any)}
+            hitSlop={12}
+            style={styles.iconBtn}
+          >
+            <Text style={styles.plusIcon}>+</Text>
+          </Pressable>
+          <Pressable
             onPress={() => setShowFavoritesOnly((v) => !v)}
             hitSlop={12}
             style={[styles.iconBtn, showFavoritesOnly && styles.iconBtnActive]}
@@ -295,25 +302,44 @@ export default function MealsScreen() {
               icon={'✕'}
               title={t('searchNoResultsFor', { query: searchQuery.trim() })}
               subtitle={t('searchTryAnother')}
+              actionLabel="Logger un repas perso"
+              onAction={() => router.push(`/meal/custom?slot=${selectedSlot}` as any)}
             />
           ) : (
             <EmptyState icon={'—'} title={t('emptyMealsTitle')} subtitle={t('emptyMealsSubtitle')} />
           )
         }
         ListFooterComponent={
-          !isPremium && remainingCount > 0 ? (
-            <Pressable style={styles.paywallCard} onPress={handlePaywall}>
-              <View style={styles.paywallGlow} />
-              <Text style={styles.paywallEyebrow}>BIBLIOTHÈQUE COMPLÈTE</Text>
-              <Text style={styles.paywallTitle}>
-                {t('moreMealsAvailable', { count: remainingCount })}
-              </Text>
-              <Text style={styles.paywallSubtitle}>{t('paywallProSubtitle')}</Text>
-              <View style={styles.paywallCta}>
-                <Text style={styles.paywallCtaText}>{t('unlockPro')}</Text>
+          <>
+            {/* Always-available custom meal entry */}
+            <Pressable
+              style={styles.customCta}
+              onPress={() => router.push(`/meal/custom?slot=${selectedSlot}` as any)}
+            >
+              <View style={styles.customCtaIcon}>
+                <Text style={styles.customCtaPlus}>+</Text>
               </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.customCtaTitle}>Tu ne trouves pas ton plat ?</Text>
+                <Text style={styles.customCtaSub}>Logger un repas perso (nom + macros)</Text>
+              </View>
+              <Text style={styles.customCtaArrow}>›</Text>
             </Pressable>
-          ) : null
+
+            {!isPremium && remainingCount > 0 ? (
+              <Pressable style={styles.paywallCard} onPress={handlePaywall}>
+                <View style={styles.paywallGlow} />
+                <Text style={styles.paywallEyebrow}>BIBLIOTHÈQUE COMPLÈTE</Text>
+                <Text style={styles.paywallTitle}>
+                  {t('moreMealsAvailable', { count: remainingCount })}
+                </Text>
+                <Text style={styles.paywallSubtitle}>{t('paywallProSubtitle')}</Text>
+                <View style={styles.paywallCta}>
+                  <Text style={styles.paywallCtaText}>{t('unlockPro')}</Text>
+                </View>
+              </Pressable>
+            ) : null}
+          </>
         }
       />
     </View>
@@ -396,6 +422,12 @@ const useStyles = makeStyles((colors) => ({
   iconBtnActive: {
     backgroundColor: 'rgba(255,107,53,0.15)',
     borderColor: 'rgba(255,107,53,0.4)',
+  },
+  plusIcon: {
+    fontSize: 22,
+    color: 'rgba(255,255,255,0.85)',
+    fontWeight: '300' as const,
+    lineHeight: 22,
   },
   heartIcon: {
     fontSize: 18,
@@ -521,6 +553,49 @@ const useStyles = makeStyles((colors) => ({
   gridRow: {
     gap: CARD_GAP,
     marginBottom: CARD_GAP,
+  },
+  customCta: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 14,
+    marginTop: 18,
+    padding: 14,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 16,
+  },
+  customCtaIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,107,53,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,107,53,0.30)',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  customCtaPlus: {
+    fontSize: 22,
+    color: '#FF6B35',
+    fontWeight: '300' as const,
+    lineHeight: 22,
+  },
+  customCtaTitle: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: '#FFFFFF',
+  },
+  customCtaSub: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.55)',
+    marginTop: 2,
+  },
+  customCtaArrow: {
+    fontSize: 20,
+    color: 'rgba(255,255,255,0.38)',
   },
   paywallCard: {
     marginTop: 24,
