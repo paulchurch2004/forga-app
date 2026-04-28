@@ -133,6 +133,8 @@ export default function RegisterScreen() {
         },
       } as any);
       useAuthStore.getState().setOnboarded(false);
+      // Pre-fill onboarding name from the register input so step 0 doesn't ask twice.
+      setOnboardingData({ name: name.trim() });
       setLoading(false);
       router.replace('/(onboarding)/step0-archetype');
       return;
@@ -155,9 +157,12 @@ export default function RegisterScreen() {
     if (data.session) {
       useAuthStore.getState().setSession(data.session);
       const trimmedCode = referralCode.trim().toUpperCase();
-      if (trimmedCode && isValidReferralCode(trimmedCode)) {
-        setOnboardingData({ referredByCode: trimmedCode });
-      }
+      // Pre-fill the onboarding name with what the user just typed so we don't
+      // ask the same prénom twice.
+      setOnboardingData({
+        name: name.trim(),
+        ...(trimmedCode && isValidReferralCode(trimmedCode) ? { referredByCode: trimmedCode } : {}),
+      });
       router.replace('/(onboarding)/step0-archetype');
     }
   };
