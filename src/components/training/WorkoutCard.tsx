@@ -3,6 +3,7 @@ import { View, Text, Pressable } from 'react-native';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
 import { useT } from '../../i18n';
 import { getWorkoutTypeIcon, getWorkoutTypeKey, getIntensityKey } from '../../hooks/useTraining';
+import { todayLocalIso, localIso } from '../../utils/date';
 import type { Workout } from '../../types/training';
 
 interface Props {
@@ -36,8 +37,8 @@ export function WorkoutCard({ workout, onPress }: Props) {
 }
 
 function getDateLabel(dateStr: string, t: (key: any, vars?: any) => string): string {
-  const today = new Date().toISOString().split('T')[0];
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const today = todayLocalIso();
+  const yesterday = localIso(new Date(Date.now() - 86400000));
   if (dateStr === today) return t('today');
   if (dateStr === yesterday) return t('yesterday');
   const d = new Date(dateStr);

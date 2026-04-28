@@ -2,6 +2,7 @@ import { generateMealPlan } from './mealPlanner';
 import { getMealsBySlotAndBudget } from '../data/meals';
 import type { MealSlot } from '../types/meal';
 import type { Objective, Budget, Restriction } from '../types/user';
+import { localIso } from '../utils/date';
 
 interface WeeklyPlanInput {
   objective: Objective;
@@ -38,7 +39,7 @@ export function generateWeeklyPlan(input: WeeklyPlanInput): WeeklyDayPlan[] {
   for (let d = 0; d < 7; d++) {
     const date = new Date(monday);
     date.setDate(monday.getDate() + d);
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = localIso(date);
 
     const dayMeals: { slot: MealSlot; mealId: string; mealName: string }[] = [];
 
@@ -85,5 +86,5 @@ export function getCurrentWeekStart(): string {
   const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
   const monday = new Date(now);
   monday.setDate(now.getDate() + mondayOffset);
-  return monday.toISOString().split('T')[0];
+  return localIso(monday);
 }

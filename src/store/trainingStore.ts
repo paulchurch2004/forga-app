@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Workout, WorkoutType } from '../types/training';
-import { todayLocalIso } from '../utils/date';
+import { todayLocalIso, localIso } from '../utils/date';
 
 interface TrainingState {
   workouts: Record<string, Workout[]>; // key = 'YYYY-MM-DD'
@@ -107,7 +107,7 @@ export const useTrainingStore = create<TrainingState>()(
         for (let i = 0; i < 7; i++) {
           const d = new Date(today);
           d.setDate(d.getDate() - i);
-          const key = d.toISOString().split('T')[0];
+          const key = localIso(d);
           if ((get().workouts[key] ?? []).length > 0) count++;
         }
         return count;
@@ -119,7 +119,7 @@ export const useTrainingStore = create<TrainingState>()(
         for (let i = 0; i < 7; i++) {
           const d = new Date(today);
           d.setDate(d.getDate() - i);
-          const key = d.toISOString().split('T')[0];
+          const key = localIso(d);
           count += (get().workouts[key] ?? []).length;
         }
         return count;
@@ -131,7 +131,7 @@ export const useTrainingStore = create<TrainingState>()(
         for (let i = 0; i < 30; i++) {
           const d = new Date(today);
           d.setDate(d.getDate() - i);
-          const key = d.toISOString().split('T')[0];
+          const key = localIso(d);
           count += (get().workouts[key] ?? []).length;
         }
         return count;

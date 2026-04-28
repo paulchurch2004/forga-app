@@ -12,6 +12,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { fonts, fontSizes } from '../../theme/fonts';
 import { spacing, borderRadius } from '../../theme/spacing';
+import { todayLocalIso } from '../../utils/date';
 import { useTheme } from '../../context/ThemeContext';
 import { useMetalHistoryStore } from '../../store/metalHistoryStore';
 import { useT } from '../../i18n';
@@ -37,7 +38,7 @@ const METALS: Metal[] = [
 const STORAGE_KEY = 'forga-metal-today';
 
 function getTodayKey(): string {
-  return new Date().toISOString().split('T')[0];
+  return todayLocalIso();
 }
 
 export function MorningRitual() {

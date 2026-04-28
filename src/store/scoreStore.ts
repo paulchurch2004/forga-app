@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { ForgaScore, ScoreHistory } from '../types/score';
+import { todayLocalIso } from '../utils/date';
 
 interface ScoreState {
   currentScore: ForgaScore;
@@ -31,12 +32,12 @@ export const useScoreStore = create<ScoreState>()(
   persist(
     (set, get) => ({
       currentScore: defaultScore,
-      lastScoreDate: new Date().toISOString().split('T')[0],
+      lastScoreDate: todayLocalIso(),
       history: [],
       scoreHistory: {},
       weeklyChange: 0,
 
-      setCurrentScore: (currentScore) => set({ currentScore, lastScoreDate: new Date().toISOString().split('T')[0] }),
+      setCurrentScore: (currentScore) => set({ currentScore, lastScoreDate: todayLocalIso() }),
       setHistory: (history) => set({ history }),
       setWeeklyChange: (weeklyChange) => set({ weeklyChange }),
       saveDailyScore: (date, score) =>
@@ -45,7 +46,7 @@ export const useScoreStore = create<ScoreState>()(
         })),
       getDailyScore: (date) => get().scoreHistory[date],
       checkDayReset: () => {
-        const today = new Date().toISOString().split('T')[0];
+        const today = todayLocalIso();
         const { lastScoreDate, currentScore, scoreHistory } = get();
         if (lastScoreDate && lastScoreDate !== today) {
           // Save yesterday's score to history before resetting (even 0-point days)
@@ -62,7 +63,7 @@ export const useScoreStore = create<ScoreState>()(
           set({ lastScoreDate: today });
         }
       },
-      reset: () => set({ currentScore: defaultScore, lastScoreDate: new Date().toISOString().split('T')[0], history: [], scoreHistory: {}, weeklyChange: 0 }),
+      reset: () => set({ currentScore: defaultScore, lastScoreDate: todayLocalIso(), history: [], scoreHistory: {}, weeklyChange: 0 }),
     }),
     {
       name: 'forga-score-store',

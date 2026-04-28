@@ -23,6 +23,7 @@ import { useT } from '../src/i18n';
 import { EmptyState } from '../src/components/ui/EmptyState';
 import type { ProgressPhoto } from '../src/types/user';
 import { syncProgressPhoto } from '../src/services/userSync';
+import { todayLocalIso } from '../src/utils/date';
 
 // ──────────── COMPARE VIEW ────────────
 
@@ -124,7 +125,7 @@ export default function ProgressPhotosScreen() {
     const photo: ProgressPhoto = {
       id: `pp_${Date.now()}`,
       userId: profile?.id ?? '',
-      date: new Date().toISOString().split('T')[0],
+      date: todayLocalIso(),
       uri: newPhotoUri,
       weight: parseFloat(newWeight) || undefined,
       note: newNote.trim() || undefined,

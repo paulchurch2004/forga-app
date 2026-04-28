@@ -10,6 +10,7 @@ import { useResponsive } from '../src/hooks/useResponsive';
 import { useT } from '../src/i18n';
 import type { BodyMeasurement } from '../src/types/user';
 import { syncMeasurement } from '../src/services/userSync';
+import { todayLocalIso } from '../src/utils/date';
 
 // ──────────── TYPES ────────────
 
@@ -75,7 +76,7 @@ export default function MeasurementsScreen() {
     const entry: BodyMeasurement = {
       id: `m_${Date.now()}`,
       userId: profile?.id ?? '',
-      date: new Date().toISOString().split('T')[0],
+      date: todayLocalIso(),
       createdAt: new Date().toISOString(),
     };
 

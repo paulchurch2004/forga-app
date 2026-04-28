@@ -9,6 +9,7 @@ import { useTrainingStore } from '../src/store/trainingStore';
 import { LineChart, type DataPoint } from '../src/components/charts/LineChart';
 import { EmptyState } from '../src/components/ui/EmptyState';
 import { useTheme } from '../src/context/ThemeContext';
+import { localIso } from '../src/utils/date';
 
 type Period = '7d' | '30d' | '90d' | 'all';
 
@@ -31,7 +32,7 @@ export default function ExerciseProgressScreen() {
     const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
     const cutoff = new Date();
     cutoff.setDate(cutoff.getDate() - days);
-    const cutoffStr = cutoff.toISOString().split('T')[0];
+    const cutoffStr = localIso(cutoff);
     return history.filter((h) => h.date >= cutoffStr);
   }, [history, period]);
 

@@ -9,6 +9,7 @@ import type { UserProfile, WeeklyCheckIn, WeightEntry } from '../types/user';
 import type { Workout } from '../types/training';
 import type { DailyMeal } from '../types/meal';
 import type { PlannedDay } from '../types/program';
+import { localIso } from '../utils/date';
 
 // ─── Output shape ─────────────────────────────────────────────
 
@@ -24,7 +25,8 @@ export interface UserState {
     lastWorkoutDaysAgo: number | null;
   };
   nutrition: {
-    avgCaloriesDelta: number; // average (consumed - target) over last 7 logged days
+    /** null = no logged data this week. Avoids confusing "0 = perfect" with "no data". */
+    avgCaloriesDelta: number | null;
     proteinConsistency: number; // 0-100, % of last 7 days hitting >=80% protein target
     macroBalance: number; // 0-100, how close to target P/C/F ratio
   };
@@ -78,7 +80,7 @@ function clamp(n: number, min = 0, max = 100): number {
 function isoNDaysAgo(todayIso: string, n: number): string {
   const d = new Date(todayIso + 'T00:00:00');
   d.setDate(d.getDate() - n);
-  return d.toISOString().split('T')[0];
+  return localIso(d);
 }
 
 function last7Dates(todayIso: string): string[] {
@@ -167,10 +169,10 @@ export function computeUserState(input: UserStateInput): UserState {
   });
 
   const loggedDays = dailyTotals.filter((d) => d.calories > 0);
-  const avgCaloriesDelta =
+  const avgCaloriesDelta: number | null =
     loggedDays.length > 0 && dailyTarget > 0
       ? Math.round(loggedDays.reduce((s, d) => s + (d.calories - dailyTarget), 0) / loggedDays.length)
-      : 0;
+      : null;
 
   const proteinHits =
     dailyProteinTarget > 0

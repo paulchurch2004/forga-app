@@ -7,6 +7,7 @@ import { useWaterStore } from '../store/waterStore';
 import { useTrainingStore } from '../store/trainingStore';
 import type { ScoreInput } from '../types/score';
 import { syncScore } from '../services/userSync';
+import { todayLocalIso, localIso } from '../utils/date';
 
 export function useScore() {
   const { currentScore, weeklyChange, scoreHistory, setCurrentScore, setWeeklyChange, saveDailyScore } = useScoreStore();
@@ -70,7 +71,7 @@ export function useScore() {
     let proteinDaysHit = 0;
     if (profile.dailyProtein > 0) {
       for (let i = 0; i < 7; i++) {
-        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+        const date = localIso(new Date(now.getTime() - i * 24 * 60 * 60 * 1000));
         const mealsForDay = i === 0 ? todayMeals : (mealHistory[date] ?? []);
         if (mealsForDay.length === 0) continue;
         const totalProtein = mealsForDay.reduce((sum, m) => sum + m.actualMacros.protein, 0);
@@ -82,7 +83,7 @@ export function useScore() {
 
     // Water tracking bonus
     const waterStore = useWaterStore.getState();
-    const todayDate = now.toISOString().split('T')[0];
+    const todayDate = todayLocalIso();
     const waterWeek = waterStore.getWeekHistory(todayDate);
     const waterDaysMet = waterWeek.filter((d) => d.total >= waterStore.dailyTargetMl).length;
 
@@ -106,7 +107,7 @@ export function useScore() {
     setCurrentScore(newScore);
 
     // Calculate weekly change from score history (today vs 7 days ago)
-    const weekAgoDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const weekAgoDate = localIso(new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000));
     const weekAgoScore = scoreHistory[weekAgoDate];
     setWeeklyChange(weekAgoScore ? newScore.total - weekAgoScore.total : 0);
 

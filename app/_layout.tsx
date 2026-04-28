@@ -55,6 +55,7 @@ import { loadAllUserData } from '../src/services/userSync';
 import { calculateForgaScore } from '../src/engine/scoreEngine';
 import { useWaterStore } from '../src/store/waterStore';
 import type { ScoreInput } from '../src/types/score';
+import { todayLocalIso, localIso } from '../src/utils/date';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -242,7 +243,7 @@ function RootLayoutInner() {
       const weightLog = useUserStore.getState().weightLog;
       const waterStore = useWaterStore.getState();
       const now = new Date();
-      const todayDate = now.toISOString().split('T')[0];
+      const todayDate = todayLocalIso();
 
       const fourWeeksAgo = new Date(now.getTime() - 28 * 86400000);
       const recentCheckIns = checkIns.filter((c) => new Date(c.createdAt) >= fourWeeksAgo);
@@ -264,7 +265,7 @@ function RootLayoutInner() {
       let proteinDaysHit = 0;
       if (profile.dailyProtein > 0) {
         for (let i = 0; i < 7; i++) {
-          const date = new Date(now.getTime() - i * 86400000).toISOString().split('T')[0];
+          const date = localIso(new Date(now.getTime() - i * 86400000));
           const meals = i === 0 ? todayMeals : (mealHistory[date] ?? []);
           if (meals.length === 0) continue;
           const totalP = meals.reduce((s, m) => s + m.actualMacros.protein, 0);

@@ -5,6 +5,7 @@ import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme
 import { useT } from '../../i18n';
 import { getWorkoutTypeIcon } from '../../hooks/useTraining';
 import type { WorkoutType } from '../../types/training';
+import { todayLocalIso } from '../../utils/date';
 
 interface DayData {
   date: string;
@@ -20,7 +21,7 @@ interface Props {
 export function WeeklyActivityBar({ weekData }: Props) {
   const styles = useStyles();
   const { t } = useT();
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = todayLocalIso();
 
   return (
     <Animated.View entering={FadeInDown.delay(100).duration(400)} style={styles.container}>
@@ -38,7 +39,7 @@ export function WeeklyActivityBar({ weekData }: Props) {
                 day.hasWorkout && styles.circleFilled,
                 isToday && !day.hasWorkout && styles.circleToday,
               ]}>
-                {day.hasWorkout ? (
+                {day.hasWorkout && day.workoutTypes.length > 0 ? (
                   <Text style={styles.circleIcon}>
                     {getWorkoutTypeIcon(day.workoutTypes[0])}
                   </Text>

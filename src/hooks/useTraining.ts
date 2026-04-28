@@ -2,11 +2,12 @@ import { useMemo } from 'react';
 import { useTrainingStore } from '../store/trainingStore';
 import { useT } from '../i18n';
 import type { WorkoutType } from '../types/training';
+import { todayLocalIso, localIso } from '../utils/date';
 
 export function useTraining() {
   const store = useTrainingStore();
   const { t } = useT();
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayLocalIso();
 
   const weekBarData = useMemo(() => {
     const dayKeys: string[] = ['calMonday', 'calTuesday', 'calWednesday', 'calThursday', 'calFriday', 'calSaturday', 'calSunday'];
@@ -19,7 +20,7 @@ export function useTraining() {
     return Array.from({ length: 7 }, (_, i) => {
       const d = new Date(monday);
       d.setDate(d.getDate() + i);
-      const dateKey = d.toISOString().split('T')[0];
+      const dateKey = localIso(d);
       const dayWorkouts = store.getWorkoutsForDate(dateKey);
       return {
         date: dateKey,

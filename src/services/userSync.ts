@@ -15,6 +15,7 @@ import { useSettingsStore } from '../store/settingsStore';
 import { useProgramStore } from '../store/programStore';
 import { useWeeklyPlanStore } from '../store/weeklyPlanStore';
 import type { ProgressPhoto } from '../types/user';
+import { todayLocalIso } from '../utils/date';
 
 // ──────────── PUSH (Local → Supabase) ────────────
 
@@ -274,7 +275,7 @@ export async function loadAllUserData(userId: string): Promise<void> {
     // Populate meal history
     if (mealsRes.data && mealsRes.data.length > 0) {
       const mealHistory: Record<string, DailyMeal[]> = {};
-      const today = new Date().toISOString().split('T')[0];
+      const today = todayLocalIso();
       const todayMeals: DailyMeal[] = [];
 
       for (const row of mealsRes.data) {

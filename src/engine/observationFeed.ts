@@ -198,6 +198,8 @@ function detectSleepTrend(input: ObservationFeedInput): CoachObservation[] {
   const sorted = [...input.checkIns].sort((a, b) => a.weekStart.localeCompare(b.weekStart));
   const last = sorted[sorted.length - 1];
   const prev = sorted[sorted.length - 2];
+  if (!last || !prev) return [];
+  if (typeof last.sleep !== 'number' || typeof prev.sleep !== 'number') return [];
   const delta = last.sleep - prev.sleep;
   if (Math.abs(delta) < 1) return [];
 

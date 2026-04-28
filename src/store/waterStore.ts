@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { localIso } from '../utils/date';
 
 interface WaterEntry {
   id: string;
@@ -62,7 +63,7 @@ export const useWaterStore = create<WaterState>()(
         for (let i = 6; i >= 0; i--) {
           const d = new Date(today);
           d.setDate(d.getDate() - i);
-          const key = d.toISOString().split('T')[0];
+          const key = localIso(d);
           const entries = get().history[key] ?? [];
           result.push({
             date: key,

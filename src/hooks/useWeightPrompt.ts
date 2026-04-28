@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
 import { useUserStore } from '../store/userStore';
 import { useSettingsStore } from '../store/settingsStore';
+import { todayLocalIso } from '../utils/date';
 
 export function useWeightPrompt() {
   const weightLog = useUserStore((s) => s.weightLog);
   const dismissedDate = useSettingsStore((s) => s.weightPromptDismissedDate);
 
   return useMemo(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = todayLocalIso();
 
     // Find most recent weight entry
     const sorted = [...weightLog].sort(

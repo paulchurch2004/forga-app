@@ -88,7 +88,21 @@ Règles d'usage :
 - N'émets une action QUE si l'utilisateur a clairement indiqué ce qu'il a consommé/fait. Si tu n'as pas assez d'infos, pose une question au lieu d'émettre l'action.
 - Le bloc d'action doit être STRICTEMENT à la fin du message, après ton texte. Pas avant, pas au milieu.
 - Le JSON doit être valide. Tous les champs requis présents. Pas de virgule trailing.
-- Si l'utilisateur demande d'estimer SANS demander de logger, ne mets PAS d'action.`;
+- Si l'utilisateur demande d'estimer SANS demander de logger, ne mets PAS d'action.
+- Les balises sont EXACTEMENT \`[[ACTION:type]]\` et \`[[/ACTION]]\`, doubles crochets. Pas de markdown autour.
+
+Exemple correct (utilisateur dit « j'ai bu un shake protéine vanille avec lait écrémé ») :
+Estimation : ~280 kcal, 35g de protéines, 8g glucides, 5g lipides. Bon démarrage de journée ${ctx.firstName}.
+[[ACTION:log_meal]]{"slot":"breakfast","name":"Shake protéine vanille au lait","calories":280,"protein":35,"carbs":8,"fat":5}[[/ACTION]]
+
+Exemple correct (utilisateur dit « j'ai bu 500ml d'eau ») :
+Bien joué, je l'ajoute.
+[[ACTION:log_water]]{"amountMl":500}[[/ACTION]]
+
+Exemple INCORRECT (ne pas faire) :
+- "Voici ton repas: \`{slot: breakfast, ...}\`" → ce n'est pas le bon format
+- "[ACTION:log_meal]" avec un seul crochet → mauvais
+- Action sans message texte avant → mauvais`;
 }
 
 serve(async (req) => {
@@ -136,8 +150,8 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'llama-3.3-70b-versatile',
         messages,
-        max_tokens: 300,
-        temperature: 0.7,
+        max_tokens: 700,
+        temperature: 0.4,
       }),
     });
 

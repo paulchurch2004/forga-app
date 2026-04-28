@@ -1,6 +1,7 @@
 // Report Engine — Weekly/Monthly data aggregation for FORGA
 import type { DailyMeal } from '../types/meal';
 import type { ForgaScore } from '../types/score';
+import { localIso } from '../utils/date';
 
 // ──────────── TYPES ────────────
 
@@ -46,7 +47,7 @@ function getDateRange(startDate: string, endDate: string): string[] {
   const current = new Date(startDate);
   const end = new Date(endDate);
   while (current <= end) {
-    dates.push(current.toISOString().split('T')[0]);
+    dates.push(localIso(current));
     current.setDate(current.getDate() + 1);
   }
   return dates;
@@ -57,13 +58,13 @@ function getMondayOfWeek(date: Date): string {
   const day = d.getDay();
   const diff = d.getDate() - day + (day === 0 ? -6 : 1);
   d.setDate(diff);
-  return d.toISOString().split('T')[0];
+  return localIso(d);
 }
 
 function addDays(date: string, days: number): string {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
+  return localIso(d);
 }
 
 // ──────────── PERIOD REPORT BUILDER ────────────
@@ -187,7 +188,7 @@ export function buildPeriodReport(
 export function getThisWeekRange(): { start: string; end: string } {
   const today = new Date();
   const start = getMondayOfWeek(today);
-  const end = today.toISOString().split('T')[0];
+  const end = localIso(today);
   return { start, end };
 }
 
@@ -202,7 +203,7 @@ export function getLastWeekRange(): { start: string; end: string } {
 export function getThisMonthRange(): { start: string; end: string } {
   const today = new Date();
   const start = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`;
-  const end = today.toISOString().split('T')[0];
+  const end = localIso(today);
   return { start, end };
 }
 
@@ -210,7 +211,7 @@ export function getLastMonthRange(): { start: string; end: string } {
   const today = new Date();
   const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
   const lastDay = new Date(today.getFullYear(), today.getMonth(), 0);
-  const start = lastMonth.toISOString().split('T')[0];
-  const end = lastDay.toISOString().split('T')[0];
+  const start = localIso(lastMonth);
+  const end = localIso(lastDay);
   return { start, end };
 }
