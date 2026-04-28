@@ -56,6 +56,7 @@ import { calculateForgaScore } from '../src/engine/scoreEngine';
 import { useWaterStore } from '../src/store/waterStore';
 import type { ScoreInput } from '../src/types/score';
 import { todayLocalIso, localIso } from '../src/utils/date';
+import { BiometricLockGate } from '../src/components/auth/BiometricLockGate';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -371,7 +372,9 @@ function RootLayoutInner() {
     <QueryClientProvider client={queryClient}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       <OfflineBanner />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeColors.background } }} />
+      <BiometricLockGate>
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeColors.background } }} />
+      </BiometricLockGate>
     </QueryClientProvider>
   );
 }

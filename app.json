@@ -20,6 +20,7 @@
         "NSCameraUsageDescription": "FORGA utilise la camera pour les photos de progression et scanner les aliments.",
         "NSPhotoLibraryUsageDescription": "FORGA accede a tes photos pour les photos de progression et identifier les aliments.",
         "NSUserNotificationsUsageDescription": "FORGA envoie des rappels de repas et de progression.",
+        "NSFaceIDUsageDescription": "FORGA utilise Face ID pour deverrouiller ton compte rapidement et de maniere securisee.",
         "UIBackgroundModes": [
           "remote-notification"
         ],

@@ -27,6 +27,7 @@ import { MetalDays30Card, type MetalKey } from '../../src/components/profile/Met
 import { PrList, type PrItem } from '../../src/components/profile/PrCard';
 import { UserStateDebugCard } from '../../src/components/profile/UserStateDebugCard';
 import { PremiumUpgradeCard } from '../../src/components/home/PremiumUpgradeCard';
+import { useBiometricCapabilities, usePromptBiometric } from '../../src/hooks/useBiometricAuth';
 import { ProfileSheet, SheetOptionRow } from '../../src/components/profile/ProfileSheet';
 import { useTopPRs } from '../../src/hooks/useTopPRs';
 import { useMetalHistoryStore } from '../../src/store/metalHistoryStore';
@@ -75,6 +76,10 @@ export default function ProfileScreen() {
   const themeMode = useSettingsStore((s) => s.themeMode);
   const setThemeMode = useSettingsStore((s) => s.setThemeMode);
   const setLocale = useSettingsStore((s) => s.setLocale);
+  const biometricLockEnabled = useSettingsStore((s) => s.biometricLockEnabled);
+  const setBiometricLockEnabled = useSettingsStore((s) => s.setBiometricLockEnabled);
+  const bioCaps = useBiometricCapabilities();
+  const promptBiometric = usePromptBiometric();
   const [exporting, setExporting] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [sheet, setSheet] = useState<null | 'theme' | 'language' | 'logout' | 'delete'>(null);
@@ -567,6 +572,26 @@ export default function ProfileScreen() {
           <Pressable style={styles.actionRow} onPress={() => router.push('/notifications-setup')}>
             <Text style={styles.actionText}>{t('notifications')}</Text>
             <Text style={styles.actionValue}>{notifEnabled ? t('notifsEnabled') : t('notifsDisabled')} {'›'}</Text>
+          </Pressable>
+        )}
+
+        {Platform.OS !== 'web' && bioCaps.available && (
+          <Pressable
+            style={styles.actionRow}
+            onPress={async () => {
+              if (biometricLockEnabled) {
+                setBiometricLockEnabled(false);
+                return;
+              }
+              // Verify the user can actually authenticate before turning the lock on.
+              const ok = await promptBiometric(`Activer le verrouillage par ${bioCaps.label}`);
+              if (ok) setBiometricLockEnabled(true);
+            }}
+          >
+            <Text style={styles.actionText}>Verrouillage {bioCaps.label}</Text>
+            <Text style={styles.actionValue}>
+              {biometricLockEnabled ? 'Activé' : 'Désactivé'} {'›'}
+            </Text>
           </Pressable>
         )}
 

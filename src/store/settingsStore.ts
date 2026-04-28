@@ -35,6 +35,8 @@ interface SettingsState {
    *  Off by default. Toggle hidden behind a long-press on the app version
    *  in Settings to keep it out of the regular UX. */
   showCoreStateDebug: boolean;
+  /** Require biometric auth (Face ID / Touch ID) at app launch + after backgrounding. */
+  biometricLockEnabled: boolean;
 
   setNotificationsEnabled: (enabled: boolean) => void;
   setMealReminders: (enabled: boolean) => void;
@@ -45,6 +47,7 @@ interface SettingsState {
   setTutorialStep: (step: number) => void;
   setWeightPromptDismissedDate: (date: string | null) => void;
   setShowCoreStateDebug: (enabled: boolean) => void;
+  setBiometricLockEnabled: (enabled: boolean) => void;
   reset: () => void;
 }
 
@@ -60,6 +63,7 @@ export const useSettingsStore = create<SettingsState>()(
       tutorialStep: 0,
       weightPromptDismissedDate: null,
       showCoreStateDebug: false,
+      biometricLockEnabled: false,
 
       setNotificationsEnabled: (notificationsEnabled) => {
         set({ notificationsEnabled });
@@ -91,6 +95,7 @@ export const useSettingsStore = create<SettingsState>()(
       },
       setWeightPromptDismissedDate: (weightPromptDismissedDate) => set({ weightPromptDismissedDate }),
       setShowCoreStateDebug: (showCoreStateDebug) => set({ showCoreStateDebug }),
+      setBiometricLockEnabled: (biometricLockEnabled) => set({ biometricLockEnabled }),
       reset: () =>
         set({
           notificationsEnabled: true,
@@ -102,6 +107,7 @@ export const useSettingsStore = create<SettingsState>()(
           tutorialStep: 0,
           weightPromptDismissedDate: null,
           showCoreStateDebug: false,
+          biometricLockEnabled: false,
         }),
     }),
     {
@@ -117,6 +123,7 @@ export const useSettingsStore = create<SettingsState>()(
         tutorialStep: state.tutorialStep,
         weightPromptDismissedDate: state.weightPromptDismissedDate,
         showCoreStateDebug: state.showCoreStateDebug,
+        biometricLockEnabled: state.biometricLockEnabled,
       }),
     }
   )
