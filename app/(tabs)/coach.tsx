@@ -44,6 +44,8 @@ import { router } from 'expo-router';
 import { CoachModeToggle, type CoachMode } from '../../src/components/coach/CoachModeToggle';
 import { PresenceView, type PresenceFocus, type PresenceObservation } from '../../src/components/coach/PresenceView';
 import { useCoachObservations } from '../../src/hooks/useCoachObservations';
+import { parseCoachActions } from '../../src/services/coachActions';
+import { ActionProposalCard } from '../../src/components/coach/ActionProposalCard';
 
 // ──────────── SPEECH HELPERS (Web only) ────────────
 
@@ -92,6 +94,8 @@ interface ChatMessage {
   text: string;
   isCoach: boolean;
   timestamp: number;
+  /** Proposed actions parsed from the coach reply. */
+  actions?: import('../../src/services/coachActions').CoachAction[];
 }
 
 const COACH_AVATAR = 'https://images.unsplash.com/photo-1534368959876-26bf04f2c947?w=200&q=80';
@@ -293,10 +297,21 @@ export default function CoachScreen() {
     const aiReply = await sendCoachMessage(userText, coachContext, chatHistoryRef.current);
 
     if (aiReply) {
-      // AI responded successfully
-      chatHistoryRef.current.push({ role: 'assistant', content: aiReply });
+      // Parse [[ACTION:...]] blocks → cleaned text + structured actions
+      const { text, actions } = parseCoachActions(aiReply);
+      // History keeps the cleaned text (no point sending action JSON back to the LLM)
+      chatHistoryRef.current.push({ role: 'assistant', content: text });
       const id = String(++messageIdRef.current);
-      setMessages((prev) => [...prev, { id, text: aiReply, isCoach: true, timestamp: Date.now() }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id,
+          text: text || aiReply, // fallback if cleaning emptied the message
+          isCoach: true,
+          timestamp: Date.now(),
+          actions: actions.length > 0 ? actions : undefined,
+        },
+      ]);
       setIsTyping(false);
       setQuickReplies((DEFAULT_QUICK_REPLIES[locale] ?? DEFAULT_QUICK_REPLIES.fr));
       setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
@@ -451,7 +466,12 @@ export default function CoachScreen() {
             onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
           >
             {messages.map((msg) => (
-              <MessageBubble key={msg.id} message={msg} />
+              <View key={msg.id}>
+                <MessageBubble message={msg} />
+                {msg.actions?.map((a, i) => (
+                  <ActionProposalCard key={`${msg.id}-action-${i}`} action={a} />
+                ))}
+              </View>
             ))}
             {isTyping && <TypingIndicator />}
           </ScrollView>
