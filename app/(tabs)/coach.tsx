@@ -44,11 +44,12 @@ import { router } from 'expo-router';
 import { CoachModeToggle, type CoachMode } from '../../src/components/coach/CoachModeToggle';
 import { PresenceView, type PresenceFocus, type PresenceObservation } from '../../src/components/coach/PresenceView';
 import { useCoachObservations } from '../../src/hooks/useCoachObservations';
-import { parseCoachActions } from '../../src/services/coachActions';
+import { parseCoachActionsAndMemories } from '../../src/services/coachActions';
 import { ActionProposalCard } from '../../src/components/coach/ActionProposalCard';
 import { useProgramStore } from '../../src/store/programStore';
 import { useTrainingStore } from '../../src/store/trainingStore';
 import { useWaterStore } from '../../src/store/waterStore';
+import { useChatStore } from '../../src/store/chatStore';
 import { getProgramDayById, PROGRAMS } from '../../src/data/programs';
 import { todayLocalIso } from '../../src/utils/date';
 
@@ -210,14 +211,47 @@ export default function CoachScreen() {
   const [coachMode, setCoachMode] = useState<CoachMode>('presence');
   // Real observations from the user's stores (replaces hardcoded samples).
   const coachObservations = useCoachObservations();
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // Persisted chat (week-scoped) + memories (long-term).
+  const persistedMessages = useChatStore((s) => s.messages);
+  const memories = useChatStore((s) => s.memories);
+  const appendChatMessage = useChatStore((s) => s.appendMessage);
+  const appendMemory = useChatStore((s) => s.appendMemory);
+  const rotateIfNewWeek = useChatStore((s) => s.rotateIfNewWeek);
+
+  // Trigger rotation on mount (in case onRehydrateStorage missed it).
+  React.useEffect(() => {
+    rotateIfNewWeek();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Local UI state — typing indicator, quick replies, etc.
   const [quickReplies, setQuickReplies] = useState<QuickReply[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [freeText, setFreeText] = useState('');
   const messageIdRef = useRef(0);
-  const chatHistoryRef = useRef<ChatHistoryEntry[]>([]);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
+
+  // Bridge: messages = the persisted store, setMessages emulates the previous API.
+  const messages = persistedMessages as ChatMessage[];
+  const setMessages = (updater: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => {
+    const next = typeof updater === 'function'
+      ? (updater as (p: ChatMessage[]) => ChatMessage[])(persistedMessages as ChatMessage[])
+      : updater;
+    // Only support append-style updates (the only pattern used in this file).
+    const newMessages = next.slice(persistedMessages.length);
+    for (const m of newMessages) appendChatMessage(m as any);
+  };
+
+  // Build chat history from the persisted store on each render so the LLM
+  // sees real continuity (replaces the old in-memory chatHistoryRef).
+  const chatHistoryRef = useRef<ChatHistoryEntry[]>([]);
+  React.useEffect(() => {
+    chatHistoryRef.current = persistedMessages.map((m) => ({
+      role: m.isCoach ? 'assistant' : 'user',
+      content: m.text,
+    }));
+  }, [persistedMessages]);
 
   // Pull extended context for the coach so it can take meaningful actions.
   const programState = useProgramStore((s) => s.activePlan);
@@ -383,11 +417,13 @@ export default function CoachScreen() {
     // Track user message in history
     chatHistoryRef.current.push({ role: 'user', content: userText });
 
-    const aiReply = await sendCoachMessage(userText, coachContext, chatHistoryRef.current);
+    const aiReply = await sendCoachMessage(userText, coachContext, chatHistoryRef.current, memories);
 
     if (aiReply) {
-      // Parse [[ACTION:...]] blocks → cleaned text + structured actions
-      const { text, actions } = parseCoachActions(aiReply);
+      // Parse [[ACTION:...]] AND [[MEMORY]] blocks → cleaned text + actions + memories
+      const { text, actions, memories: parsedMemories } = parseCoachActionsAndMemories(aiReply);
+      // Silently store any new memories the coach extracted from this turn.
+      for (const m of parsedMemories) appendMemory(m);
       // History keeps the cleaned text (no point sending action JSON back to the LLM)
       chatHistoryRef.current.push({ role: 'assistant', content: text });
       const id = String(++messageIdRef.current);

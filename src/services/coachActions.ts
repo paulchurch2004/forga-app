@@ -69,6 +69,58 @@ export type CoachAction =
 /** Actions whose UI card should require an extra confirmation step. */
 export const DESTRUCTIVE_ACTIONS: ActionType[] = ['adjust_calories', 'move_workout_day', 'set_water_goal'];
 
+// ─── Memory protocol (silent, no UI confirmation) ─────────────
+//
+// The coach can also emit [[MEMORY]]{ ... }[[/MEMORY]] blocks alongside or
+// instead of actions. Memories are stored long-term and re-injected into
+// the LLM context so the coach can recall them naturally weeks later.
+
+export type MemoryTag = 'injury' | 'pr' | 'goal' | 'preference' | 'event' | 'note';
+
+export interface ParsedMemory {
+  tag: MemoryTag;
+  summary: string;
+  weight: 1 | 2 | 3;
+}
+
+const MEMORY_RE = /\[\[MEMORY\]\]\s*([\s\S]*?)\s*\[\[\/MEMORY\]\]/g;
+
+export interface ParsedReplyFull {
+  text: string;
+  actions: CoachAction[];
+  memories: ParsedMemory[];
+}
+
+/**
+ * Like parseCoachActions but also extracts [[MEMORY]] blocks. Strips both
+ * action and memory blocks from the visible text.
+ */
+export function parseCoachActionsAndMemories(reply: string): ParsedReplyFull {
+  const memories: ParsedMemory[] = [];
+  let text = reply.replace(MEMORY_RE, (_match, rawJson: string) => {
+    try {
+      const json = JSON.parse(rawJson.trim());
+      const valid = validateMemory(json);
+      if (valid) memories.push(valid);
+    } catch {
+      /* ignore */
+    }
+    return '';
+  });
+  const { text: cleaned, actions } = parseCoachActions(text);
+  text = cleaned;
+  return { text, actions, memories };
+}
+
+function validateMemory(payload: any): ParsedMemory | null {
+  const validTags: MemoryTag[] = ['injury', 'pr', 'goal', 'preference', 'event', 'note'];
+  if (typeof payload?.summary !== 'string' || payload.summary.trim().length === 0) return null;
+  const tag = validTags.includes(payload?.tag) ? (payload.tag as MemoryTag) : 'note';
+  const w = payload?.weight;
+  const weight: 1 | 2 | 3 = w === 1 || w === 2 || w === 3 ? w : 2;
+  return { tag, summary: payload.summary.trim(), weight };
+}
+
 export type ActionType = CoachAction['type'];
 
 // ─── Parser ───────────────────────────────────────────────────

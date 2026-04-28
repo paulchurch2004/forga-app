@@ -30,9 +30,28 @@ interface CoachContext {
   targetCarbs: number;
   consumedFat: number;
   targetFat: number;
+  // Extended optional fields
+  isTodayValidated?: boolean;
+  currentSlot?: string | null;
+  activeProgramName?: string;
+  currentWeek?: number;
+  todayPlanType?: string;
+  todayPlanName?: string;
+  todayProgramDayId?: string;
+  todayDateIso?: string;
+  recentWorkouts?: Array<{ date: string; type: string; durationMinutes: number; volumeKg?: number }>;
+  lastCheckIn?: { weekStart: string; energy: number; sleep: number; performance: number; weight: number };
+  consumedWaterMl?: number;
+  targetWaterMl?: number;
 }
 
-function buildSystemPrompt(ctx: CoachContext): string {
+interface Memory {
+  date: string;
+  tag: string;
+  summary: string;
+}
+
+function buildSystemPrompt(ctx: CoachContext, memories: Memory[] = []): string {
   const objectiveLabels: Record<string, string> = {
     bulk: 'prise de masse',
     cut: 'sèche / perte de gras',
@@ -60,6 +79,12 @@ function buildSystemPrompt(ctx: CoachContext): string {
     ? `- Hydratation : ${ctx.consumedWaterMl}ml / ${ctx.targetWaterMl}ml`
     : '';
 
+  const memoriesSection = memories.length > 0
+    ? `\n\nSOUVENIRS IMPORTANTS DE ${ctx.firstName.toUpperCase()} (à utiliser pour contextualiser tes réponses, à ne PAS répéter mot pour mot mais à évoquer naturellement quand pertinent) :\n${memories
+        .map((m) => `- [${m.date}] (${m.tag}) ${m.summary}`)
+        .join('\n')}`
+    : '';
+
   return `Tu es FORGA Coach, un coach sportif et nutritionnel personnel dans l'application FORGA.
 Tu parles en français, tu tutoies l'utilisateur, tu es motivant, direct et concis (2-3 phrases max par réponse).
 Tu utilises les données en temps réel de l'utilisateur pour personnaliser tes conseils ET pour proposer des actions concrètes via le système d'actions structurées.
@@ -79,6 +104,7 @@ ${waterLine}
 ${checkInLine}
 - Heure actuelle : ${ctx.hour}h
 ${recentLines ? `\n5 dernières séances :\n${recentLines}` : ''}
+${memoriesSection}
 
 Règles strictes :
 - Ne donne JAMAIS de conseil médical ou de diagnostic
@@ -136,6 +162,39 @@ Règles d'usage :
 - Sois prudent avec adjust_calories : ne propose qu'un ajustement si tu vois un signal réel (sommeil dégradé, charge cumulée, plafond/plancher de progression atteint, déficit/surplus mal calibré). Jamais "à tout hasard".
 - N'inférer JAMAIS des exerciseId pour swap_exercise — utilise cette action uniquement si l'utilisateur te donne explicitement les deux IDs.
 
+SOUVENIRS À LONG TERME
+En plus des actions, tu peux émettre UN bloc \`[[MEMORY]]\` quand l'utilisateur te confie quelque chose qui mérite d'être retenu pour les prochaines semaines. Ce bloc est SILENCIEUX (pas de carte UI), il enregistre simplement un souvenir que tu reverras dans tes futures conversations.
+
+Format :
+[[MEMORY]]{ "tag": "injury"|"pr"|"goal"|"preference"|"event"|"note", "summary": "phrase courte au passé que tu pourras citer plus tard", "weight": 1|2|3 }[[/MEMORY]]
+
+Tags :
+- injury : douleur, blessure, gêne ("S'est fait mal au genou pendant le squat 100kg")
+- pr : record battu ("A fait son PR au développé couché à 85kg×8")
+- goal : objectif personnel exprimé ("Veut atteindre 75kg pour son mariage en septembre")
+- preference : goût, dégoût, contrainte alimentaire ou training ("Déteste le poisson, refuse le HIIT le lundi")
+- event : moment marquant ("Premier marathon couru en 4h12")
+- note : autre information utile à long terme
+
+Weight :
+- 1 = anecdotique
+- 2 = utile à savoir (défaut)
+- 3 = critique (blessures, objectifs majeurs, incidents importants)
+
+Règles d'émission :
+- Émets UN souvenir QUE si l'utilisateur partage activement une info personnelle nouvelle. Pas pour répéter ce qui est déjà visible dans les données du jour.
+- N'émets PAS de souvenir pour des choses banales ("a mangé 280 kcal au petit-déj" → c'est juste un log_meal, pas une mémoire).
+- Le summary doit être au PASSÉ et SELF-CONTAINED — quelqu'un qui le lit dans 3 semaines doit comprendre sans contexte.
+- Ne re-confirme pas le souvenir à l'utilisateur ("Je note ça pour plus tard"). Sois naturel : enregistre silencieusement et continue ta réponse normale.
+- Tu peux émettre un [[MEMORY]] ET un [[ACTION]] dans la même réponse si pertinent (ex : l'utilisateur dit "je me suis fait mal au dos pendant mon deadlift de 120kg" → souvenir injury + action mark_day_skipped).
+
+Exemple :
+"Mince, repose-toi bien. Si la douleur persiste demain on adapte."
+[[MEMORY]]{"tag":"injury","summary":"S'est fait mal au bas du dos pendant un deadlift à 120kg le 28 avril 2026","weight":3}[[/MEMORY]]
+
+UTILISATION DES SOUVENIRS EXISTANTS (section ci-dessus) :
+Quand pertinent dans ta réponse, fais référence à un souvenir comme un humain le ferait : "Tu te souviens il y a 3 semaines tu t'étais fait mal au dos sur ce mouvement ? Cette fois on commence léger." Ne cite jamais la liste brute, et ne mentionne pas que tu as une "mémoire".
+
 Exemple correct (utilisateur dit « j'ai bu un shake protéine vanille avec lait écrémé ») :
 Estimation : ~280 kcal, 35g de protéines, 8g glucides, 5g lipides. Bon démarrage de journée ${ctx.firstName}.
 [[ACTION:log_meal]]{"slot":"breakfast","name":"Shake protéine vanille au lait","calories":280,"protein":35,"carbs":8,"fat":5}[[/ACTION]]
@@ -168,7 +227,7 @@ serve(async (req) => {
     // JWT verification is handled by Supabase gateway (--no-verify-jwt for this function)
     // Coach chat is a non-sensitive endpoint, no user auth required
 
-    const { message, context, history } = await req.json();
+    const { message, context, history, memories } = await req.json();
 
     if (!message || !context) {
       return new Response(
@@ -178,7 +237,7 @@ serve(async (req) => {
     }
 
     // Build messages array with system prompt + history + current message
-    const systemPrompt = buildSystemPrompt(context);
+    const systemPrompt = buildSystemPrompt(context, Array.isArray(memories) ? memories : []);
     const messages = [
       { role: 'system', content: systemPrompt },
       // Include last 10 messages for conversational memory
