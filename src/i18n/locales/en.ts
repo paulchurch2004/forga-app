@@ -530,9 +530,9 @@ export const en: Record<TranslationKey, string> = {
   // Paywall (additional)
   youAreMissingOut: "You're missing out on:",
   recommended: 'RECOMMENDED',
-  annualPrice: '\u20AC58.99/year',
-  annualDetail: '\u20AC4.92/month - save 30%',
-  monthlyPrice: '\u20AC6.99/month',
+  annualPrice: '\u20AC119.88/year',
+  annualDetail: '\u20AC9.99/month - save 33%',
+  monthlyPrice: '\u20AC14.99/month',
   monthlyLabel: 'Monthly',
   startFreeTrial: 'Start 7-day free trial',
   cancelAnytime: 'Cancel anytime. No commitment.',

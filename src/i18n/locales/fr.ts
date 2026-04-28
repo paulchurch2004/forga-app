@@ -528,9 +528,9 @@ export const fr = {
   // Paywall (additional)
   youAreMissingOut: 'Tu passes a cote de :',
   recommended: 'RECOMMANDE',
-  annualPrice: '58,99\u20AC/an',
-  annualDetail: '4,92\u20AC/mois - economise 30%',
-  monthlyPrice: '6,99\u20AC/mois',
+  annualPrice: '119,88\u20AC/an',
+  annualDetail: '9,99\u20AC/mois - economise 33%',
+  monthlyPrice: '14,99\u20AC/mois',
   monthlyLabel: 'Mensuel',
   startFreeTrial: "Commencer l'essai gratuit 7 jours",
   cancelAnytime: 'Annule quand tu veux. Aucun engagement.',
