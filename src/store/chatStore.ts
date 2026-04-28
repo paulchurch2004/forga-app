@@ -24,7 +24,19 @@ export interface ChatMessage {
   actions?: unknown[]; // CoachAction[] but kept loose to avoid circular import
 }
 
-export type MemoryTag = 'injury' | 'pr' | 'goal' | 'preference' | 'event' | 'note';
+export type MemoryTag =
+  | 'injury' // douleurs, blessures aiguës
+  | 'condition' // conditions chroniques, médicaments, allergies
+  | 'pr' // records battus
+  | 'goal' // objectifs personnels (poids, perf, événement)
+  | 'preference_food' // aliments aimés/détestés/refusés
+  | 'preference_training' // exos / types de séance aimés/détestés
+  | 'constraint' // contraintes pratiques (budget, équipement, horaires)
+  | 'lifestyle' // vie perso (boulot, famille, voyages, déménagement)
+  | 'mood_pattern' // patterns émotionnels récurrents (stress période X)
+  | 'event' // moments marquants (compétition, mariage, premier X)
+  | 'feedback' // ce qui a marché ou pas dans nos conseils précédents
+  | 'note'; // fourre-tout
 
 export interface CoachMemory {
   id: string;

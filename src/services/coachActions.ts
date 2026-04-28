@@ -75,7 +75,19 @@ export const DESTRUCTIVE_ACTIONS: ActionType[] = ['adjust_calories', 'move_worko
 // instead of actions. Memories are stored long-term and re-injected into
 // the LLM context so the coach can recall them naturally weeks later.
 
-export type MemoryTag = 'injury' | 'pr' | 'goal' | 'preference' | 'event' | 'note';
+export type MemoryTag =
+  | 'injury'
+  | 'condition'
+  | 'pr'
+  | 'goal'
+  | 'preference_food'
+  | 'preference_training'
+  | 'constraint'
+  | 'lifestyle'
+  | 'mood_pattern'
+  | 'event'
+  | 'feedback'
+  | 'note';
 
 export interface ParsedMemory {
   tag: MemoryTag;
@@ -113,9 +125,17 @@ export function parseCoachActionsAndMemories(reply: string): ParsedReplyFull {
 }
 
 function validateMemory(payload: any): ParsedMemory | null {
-  const validTags: MemoryTag[] = ['injury', 'pr', 'goal', 'preference', 'event', 'note'];
+  const validTags: MemoryTag[] = [
+    'injury', 'condition', 'pr', 'goal',
+    'preference_food', 'preference_training',
+    'constraint', 'lifestyle', 'mood_pattern',
+    'event', 'feedback', 'note',
+  ];
   if (typeof payload?.summary !== 'string' || payload.summary.trim().length === 0) return null;
-  const tag = validTags.includes(payload?.tag) ? (payload.tag as MemoryTag) : 'note';
+  // Backwards-compat: old 'preference' tag from earlier versions stays valid → maps to preference_food.
+  let tag: MemoryTag = 'note';
+  if (payload?.tag === 'preference') tag = 'preference_food';
+  else if (validTags.includes(payload?.tag)) tag = payload.tag as MemoryTag;
   const w = payload?.weight;
   const weight: 1 | 2 | 3 = w === 1 || w === 2 || w === 3 ? w : 2;
   return { tag, summary: payload.summary.trim(), weight };
