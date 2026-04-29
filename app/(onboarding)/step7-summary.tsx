@@ -32,6 +32,7 @@ import { supabase, isDemoMode } from '../../src/services/supabase';
 import { generateReferralCode, lookupReferralCode, applyReferral, calculatePremiumUntil } from '../../src/services/referrals';
 import { events } from '../../src/services/analytics';
 import type { Objective, ActivityLevel } from '../../src/types/user';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const triggerHaptic = (type: 'light' | 'success' = 'light') => {
   if (Platform.OS === 'web') return;
@@ -444,7 +445,7 @@ export default function Step7Summary() {
         </Pressable>
       </View>
 
-      {/* Notification opt-in modal */}
+      {/* Notification opt-in modal — V2 glass with solid backdrop */}
       <Modal
         visible={showNotifPrompt}
         transparent
@@ -453,12 +454,19 @@ export default function Step7Summary() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
+            <View style={styles.modalGlow} pointerEvents="none" />
+            <Text style={styles.modalEyebrow}>RAPPELS QUOTIDIENS</Text>
             <Text style={styles.modalTitle}>{t("notifPromptTitle")}</Text>
-            <Text style={styles.modalBody}>
-              {t("notifPromptBody")}
-            </Text>
-            <Pressable style={styles.modalBtnPrimary} onPress={handleEnableNotifs}>
-              <Text style={styles.modalBtnPrimaryText}>{t("enable")}</Text>
+            <Text style={styles.modalBody}>{t("notifPromptBody")}</Text>
+            <Pressable style={styles.modalBtnPrimaryWrap} onPress={handleEnableNotifs}>
+              <LinearGradient
+                colors={['#FF8C40', '#FF5A1C']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.modalBtnPrimary}
+              >
+                <Text style={styles.modalBtnPrimaryText}>{t("enable")}</Text>
+              </LinearGradient>
             </Pressable>
             <Pressable style={styles.modalBtnSecondary} onPress={handleSkipNotifs}>
               <Text style={styles.modalBtnSecondaryText}>{t("later")}</Text>
@@ -718,61 +726,93 @@ const useStyles = makeStyles((colors) => ({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.85)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.xl,
   },
   modalCard: {
-    backgroundColor: colors.surface,
-    borderRadius: borderRadius.lg,
+    backgroundColor: '#0E0E14',
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: colors.border,
-    padding: spacing['2xl'],
+    borderColor: 'rgba(255,107,53,0.30)',
+    padding: 24,
     width: '100%',
-    maxWidth: 360,
+    maxWidth: 380,
     alignItems: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  modalGlow: {
+    position: 'absolute',
+    top: -60,
+    left: '50%',
+    width: 240,
+    height: 160,
+    borderRadius: 120,
+    backgroundColor: 'rgba(255,107,53,0.20)',
+    opacity: 0.6,
+    transform: [{ translateX: -120 }],
+  },
+  modalEyebrow: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: '#FF6B35',
+    letterSpacing: 1.6,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    marginBottom: 8,
   },
   modalTitle: {
     fontFamily: fonts.display,
-    fontSize: fontSizes.xl,
-    fontWeight: fontWeights.bold,
-    color: colors.text,
-    marginBottom: spacing.md,
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 10,
     textAlign: 'center',
+    letterSpacing: -0.3,
   },
   modalBody: {
     fontFamily: fonts.body,
-    fontSize: fontSizes.md,
-    color: colors.textSecondary,
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.72)',
     textAlign: 'center',
-    lineHeight: fontSizes.md * 1.5,
-    marginBottom: spacing.xl,
+    lineHeight: 20,
+    marginBottom: 22,
+  },
+  modalBtnPrimaryWrap: {
+    width: '100%',
+    borderRadius: 999,
+    overflow: 'hidden',
+    marginBottom: 8,
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 8,
   },
   modalBtnPrimary: {
-    backgroundColor: colors.primary,
-    borderRadius: borderRadius.md,
-    height: 48,
+    height: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '100%',
-    marginBottom: spacing.sm,
   },
   modalBtnPrimaryText: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes.md,
-    fontWeight: fontWeights.bold,
-    color: colors.white,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   modalBtnSecondary: {
-    height: 48,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+    marginTop: 4,
   },
   modalBtnSecondaryText: {
     fontFamily: fonts.body,
-    fontSize: fontSizes.md,
-    color: colors.textSecondary,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.55)',
   },
 }));
