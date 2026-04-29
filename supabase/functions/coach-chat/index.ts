@@ -317,8 +317,58 @@ serve(async (req) => {
       );
     }
 
-    // JWT verification is handled by Supabase gateway (--no-verify-jwt for this function)
-    // Coach chat is a non-sensitive endpoint, no user auth required
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    );
+
+    // ✅ JWT Verification
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // ✅ Quota check AVANT appel Groq
+    const { data: quotaCheck, error: quotaError } = await supabase.rpc(
+      'check_and_increment_quota',
+      {
+        p_user_id: user.id,
+        p_feature: 'coach_message',
+        p_daily_cap: 5,
+      },
+    );
+
+    if (quotaError) {
+      console.error('Quota check error:', quotaError);
+      return new Response(
+        JSON.stringify({ error: 'Quota check failed' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    if (!quotaCheck.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: 'quota_exceeded',
+          message: 'Tu as atteint ta limite de messages aujourd\'hui. Regarde une vidéo pour débloquer +3 messages.',
+          quota: quotaCheck,
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
 
     const { message, context, history, memories } = await req.json();
 
@@ -370,7 +420,15 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ reply }),
+      JSON.stringify({
+        reply,
+        quota: {
+          used: quotaCheck.used,
+          cap: quotaCheck.cap,
+          bonus: quotaCheck.bonus,
+          remaining: quotaCheck.remaining,
+        },
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch {

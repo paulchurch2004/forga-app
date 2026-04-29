@@ -420,9 +420,16 @@ export default function CoachScreen() {
     // Track user message in history
     chatHistoryRef.current.push({ role: 'user', content: userText });
 
-    const aiReply = await sendCoachMessage(userText, coachContext, chatHistoryRef.current, memories);
+    const result = await sendCoachMessage(userText, coachContext, chatHistoryRef.current, memories);
 
-    if (aiReply) {
+    if (result.kind === 'quota_exceeded') {
+      setIsTyping(false);
+      router.push('/paywall?trigger=quota_coach_message');
+      return;
+    }
+
+    if (result.kind === 'ok') {
+      const aiReply = result.reply;
       // Parse [[ACTION:...]] AND [[MEMORY]] blocks → cleaned text + actions + memories
       const { text, actions, memories: parsedMemories } = parseCoachActionsAndMemories(aiReply);
       // Silently store any new memories the coach extracted from this turn.
@@ -446,7 +453,7 @@ export default function CoachScreen() {
       // Read response aloud
       speak(aiReply, locale === 'en' ? 'en-US' : 'fr-FR');
     } else {
-      // Fallback to template responses
+      // Fallback to template responses (error / unauthenticated)
       const response = getCoachResponse(fallbackType, coachContext);
       addCoachMessages(response.messages, response.quickReplies);
     }

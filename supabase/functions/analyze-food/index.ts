@@ -47,7 +47,7 @@ serve(async (req) => {
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
     );
 
     const token = authHeader.replace('Bearer ', '');
@@ -57,6 +57,27 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Invalid token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    // ✅ Quota check AVANT appel GPT-4o
+    const { data: quotaCheck, error: quotaError } = await supabase.rpc(
+      'check_and_increment_quota',
+      {
+        p_user_id: user.id,
+        p_feature: 'food_scan',
+        p_daily_cap: 3,
+      },
+    );
+
+    if (quotaError || !quotaCheck.allowed) {
+      return new Response(
+        JSON.stringify({
+          error: 'quota_exceeded',
+          message: 'Limite de scans atteinte. Regarde une vidéo pour +1 scan bonus.',
+          quota: quotaCheck,
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
     }
 
@@ -131,6 +152,7 @@ serve(async (req) => {
         protein: Math.round(parsed.protein || 0),
         carbs: Math.round(parsed.carbs || 0),
         fat: Math.round(parsed.fat || 0),
+        quota: quotaCheck,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );

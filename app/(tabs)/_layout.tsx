@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Tabs } from 'expo-router';
 import { View, Text, StyleSheet, Platform } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -10,6 +10,9 @@ import { Sidebar } from '../../src/components/layout/Sidebar';
 import { CustomTabBar } from '../../src/components/layout/CustomTabBar';
 import { useT } from '../../src/i18n';
 import type { ThemeColors } from '../../src/theme';
+import { TrialExpirationModal } from '../../src/components/TrialExpirationModal';
+import { useTrial } from '../../src/hooks/useTrial';
+import { scheduleTrialNotifications } from '../../src/services/trialNotifications';
 
 const TAB_ICONS: Record<string, string> = {
   home: 'M3 12l9-8 9 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8z',
@@ -54,6 +57,17 @@ export default function TabLayout() {
   const { isDesktop } = useResponsive();
   const { colors } = useTheme();
   const { t } = useT();
+  const { showExpirationModal, refresh, trialEndsAt, isInTrial } = useTrial();
+
+  // Schedule J-2 / J-1 / J0 notifications once trial endpoint is known
+  const scheduledForRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!trialEndsAt || !isInTrial) return;
+    const key = trialEndsAt.toISOString();
+    if (scheduledForRef.current === key) return;
+    scheduledForRef.current = key;
+    scheduleTrialNotifications(trialEndsAt).catch(() => { /* notif perms not granted */ });
+  }, [trialEndsAt, isInTrial]);
 
   const tabHome = t('tabHome');
   const tabMeals = t('tabMeals');
@@ -124,11 +138,17 @@ export default function TabLayout() {
       <View style={[desktopStyles.wrapper, { backgroundColor: colors.background }]}>
         <Sidebar />
         <View style={desktopStyles.content}>{tabs}</View>
+        <TrialExpirationModal visible={showExpirationModal} onClose={refresh} />
       </View>
     );
   }
 
-  return tabs;
+  return (
+    <>
+      {tabs}
+      <TrialExpirationModal visible={showExpirationModal} onClose={refresh} />
+    </>
+  );
 }
 
 const desktopStyles = StyleSheet.create({

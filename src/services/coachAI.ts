@@ -10,20 +10,31 @@ export interface ChatHistoryEntry {
   content: string;
 }
 
+export interface QuotaInfo {
+  used: number;
+  cap: number;
+  bonus: number;
+  remaining: number;
+}
+
+export type CoachReply =
+  | { kind: 'ok'; reply: string; quota: QuotaInfo }
+  | { kind: 'quota_exceeded'; message: string; quota: QuotaInfo }
+  | { kind: 'unauthenticated' }
+  | { kind: 'error' };
+
 export async function sendCoachMessage(
   message: string,
   context: CoachContext,
   history: ChatHistoryEntry[],
   memories: CoachMemory[] = [],
-): Promise<string | null> {
-  if (isDemoMode || !SUPABASE_URL) return null;
+): Promise<CoachReply> {
+  if (isDemoMode || !SUPABASE_URL) return { kind: 'error' };
 
   try {
-    // Use session token if authenticated, otherwise use anon key
     const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token || SUPABASE_ANON_KEY || '';
+    if (!session?.access_token) return { kind: 'unauthenticated' };
 
-    // Trim memories to most recent 15 to keep prompt size sane.
     const trimmedMemories = [...memories]
       .sort((a, b) => b.date.localeCompare(a.date))
       .slice(0, 15)
@@ -33,7 +44,7 @@ export async function sendCoachMessage(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${session.access_token}`,
         apikey: SUPABASE_ANON_KEY || '',
       },
       body: JSON.stringify({
@@ -44,13 +55,27 @@ export async function sendCoachMessage(
       }),
     });
 
-    if (!res.ok) return null;
+    if (res.status === 429) {
+      const body = await res.json().catch(() => ({}));
+      return {
+        kind: 'quota_exceeded',
+        message: body?.message ?? 'Limite de messages atteinte aujourd\'hui.',
+        quota: body?.quota ?? { used: 0, cap: 5, bonus: 0, remaining: 0 },
+      };
+    }
+
+    if (res.status === 401) return { kind: 'unauthenticated' };
+    if (!res.ok) return { kind: 'error' };
 
     const data = await res.json();
-    if (data.error) return null;
+    if (data.error || !data.reply) return { kind: 'error' };
 
-    return data.reply || null;
+    return {
+      kind: 'ok',
+      reply: data.reply,
+      quota: data.quota ?? { used: 0, cap: 5, bonus: 0, remaining: 0 },
+    };
   } catch {
-    return null;
+    return { kind: 'error' };
   }
 }

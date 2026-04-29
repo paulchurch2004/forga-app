@@ -102,16 +102,18 @@ export default function PhotoScanScreen() {
       }
 
       setStatus('analyzing');
-      const analysis = await analyzeFoodPhoto(base64);
+      const res = await analyzeFoodPhoto(base64);
 
-      if (analysis) {
-        setResult(analysis);
-        setName(analysis.name);
-        setCalories(String(analysis.calories));
-        setProtein(String(analysis.protein));
-        setCarbs(String(analysis.carbs));
-        setFat(String(analysis.fat));
+      if (res.kind === 'ok') {
+        setResult(res.data);
+        setName(res.data.name);
+        setCalories(String(res.data.calories));
+        setProtein(String(res.data.protein));
+        setCarbs(String(res.data.carbs));
+        setFat(String(res.data.fat));
         setStatus('result');
+      } else if (res.kind === 'quota_exceeded') {
+        router.replace('/paywall?trigger=quota_food_scan');
       } else {
         setStatus('error');
       }
