@@ -50,6 +50,7 @@ import { useProgramStore } from '../../src/store/programStore';
 import { useTrainingStore } from '../../src/store/trainingStore';
 import { useWaterStore } from '../../src/store/waterStore';
 import { useChatStore } from '../../src/store/chatStore';
+import { CoachWelcomeCard } from '../../src/components/coach/CoachWelcomeCard';
 import { getProgramDayById, PROGRAMS } from '../../src/data/programs';
 import { todayLocalIso } from '../../src/utils/date';
 
@@ -216,6 +217,8 @@ export default function CoachScreen() {
   const memories = useChatStore((s) => s.memories);
   const appendChatMessage = useChatStore((s) => s.appendMessage);
   const appendMemory = useChatStore((s) => s.appendMemory);
+  const welcomeDismissed = useChatStore((s) => s.welcomeDismissed);
+  const dismissWelcome = useChatStore((s) => s.dismissWelcome);
   const rotateIfNewWeek = useChatStore((s) => s.rotateIfNewWeek);
 
   // Trigger rotation on mount (in case onRehydrateStorage missed it).
@@ -590,6 +593,13 @@ export default function CoachScreen() {
             keyboardShouldPersistTaps="handled"
             onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
           >
+            {/* Welcome card — shown until user dismisses, reset on logout. */}
+            {!welcomeDismissed && (
+              <CoachWelcomeCard
+                firstName={profile?.name?.split(' ')[0]}
+                onDismiss={dismissWelcome}
+              />
+            )}
             {messages.map((msg) => (
               <View key={msg.id}>
                 <MessageBubble message={msg} />

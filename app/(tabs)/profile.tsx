@@ -208,6 +208,8 @@ export default function ProfileScreen() {
       useScoreStore.getState().reset();
       useAuthStore.getState().reset();
       useWaterStore.getState().reset();
+      const { useChatStore } = await import('../../src/store/chatStore');
+      useChatStore.getState().resetOnLogout();
     } catch (error: any) {
       Alert.alert(t('error'), t('errorOccurred'));
     }
@@ -235,6 +237,10 @@ export default function ProfileScreen() {
     useScoreStore.getState().reset();
     useAuthStore.getState().reset();
     useWaterStore.getState().reset();
+    // Reset coach chat + memories + welcome card so the next user/session
+    // (or the same user logging back in) sees the welcome again.
+    const { useChatStore } = await import('../../src/store/chatStore');
+    useChatStore.getState().resetOnLogout();
   };
 
   const objectiveLabels: Record<string, string> = {

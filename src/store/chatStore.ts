@@ -56,11 +56,17 @@ interface ChatState {
   memories: CoachMemory[];
   /** ISO week-start (Monday) of the conversation. Used to detect rotation. */
   weekStart: string;
+  /** True when the user has tapped "Ne plus afficher" on the welcome card.
+   *  Reset to false on logout so re-logged-in users see it again. */
+  welcomeDismissed: boolean;
 
   appendMessage: (msg: ChatMessage) => void;
   appendMemory: (mem: Omit<CoachMemory, 'id' | 'date'> & { date?: string }) => void;
+  dismissWelcome: () => void;
   /** Wipe all current-week messages but keep memories. Called on week rotation. */
   rotateIfNewWeek: () => void;
+  /** Full reset triggered on logout. Clears messages + memories + welcome flag. */
+  resetOnLogout: () => void;
   clearAll: () => void;
 }
 
@@ -79,6 +85,7 @@ export const useChatStore = create<ChatState>()(
       messages: [],
       memories: [],
       weekStart: getMondayIso(),
+      welcomeDismissed: false,
 
       appendMessage: (msg) =>
         set((s) => ({ messages: [...s.messages, msg] })),
@@ -106,6 +113,8 @@ export const useChatStore = create<ChatState>()(
           return { memories: next };
         }),
 
+      dismissWelcome: () => set({ welcomeDismissed: true }),
+
       rotateIfNewWeek: () => {
         const currentMonday = getMondayIso();
         if (get().weekStart !== currentMonday) {
@@ -113,7 +122,15 @@ export const useChatStore = create<ChatState>()(
         }
       },
 
-      clearAll: () => set({ messages: [], memories: [], weekStart: getMondayIso() }),
+      resetOnLogout: () =>
+        set({
+          messages: [],
+          memories: [],
+          weekStart: getMondayIso(),
+          welcomeDismissed: false,
+        }),
+
+      clearAll: () => set({ messages: [], memories: [], weekStart: getMondayIso(), welcomeDismissed: false }),
     }),
     {
       name: 'forga-chat-store',
@@ -122,6 +139,7 @@ export const useChatStore = create<ChatState>()(
         messages: state.messages,
         memories: state.memories,
         weekStart: state.weekStart,
+        welcomeDismissed: state.welcomeDismissed,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) state.rotateIfNewWeek();
