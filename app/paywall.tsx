@@ -9,6 +9,7 @@ import {
   ScrollView,
   Animated,
   Easing,
+  StyleSheet,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -540,10 +541,7 @@ function VideoPlaceholder() {
       <VideoMontage />
 
       {/* Subtle dark overlay so foreground UI (brackets, timecode, LIVE) stays legible */}
-      <View pointerEvents="none" style={{
-        position: 'absolute', inset: 0,
-        backgroundColor: 'rgba(0,0,0,0.18)',
-      }} />
+      <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.18)' }]} />
 
       {/* Diagonal orange stripes for the "technical" feel */}
       <View pointerEvents="none" style={StyleSheet.absoluteFill}>
