@@ -22,6 +22,7 @@ import { isDemoMode } from '../src/services/supabase';
 import { useUserStore } from '../src/store/userStore';
 import { useAuthStore } from '../src/store/authStore';
 import { events } from '../src/services/analytics';
+import { VideoMontage } from '../src/components/paywall/VideoMontage';
 
 const showAlert = (title: string, message: string) => {
   if (Platform.OS === 'web') {
@@ -535,38 +536,26 @@ function VideoPlaceholder() {
       backgroundColor: TH.surface, borderWidth: 1, borderColor: TH.borderStrong,
       position: 'relative',
     }}>
-      {/* Grid pattern via SVG */}
-      <Svg width="100%" height="100%" style={{ position: 'absolute' }}>
-        <Defs>
-          <Pattern id="grid" width="12" height="12" patternUnits="userSpaceOnUse">
-            <Path d="M 12 0 L 0 0 0 12" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="1" />
-          </Pattern>
-        </Defs>
-        <Rect width="100%" height="100%" fill="url(#grid)" />
-      </Svg>
+      {/* Real fast-cut video montage (10 sport clips, 1s each, looping) */}
+      <VideoMontage />
 
-      {/* Center play */}
-      <View style={{
-        position: 'absolute', left: 0, right: 0, top: 0, bottom: 0,
-        alignItems: 'center', justifyContent: 'center', gap: 8,
-      }}>
-        <LinearGradient
-          colors={[TH.primaryLight, TH.primary, TH.primaryDeep]}
-          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-          style={{
-            width: 36, height: 36, borderRadius: 18,
-            alignItems: 'center', justifyContent: 'center',
-            shadowColor: TH.primary, shadowOpacity: 0.5, shadowRadius: 10, shadowOffset: { width: 0, height: 0 },
-          }}
-        >
-          <Svg width={14} height={14} viewBox="0 0 14 14" fill="none">
-            <Path d="M3 2 L11 7 L3 12 Z" fill={TH.bg} />
-          </Svg>
-        </LinearGradient>
-        <Text style={{
-          fontFamily: fonts.data, fontSize: 8.5,
-          letterSpacing: 1.7, color: TH.textMuted, textTransform: 'uppercase',
-        }}>Vidéo · 0:30</Text>
+      {/* Subtle dark overlay so foreground UI (brackets, timecode, LIVE) stays legible */}
+      <View pointerEvents="none" style={{
+        position: 'absolute', inset: 0,
+        backgroundColor: 'rgba(0,0,0,0.18)',
+      }} />
+
+      {/* Diagonal orange stripes for the "technical" feel */}
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <Svg width="100%" height="100%">
+          <Defs>
+            <Pattern id="stripes" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <Rect width="14" height="14" fill="transparent" />
+              <Rect width="1" height="14" fill="rgba(255,107,44,0.10)" />
+            </Pattern>
+          </Defs>
+          <Rect width="100%" height="100%" fill="url(#stripes)" />
+        </Svg>
       </View>
 
       {/* Corner brackets */}
@@ -578,7 +567,8 @@ function VideoPlaceholder() {
       {/* Timecode */}
       <Text style={{
         position: 'absolute', bottom: 6, left: 10,
-        fontFamily: fonts.data, fontSize: 8, letterSpacing: 1.2, color: TH.textDim,
+        fontFamily: fonts.data, fontSize: 8, letterSpacing: 1.2, color: '#FFFFFF',
+        opacity: 0.85,
       }}>REC · 00:00:30</Text>
     </View>
   );
