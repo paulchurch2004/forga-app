@@ -435,6 +435,8 @@ export default function SettingsScreen() {
 function VersionFooter() {
   const showDebug = useSettingsStore((s) => s.showCoreStateDebug);
   const setShowDebug = useSettingsStore((s) => s.setShowCoreStateDebug);
+  const profile = useUserStore((s) => s.profile);
+  const updateProfile = useUserStore((s) => s.updateProfile);
   const version = Constants.expoConfig?.version ?? '1.0.0';
   const build =
     (Constants.expoConfig?.ios as any)?.buildNumber ??
@@ -442,15 +444,42 @@ function VersionFooter() {
     '—';
 
   const handleLongPress = () => {
-    const next = !showDebug;
-    setShowDebug(next);
+    const isPremiumNow = !!profile?.isPremium;
+    const togglePremium = () => {
+      updateProfile({
+        isPremium: !isPremiumNow,
+        // When turning OFF, expire the trial so the paywall opens up.
+        // When turning ON, give a 7-day window so the app behaves like trial.
+        premiumUntil: !isPremiumNow
+          ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+          : new Date(Date.now() - 1000).toISOString(),
+      });
+      Alert.alert(
+        'Premium dev',
+        !isPremiumNow ? 'Premium activé (trial 7j).' : 'Premium désactivé. Le paywall est maintenant accessible.'
+      );
+    };
+    const toggleDebug = () => {
+      const next = !showDebug;
+      setShowDebug(next);
+      Alert.alert('Core State', next ? 'Debug activé sur le profil.' : 'Debug désactivé.');
+    };
     Alert.alert(
-      'FORGA Core State',
-      next
-        ? 'Debug card activé sur le profil.'
-        : 'Debug card désactivé.',
+      'Dev menu',
+      `Build ${build} · ${isPremiumNow ? 'Premium ON' : 'Premium OFF'} · ${showDebug ? 'Debug ON' : 'Debug OFF'}`,
+      [
+        { text: isPremiumNow ? 'Désactiver Premium' : 'Activer Premium (7j)', onPress: togglePremium },
+        { text: showDebug ? 'Désactiver Core State Debug' : 'Activer Core State Debug', onPress: toggleDebug },
+        { text: 'Annuler', style: 'cancel' },
+      ],
+      { cancelable: true }
     );
   };
+
+  const flags = [
+    showDebug ? 'debug' : null,
+    profile?.isPremium ? 'PRO' : null,
+  ].filter(Boolean).join(' · ');
 
   return (
     <Pressable
@@ -460,7 +489,7 @@ function VersionFooter() {
       hitSlop={8}
     >
       <Text style={{ fontFamily: 'System', fontSize: 11, color: 'rgba(255,255,255,0.30)' }}>
-        FORGA · v{version} (build {build}){showDebug ? ' · debug ON' : ''}
+        FORGA · v{version} (build {build}){flags ? ` · ${flags}` : ''}
       </Text>
     </Pressable>
   );

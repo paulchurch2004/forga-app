@@ -179,7 +179,8 @@ export default function Step7Summary() {
         streakFreezeUsedThisWeek: false,
         forgaScore: 0,
         isPremium: true,
-        premiumUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        // 7-day free trial — aligned with the paywall messaging "Commencer l'essai gratuit 7 jours".
+        premiumUntil: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         referralCode: myReferralCode,
         referralCount: 0,
         referredBy: referredByCode,
