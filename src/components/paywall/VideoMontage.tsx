@@ -3,34 +3,32 @@ import { View, Animated, StyleSheet, Platform } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 
 /**
- * Curated list of short sports / extreme effort clips, looped at 1s each.
- * Mix of men + women in training, base jump, boxing, F1, tennis.
- *
- * Sources: Pexels free stock video CDN (no auth required).
- * If any URL 404s, swap it from https://www.pexels.com/search/videos/<keyword>/
- * by clicking a video and copying its "Free Download" MP4 link.
+ * Curated list of 10 short sports / extreme effort clips, looped at 1s each.
+ * Source: Mixkit free stock video CDN — verified live (HTTP 206 streaming OK).
+ * If any URL ever 404s, swap by browsing https://mixkit.co/free-stock-video/<keyword>/
+ * and grabbing the 1080p MP4 link.
  */
 const CLIPS: string[] = [
-  // Male workout — heavy lifting
-  'https://videos.pexels.com/video-files/4754155/4754155-hd_1080_1920_30fps.mp4',
-  // Female workout — push-ups / functional
-  'https://videos.pexels.com/video-files/4761711/4761711-hd_1080_1920_30fps.mp4',
-  // Boxing
-  'https://videos.pexels.com/video-files/4045334/4045334-hd_1080_1920_30fps.mp4',
-  // Formula 1 / race car
-  'https://videos.pexels.com/video-files/1409899/1409899-hd_1920_1080_24fps.mp4',
-  // Tennis
-  'https://videos.pexels.com/video-files/5275061/5275061-hd_1920_1080_25fps.mp4',
-  // Base jump / skydive
-  'https://videos.pexels.com/video-files/3045163/3045163-hd_1920_1080_30fps.mp4',
-  // Female athlete running
-  'https://videos.pexels.com/video-files/4754059/4754059-hd_1080_1920_30fps.mp4',
-  // Male bodyweight / pull-ups
-  'https://videos.pexels.com/video-files/4761350/4761350-hd_1080_1920_30fps.mp4',
-  // Sport car drift
-  'https://videos.pexels.com/video-files/855971/855971-hd_1920_1080_24fps.mp4',
-  // Boxing female
-  'https://videos.pexels.com/video-files/4623891/4623891-hd_1080_1920_30fps.mp4',
+  // Boxing — heavy bag training
+  'https://assets.mixkit.co/videos/40954/40954-1080.mp4',
+  // Female workout / running on treadmill
+  'https://assets.mixkit.co/videos/32809/32809-1080.mp4',
+  // Boxing combat 2 — sparring
+  'https://assets.mixkit.co/videos/40969/40969-1080.mp4',
+  // Tennis serve
+  'https://assets.mixkit.co/videos/869/869-1080.mp4',
+  // Race car — circuit
+  'https://assets.mixkit.co/videos/615/615-1080.mp4',
+  // Skydive / parachute
+  'https://assets.mixkit.co/videos/4052/4052-1080.mp4',
+  // Athlete running / sprint outdoor
+  'https://assets.mixkit.co/videos/606/606-1080.mp4',
+  // Boxing 3 — gym training
+  'https://assets.mixkit.co/videos/40962/40962-1080.mp4',
+  // Tennis 2 — rally
+  'https://assets.mixkit.co/videos/876/876-1080.mp4',
+  // Workout / fitness moves
+  'https://assets.mixkit.co/videos/608/608-1080.mp4',
 ];
 
 const CLIP_DURATION_MS = 1000;
