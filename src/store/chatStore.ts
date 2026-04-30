@@ -22,6 +22,8 @@ export interface ChatMessage {
   timestamp: number;
   /** Optional structured actions parsed from the coach reply (display-only persistence). */
   actions?: unknown[]; // CoachAction[] but kept loose to avoid circular import
+  /** System-style notice rendered as a centered card with a CTA (e.g. quota exceeded). */
+  kind?: 'quota_notice';
 }
 
 export type MemoryTag =

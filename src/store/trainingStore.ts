@@ -3,10 +3,27 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Workout, WorkoutType } from '../types/training';
 import { todayLocalIso, localIso } from '../utils/date';
+import { estimateOneRMEpley } from '../engine/oneRepMax';
+
+export interface OneRepMaxRecord {
+  /** Estimated 1RM in kg (Epley). */
+  value: number;
+  weight: number;
+  reps: number;
+  achievedAt: string; // ISO timestamp
+}
+
+export interface UpdateOneRMResult {
+  isNewOneRM: boolean;
+  newValue: number;
+  previousValue: number;
+}
 
 interface TrainingState {
   workouts: Record<string, Workout[]>; // key = 'YYYY-MM-DD'
   lastWorkoutDate: string;
+  /** Highest estimated 1RM ever achieved per exercise. */
+  oneRepMaxByExercise: Record<string, OneRepMaxRecord>;
 
   addWorkout: (workout: Workout) => void;
   removeWorkout: (date: string, workoutId: string) => void;
@@ -22,6 +39,10 @@ interface TrainingState {
   getLastSessionForExercise: (exerciseId: string) => { reps: number; weight: number }[] | null;
   getPersonalRecord: (exerciseId: string) => { weight: number; reps: number; date: string } | null;
   isNewPR: (exerciseId: string, weight: number) => boolean;
+  /** Update the user's 1RM for an exercise if this set produces a new estimated max. */
+  updateOneRepMax: (exerciseId: string, weight: number, reps: number) => UpdateOneRMResult;
+  /** Read the current 1RM record for an exercise, or undefined. */
+  getOneRepMax: (exerciseId: string) => OneRepMaxRecord | undefined;
   checkDayReset: () => void;
   reset: () => void;
 }
@@ -31,6 +52,30 @@ export const useTrainingStore = create<TrainingState>()(
     (set, get) => ({
       workouts: {},
       lastWorkoutDate: todayLocalIso(),
+      oneRepMaxByExercise: {},
+
+      updateOneRepMax: (exerciseId, weight, reps) => {
+        const newValue = Math.round(estimateOneRMEpley(weight, reps));
+        const current = get().oneRepMaxByExercise[exerciseId];
+        const previousValue = current?.value ?? 0;
+        if (newValue > previousValue) {
+          set((state) => ({
+            oneRepMaxByExercise: {
+              ...state.oneRepMaxByExercise,
+              [exerciseId]: {
+                value: newValue,
+                weight,
+                reps,
+                achievedAt: new Date().toISOString(),
+              },
+            },
+          }));
+          return { isNewOneRM: true, newValue, previousValue };
+        }
+        return { isNewOneRM: false, newValue, previousValue };
+      },
+
+      getOneRepMax: (exerciseId) => get().oneRepMaxByExercise[exerciseId],
 
       addWorkout: (workout) =>
         set((state) => ({
@@ -232,7 +277,7 @@ export const useTrainingStore = create<TrainingState>()(
         }
       },
 
-      reset: () => set({ workouts: {}, lastWorkoutDate: todayLocalIso() }),
+      reset: () => set({ workouts: {}, lastWorkoutDate: todayLocalIso(), oneRepMaxByExercise: {} }),
     }),
     {
       name: 'forga-training-store',
@@ -240,6 +285,7 @@ export const useTrainingStore = create<TrainingState>()(
       partialize: (state) => ({
         workouts: state.workouts,
         lastWorkoutDate: state.lastWorkoutDate,
+        oneRepMaxByExercise: state.oneRepMaxByExercise,
       }),
       onRehydrateStorage: () => (state) => {
         // Run AFTER persist has loaded data from AsyncStorage

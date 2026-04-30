@@ -25,6 +25,8 @@ import { SelectedDayCard, type SelectedDayState, type SelectedDayExercise } from
 import { ProgramSelectorSheet } from '../../src/components/training/ProgramSelectorSheet';
 import { HistorySheet, type HistoryItem } from '../../src/components/training/HistorySheet';
 import { ReplaceExerciseSheet, type SubstituteOption } from '../../src/components/training/ReplaceExerciseSheet';
+import { buildSubstitutesFor as buildSubstitutesForId } from '../../src/utils/exerciseSubstitutes';
+import { TrainingSetupWizard } from '../../src/components/training/TrainingSetupWizard';
 import { StatsSheet } from '../../src/components/training/StatsSheet';
 import { SessionActionsSheet, type SessionAction } from '../../src/components/training/SessionActionsSheet';
 import { SessionPreviewSheet } from '../../src/components/training/SessionPreviewSheet';
@@ -48,6 +50,7 @@ export default function TrainingScreen() {
   const styles = useStyles();
   const { colors } = useTheme();
   const profile = useUserStore((s) => s.profile);
+  const updateProfile = useUserStore((s) => s.updateProfile);
   const {
     recentWorkouts,
     weeklyCount,
@@ -496,11 +499,40 @@ export default function TrainingScreen() {
             </View>
           )}
 
-          <ProgramSelector
-            recommendedId={recommendedProgramId}
-            objective={objective}
-            onSelect={selectProgram}
-          />
+          {/* New user with no training profile \u2192 guided 3-question wizard.
+              Returning user OR after expired plan \u2192 direct program list. */}
+          {!profile?.trainingLevel && !isPlanExpired ? (
+            <TrainingSetupWizard
+              objective={objective}
+              sex={profile?.sex ?? 'male'}
+              age={profile?.age ?? 25}
+              onConfirm={(programId, level, frequency, equipment) => {
+                triggerHaptic();
+                updateProfile({
+                  trainingLevel: level,
+                  trainingFrequency: frequency,
+                  equipmentAccess: equipment,
+                });
+                selectProgram(programId, objective);
+              }}
+              onBrowseAll={() => {
+                triggerHaptic();
+                // User skips the wizard \u2014 record minimal defaults so the next
+                // visit goes straight to the full program list.
+                updateProfile({
+                  trainingLevel: 'beginner',
+                  trainingFrequency: 3,
+                  equipmentAccess: 'full_gym',
+                });
+              }}
+            />
+          ) : (
+            <ProgramSelector
+              recommendedId={recommendedProgramId}
+              objective={objective}
+              onSelect={selectProgram}
+            />
+          )}
 
           {/* Manual workout always accessible */}
           <Pressable
@@ -661,7 +693,13 @@ export default function TrainingScreen() {
     <ProgramSelectorSheet
       open={activeSheet === 'program'}
       onClose={() => setActiveSheet(null)}
-      programs={PROGRAM_IDS.map((id) => PROGRAMS[id]).filter(Boolean)}
+      programs={PROGRAM_IDS
+        .map((id) => PROGRAMS[id])
+        .filter((p) => {
+          if (!p) return false;
+          if (!p.sexVariant || p.sexVariant === 'unisex') return true;
+          return p.sexVariant === profile?.sex;
+        })}
       currentId={activeProgram?.id}
       recommendedId={recommendedProgramId}
       onSelect={(id) => {
@@ -743,38 +781,9 @@ export default function TrainingScreen() {
   );
 }
 
-/** Build a list of suggested substitute exercises for a given exercise. */
+/** Wrapper around the shared substitutes util — adapts SelectedDayExercise to the util's input shape. */
 function buildSubstitutesFor(target: SelectedDayExercise): SubstituteOption[] {
-  const map: Record<string, SubstituteOption[]> = {
-    bench_press: [
-      { id: 'incline_db_press', name: 'Développé incliné haltères', sets: target.sets, reps: target.reps, match: 95 },
-      { id: 'incline_press', name: 'Développé incliné barre', sets: target.sets, reps: target.reps, match: 92 },
-      { id: 'dips', name: 'Dips pectoraux', sets: target.sets, reps: '8-12', match: 78 },
-      { id: 'cable_fly', name: 'Écarté à la poulie', sets: target.sets, reps: '12-15', match: 65 },
-    ],
-    squat: [
-      { id: 'front_squat', name: 'Front Squat', sets: target.sets, reps: target.reps, match: 92 },
-      { id: 'goblet_squat', name: 'Goblet Squat', sets: target.sets, reps: target.reps, match: 85 },
-      { id: 'leg_press', name: 'Presse à cuisses', sets: target.sets, reps: '10-12', match: 80 },
-      { id: 'bulgarian_split_squat', name: 'Bulgarian Split Squat', sets: target.sets, reps: '10-12/jambe', match: 75 },
-    ],
-    deadlift: [
-      { id: 'sumo_deadlift', name: 'Soulevé de terre Sumo', sets: target.sets, reps: target.reps, match: 92 },
-      { id: 'romanian_deadlift', name: 'Soulevé de terre roumain', sets: target.sets, reps: '8-10', match: 85 },
-      { id: 'rack_pull', name: 'Rack Pull', sets: target.sets, reps: target.reps, match: 80 },
-    ],
-    barbell_rows: [
-      { id: 't_bar_row', name: 'T-Bar Row', sets: target.sets, reps: target.reps, match: 92 },
-      { id: 'pendlay_row', name: 'Pendlay Row', sets: target.sets, reps: target.reps, match: 88 },
-      { id: 'seated_cable_row', name: 'Rowing assis à la poulie', sets: target.sets, reps: '10-12', match: 80 },
-    ],
-    hip_thrust: [
-      { id: 'single_leg_hip_thrust', name: 'Hip Thrust unilatéral', sets: target.sets, reps: '10-12/jambe', match: 90 },
-      { id: 'glute_bridge', name: 'Glute Bridge', sets: target.sets, reps: '15-20', match: 80 },
-      { id: 'cable_kickbacks', name: 'Cable Kickbacks', sets: target.sets, reps: '12-15/jambe', match: 70 },
-    ],
-  };
-  return map[target.id] ?? [];
+  return buildSubstitutesForId({ id: target.id, sets: target.sets, reps: target.reps });
 }
 
 const useStyles = makeStyles((colors) => ({

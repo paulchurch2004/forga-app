@@ -11,6 +11,8 @@ interface SetCardV2Props {
   weight: string; // editable string
   reps: string; // editable string
   targetReps?: number;
+  /** % of 1RM this weight represents (0 = unknown, hides the hint). */
+  percentOneRM?: number;
   onChangeWeight?: (v: string) => void;
   onChangeReps?: (v: string) => void;
   onValidate?: () => void;
@@ -22,6 +24,7 @@ export function SetCardV2({
   weight,
   reps,
   targetReps,
+  percentOneRM,
   onChangeWeight,
   onChangeReps,
   onValidate,
@@ -57,6 +60,7 @@ export function SetCardV2({
           editable={isCurrent}
           onChangeText={onChangeWeight}
           isDone={isDone}
+          hint={percentOneRM && percentOneRM > 0 ? `${percentOneRM}% 1RM` : undefined}
         />
         <Field
           label="REPS"
@@ -88,6 +92,7 @@ function Field({
   editable,
   onChangeText,
   isDone,
+  hint,
 }: {
   label: string;
   value: string;
@@ -95,6 +100,7 @@ function Field({
   editable: boolean;
   onChangeText?: (v: string) => void;
   isDone: boolean;
+  hint?: string;
 }) {
   return (
     <View style={styles.field}>
@@ -115,6 +121,7 @@ function Field({
         )}
         {unit ? <Text style={styles.fieldUnit}>{unit}</Text> : null}
       </View>
+      {hint ? <Text style={styles.fieldHint}>{hint}</Text> : null}
     </View>
   );
 }
@@ -191,6 +198,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body,
     fontSize: 10,
     color: 'rgba(255,255,255,0.38)',
+  },
+  fieldHint: {
+    fontFamily: fonts.data,
+    fontSize: 9.5,
+    color: '#FF6B35',
+    marginTop: 2,
+    letterSpacing: 0.4,
   },
   checkBadge: {
     width: 32,

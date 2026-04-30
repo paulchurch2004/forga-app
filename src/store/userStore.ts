@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { UserProfile, OnboardingData, Badge, WeightEntry, WeeklyCheckIn, BodyMeasurement, ProgressPhoto } from '../types/user';
+import type { StrengthTestResult } from '../types/strength';
 
 interface UserState {
   profile: UserProfile | null;
@@ -11,6 +12,7 @@ interface UserState {
   checkIns: WeeklyCheckIn[];
   measurements: BodyMeasurement[];
   progressPhotos: ProgressPhoto[];
+  strengthTest: StrengthTestResult | null;
 
   setProfile: (profile: UserProfile | null) => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
@@ -26,6 +28,7 @@ interface UserState {
   addMeasurement: (measurement: BodyMeasurement) => void;
   addProgressPhoto: (photo: ProgressPhoto) => void;
   removeProgressPhoto: (id: string) => void;
+  setStrengthTest: (result: StrengthTestResult | null) => void;
   reset: () => void;
 }
 
@@ -41,8 +44,10 @@ export const useUserStore = create<UserState>()(
       checkIns: [],
       measurements: [],
       progressPhotos: [],
+      strengthTest: null,
 
       setProfile: (profile) => set({ profile }),
+      setStrengthTest: (result) => set({ strengthTest: result }),
       updateProfile: (updates) =>
         set((state) => ({
           profile: state.profile ? { ...state.profile, ...updates } : null,
@@ -77,6 +82,7 @@ export const useUserStore = create<UserState>()(
           checkIns: [],
           measurements: [],
           progressPhotos: [],
+          strengthTest: null,
         }),
     }),
     {
@@ -89,6 +95,7 @@ export const useUserStore = create<UserState>()(
         checkIns: state.checkIns,
         measurements: state.measurements,
         progressPhotos: state.progressPhotos,
+        strengthTest: state.strengthTest,
       }),
     }
   )

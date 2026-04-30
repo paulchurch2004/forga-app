@@ -9,6 +9,7 @@ import {
   Alert,
   Image,
   Modal,
+  Vibration,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -26,10 +27,15 @@ import { syncWorkout } from '../src/services/userSync';
 import { useAuthStore } from '../src/store/authStore';
 import { useProgramStore } from '../src/store/programStore';
 import { useUserStore } from '../src/store/userStore';
+import { getStartingWeightForExercise } from '../src/services/strengthTest';
 import { getRestConfig, formatRestTime as fmtRest } from '../src/engine/restEngine';
+import { suggestNextWeight, type SessionRecord } from '../src/engine/oneRepMax';
 import { RestCircleTimer } from '../src/components/training/RestCircleTimer';
 import { SessionForgee } from '../src/components/training/SessionForgee';
 import { LiveCoachIntervention, type LiveCoachKind } from '../src/components/coach/LiveCoachIntervention';
+import { ReplaceExerciseSheet } from '../src/components/training/ReplaceExerciseSheet';
+import { buildSubstitutesFor } from '../src/utils/exerciseSubstitutes';
+import { DeloadBanner } from '../src/components/training/DeloadBanner';
 import { WorkoutTopBar } from '../src/components/training/WorkoutTopBar';
 import { ExerciseHeader } from '../src/components/training/ExerciseHeader';
 import { ExerciseDemoCard } from '../src/components/training/ExerciseDemoCard';
@@ -122,6 +128,10 @@ interface ActiveExercise {
   weightTip?: string;
   adjustedReps: number;
   adjustedSets: number;
+  /** True when the engine detected a stagnation pattern and suggests a deload. */
+  deloadSuggested?: boolean;
+  /** Top weight of the last recorded session (kg). Used to revert if user dismisses deload. */
+  previousTopWeight?: number;
 }
 
 export default function ActiveWorkoutScreen() {
@@ -139,9 +149,11 @@ export default function ActiveWorkoutScreen() {
   const addWorkout = useTrainingStore((s) => s.addWorkout);
   const markDayCompleted = useProgramStore((s) => s.markDayCompleted);
   const getLastSession = useTrainingStore((s) => s.getLastSessionForExercise);
+  const getExerciseHistory = useTrainingStore((s) => s.getExerciseHistory);
   const userId = useAuthStore((s) => s.session?.user?.id);
   const objective = useUserStore((s) => s.profile?.objective ?? 'maintain');
   const profile = useUserStore((s) => s.profile);
+  const strengthTest = useUserStore((s) => s.strengthTest);
 
   const programDay = useMemo(
     () => getProgramDayById(params.programId, params.programDayId),
@@ -184,6 +196,7 @@ export default function ActiveWorkoutScreen() {
   const [showSessionForgee, setShowSessionForgee] = useState(false);
   const [forgeeStats, setForgeeStats] = useState({ durationMin: 0, volumeKg: 0, prCount: 0 });
   const [liveCoach, setLiveCoach] = useState<LiveCoachKind | null>(null);
+  const [liveSwapExIdx, setLiveSwapExIdx] = useState<number | null>(null);
   const liveCoachShownRef = useRef<Set<string>>(new Set());
   const [finisherTimer, setFinisherTimer] = useState(0);
   const [finisherRunning, setFinisherRunning] = useState(false);
@@ -214,13 +227,70 @@ export default function ActiveWorkoutScreen() {
         if (prev <= 1) {
           clearInterval(restRef.current!);
           setIsResting(false);
+          // Stronger end-of-rest signal: distinct vibration pattern + double haptic
+          // (replace with sound via expo-av once installed)
+          if (Platform.OS !== 'web') {
+            Vibration.vibrate([0, 200, 100, 200]);
+          }
           triggerHaptic('medium');
+          setTimeout(() => triggerHaptic('success'), 250);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
   }, []);
+
+  const handleAcceptDeload = useCallback((exIdx: number) => {
+    // The engine already pre-filled sets with the deload weight. Just hide the banner.
+    setExercises((prev) =>
+      prev.map((ex, i) => (i === exIdx ? { ...ex, deloadSuggested: false } : ex)),
+    );
+    triggerHaptic('medium');
+  }, []);
+
+  const handleDismissDeload = useCallback((exIdx: number) => {
+    // Revert sets to the previous session's top weight (user wants to push through).
+    setExercises((prev) => {
+      const next = [...prev];
+      const ex = next[exIdx];
+      if (!ex) return prev;
+      const original = ex.previousTopWeight ?? 0;
+      next[exIdx] = {
+        ...ex,
+        deloadSuggested: false,
+        weightTip: `Charge maintenue à ${original} kg`,
+        sets: ex.sets.map((s) =>
+          s.completed ? s : { ...s, weight: original > 0 ? String(original) : '' },
+        ),
+      };
+      return next;
+    });
+  }, []);
+
+  const handleLiveExerciseSwap = useCallback(
+    (exIdx: number, newExerciseId: string) => {
+      setExercises((prev) => {
+        const next = [...prev];
+        const oldEx = next[exIdx];
+        const newDef = EXERCISES[newExerciseId];
+        if (!oldEx || !newDef) return prev;
+        // Keep completed sets (history), reset upcoming sets weight to user input
+        next[exIdx] = {
+          ...oldEx,
+          exerciseId: newExerciseId,
+          nameKey: newDef.nameKey,
+          sets: oldEx.sets.map((s) =>
+            s.completed ? s : { ...s, weight: '', actualReps: String(oldEx.adjustedReps) },
+          ),
+        };
+        return next;
+      });
+      setLiveSwapExIdx(null);
+      triggerHaptic('medium');
+    },
+    [],
+  );
 
   const skipRest = useCallback(() => {
     if (restRef.current) clearInterval(restRef.current);
@@ -252,18 +322,37 @@ export default function ActiveWorkoutScreen() {
         adjustedReps = pe.targetReps + 2;
       }
 
-      // Smart weight suggestion
+      // Smart weight suggestion via the v3 engine (handles +increment, deload, no-history fallback)
       let suggestedWeight = lastWeight;
       let weightTip = '';
+      let deloadSuggested = false;
+      let previousTopWeight = 0;
 
-      if (lastWeight > 0 && lastSession) {
-        const allRepsHit = lastSession.every((s) => s.reps >= adjustedReps);
-        if (allRepsHit) {
-          const increment = isCompound ? 2.5 : 1;
-          suggestedWeight = lastWeight + increment;
-          weightTip = `+${increment}kg vs last`;
+      const history = getExerciseHistory(pe.exerciseId);
+      const sessionRecords: SessionRecord[] = history.map((h) => ({
+        date: h.date,
+        sets: h.sets,
+      }));
+
+      if (sessionRecords.length > 0) {
+        const suggestion = suggestNextWeight(sessionRecords, isCompound, adjustedReps);
+        suggestedWeight = suggestion.weight;
+        weightTip = suggestion.reason;
+        deloadSuggested = suggestion.deloadSuggested;
+        // Capture last session top weight (used to revert if user dismisses deload)
+        const lastSorted = [...sessionRecords].sort((a, b) => a.date.localeCompare(b.date));
+        const lastSets = lastSorted[lastSorted.length - 1]?.sets ?? [];
+        previousTopWeight = [...lastSets]
+          .sort((a, b) => (b?.weight ?? 0) - (a?.weight ?? 0))[0]?.weight ?? 0;
+      } else if (strengthTest?.startingWeights) {
+        const seed = getStartingWeightForExercise(pe.exerciseId, strengthTest.startingWeights);
+        if (seed > 0) {
+          suggestedWeight = seed;
+          weightTip = 'Charge calibrée selon ton test';
         } else {
-          weightTip = t('weightTipSameWeight' as any);
+          weightTip = isCompound
+            ? t('weightTipCompound' as any)
+            : t('weightTipIsolation' as any);
         }
       } else {
         weightTip = isCompound
@@ -287,6 +376,8 @@ export default function ActiveWorkoutScreen() {
         adjustedSets: pe.targetSets,
         programExercise: pe,
         sets,
+        deloadSuggested,
+        previousTopWeight,
       };
     });
   });
@@ -327,8 +418,9 @@ export default function ActiveWorkoutScreen() {
       if (set && !set.completed) {
         triggerHaptic('medium');
 
-        // Check for new Personal Record
+        // Check for new Personal Record (by weight)
         const weight = parseFloat(set.weight || '0');
+        const reps = parseInt(set.actualReps || '0', 10);
         const exerciseId = exercises[exIdx]?.exerciseId;
         if (weight > 0 && exerciseId) {
           const isNewPR = useTrainingStore.getState().isNewPR(exerciseId, weight);
@@ -336,6 +428,10 @@ export default function ActiveWorkoutScreen() {
             triggerHaptic('success');
             setPrAlert(exerciseId);
             setTimeout(() => setPrAlert(null), 3000);
+          }
+          // Update estimated 1RM (Epley) — silent, just persists the new max
+          if (reps > 0) {
+            useTrainingStore.getState().updateOneRepMax(exerciseId, weight, reps);
           }
         }
 
@@ -582,6 +678,32 @@ export default function ActiveWorkoutScreen() {
                 trendKg={trendKg}
               />
 
+              <View style={styles.exerciseActions}>
+                <Pressable
+                  style={styles.swapBtn}
+                  onPress={() => {
+                    triggerHaptic('light');
+                    setLiveSwapExIdx(exIdx);
+                  }}
+                  hitSlop={6}
+                >
+                  <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
+                    <Path d="M8 7h12M8 7l4-4M8 7l4 4M16 17H4M16 17l-4-4M16 17l-4 4" stroke="#FF6B35" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                  </Svg>
+                  <Text style={styles.swapBtnText}>Remplacer</Text>
+                </Pressable>
+              </View>
+
+              {ex.deloadSuggested && (
+                <DeloadBanner
+                  exerciseName={t(ex.nameKey as any)}
+                  currentWeight={ex.previousTopWeight ?? 0}
+                  suggestedWeight={parseFloat(ex.sets[0]?.weight || '0') || 0}
+                  onAccept={() => handleAcceptDeload(exIdx)}
+                  onDismiss={() => handleDismissDeload(exIdx)}
+                />
+              )}
+
               <ExerciseDemoCard
                 imageUri={EXERCISES[ex.exerciseId]?.gifUrl}
                 onPlayDemo={() => {
@@ -595,26 +717,34 @@ export default function ActiveWorkoutScreen() {
 
               <Text style={styles.sectionLabelV2}>SÉRIES</Text>
 
-              {ex.sets.map((set, setIdx) => {
-                const setState: SetCardState = set.completed
-                  ? 'done'
-                  : setIdx === currentSetIdx
-                  ? 'current'
-                  : 'upcoming';
-                return (
-                  <SetCardV2
-                    key={set.id}
-                    index={setIdx + 1}
-                    state={setState}
-                    weight={set.weight}
-                    reps={set.actualReps}
-                    targetReps={set.targetReps}
-                    onChangeWeight={(v) => updateSet(exIdx, setIdx, 'weight', v.replace(/[^0-9.]/g, ''))}
-                    onChangeReps={(v) => updateSet(exIdx, setIdx, 'actualReps', v.replace(/[^0-9]/g, ''))}
-                    onValidate={() => toggleSet(exIdx, setIdx)}
-                  />
-                );
-              })}
+              {(() => {
+                const oneRM = useTrainingStore.getState().getOneRepMax(ex.exerciseId);
+                return ex.sets.map((set, setIdx) => {
+                  const setState: SetCardState = set.completed
+                    ? 'done'
+                    : setIdx === currentSetIdx
+                    ? 'current'
+                    : 'upcoming';
+                  const setWeight = parseFloat(set.weight || '0') || 0;
+                  const pct = oneRM && oneRM.value > 0 && setWeight > 0
+                    ? Math.round((setWeight / oneRM.value) * 100)
+                    : 0;
+                  return (
+                    <SetCardV2
+                      key={set.id}
+                      index={setIdx + 1}
+                      state={setState}
+                      weight={set.weight}
+                      reps={set.actualReps}
+                      targetReps={set.targetReps}
+                      percentOneRM={pct}
+                      onChangeWeight={(v) => updateSet(exIdx, setIdx, 'weight', v.replace(/[^0-9.]/g, ''))}
+                      onChangeReps={(v) => updateSet(exIdx, setIdx, 'actualReps', v.replace(/[^0-9]/g, ''))}
+                      onValidate={() => toggleSet(exIdx, setIdx)}
+                    />
+                  );
+                });
+              })()}
 
               {showPrAlert && pr && (
                 <PrNearAlert currentPrKg={pr.weight} targetKg={pr.weight + 2} />
@@ -801,11 +931,58 @@ export default function ActiveWorkoutScreen() {
           onDismiss={() => setLiveCoach(null)}
         />
       )}
+
+      {/* Live exercise swap — replace current exercise with a substitute */}
+      <ReplaceExerciseSheet
+        open={liveSwapExIdx !== null}
+        onClose={() => setLiveSwapExIdx(null)}
+        originalName={liveSwapExIdx !== null ? t(exercises[liveSwapExIdx]?.nameKey as any) : undefined}
+        substitutes={
+          liveSwapExIdx !== null
+            ? buildSubstitutesFor({
+                id: exercises[liveSwapExIdx]?.exerciseId ?? '',
+                sets: exercises[liveSwapExIdx]?.adjustedSets ?? 3,
+                reps: exercises[liveSwapExIdx]?.adjustedReps ?? 10,
+              })
+            : []
+        }
+        onPick={(sub) => {
+          if (liveSwapExIdx === null) return;
+          handleLiveExerciseSwap(liveSwapExIdx, sub.id);
+        }}
+      />
     </View>
   );
 }
 
 const useStyles = makeStyles((colors) => ({
+  exerciseActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  swapBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,107,53,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,107,53,0.30)',
+  },
+  swapBtnText: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FF6B35',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
   container: {
     flex: 1,
     backgroundColor: colors.background,
