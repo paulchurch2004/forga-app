@@ -241,6 +241,28 @@ export const useProgramStore = create<ProgramState>()(
         activePlan: state.activePlan, // includes exerciseOverrides
         completedDays: state.completedDays,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Detect stale plans created against the old (pre-v3) program library.
+        // If the plan's programDayIds don't resolve in the current PROGRAMS,
+        // clear it so the user lands on the ProgramSelector instead of seeing
+        // an empty week.
+        if (!state?.activePlan) return;
+        const trainingDay = state.activePlan.days.find(
+          (d) => d.programDayId && !d.programDayId.startsWith('cardio_'),
+        );
+        if (!trainingDay?.programDayId) return;
+        const resolved = getProgramDayById(state.activePlan.programId, trainingDay.programDayId);
+        if (!resolved) {
+          if (__DEV__) {
+            console.warn(
+              '[ProgramStore] Stale plan detected (programDayId not resolvable). Clearing.',
+              { programId: state.activePlan.programId, dayId: trainingDay.programDayId },
+            );
+          }
+          state.activePlan = null;
+          state.completedDays = {};
+        }
+      },
     }
   )
 );

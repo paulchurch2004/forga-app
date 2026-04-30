@@ -4,6 +4,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
 import { useT } from '../../i18n';
 import { PROGRAMS, PROGRAM_IDS } from '../../data/programs';
+import { useUserStore } from '../../store/userStore';
 import type { ProgramId } from '../../types/program';
 import type { Objective } from '../../types/user';
 
@@ -23,11 +24,19 @@ interface Props {
 export function ProgramSelector({ recommendedId, objective, onSelect }: Props) {
   const styles = useStyles();
   const { t } = useT();
+  const sex = useUserStore((s) => s.profile?.sex);
+
+  // Filter by user's sex: keep programs matching the user OR unisex
+  const eligibleIds = PROGRAM_IDS.filter((id) => {
+    const variant = PROGRAMS[id]?.sexVariant;
+    if (!variant || variant === 'unisex') return true;
+    return variant === sex;
+  });
 
   // Recommended first, then the rest
   const ordered = [
     recommendedId,
-    ...PROGRAM_IDS.filter((id) => id !== recommendedId),
+    ...eligibleIds.filter((id) => id !== recommendedId),
   ];
 
   return (

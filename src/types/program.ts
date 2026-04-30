@@ -4,24 +4,11 @@ import type { Objective } from './user';
 // ── Program Template (static data) ──
 
 /**
- * Program identifiers.
- * v1 ids ('full_body', 'upper_lower', 'ppl') are kept for backwards compat
- * with users who already have an activePlan in AsyncStorage. New users get
- * the v2 sex-aware variants below.
+ * Program identifiers — 22 programs in the v3 library.
+ * String type instead of strict union: dynamic IDs from persisted state
+ * always need runtime PROGRAMS[id] lookup anyway.
  */
-export type ProgramId =
-  // v2 — sex-aware
-  | 'full_body_h'
-  | 'full_body_f'
-  | 'upper_lower_h'
-  | 'upper_lower_f'
-  | 'ppl_h'
-  | 'ppl_f'
-  | 'stronglifts_5x5'
-  // v1 legacy — alias-resolved at runtime in programEngine
-  | 'full_body'
-  | 'upper_lower'
-  | 'ppl';
+export type ProgramId = string;
 
 export type Level = 'beginner' | 'intermediate' | 'advanced';
 

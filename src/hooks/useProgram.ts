@@ -32,9 +32,7 @@ export function useProgram() {
   const hasActivePlan = !!activePlan;
 
   const recommendedProgramId: ProgramId = useMemo(() => {
-    if (!profile) return 'full_body_h';
-    // Use sex-aware v2 selection. Falls back to 'male' if sex is unset
-    // (defensive: existing accounts without onboarding sex set).
+    if (!profile) return 'BULK_DEB_3D_FB';
     const sex = profile.sex ?? 'male';
     return recommendProgram(sex, profile.activityLevel, profile.objective);
   }, [profile?.sex, profile?.activityLevel, profile?.objective]);

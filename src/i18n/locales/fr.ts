@@ -945,6 +945,14 @@ export const fr = {
   exWeightedCrunch: 'Crunch leste',
   exSidePlank: 'Gainage lateral',
   exObliqueCrunch: 'Crunch oblique',
+  exHackSquat: 'Hack Squat',
+  exCablePullThrough: 'Pull-through poulie basse',
+  exPushPress: 'Push Press',
+  exSpiderCurl: 'Curl Spider',
+  exArnoldPress: 'Arnold Press',
+  exFrontRaise: 'Elevations frontales',
+  exSeatedLegCurl: 'Leg Curl assis',
+  exSeatedCalfRaise: 'Mollets assis',
 
   // Sets
   set: 'Serie',
@@ -992,6 +1000,7 @@ export const fr = {
   levelBeginner: 'Debutant',
   levelIntermediate: 'Intermediaire',
   levelAdvanced: 'Avance',
+  levelAll: 'Tous niveaux',
   programDayFullBodyA: 'FULL BODY A',
   programDayFullBodyB: 'FULL BODY B',
   programDayFullBodyC: 'FULL BODY C',

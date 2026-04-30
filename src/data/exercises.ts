@@ -104,6 +104,16 @@ export const EXERCISES: Record<string, Exercise> = {
   weighted_crunch:   { id: 'weighted_crunch',   nameKey: 'exWeightedCrunch',   muscleGroup: 'core', isCompound: false },
   side_plank:        { id: 'side_plank',        nameKey: 'exSidePlank',        muscleGroup: 'core', isCompound: false },
   oblique_crunch:    { id: 'oblique_crunch',    nameKey: 'exObliqueCrunch',    muscleGroup: 'core', isCompound: false },
+
+  // ── Programs V3 — additions for the 16-program library ──
+  hack_squat:          { id: 'hack_squat',          nameKey: 'exHackSquat',          muscleGroup: 'legs',      isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Hack-Squat.gif' },
+  cable_pull_through:  { id: 'cable_pull_through',  nameKey: 'exCablePullThrough',  muscleGroup: 'legs',      isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Cable-Pull-Through.gif' },
+  push_press:          { id: 'push_press',          nameKey: 'exPushPress',          muscleGroup: 'shoulders', isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Push-Press.gif' },
+  spider_curl:         { id: 'spider_curl',         nameKey: 'exSpiderCurl',         muscleGroup: 'arms',      isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Spider-Curl.gif' },
+  arnold_press:        { id: 'arnold_press',        nameKey: 'exArnoldPress',        muscleGroup: 'shoulders', isCompound: true,  gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Arnold-Press.gif' },
+  front_raise:         { id: 'front_raise',         nameKey: 'exFrontRaise',         muscleGroup: 'shoulders', isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Dumbbell-Front-Raise.gif' },
+  seated_leg_curl:     { id: 'seated_leg_curl',     nameKey: 'exSeatedLegCurl',     muscleGroup: 'legs',      isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Leg-Curl.gif' },
+  seated_calf_raise:   { id: 'seated_calf_raise',   nameKey: 'exSeatedCalfRaise',   muscleGroup: 'legs',      isCompound: false, gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Calf-Raise.gif' },
 };
 
 export function getExercisesByGroup(): Record<MuscleGroup, Exercise[]> {

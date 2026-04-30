@@ -947,6 +947,14 @@ export const en: Record<TranslationKey, string> = {
   exWeightedCrunch: 'Weighted Crunch',
   exSidePlank: 'Side Plank',
   exObliqueCrunch: 'Oblique Crunch',
+  exHackSquat: 'Hack Squat',
+  exCablePullThrough: 'Cable Pull-Through',
+  exPushPress: 'Push Press',
+  exSpiderCurl: 'Spider Curl',
+  exArnoldPress: 'Arnold Press',
+  exFrontRaise: 'Front Raise',
+  exSeatedLegCurl: 'Seated Leg Curl',
+  exSeatedCalfRaise: 'Seated Calf Raise',
 
   // Sets
   set: 'Set',
@@ -994,6 +1002,7 @@ export const en: Record<TranslationKey, string> = {
   levelBeginner: 'Beginner',
   levelIntermediate: 'Intermediate',
   levelAdvanced: 'Advanced',
+  levelAll: 'All levels',
   programDayFullBodyA: 'FULL BODY A',
   programDayFullBodyB: 'FULL BODY B',
   programDayFullBodyC: 'FULL BODY C',

@@ -4,6 +4,12 @@ export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'ver
 export type Budget = 'eco' | 'premium' | 'both';
 export type Restriction = 'vegetarian' | 'vegan' | 'gluten_free' | 'lactose_free' | 'halal' | 'pork_free';
 
+// ── Training profile (used by program assignment) ──
+export type TrainingLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
+export type TrainingFrequency = 3 | 4 | 5 | 6;
+export type EquipmentAccess = 'full_gym' | 'home_equipped' | 'minimal';
+export type GlutePreference = 'glute_focus' | 'quad_focus' | 'no_glute_focus';
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -18,6 +24,12 @@ export interface UserProfile {
   activityLevel: ActivityLevel;
   budget: Budget;
   restrictions: Restriction[];
+
+  // Training profile (program assignment) — optional for backwards compat
+  trainingLevel?: TrainingLevel;
+  trainingFrequency?: TrainingFrequency;
+  equipmentAccess?: EquipmentAccess;
+  glutePreference?: GlutePreference;
 
   // Computed by engine
   tdee: number;

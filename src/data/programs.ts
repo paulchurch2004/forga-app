@@ -1,615 +1,1238 @@
-import type { TrainingProgram, ProgramDay } from '../types/program';
+import type { TrainingProgram, ProgramDay, ProgramExercise } from '../types/program';
 
 // ============================================================================
-// PROGRAMS V2 — sex-aware program library (TRAINING_PROGRAMS_SPEC §3)
+// FORGA — 16 PROGRAMS LIBRARY (v3)
+// Built from 16programmes.md spec.
 //
-// Reps and sets values below are the *base* template values. They are
-// later overridden by applyObjectiveModifiers() in programEngine to
-// match the user's objective (bulk / cut / maintain / recomp).
+// Each program is fully calibrated (sets / reps / rest) for its intended
+// objective and level — no runtime modifier needed. ProgramDay.nameKey holds
+// the FR display label directly (i18n fallback returns the key as-is).
 // ============================================================================
 
-// ─── 3.1 FULL BODY HOMME (FB-H) — 3j/sem ───────────────────────────────────
+const ex = (
+  exerciseId: string,
+  targetSets: number,
+  targetReps: number,
+  restSeconds: number,
+): ProgramExercise => ({ exerciseId, targetSets, targetReps, restSeconds });
 
-const FB_H_A: ProgramDay = {
-  id: 'fb_h_a',
-  nameKey: 'programDayFullBodyA',
-  type: 'muscu',
-  muscleGroups: ['chest', 'back', 'legs', 'shoulders', 'arms'],
-  exercises: [
-    { exerciseId: 'bench_press', targetSets: 4, targetReps: 8, restSeconds: 150 },
-    { exerciseId: 'barbell_rows', targetSets: 4, targetReps: 8, restSeconds: 150 },
-    { exerciseId: 'squat', targetSets: 4, targetReps: 8, restSeconds: 150 },
-    { exerciseId: 'overhead_press', targetSets: 3, targetReps: 9, restSeconds: 105 },
-    { exerciseId: 'bicep_curls', targetSets: 3, targetReps: 11, restSeconds: 60 },
-    { exerciseId: 'plank', targetSets: 3, targetReps: 50, restSeconds: 60 },
-  ],
-};
-
-const FB_H_B: ProgramDay = {
-  id: 'fb_h_b',
-  nameKey: 'programDayFullBodyB',
-  type: 'muscu',
-  muscleGroups: ['shoulders', 'back', 'legs', 'arms', 'core'],
-  exercises: [
-    { exerciseId: 'overhead_press', targetSets: 4, targetReps: 8, restSeconds: 150 },
-    { exerciseId: 'deadlift', targetSets: 4, targetReps: 5, restSeconds: 180 },
-    { exerciseId: 'leg_press', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'lat_pulldown', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'tricep_extensions', targetSets: 3, targetReps: 11, restSeconds: 60 },
-    { exerciseId: 'crunches', targetSets: 3, targetReps: 17, restSeconds: 60 },
-  ],
-};
-
-const FB_H_C: ProgramDay = {
-  id: 'fb_h_c',
-  nameKey: 'programDayFullBodyC',
-  type: 'muscu',
-  muscleGroups: ['back', 'chest', 'legs', 'shoulders', 'arms', 'core'],
-  exercises: [
-    { exerciseId: 'pull_ups', targetSets: 4, targetReps: 8, restSeconds: 120 },
-    { exerciseId: 'incline_press', targetSets: 3, targetReps: 9, restSeconds: 105 },
-    { exerciseId: 'lunges', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'lateral_raises', targetSets: 3, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'hammer_curls', targetSets: 3, targetReps: 11, restSeconds: 60 },
-    { exerciseId: 'russian_twist', targetSets: 3, targetReps: 20, restSeconds: 60 },
-  ],
-};
-
-// ─── 3.2 FULL BODY FEMME (FB-F) — 3j/sem, focus fessiers ──────────────────
-
-const FB_F_A: ProgramDay = {
-  id: 'fb_f_a',
-  nameKey: 'programDayFullBodyFA',
-  type: 'muscu',
-  muscleGroups: ['legs', 'back', 'chest', 'core'],
-  exercises: [
-    { exerciseId: 'hip_thrust', targetSets: 4, targetReps: 10, restSeconds: 120 },
-    { exerciseId: 'squat', targetSets: 4, targetReps: 9, restSeconds: 120 },
-    { exerciseId: 'barbell_rows', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'bench_press', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'glute_bridge', targetSets: 3, targetReps: 17, restSeconds: 60 },
-    { exerciseId: 'plank', targetSets: 3, targetReps: 50, restSeconds: 60 },
-  ],
-};
-
-const FB_F_B: ProgramDay = {
-  id: 'fb_f_b',
-  nameKey: 'programDayFullBodyFB',
-  type: 'muscu',
-  muscleGroups: ['legs', 'back', 'shoulders', 'core'],
-  exercises: [
-    { exerciseId: 'romanian_deadlift', targetSets: 4, targetReps: 9, restSeconds: 120 },
-    { exerciseId: 'bulgarian_split_squat', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'lat_pulldown', targetSets: 4, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'leg_curl', targetSets: 3, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'lateral_raises', targetSets: 3, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'crunches', targetSets: 3, targetReps: 17, restSeconds: 60 },
-  ],
-};
-
-const FB_F_C: ProgramDay = {
-  id: 'fb_f_c',
-  nameKey: 'programDayFullBodyFC',
-  type: 'muscu',
-  muscleGroups: ['legs', 'back', 'chest', 'core'],
-  exercises: [
-    { exerciseId: 'hip_thrust', targetSets: 4, targetReps: 11, restSeconds: 120 },
-    { exerciseId: 'lunges', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'pull_ups', targetSets: 3, targetReps: 9, restSeconds: 90 },
-    { exerciseId: 'incline_db_press', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'cable_kickbacks', targetSets: 3, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'russian_twist', targetSets: 3, targetReps: 20, restSeconds: 60 },
-  ],
-};
-
-// ─── 3.3 STRONGLIFTS 5×5 (homme bulk débutant uniquement) ──────────────────
-
-const SL_A: ProgramDay = {
-  id: 'sl_a',
-  nameKey: 'programDay5x5A',
-  type: 'muscu',
-  muscleGroups: ['legs', 'chest', 'back'],
-  exercises: [
-    { exerciseId: 'squat', targetSets: 5, targetReps: 5, restSeconds: 180 },
-    { exerciseId: 'bench_press', targetSets: 5, targetReps: 5, restSeconds: 180 },
-    { exerciseId: 'barbell_rows', targetSets: 5, targetReps: 5, restSeconds: 180 },
-  ],
-};
-
-const SL_B: ProgramDay = {
-  id: 'sl_b',
-  nameKey: 'programDay5x5B',
-  type: 'muscu',
-  muscleGroups: ['legs', 'shoulders', 'back'],
-  exercises: [
-    { exerciseId: 'squat', targetSets: 5, targetReps: 5, restSeconds: 180 },
-    { exerciseId: 'overhead_press', targetSets: 5, targetReps: 5, restSeconds: 180 },
-    { exerciseId: 'deadlift', targetSets: 1, targetReps: 5, restSeconds: 180 },
-  ],
-};
-
-// ─── 3.4 UPPER/LOWER HOMME (UL-H) — 4j/sem ─────────────────────────────────
-
-const UL_H_UPPER_A: ProgramDay = {
-  id: 'ul_h_upper_a',
-  nameKey: 'programDayUpperA',
-  type: 'muscu',
-  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
-  exercises: [
-    { exerciseId: 'bench_press', targetSets: 4, targetReps: 7, restSeconds: 150 },
-    { exerciseId: 'barbell_rows', targetSets: 4, targetReps: 7, restSeconds: 150 },
-    { exerciseId: 'overhead_press', targetSets: 3, targetReps: 9, restSeconds: 105 },
-    { exerciseId: 'lat_pulldown', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'bicep_curls', targetSets: 3, targetReps: 11, restSeconds: 60 },
-    { exerciseId: 'tricep_extensions', targetSets: 3, targetReps: 11, restSeconds: 60 },
-  ],
-};
-
-const UL_H_LOWER_A: ProgramDay = {
-  id: 'ul_h_lower_a',
-  nameKey: 'programDayLowerA',
-  type: 'muscu',
-  muscleGroups: ['legs', 'core'],
-  exercises: [
-    { exerciseId: 'squat', targetSets: 4, targetReps: 7, restSeconds: 165 },
-    { exerciseId: 'romanian_deadlift', targetSets: 4, targetReps: 9, restSeconds: 120 },
-    { exerciseId: 'leg_press', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'leg_curl', targetSets: 3, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'calf_raises', targetSets: 4, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'plank', targetSets: 3, targetReps: 50, restSeconds: 60 },
-  ],
-};
-
-const UL_H_UPPER_B: ProgramDay = {
-  id: 'ul_h_upper_b',
-  nameKey: 'programDayUpperB',
-  type: 'muscu',
-  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
-  exercises: [
-    { exerciseId: 'incline_press', targetSets: 4, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'pull_ups', targetSets: 4, targetReps: 9, restSeconds: 90 },
-    { exerciseId: 'lateral_raises', targetSets: 3, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'face_pulls', targetSets: 3, targetReps: 15, restSeconds: 60 },
-    { exerciseId: 'hammer_curls', targetSets: 3, targetReps: 12, restSeconds: 60 },
-    { exerciseId: 'skull_crushers', targetSets: 3, targetReps: 12, restSeconds: 60 },
-  ],
-};
-
-const UL_H_LOWER_B: ProgramDay = {
-  id: 'ul_h_lower_b',
-  nameKey: 'programDayLowerB',
-  type: 'muscu',
-  muscleGroups: ['legs', 'core'],
-  exercises: [
-    { exerciseId: 'deadlift', targetSets: 4, targetReps: 5, restSeconds: 180 },
-    { exerciseId: 'lunges', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'leg_extension', targetSets: 3, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'leg_curl', targetSets: 3, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'calf_raises', targetSets: 4, targetReps: 17, restSeconds: 60 },
-    { exerciseId: 'leg_raises', targetSets: 3, targetReps: 15, restSeconds: 60 },
-  ],
-};
-
-// ─── 3.5 UPPER/LOWER FEMME (UL-F) — 4j/sem, focus fessiers ─────────────────
-
-const UL_F_UPPER_A: ProgramDay = {
-  id: 'ul_f_upper_a',
-  nameKey: 'programDayUpperA',
-  type: 'muscu',
-  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
-  exercises: [
-    { exerciseId: 'bench_press', targetSets: 3, targetReps: 10, restSeconds: 105 },
-    { exerciseId: 'barbell_rows', targetSets: 4, targetReps: 10, restSeconds: 105 },
-    { exerciseId: 'overhead_press', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'lat_pulldown', targetSets: 3, targetReps: 13, restSeconds: 75 },
-    { exerciseId: 'lateral_raises', targetSets: 3, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'bicep_curls', targetSets: 2, targetReps: 13, restSeconds: 60 },
-  ],
-};
-
-const UL_F_LOWER_A: ProgramDay = {
-  id: 'ul_f_lower_a',
-  nameKey: 'programDayLowerAQuad',
-  type: 'muscu',
-  muscleGroups: ['legs'],
-  exercises: [
-    { exerciseId: 'squat', targetSets: 4, targetReps: 9, restSeconds: 135 },
-    { exerciseId: 'hip_thrust', targetSets: 4, targetReps: 11, restSeconds: 120 },
-    { exerciseId: 'leg_press', targetSets: 3, targetReps: 13, restSeconds: 90 },
-    { exerciseId: 'bulgarian_split_squat', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'leg_extension', targetSets: 3, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'calf_raises', targetSets: 4, targetReps: 17, restSeconds: 60 },
-  ],
-};
-
-const UL_F_UPPER_B: ProgramDay = {
-  id: 'ul_f_upper_b',
-  nameKey: 'programDayUpperB',
-  type: 'muscu',
-  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
-  exercises: [
-    { exerciseId: 'incline_db_press', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'pull_ups', targetSets: 3, targetReps: 10, restSeconds: 90 },
-    { exerciseId: 'seated_db_press', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'face_pulls', targetSets: 3, targetReps: 15, restSeconds: 60 },
-    { exerciseId: 'hammer_curls', targetSets: 2, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'tricep_extensions', targetSets: 2, targetReps: 13, restSeconds: 60 },
-  ],
-};
-
-const UL_F_LOWER_B: ProgramDay = {
-  id: 'ul_f_lower_b',
-  nameKey: 'programDayLowerBGlute',
-  type: 'muscu',
-  muscleGroups: ['legs'],
-  exercises: [
-    { exerciseId: 'hip_thrust', targetSets: 5, targetReps: 10, restSeconds: 120 },
-    { exerciseId: 'romanian_deadlift', targetSets: 4, targetReps: 11, restSeconds: 120 },
-    { exerciseId: 'walking_lunges', targetSets: 3, targetReps: 12, restSeconds: 90 },
-    { exerciseId: 'cable_kickbacks', targetSets: 3, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'leg_curl', targetSets: 3, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'glute_bridge', targetSets: 3, targetReps: 17, restSeconds: 60 },
-  ],
-};
-
-// ─── 3.6 PPL HOMME (PPL-H) — 6j/sem, rotation A/B ──────────────────────────
-
-const PPL_H_PUSH_A: ProgramDay = {
-  id: 'ppl_h_push_a',
-  nameKey: 'programDayPushA',
-  type: 'muscu',
-  muscleGroups: ['chest', 'shoulders', 'arms'],
-  exercises: [
-    { exerciseId: 'bench_press', targetSets: 5, targetReps: 5, restSeconds: 180 },
-    { exerciseId: 'overhead_press', targetSets: 4, targetReps: 6, restSeconds: 120 },
-    { exerciseId: 'incline_press', targetSets: 3, targetReps: 8, restSeconds: 90 },
-    { exerciseId: 'dips', targetSets: 3, targetReps: 8, restSeconds: 90 },
-    { exerciseId: 'close_grip_bench', targetSets: 3, targetReps: 8, restSeconds: 90 },
-    { exerciseId: 'lateral_raises', targetSets: 3, targetReps: 12, restSeconds: 60 },
-  ],
-};
-
-const PPL_H_PULL_A: ProgramDay = {
-  id: 'ppl_h_pull_a',
-  nameKey: 'programDayPullA',
-  type: 'muscu',
-  muscleGroups: ['back', 'arms', 'shoulders'],
-  exercises: [
-    { exerciseId: 'deadlift', targetSets: 4, targetReps: 5, restSeconds: 180 },
-    { exerciseId: 'barbell_rows', targetSets: 4, targetReps: 6, restSeconds: 120 },
-    { exerciseId: 'pull_ups', targetSets: 3, targetReps: 7, restSeconds: 120 },
-    { exerciseId: 't_bar_row', targetSets: 3, targetReps: 8, restSeconds: 90 },
-    { exerciseId: 'face_pulls', targetSets: 3, targetReps: 12, restSeconds: 60 },
-    { exerciseId: 'bicep_curls', targetSets: 3, targetReps: 8, restSeconds: 90 },
-  ],
-};
-
-const PPL_H_LEGS_A: ProgramDay = {
-  id: 'ppl_h_legs_a',
-  nameKey: 'programDayLegsA',
-  type: 'muscu',
-  muscleGroups: ['legs'],
-  exercises: [
-    { exerciseId: 'squat', targetSets: 5, targetReps: 5, restSeconds: 180 },
-    { exerciseId: 'romanian_deadlift', targetSets: 4, targetReps: 6, restSeconds: 120 },
-    { exerciseId: 'leg_press', targetSets: 3, targetReps: 8, restSeconds: 90 },
-    { exerciseId: 'walking_lunges', targetSets: 3, targetReps: 10, restSeconds: 90 },
-    { exerciseId: 'leg_curl', targetSets: 3, targetReps: 10, restSeconds: 60 },
-    { exerciseId: 'calf_raises', targetSets: 4, targetReps: 8, restSeconds: 60 },
-  ],
-};
-
-const PPL_H_PUSH_B: ProgramDay = {
-  id: 'ppl_h_push_b',
-  nameKey: 'programDayPushB',
-  type: 'muscu',
-  muscleGroups: ['chest', 'shoulders', 'arms'],
-  exercises: [
-    { exerciseId: 'incline_db_press', targetSets: 4, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'seated_db_press', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'cable_fly', targetSets: 3, targetReps: 15, restSeconds: 60 },
-    { exerciseId: 'lateral_raises', targetSets: 4, targetReps: 15, restSeconds: 60 },
-    { exerciseId: 'tricep_pushdown', targetSets: 3, targetReps: 15, restSeconds: 60 },
-    { exerciseId: 'overhead_tricep_extension', targetSets: 3, targetReps: 12, restSeconds: 60 },
-  ],
-};
-
-const PPL_H_PULL_B: ProgramDay = {
-  id: 'ppl_h_pull_b',
-  nameKey: 'programDayPullB',
-  type: 'muscu',
-  muscleGroups: ['back', 'arms'],
-  exercises: [
-    { exerciseId: 'pull_ups', targetSets: 4, targetReps: 9, restSeconds: 90 },
-    { exerciseId: 'lat_pulldown', targetSets: 4, targetReps: 12, restSeconds: 90 },
-    { exerciseId: 'seated_cable_row', targetSets: 3, targetReps: 12, restSeconds: 60 },
-    { exerciseId: 'reverse_pec_deck', targetSets: 3, targetReps: 15, restSeconds: 60 },
-    { exerciseId: 'hammer_curls', targetSets: 3, targetReps: 12, restSeconds: 60 },
-    { exerciseId: 'cable_curls', targetSets: 3, targetReps: 15, restSeconds: 60 },
-  ],
-};
-
-const PPL_H_LEGS_B: ProgramDay = {
-  id: 'ppl_h_legs_b',
-  nameKey: 'programDayLegsB',
-  type: 'muscu',
-  muscleGroups: ['legs'],
-  exercises: [
-    { exerciseId: 'romanian_deadlift', targetSets: 4, targetReps: 10, restSeconds: 90 },
-    { exerciseId: 'leg_press', targetSets: 4, targetReps: 13, restSeconds: 90 },
-    { exerciseId: 'bulgarian_split_squat', targetSets: 3, targetReps: 12, restSeconds: 90 },
-    { exerciseId: 'leg_extension', targetSets: 4, targetReps: 15, restSeconds: 60 },
-    { exerciseId: 'leg_curl', targetSets: 4, targetReps: 15, restSeconds: 60 },
-    { exerciseId: 'calf_raises', targetSets: 4, targetReps: 20, restSeconds: 60 },
-  ],
-};
-
-// ─── 3.7 PPL FEMME (PPL-F) — 6j/sem, rotation + 2 Legs différenciés ────────
-
-const PPL_F_PUSH_A: ProgramDay = {
-  id: 'ppl_f_push_a',
-  nameKey: 'programDayPushA',
-  type: 'muscu',
-  muscleGroups: ['chest', 'shoulders', 'arms'],
-  exercises: [
-    { exerciseId: 'bench_press', targetSets: 4, targetReps: 7, restSeconds: 120 },
-    { exerciseId: 'overhead_press', targetSets: 4, targetReps: 8, restSeconds: 105 },
-    { exerciseId: 'incline_db_press', targetSets: 3, targetReps: 10, restSeconds: 90 },
-    { exerciseId: 'close_grip_bench', targetSets: 3, targetReps: 10, restSeconds: 90 },
-    { exerciseId: 'lateral_raises', targetSets: 3, targetReps: 12, restSeconds: 60 },
-  ],
-};
-
-const PPL_F_PULL_A: ProgramDay = {
-  id: 'ppl_f_pull_a',
-  nameKey: 'programDayPullA',
-  type: 'muscu',
-  muscleGroups: ['back', 'arms', 'shoulders'],
-  exercises: [
-    { exerciseId: 'barbell_rows', targetSets: 4, targetReps: 8, restSeconds: 120 },
-    { exerciseId: 'pull_ups', targetSets: 4, targetReps: 7, restSeconds: 90 },
-    { exerciseId: 't_bar_row', targetSets: 3, targetReps: 10, restSeconds: 90 },
-    { exerciseId: 'face_pulls', targetSets: 3, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'bicep_curls', targetSets: 3, targetReps: 10, restSeconds: 60 },
-  ],
-};
-
-const PPL_F_LEGS_QUAD: ProgramDay = {
-  id: 'ppl_f_legs_quad',
-  nameKey: 'programDayLegsQuad',
-  type: 'muscu',
-  muscleGroups: ['legs'],
-  exercises: [
-    { exerciseId: 'squat', targetSets: 4, targetReps: 9, restSeconds: 135 },
-    { exerciseId: 'leg_press', targetSets: 4, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'bulgarian_split_squat', targetSets: 3, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'walking_lunges', targetSets: 3, targetReps: 12, restSeconds: 90 },
-    { exerciseId: 'leg_extension', targetSets: 4, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'calf_raises', targetSets: 4, targetReps: 17, restSeconds: 60 },
-  ],
-};
-
-const PPL_F_PUSH_B: ProgramDay = {
-  id: 'ppl_f_push_b',
-  nameKey: 'programDayPushB',
-  type: 'muscu',
-  muscleGroups: ['chest', 'shoulders', 'arms'],
-  exercises: [
-    { exerciseId: 'incline_db_press', targetSets: 4, targetReps: 11, restSeconds: 90 },
-    { exerciseId: 'seated_db_press', targetSets: 3, targetReps: 12, restSeconds: 90 },
-    { exerciseId: 'cable_fly', targetSets: 3, targetReps: 15, restSeconds: 60 },
-    { exerciseId: 'lateral_raises', targetSets: 4, targetReps: 15, restSeconds: 60 },
-    { exerciseId: 'tricep_pushdown', targetSets: 3, targetReps: 15, restSeconds: 60 },
-  ],
-};
-
-const PPL_F_PULL_B: ProgramDay = {
-  id: 'ppl_f_pull_b',
-  nameKey: 'programDayPullB',
-  type: 'muscu',
-  muscleGroups: ['back', 'arms'],
-  exercises: [
-    { exerciseId: 'pull_ups', targetSets: 4, targetReps: 9, restSeconds: 90 },
-    { exerciseId: 'lat_pulldown', targetSets: 4, targetReps: 12, restSeconds: 90 },
-    { exerciseId: 'seated_cable_row', targetSets: 3, targetReps: 12, restSeconds: 60 },
-    { exerciseId: 'reverse_pec_deck', targetSets: 3, targetReps: 15, restSeconds: 60 },
-    { exerciseId: 'hammer_curls', targetSets: 3, targetReps: 13, restSeconds: 60 },
-  ],
-};
-
-const PPL_F_LEGS_GLUTE: ProgramDay = {
-  id: 'ppl_f_legs_glute',
-  nameKey: 'programDayLegsGlute',
-  type: 'muscu',
-  muscleGroups: ['legs'],
-  exercises: [
-    { exerciseId: 'hip_thrust', targetSets: 5, targetReps: 10, restSeconds: 135 },
-    { exerciseId: 'romanian_deadlift', targetSets: 4, targetReps: 11, restSeconds: 120 },
-    { exerciseId: 'sumo_deadlift', targetSets: 3, targetReps: 11, restSeconds: 120 },
-    { exerciseId: 'leg_press', targetSets: 3, targetReps: 13, restSeconds: 90 },
-    { exerciseId: 'cable_kickbacks', targetSets: 4, targetReps: 13, restSeconds: 60 },
-    { exerciseId: 'glute_bridge', targetSets: 3, targetReps: 17, restSeconds: 60 },
-    { exerciseId: 'leg_curl', targetSets: 3, targetReps: 13, restSeconds: 60 },
-  ],
-};
-
-// ─── Cardio templates ──────────────────────────────────────────────────────
-
+// ── Cardio days (kept for plan generator) ────────────────────────────────────
 const CARDIO_LISS: ProgramDay = {
   id: 'cardio_liss',
   nameKey: 'programDayCardioLiss',
   type: 'cardio',
   muscleGroups: ['cardio'],
   exercises: [],
-  cardio: { exerciseId: 'cycling', durationMinutes: 30, intensity: 'easy' },
+  cardio: { exerciseId: 'cycling', durationMinutes: 30, intensity: 'low' },
 };
-
 const CARDIO_HIIT: ProgramDay = {
   id: 'cardio_hiit',
   nameKey: 'programDayCardioHiit',
   type: 'cardio',
   muscleGroups: ['cardio'],
   exercises: [],
-  cardio: { exerciseId: 'hiit', durationMinutes: 20, intensity: 'intense' },
+  cardio: { exerciseId: 'hiit', durationMinutes: 20, intensity: 'high' },
 };
 
-// ─── PROGRAM DEFINITIONS ──────────────────────────────────────────────────
+// =============================================================================
+// 01. BULK_DEB_3D_FB — Bulk Débutant 3j Full Body
+// =============================================================================
+const D01_A: ProgramDay = {
+  id: 'bulk_deb_3d_fb_a', nameKey: 'Full Body A', type: 'muscu',
+  muscleGroups: ['legs', 'chest', 'back', 'shoulders', 'arms', 'core'],
+  exercises: [
+    ex('squat', 3, 7, 150),
+    ex('bench_press', 3, 7, 150),
+    ex('barbell_rows', 3, 8, 120),
+    ex('overhead_press', 2, 10, 90),
+    ex('barbell_curl', 2, 11, 60),
+    ex('plank', 2, 40, 60),
+  ],
+};
+const D01_B: ProgramDay = {
+  id: 'bulk_deb_3d_fb_b', nameKey: 'Full Body B', type: 'muscu',
+  muscleGroups: ['back', 'chest', 'legs', 'arms', 'core'],
+  exercises: [
+    ex('deadlift', 3, 5, 180),
+    ex('incline_db_press', 3, 9, 90),
+    ex('lat_pulldown', 3, 8, 120),
+    ex('lunges', 2, 10, 90),
+    ex('tricep_pushdown', 2, 11, 60),
+    ex('hanging_leg_raise', 2, 10, 60),
+  ],
+};
+const D01_C: ProgramDay = {
+  id: 'bulk_deb_3d_fb_c', nameKey: 'Full Body C', type: 'muscu',
+  muscleGroups: ['legs', 'chest', 'back', 'shoulders', 'arms', 'core'],
+  exercises: [
+    ex('front_squat', 3, 7, 150),
+    ex('bench_press', 3, 9, 120),
+    ex('seated_cable_row', 3, 10, 90),
+    ex('lateral_raises', 3, 13, 60),
+    ex('hammer_curls', 2, 11, 60),
+    ex('russian_twist', 2, 30, 60),
+  ],
+};
+
+// =============================================================================
+// 02. BULK_DEB_4D_UL — Bulk Débutant 4j Upper/Lower
+// =============================================================================
+const D02_UA: ProgramDay = {
+  id: 'bulk_deb_4d_ul_upper_a', nameKey: 'Upper A — Push', type: 'muscu',
+  muscleGroups: ['chest', 'shoulders', 'back', 'arms'],
+  exercises: [
+    ex('bench_press', 4, 6, 150),
+    ex('overhead_press', 3, 7, 120),
+    ex('barbell_rows', 3, 7, 120),
+    ex('lat_pulldown', 3, 10, 90),
+    ex('lateral_raises', 3, 13, 60),
+    ex('tricep_pushdown', 2, 11, 60),
+  ],
+};
+const D02_LA: ProgramDay = {
+  id: 'bulk_deb_4d_ul_lower_a', nameKey: 'Lower A — Squat', type: 'muscu',
+  muscleGroups: ['legs', 'core'],
+  exercises: [
+    ex('squat', 4, 6, 180),
+    ex('romanian_deadlift', 3, 8, 120),
+    ex('leg_press', 3, 11, 120),
+    ex('leg_curl', 3, 11, 90),
+    ex('calf_raises', 4, 13, 60),
+    ex('plank', 3, 45, 45),
+  ],
+};
+const D02_UB: ProgramDay = {
+  id: 'bulk_deb_4d_ul_upper_b', nameKey: 'Upper B — Pull', type: 'muscu',
+  muscleGroups: ['back', 'chest', 'shoulders', 'arms'],
+  exercises: [
+    ex('pull_ups', 4, 7, 120),
+    ex('incline_db_press', 4, 9, 90),
+    ex('seated_cable_row', 3, 11, 90),
+    ex('seated_db_press', 3, 9, 90),
+    ex('barbell_curl', 3, 11, 60),
+    ex('face_pulls', 3, 13, 45),
+  ],
+};
+const D02_LB: ProgramDay = {
+  id: 'bulk_deb_4d_ul_lower_b', nameKey: 'Lower B — Posterior', type: 'muscu',
+  muscleGroups: ['legs', 'core'],
+  exercises: [
+    ex('deadlift', 3, 5, 180),
+    ex('front_squat', 3, 8, 120),
+    ex('hip_thrust', 4, 10, 90),
+    ex('walking_lunges', 3, 10, 90),
+    ex('seated_calf_raise', 3, 13, 60),
+    ex('cable_crunch', 3, 13, 60),
+  ],
+};
+
+// =============================================================================
+// 03. BULK_INT_4D_PHUL — Bulk Intermédiaire 4j PHUL
+// =============================================================================
+const D03_UP: ProgramDay = {
+  id: 'bulk_int_4d_phul_upper_power', nameKey: 'Upper Power', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
+  exercises: [
+    ex('bench_press', 4, 4, 240),
+    ex('incline_db_press', 3, 8, 120),
+    ex('barbell_rows', 4, 4, 240),
+    ex('pull_ups', 3, 8, 120),
+    ex('seated_db_press', 3, 8, 120),
+    ex('barbell_curl', 3, 8, 90),
+    ex('skull_crushers', 3, 8, 90),
+  ],
+};
+const D03_LP: ProgramDay = {
+  id: 'bulk_int_4d_phul_lower_power', nameKey: 'Lower Power', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('squat', 4, 4, 240),
+    ex('deadlift', 3, 4, 240),
+    ex('leg_press', 5, 12, 120),
+    ex('romanian_deadlift', 3, 8, 120),
+    ex('calf_raises', 4, 8, 90),
+  ],
+};
+const D03_UH: ProgramDay = {
+  id: 'bulk_int_4d_phul_upper_hyper', nameKey: 'Upper Hypertrophy', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
+  exercises: [
+    ex('incline_press', 4, 10, 90),
+    ex('cable_fly', 3, 13, 60),
+    ex('lat_pulldown', 4, 10, 90),
+    ex('seated_cable_row', 4, 13, 90),
+    ex('lateral_raises', 4, 13, 60),
+    ex('cable_curls', 3, 10, 60),
+    ex('overhead_tricep_extension', 3, 10, 60),
+  ],
+};
+const D03_LH_M: ProgramDay = {
+  id: 'bulk_int_4d_phul_lower_hyper_m', nameKey: 'Lower Hypertrophy (H — quads)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('squat', 4, 10, 120),
+    ex('hack_squat', 4, 13, 120),
+    ex('leg_extension', 3, 13, 60),
+    ex('romanian_deadlift', 3, 10, 90),
+    ex('leg_curl', 3, 13, 60),
+    ex('seated_calf_raise', 4, 13, 60),
+  ],
+};
+const D03_LH_F: ProgramDay = {
+  id: 'bulk_int_4d_phul_lower_hyper_f', nameKey: 'Lower Hypertrophy (F — fessiers)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('hip_thrust', 4, 9, 90),
+    ex('bulgarian_split_squat', 3, 10, 90),
+    ex('romanian_deadlift', 4, 9, 90),
+    ex('cable_kickbacks', 3, 13, 60),
+    ex('abductor_machine', 3, 17, 45),
+    ex('calf_raises', 4, 13, 60),
+  ],
+};
+
+// =============================================================================
+// 04. BULK_INT_5D_UL_PPL — Bulk Intermédiaire 5j UL+PPL hybride
+// =============================================================================
+const D04_U: ProgramDay = {
+  id: 'bulk_int_5d_upper', nameKey: 'Upper', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
+  exercises: [
+    ex('bench_press', 4, 7, 150),
+    ex('barbell_rows', 4, 7, 150),
+    ex('seated_db_press', 3, 9, 90),
+    ex('pull_ups', 3, 10, 120),
+    ex('lateral_raises', 3, 13, 60),
+    ex('barbell_curl', 3, 10, 60),
+    ex('tricep_pushdown', 3, 11, 60),
+  ],
+};
+const D04_L: ProgramDay = {
+  id: 'bulk_int_5d_lower', nameKey: 'Lower', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('squat', 4, 7, 180),
+    ex('romanian_deadlift', 4, 8, 120),
+    ex('leg_press', 3, 11, 120),
+    ex('hip_thrust', 3, 11, 90),
+    ex('leg_curl', 3, 11, 60),
+    ex('calf_raises', 4, 13, 60),
+  ],
+};
+const D04_PUSH: ProgramDay = {
+  id: 'bulk_int_5d_push', nameKey: 'Push (volume)', type: 'muscu',
+  muscleGroups: ['chest', 'shoulders', 'arms'],
+  exercises: [
+    ex('incline_db_press', 4, 10, 90),
+    ex('seated_db_press', 3, 10, 90),
+    ex('cable_fly', 3, 13, 60),
+    ex('cable_lateral', 4, 13, 60),
+    ex('skull_crushers', 3, 10, 60),
+    ex('overhead_tricep_extension', 3, 11, 60),
+  ],
+};
+const D04_PULL: ProgramDay = {
+  id: 'bulk_int_5d_pull', nameKey: 'Pull (volume)', type: 'muscu',
+  muscleGroups: ['back', 'arms'],
+  exercises: [
+    ex('t_bar_row', 4, 8, 120),
+    ex('lat_pulldown', 4, 10, 90),
+    ex('seated_cable_row', 3, 11, 90),
+    ex('face_pulls', 3, 13, 45),
+    ex('hammer_curls', 3, 11, 60),
+    ex('incline_db_curl', 3, 11, 60),
+  ],
+};
+const D04_LEGS_M: ProgramDay = {
+  id: 'bulk_int_5d_legs_m', nameKey: 'Legs (H — volume)', type: 'muscu',
+  muscleGroups: ['legs', 'core'],
+  exercises: [
+    ex('front_squat', 4, 7, 150),
+    ex('hack_squat', 4, 11, 120),
+    ex('leg_extension', 3, 13, 60),
+    ex('seated_leg_curl', 4, 11, 90),
+    ex('seated_calf_raise', 4, 13, 60),
+    ex('hanging_leg_raise', 3, 10, 60),
+  ],
+};
+const D04_LEGS_F: ProgramDay = {
+  id: 'bulk_int_5d_legs_f', nameKey: 'Legs (F — fessiers)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('hip_thrust', 4, 9, 90),
+    ex('sumo_deadlift', 3, 9, 120),
+    ex('bulgarian_split_squat', 3, 10, 90),
+    ex('cable_kickbacks', 3, 13, 60),
+    ex('abductor_machine', 3, 13, 45),
+    ex('calf_raises', 4, 13, 60),
+  ],
+};
+
+// =============================================================================
+// 05. BULK_INT_6D_PPL — Bulk Intermédiaire 6j PPL ×2
+// =============================================================================
+const D05_PUSH_A: ProgramDay = {
+  id: 'bulk_int_6d_push_a', nameKey: 'Push A', type: 'muscu',
+  muscleGroups: ['chest', 'shoulders', 'arms'],
+  exercises: [
+    ex('bench_press', 4, 7, 150),
+    ex('incline_db_press', 3, 10, 90),
+    ex('overhead_press', 3, 8, 120),
+    ex('lateral_raises', 4, 13, 60),
+    ex('tricep_pushdown', 3, 11, 60),
+    ex('overhead_tricep_extension', 3, 11, 60),
+  ],
+};
+const D05_PULL_A: ProgramDay = {
+  id: 'bulk_int_6d_pull_a', nameKey: 'Pull A', type: 'muscu',
+  muscleGroups: ['back', 'arms', 'shoulders'],
+  exercises: [
+    ex('pull_ups', 4, 8, 120),
+    ex('barbell_rows', 4, 7, 120),
+    ex('lat_pulldown', 3, 11, 90),
+    ex('seated_cable_row', 3, 11, 90),
+    ex('face_pulls', 3, 13, 45),
+    ex('barbell_curl', 3, 9, 60),
+    ex('hammer_curls', 3, 11, 60),
+  ],
+};
+const D05_LEGS_A_M: ProgramDay = {
+  id: 'bulk_int_6d_legs_a_m', nameKey: 'Legs A (H)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('squat', 4, 7, 180),
+    ex('romanian_deadlift', 3, 9, 120),
+    ex('leg_press', 3, 11, 120),
+    ex('walking_lunges', 3, 10, 90),
+    ex('leg_curl', 4, 11, 90),
+    ex('calf_raises', 5, 10, 60),
+  ],
+};
+const D05_LEGS_A_F: ProgramDay = {
+  id: 'bulk_int_6d_legs_a_f', nameKey: 'Legs A (F — fessiers)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('hip_thrust', 4, 7, 120),
+    ex('romanian_deadlift', 4, 9, 90),
+    ex('bulgarian_split_squat', 3, 10, 90),
+    ex('cable_kickbacks', 3, 13, 60),
+    ex('leg_curl', 3, 11, 60),
+    ex('abductor_machine', 3, 17, 45),
+  ],
+};
+const D05_PUSH_B: ProgramDay = {
+  id: 'bulk_int_6d_push_b', nameKey: 'Push B', type: 'muscu',
+  muscleGroups: ['shoulders', 'chest', 'arms'],
+  exercises: [
+    ex('seated_db_press', 4, 8, 120),
+    ex('incline_press', 4, 10, 90),
+    ex('cable_fly', 3, 13, 60),
+    ex('front_raise', 3, 11, 60),
+    ex('cable_lateral', 3, 13, 60),
+    ex('skull_crushers', 3, 10, 60),
+    ex('dips', 3, 9, 90),
+  ],
+};
+const D05_PULL_B: ProgramDay = {
+  id: 'bulk_int_6d_pull_b', nameKey: 'Pull B', type: 'muscu',
+  muscleGroups: ['back', 'arms'],
+  exercises: [
+    ex('deadlift', 3, 5, 180),
+    ex('t_bar_row', 4, 9, 90),
+    ex('pull_ups', 3, 10, 90),
+    ex('seated_cable_row', 3, 11, 60),
+    ex('incline_db_curl', 3, 11, 60),
+    ex('spider_curl', 3, 11, 60),
+    ex('shrugs', 3, 13, 45),
+  ],
+};
+const D05_LEGS_B_M: ProgramDay = {
+  id: 'bulk_int_6d_legs_b_m', nameKey: 'Legs B (H — ischios)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('front_squat', 4, 7, 150),
+    ex('romanian_deadlift', 4, 9, 90),
+    ex('hack_squat', 3, 11, 120),
+    ex('leg_extension', 3, 13, 60),
+    ex('seated_leg_curl', 4, 11, 90),
+    ex('seated_calf_raise', 4, 13, 60),
+  ],
+};
+const D05_LEGS_B_F: ProgramDay = {
+  id: 'bulk_int_6d_legs_b_f', nameKey: 'Legs B (F — volume fessiers)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('sumo_deadlift', 4, 7, 120),
+    ex('single_leg_hip_thrust', 3, 10, 90),
+    ex('walking_lunges', 3, 12, 90),
+    ex('cable_pull_through', 3, 13, 60),
+    ex('abductor_machine', 3, 18, 45),
+    ex('calf_raises', 4, 13, 60),
+  ],
+};
+
+// =============================================================================
+// 06. BULK_AVA_4D_531 — Bulk Avancé 4j 5/3/1 BBB (Week 1 baseline displayed)
+// =============================================================================
+const D06_BENCH: ProgramDay = {
+  id: 'bulk_ava_4d_531_bench', nameKey: 'Bench Day (5/3/1)', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
+  exercises: [
+    ex('bench_press', 3, 5, 180),
+    ex('bench_press', 5, 10, 90),
+    ex('t_bar_row', 5, 10, 90),
+    ex('lateral_raises', 4, 13, 60),
+    ex('tricep_pushdown', 3, 11, 60),
+  ],
+};
+const D06_SQUAT: ProgramDay = {
+  id: 'bulk_ava_4d_531_squat', nameKey: 'Squat Day (5/3/1)', type: 'muscu',
+  muscleGroups: ['legs', 'core'],
+  exercises: [
+    ex('squat', 3, 5, 240),
+    ex('squat', 5, 10, 120),
+    ex('leg_curl', 5, 10, 90),
+    ex('calf_raises', 4, 12, 60),
+    ex('hanging_leg_raise', 3, 10, 60),
+  ],
+};
+const D06_OHP: ProgramDay = {
+  id: 'bulk_ava_4d_531_ohp', nameKey: 'OHP Day (5/3/1)', type: 'muscu',
+  muscleGroups: ['shoulders', 'back', 'arms'],
+  exercises: [
+    ex('overhead_press', 3, 5, 180),
+    ex('overhead_press', 5, 10, 90),
+    ex('pull_ups', 5, 9, 90),
+    ex('barbell_curl', 4, 11, 60),
+    ex('face_pulls', 3, 13, 45),
+  ],
+};
+const D06_DEAD: ProgramDay = {
+  id: 'bulk_ava_4d_531_deadlift', nameKey: 'Deadlift Day (5/3/1)', type: 'muscu',
+  muscleGroups: ['back', 'legs'],
+  exercises: [
+    ex('deadlift', 3, 5, 240),
+    ex('deadlift', 5, 10, 150),
+    ex('front_squat', 3, 8, 120),
+    ex('hip_thrust', 4, 10, 90),
+    ex('seated_calf_raise', 4, 13, 60),
+  ],
+};
+
+// =============================================================================
+// 07. CUT_DEB_3D_FB — Cut Débutant 3j Full Body
+// =============================================================================
+const D07_A: ProgramDay = {
+  id: 'cut_deb_3d_fb_a', nameKey: 'Full Body A', type: 'muscu',
+  muscleGroups: ['legs', 'chest', 'back', 'shoulders', 'arms', 'core'],
+  exercises: [
+    ex('squat', 3, 7, 150),
+    ex('bench_press', 3, 7, 150),
+    ex('barbell_rows', 3, 8, 120),
+    ex('seated_db_press', 2, 10, 90),
+    ex('barbell_curl', 2, 11, 60),
+    ex('plank', 2, 40, 45),
+  ],
+};
+const D07_B: ProgramDay = {
+  id: 'cut_deb_3d_fb_b', nameKey: 'Full Body B', type: 'muscu',
+  muscleGroups: ['back', 'chest', 'legs', 'shoulders', 'core'],
+  exercises: [
+    ex('romanian_deadlift', 3, 7, 150),
+    ex('incline_db_press', 3, 9, 90),
+    ex('lat_pulldown', 3, 10, 120),
+    ex('lunges', 2, 10, 90),
+    ex('lateral_raises', 2, 13, 60),
+    ex('weighted_crunch', 2, 13, 45),
+  ],
+};
+const D07_C: ProgramDay = {
+  id: 'cut_deb_3d_fb_c', nameKey: 'Full Body C', type: 'muscu',
+  muscleGroups: ['legs', 'chest', 'back', 'arms', 'core'],
+  exercises: [
+    ex('front_squat', 3, 8, 120),
+    ex('bench_press', 3, 9, 90),
+    ex('seated_cable_row', 3, 11, 90),
+    ex('hip_thrust', 3, 11, 90),
+    ex('hammer_curls', 2, 11, 60),
+    ex('russian_twist', 2, 30, 45),
+  ],
+};
+
+// =============================================================================
+// 08. CUT_DEB_4D_UL — Cut Débutant 4j Upper/Lower
+// =============================================================================
+const D08_UA: ProgramDay = {
+  id: 'cut_deb_4d_ul_upper_a', nameKey: 'Upper A', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
+  exercises: [
+    ex('bench_press', 3, 7, 150),
+    ex('barbell_rows', 3, 7, 120),
+    ex('seated_db_press', 3, 9, 90),
+    ex('lat_pulldown', 3, 11, 90),
+    ex('lateral_raises', 3, 13, 60),
+    ex('tricep_pushdown', 3, 11, 60),
+  ],
+};
+const D08_LA: ProgramDay = {
+  id: 'cut_deb_4d_ul_lower_a', nameKey: 'Lower A', type: 'muscu',
+  muscleGroups: ['legs', 'core'],
+  exercises: [
+    ex('squat', 3, 7, 150),
+    ex('romanian_deadlift', 3, 9, 120),
+    ex('leg_press', 3, 11, 90),
+    ex('leg_curl', 3, 11, 90),
+    ex('calf_raises', 4, 13, 60),
+    ex('plank', 3, 40, 45),
+  ],
+};
+const D08_UB: ProgramDay = {
+  id: 'cut_deb_4d_ul_upper_b', nameKey: 'Upper B', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
+  exercises: [
+    ex('incline_db_press', 3, 9, 90),
+    ex('pull_ups', 3, 10, 120),
+    ex('seated_cable_row', 3, 11, 90),
+    ex('seated_db_press', 3, 11, 90),
+    ex('barbell_curl', 2, 11, 60),
+    ex('tricep_pushdown', 2, 11, 60),
+  ],
+};
+const D08_LB: ProgramDay = {
+  id: 'cut_deb_4d_ul_lower_b', nameKey: 'Lower B', type: 'muscu',
+  muscleGroups: ['legs', 'core'],
+  exercises: [
+    ex('front_squat', 3, 8, 120),
+    ex('hip_thrust', 3, 11, 90),
+    ex('walking_lunges', 3, 10, 90),
+    ex('leg_extension', 3, 13, 60),
+    ex('seated_calf_raise', 3, 13, 60),
+    ex('cable_crunch', 3, 13, 60),
+  ],
+};
+
+// =============================================================================
+// 09. CUT_INT_4D_UL — Cut Intermédiaire 4j Upper/Lower volume modéré
+// =============================================================================
+const D09_UP: ProgramDay = {
+  id: 'cut_int_4d_ul_upper_power', nameKey: 'Upper Power', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
+  exercises: [
+    ex('bench_press', 4, 5, 180),
+    ex('barbell_rows', 4, 7, 150),
+    ex('overhead_press', 3, 7, 120),
+    ex('pull_ups', 3, 8, 120),
+    ex('lateral_raises', 3, 13, 60),
+    ex('barbell_curl', 3, 9, 60),
+  ],
+};
+const D09_LP_M: ProgramDay = {
+  id: 'cut_int_4d_ul_lower_power_m', nameKey: 'Lower Power (H)', type: 'muscu',
+  muscleGroups: ['legs', 'core'],
+  exercises: [
+    ex('squat', 4, 5, 210),
+    ex('romanian_deadlift', 4, 7, 120),
+    ex('leg_press', 3, 10, 120),
+    ex('leg_curl', 3, 11, 90),
+    ex('calf_raises', 4, 10, 60),
+    ex('hanging_leg_raise', 3, 10, 60),
+  ],
+};
+const D09_LP_F: ProgramDay = {
+  id: 'cut_int_4d_ul_lower_power_f', nameKey: 'Lower Power (F)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('hip_thrust', 4, 7, 150),
+    ex('romanian_deadlift', 4, 7, 120),
+    ex('bulgarian_split_squat', 3, 9, 90),
+    ex('cable_kickbacks', 3, 13, 60),
+    ex('leg_curl', 3, 11, 90),
+    ex('calf_raises', 4, 13, 60),
+  ],
+};
+const D09_UH: ProgramDay = {
+  id: 'cut_int_4d_ul_upper_hyper', nameKey: 'Upper Hypertrophy', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders'],
+  exercises: [
+    ex('incline_db_press', 3, 10, 90),
+    ex('lat_pulldown', 3, 11, 90),
+    ex('cable_fly', 3, 13, 60),
+    ex('seated_cable_row', 3, 11, 60),
+    ex('seated_db_press', 3, 10, 90),
+    ex('lateral_raises', 3, 13, 60),
+  ],
+};
+const D09_LH_M: ProgramDay = {
+  id: 'cut_int_4d_ul_lower_hyper_m', nameKey: 'Lower Hypertrophy (H)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('front_squat', 3, 9, 120),
+    ex('hack_squat', 3, 11, 120),
+    ex('leg_extension', 3, 13, 60),
+    ex('seated_leg_curl', 3, 11, 90),
+    ex('hip_thrust', 3, 11, 90),
+    ex('seated_calf_raise', 4, 13, 60),
+  ],
+};
+const D09_LH_F: ProgramDay = {
+  id: 'cut_int_4d_ul_lower_hyper_f', nameKey: 'Lower Hypertrophy (F)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('sumo_deadlift', 3, 9, 120),
+    ex('single_leg_hip_thrust', 3, 10, 90),
+    ex('walking_lunges', 3, 12, 90),
+    ex('cable_pull_through', 3, 13, 60),
+    ex('abductor_machine', 3, 18, 60),
+    ex('calf_raises', 4, 13, 60),
+  ],
+};
+
+// =============================================================================
+// 10. CUT_INT_5D_PPL_UL — Cut Intermédiaire 5j PPL/UL hybride
+// =============================================================================
+const D10_U: ProgramDay = {
+  id: 'cut_int_5d_upper', nameKey: 'Upper', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders'],
+  exercises: [
+    ex('bench_press', 4, 7, 150),
+    ex('t_bar_row', 4, 7, 120),
+    ex('seated_db_press', 3, 9, 90),
+    ex('lat_pulldown', 3, 11, 90),
+    ex('lateral_raises', 3, 13, 60),
+  ],
+};
+const D10_L: ProgramDay = {
+  id: 'cut_int_5d_lower', nameKey: 'Lower', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('squat', 4, 7, 180),
+    ex('romanian_deadlift', 3, 7, 120),
+    ex('leg_press', 3, 11, 120),
+    ex('leg_curl', 3, 11, 90),
+    ex('calf_raises', 4, 13, 60),
+  ],
+};
+const D10_PUSH: ProgramDay = {
+  id: 'cut_int_5d_push', nameKey: 'Push (volume)', type: 'muscu',
+  muscleGroups: ['chest', 'shoulders', 'arms'],
+  exercises: [
+    ex('incline_db_press', 4, 10, 90),
+    ex('cable_fly', 3, 13, 60),
+    ex('seated_db_press', 3, 10, 90),
+    ex('lateral_raises', 3, 13, 60),
+    ex('tricep_pushdown', 3, 11, 60),
+    ex('skull_crushers', 2, 11, 60),
+  ],
+};
+const D10_PULL: ProgramDay = {
+  id: 'cut_int_5d_pull', nameKey: 'Pull (volume)', type: 'muscu',
+  muscleGroups: ['back', 'arms'],
+  exercises: [
+    ex('pull_ups', 4, 8, 120),
+    ex('seated_cable_row', 3, 11, 90),
+    ex('barbell_rows', 3, 11, 60),
+    ex('face_pulls', 3, 13, 45),
+    ex('barbell_curl', 3, 9, 60),
+    ex('hammer_curls', 2, 11, 60),
+  ],
+};
+const D10_LEGS_M: ProgramDay = {
+  id: 'cut_int_5d_legs_m', nameKey: 'Legs (H — volume modéré)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('front_squat', 3, 8, 120),
+    ex('hack_squat', 3, 11, 120),
+    ex('leg_extension', 3, 13, 60),
+    ex('leg_curl', 3, 11, 90),
+    ex('seated_calf_raise', 4, 13, 60),
+  ],
+};
+const D10_LEGS_F: ProgramDay = {
+  id: 'cut_int_5d_legs_f', nameKey: 'Legs (F)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('hip_thrust', 4, 9, 90),
+    ex('bulgarian_split_squat', 3, 10, 90),
+    ex('cable_kickbacks', 3, 13, 60),
+    ex('seated_leg_curl', 3, 11, 90),
+    ex('calf_raises', 4, 13, 60),
+  ],
+};
+
+// =============================================================================
+// 11. RECOMP_DEB_3D_FB — Recomp Débutant 3j Full Body
+// =============================================================================
+const D11_A: ProgramDay = {
+  id: 'recomp_deb_3d_fb_a', nameKey: 'Full Body A', type: 'muscu',
+  muscleGroups: ['legs', 'chest', 'back', 'shoulders', 'arms', 'core'],
+  exercises: [
+    ex('squat', 3, 7, 150),
+    ex('bench_press', 3, 7, 150),
+    ex('barbell_rows', 3, 8, 120),
+    ex('seated_db_press', 2, 10, 90),
+    ex('barbell_curl', 2, 11, 60),
+    ex('plank', 2, 40, 60),
+  ],
+};
+const D11_B: ProgramDay = {
+  id: 'recomp_deb_3d_fb_b', nameKey: 'Full Body B', type: 'muscu',
+  muscleGroups: ['back', 'chest', 'legs', 'arms', 'core'],
+  exercises: [
+    ex('romanian_deadlift', 3, 7, 150),
+    ex('incline_db_press', 3, 9, 90),
+    ex('lat_pulldown', 3, 10, 120),
+    ex('lunges', 2, 10, 90),
+    ex('tricep_pushdown', 2, 11, 60),
+    ex('hanging_leg_raise', 2, 10, 60),
+  ],
+};
+const D11_C: ProgramDay = {
+  id: 'recomp_deb_3d_fb_c', nameKey: 'Full Body C', type: 'muscu',
+  muscleGroups: ['legs', 'chest', 'back', 'shoulders', 'core'],
+  exercises: [
+    ex('front_squat', 3, 7, 120),
+    ex('bench_press', 3, 9, 90),
+    ex('seated_cable_row', 3, 10, 90),
+    ex('hip_thrust', 3, 11, 90),
+    ex('lateral_raises', 3, 13, 60),
+    ex('cable_crunch', 2, 13, 60),
+  ],
+};
+
+// =============================================================================
+// 12. RECOMP_INT_4D_UL — Recomp Intermédiaire 4j Upper/Lower
+// =============================================================================
+const D12_UA: ProgramDay = {
+  id: 'recomp_int_4d_ul_upper_a', nameKey: 'Upper A — Force', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
+  exercises: [
+    ex('bench_press', 4, 7, 150),
+    ex('barbell_rows', 4, 7, 150),
+    ex('overhead_press', 3, 8, 120),
+    ex('lat_pulldown', 3, 10, 90),
+    ex('lateral_raises', 3, 13, 60),
+    ex('barbell_curl', 3, 11, 60),
+  ],
+};
+const D12_LA_M: ProgramDay = {
+  id: 'recomp_int_4d_ul_lower_a_m', nameKey: 'Lower A (H)', type: 'muscu',
+  muscleGroups: ['legs', 'core'],
+  exercises: [
+    ex('squat', 4, 7, 180),
+    ex('romanian_deadlift', 3, 9, 120),
+    ex('leg_press', 3, 11, 120),
+    ex('leg_curl', 3, 11, 90),
+    ex('calf_raises', 4, 13, 60),
+    ex('hanging_leg_raise', 3, 10, 60),
+  ],
+};
+const D12_LA_F: ProgramDay = {
+  id: 'recomp_int_4d_ul_lower_a_f', nameKey: 'Lower A (F)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('hip_thrust', 4, 7, 150),
+    ex('romanian_deadlift', 4, 9, 120),
+    ex('bulgarian_split_squat', 3, 10, 90),
+    ex('cable_kickbacks', 3, 13, 60),
+    ex('leg_curl', 3, 11, 90),
+    ex('calf_raises', 4, 13, 60),
+  ],
+};
+const D12_UB: ProgramDay = {
+  id: 'recomp_int_4d_ul_upper_b', nameKey: 'Upper B — Volume', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
+  exercises: [
+    ex('incline_db_press', 4, 10, 90),
+    ex('pull_ups', 4, 8, 120),
+    ex('cable_fly', 3, 13, 60),
+    ex('seated_cable_row', 3, 11, 60),
+    ex('seated_db_press', 3, 10, 90),
+    ex('hammer_curls', 3, 11, 60),
+    ex('overhead_tricep_extension', 3, 11, 60),
+  ],
+};
+const D12_LB_M: ProgramDay = {
+  id: 'recomp_int_4d_ul_lower_b_m', nameKey: 'Lower B (H)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('front_squat', 3, 8, 150),
+    ex('hack_squat', 3, 11, 120),
+    ex('hip_thrust', 3, 11, 90),
+    ex('leg_extension', 3, 13, 60),
+    ex('seated_leg_curl', 3, 11, 90),
+    ex('seated_calf_raise', 4, 13, 60),
+  ],
+};
+const D12_LB_F: ProgramDay = {
+  id: 'recomp_int_4d_ul_lower_b_f', nameKey: 'Lower B (F)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('sumo_deadlift', 3, 7, 120),
+    ex('single_leg_hip_thrust', 3, 10, 90),
+    ex('walking_lunges', 3, 12, 90),
+    ex('cable_pull_through', 3, 13, 60),
+    ex('abductor_machine', 3, 18, 60),
+    ex('calf_raises', 4, 13, 60),
+  ],
+};
+
+// =============================================================================
+// 13. RECOMP_INT_5D_HYB — Recomp Intermédiaire 5j hybride
+// =============================================================================
+const D13_UP: ProgramDay = {
+  id: 'recomp_int_5d_upper_power', nameKey: 'Upper Power', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
+  exercises: [
+    ex('bench_press', 4, 5, 150),
+    ex('barbell_rows', 4, 7, 150),
+    ex('overhead_press', 3, 8, 120),
+    ex('pull_ups', 3, 8, 120),
+    ex('barbell_curl', 3, 8, 60),
+    ex('tricep_pushdown', 3, 11, 60),
+  ],
+};
+const D13_LP_M: ProgramDay = {
+  id: 'recomp_int_5d_lower_power_m', nameKey: 'Lower Power (H)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('squat', 4, 7, 180),
+    ex('romanian_deadlift', 3, 9, 120),
+    ex('leg_press', 3, 11, 120),
+    ex('leg_curl', 3, 11, 90),
+    ex('calf_raises', 4, 13, 60),
+  ],
+};
+const D13_LP_F: ProgramDay = {
+  id: 'recomp_int_5d_lower_power_f', nameKey: 'Lower Power (F)', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('hip_thrust', 4, 7, 150),
+    ex('romanian_deadlift', 4, 9, 120),
+    ex('bulgarian_split_squat', 3, 10, 90),
+    ex('cable_kickbacks', 3, 13, 60),
+    ex('leg_curl', 3, 11, 90),
+    ex('calf_raises', 4, 13, 60),
+  ],
+};
+const D13_PUSH: ProgramDay = {
+  id: 'recomp_int_5d_push_hyper', nameKey: 'Push Hypertrophy', type: 'muscu',
+  muscleGroups: ['chest', 'shoulders', 'arms'],
+  exercises: [
+    ex('incline_db_press', 4, 10, 90),
+    ex('cable_fly', 3, 13, 60),
+    ex('seated_db_press', 3, 10, 90),
+    ex('lateral_raises', 3, 13, 60),
+    ex('skull_crushers', 3, 10, 60),
+    ex('overhead_tricep_extension', 3, 11, 60),
+  ],
+};
+const D13_PULL: ProgramDay = {
+  id: 'recomp_int_5d_pull_hyper', nameKey: 'Pull Hypertrophy', type: 'muscu',
+  muscleGroups: ['back', 'arms'],
+  exercises: [
+    ex('lat_pulldown', 4, 10, 90),
+    ex('t_bar_row', 3, 9, 90),
+    ex('seated_cable_row', 3, 11, 90),
+    ex('face_pulls', 3, 13, 45),
+    ex('incline_db_curl', 3, 11, 60),
+    ex('hammer_curls', 3, 11, 60),
+  ],
+};
+
+// =============================================================================
+// 14. MAINTAIN_3D_FB — Maintien 3j Full Body minimal
+// =============================================================================
+const D14_A: ProgramDay = {
+  id: 'maintain_3d_fb_a', nameKey: 'Full Body A', type: 'muscu',
+  muscleGroups: ['legs', 'chest', 'back', 'shoulders', 'arms'],
+  exercises: [
+    ex('squat', 3, 8, 120),
+    ex('bench_press', 3, 8, 120),
+    ex('barbell_rows', 3, 8, 90),
+    ex('seated_db_press', 2, 10, 60),
+    ex('barbell_curl', 2, 11, 45),
+  ],
+};
+const D14_B: ProgramDay = {
+  id: 'maintain_3d_fb_b', nameKey: 'Full Body B', type: 'muscu',
+  muscleGroups: ['back', 'chest', 'legs', 'shoulders'],
+  exercises: [
+    ex('romanian_deadlift', 3, 7, 120),
+    ex('incline_db_press', 3, 9, 90),
+    ex('lat_pulldown', 3, 10, 90),
+    ex('hip_thrust', 2, 11, 90),
+    ex('lateral_raises', 2, 13, 45),
+  ],
+};
+const D14_C: ProgramDay = {
+  id: 'maintain_3d_fb_c', nameKey: 'Full Body C', type: 'muscu',
+  muscleGroups: ['legs', 'back', 'chest', 'core'],
+  exercises: [
+    ex('front_squat', 3, 8, 120),
+    ex('pull_ups', 3, 10, 90),
+    ex('bench_press', 3, 9, 90),
+    ex('lunges', 2, 10, 60),
+    ex('plank', 2, 40, 45),
+  ],
+};
+
+// =============================================================================
+// 15. MAINTAIN_4D_UL — Maintien 4j Upper/Lower léger
+// =============================================================================
+const D15_UA: ProgramDay = {
+  id: 'maintain_4d_ul_upper_a', nameKey: 'Upper A', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
+  exercises: [
+    ex('bench_press', 3, 8, 120),
+    ex('barbell_rows', 3, 8, 90),
+    ex('seated_db_press', 2, 10, 90),
+    ex('lat_pulldown', 2, 11, 90),
+    ex('barbell_curl', 2, 11, 60),
+    ex('tricep_pushdown', 2, 11, 60),
+  ],
+};
+const D15_LA: ProgramDay = {
+  id: 'maintain_4d_ul_lower_a', nameKey: 'Lower A', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('squat', 3, 8, 150),
+    ex('romanian_deadlift', 3, 9, 120),
+    ex('leg_press', 3, 11, 90),
+    ex('leg_curl', 2, 11, 90),
+    ex('calf_raises', 3, 13, 60),
+  ],
+};
+const D15_UB: ProgramDay = {
+  id: 'maintain_4d_ul_upper_b', nameKey: 'Upper B', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
+  exercises: [
+    ex('incline_db_press', 3, 10, 90),
+    ex('pull_ups', 3, 10, 90),
+    ex('seated_cable_row', 3, 11, 90),
+    ex('lateral_raises', 2, 13, 45),
+    ex('hammer_curls', 2, 11, 60),
+    ex('skull_crushers', 2, 11, 60),
+  ],
+};
+const D15_LB: ProgramDay = {
+  id: 'maintain_4d_ul_lower_b', nameKey: 'Lower B', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('front_squat', 3, 8, 120),
+    ex('hip_thrust', 3, 11, 90),
+    ex('walking_lunges', 2, 10, 90),
+    ex('leg_extension', 2, 13, 60),
+    ex('seated_calf_raise', 3, 13, 60),
+  ],
+};
+
+// =============================================================================
+// 16. BULK_INT_4D_UL_GLUTE — Femme — Focus Fessiers
+// =============================================================================
+const D16_LG1: ProgramDay = {
+  id: 'glute_4d_lower_focus_1', nameKey: 'Lower Glute Focus 1', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('hip_thrust', 4, 7, 150),
+    ex('romanian_deadlift', 4, 9, 120),
+    ex('bulgarian_split_squat', 3, 10, 90),
+    ex('cable_kickbacks', 3, 13, 60),
+    ex('cable_pull_through', 3, 13, 60),
+    ex('calf_raises', 4, 13, 60),
+  ],
+};
+const D16_U1: ProgramDay = {
+  id: 'glute_4d_upper_1', nameKey: 'Upper', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
+  exercises: [
+    ex('bench_press', 3, 9, 120),
+    ex('barbell_rows', 3, 9, 120),
+    ex('seated_db_press', 3, 10, 90),
+    ex('lat_pulldown', 3, 11, 90),
+    ex('lateral_raises', 4, 13, 60),
+    ex('barbell_curl', 3, 11, 60),
+  ],
+};
+const D16_LG2: ProgramDay = {
+  id: 'glute_4d_lower_focus_2', nameKey: 'Lower Glute Focus 2', type: 'muscu',
+  muscleGroups: ['legs'],
+  exercises: [
+    ex('sumo_deadlift', 4, 7, 150),
+    ex('single_leg_hip_thrust', 3, 10, 90),
+    ex('walking_lunges', 3, 12, 90),
+    ex('glute_bridge', 3, 13, 60),
+    ex('seated_leg_curl', 4, 11, 90),
+    ex('abductor_machine', 3, 17, 45),
+  ],
+};
+const D16_U2: ProgramDay = {
+  id: 'glute_4d_upper_2', nameKey: 'Upper (volume + bras)', type: 'muscu',
+  muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
+  exercises: [
+    ex('incline_db_press', 4, 11, 90),
+    ex('pull_ups', 3, 10, 90),
+    ex('seated_cable_row', 3, 13, 60),
+    ex('cable_fly', 3, 13, 60),
+    ex('cable_lateral', 4, 13, 60),
+    ex('hammer_curls', 3, 11, 60),
+    ex('overhead_tricep_extension', 3, 13, 60),
+  ],
+};
+
+// ============================================================================
+// PROGRAMS REGISTRY (16)
+// ============================================================================
 
 export const PROGRAMS: Record<string, TrainingProgram> = {
-  // v2 — sex-aware
-  full_body_h: {
-    id: 'full_body_h',
-    nameKey: 'programFullBody',
-    descriptionKey: 'programFullBodyDesc',
-    daysPerWeek: 3,
-    levelKey: 'levelBeginner',
-    rotation: [FB_H_A, FB_H_B, FB_H_C],
-    trainingSlots: [0, 2, 4],
-    sexVariant: 'male',
-    level: 'beginner',
+  // ─── BULK ─────────────────────────────────────────────────────────────────
+  BULK_DEB_3D_FB: {
+    id: 'BULK_DEB_3D_FB',
+    nameKey: 'Bulk Débutant — Full Body 3j',
+    descriptionKey: 'Tout le corps 3×/sem. Idéal pour débuter en prise de masse. 12-16 semaines.',
+    daysPerWeek: 3, levelKey: 'levelBeginner',
+    rotation: [D01_A, D01_B, D01_C], trainingSlots: [0, 2, 4],
+    sexVariant: 'unisex', level: 'beginner',
   },
-  full_body_f: {
-    id: 'full_body_f',
-    nameKey: 'programFullBody',
-    descriptionKey: 'programFullBodyDesc',
-    daysPerWeek: 3,
-    levelKey: 'levelBeginner',
-    rotation: [FB_F_A, FB_F_B, FB_F_C],
-    trainingSlots: [0, 2, 4],
-    sexVariant: 'female',
-    level: 'beginner',
+  BULK_DEB_4D_UL: {
+    id: 'BULK_DEB_4D_UL',
+    nameKey: 'Bulk Débutant — Upper/Lower 4j',
+    descriptionKey: 'Haut/bas alterné. 4 séances de 60-75 min. 12-16 semaines.',
+    daysPerWeek: 4, levelKey: 'levelBeginner',
+    rotation: [D02_UA, D02_LA, D02_UB, D02_LB], trainingSlots: [0, 1, 3, 4],
+    sexVariant: 'unisex', level: 'beginner',
   },
-  upper_lower_h: {
-    id: 'upper_lower_h',
-    nameKey: 'programUpperLower',
-    descriptionKey: 'programUpperLowerDesc',
-    daysPerWeek: 4,
-    levelKey: 'levelIntermediate',
-    rotation: [UL_H_UPPER_A, UL_H_LOWER_A, UL_H_UPPER_B, UL_H_LOWER_B],
-    trainingSlots: [0, 1, 3, 4],
-    sexVariant: 'male',
-    level: 'intermediate',
+  BULK_INT_4D_PHUL_M: {
+    id: 'BULK_INT_4D_PHUL_M',
+    nameKey: 'Bulk Intermédiaire — PHUL 4j (H)',
+    descriptionKey: 'Power+Hypertrophie Upper/Lower. 12 sem + deload. Pour intermédiaires.',
+    daysPerWeek: 4, levelKey: 'levelIntermediate',
+    rotation: [D03_UP, D03_LP, D03_UH, D03_LH_M], trainingSlots: [0, 1, 3, 4],
+    sexVariant: 'male', level: 'intermediate',
   },
-  upper_lower_f: {
-    id: 'upper_lower_f',
-    nameKey: 'programUpperLower',
-    descriptionKey: 'programUpperLowerDesc',
-    daysPerWeek: 4,
-    levelKey: 'levelIntermediate',
-    rotation: [UL_F_UPPER_A, UL_F_LOWER_A, UL_F_UPPER_B, UL_F_LOWER_B],
-    trainingSlots: [0, 1, 3, 4],
-    sexVariant: 'female',
-    level: 'intermediate',
+  BULK_INT_4D_PHUL_F: {
+    id: 'BULK_INT_4D_PHUL_F',
+    nameKey: 'Bulk Intermédiaire — PHUL 4j (F)',
+    descriptionKey: 'PHUL avec Lower Hypertrophy axé fessiers. 12 sem + deload.',
+    daysPerWeek: 4, levelKey: 'levelIntermediate',
+    rotation: [D03_UP, D03_LP, D03_UH, D03_LH_F], trainingSlots: [0, 1, 3, 4],
+    sexVariant: 'female', level: 'intermediate',
   },
-  ppl_h: {
-    id: 'ppl_h',
-    nameKey: 'programPPL',
-    descriptionKey: 'programPPLDesc',
-    daysPerWeek: 6,
-    levelKey: 'levelAdvanced',
-    rotation: [PPL_H_PUSH_A, PPL_H_PULL_A, PPL_H_LEGS_A, PPL_H_PUSH_B, PPL_H_PULL_B, PPL_H_LEGS_B],
-    trainingSlots: [0, 1, 2, 3, 4, 5],
-    sexVariant: 'male',
-    level: 'advanced',
+  BULK_INT_5D_UL_PPL_M: {
+    id: 'BULK_INT_5D_UL_PPL_M',
+    nameKey: 'Bulk Intermédiaire — UL+PPL 5j (H)',
+    descriptionKey: 'Hybride Upper/Lower + Push/Pull/Legs. Volume élevé. 8-12 sem.',
+    daysPerWeek: 5, levelKey: 'levelIntermediate',
+    rotation: [D04_U, D04_L, D04_PUSH, D04_PULL, D04_LEGS_M],
+    trainingSlots: [0, 1, 2, 4, 5],
+    sexVariant: 'male', level: 'intermediate',
   },
-  ppl_f: {
-    id: 'ppl_f',
-    nameKey: 'programPPL',
-    descriptionKey: 'programPPLDesc',
-    daysPerWeek: 6,
-    levelKey: 'levelAdvanced',
-    rotation: [PPL_F_PUSH_A, PPL_F_PULL_A, PPL_F_LEGS_QUAD, PPL_F_PUSH_B, PPL_F_PULL_B, PPL_F_LEGS_GLUTE],
-    trainingSlots: [0, 1, 2, 3, 4, 5],
-    sexVariant: 'female',
-    level: 'advanced',
+  BULK_INT_5D_UL_PPL_F: {
+    id: 'BULK_INT_5D_UL_PPL_F',
+    nameKey: 'Bulk Intermédiaire — UL+PPL 5j (F)',
+    descriptionKey: 'Hybride avec Legs day axé fessiers. Volume élevé. 8-12 sem.',
+    daysPerWeek: 5, levelKey: 'levelIntermediate',
+    rotation: [D04_U, D04_L, D04_PUSH, D04_PULL, D04_LEGS_F],
+    trainingSlots: [0, 1, 2, 4, 5],
+    sexVariant: 'female', level: 'intermediate',
   },
-  stronglifts_5x5: {
-    id: 'stronglifts_5x5',
-    nameKey: 'programStronglifts',
-    descriptionKey: 'programStrongliftsDesc',
-    daysPerWeek: 3,
-    levelKey: 'levelBeginner',
-    rotation: [SL_A, SL_B],
-    trainingSlots: [0, 2, 4],
-    sexVariant: 'male',
-    level: 'beginner',
+  BULK_INT_6D_PPL_M: {
+    id: 'BULK_INT_6D_PPL_M',
+    nameKey: 'Bulk Intermédiaire — PPL ×2 6j (H)',
+    descriptionKey: 'Push/Pull/Legs deux fois par semaine. Volume max. 8-12 sem.',
+    daysPerWeek: 6, levelKey: 'levelIntermediate',
+    rotation: [D05_PUSH_A, D05_PULL_A, D05_LEGS_A_M, D05_PUSH_B, D05_PULL_B, D05_LEGS_B_M],
+    trainingSlots: [0, 1, 2, 4, 5, 6],
+    sexVariant: 'male', level: 'intermediate',
+  },
+  BULK_INT_6D_PPL_F: {
+    id: 'BULK_INT_6D_PPL_F',
+    nameKey: 'Bulk Intermédiaire — PPL ×2 6j (F)',
+    descriptionKey: 'PPL ×2 avec Legs day axés fessiers. Volume max.',
+    daysPerWeek: 6, levelKey: 'levelIntermediate',
+    rotation: [D05_PUSH_A, D05_PULL_A, D05_LEGS_A_F, D05_PUSH_B, D05_PULL_B, D05_LEGS_B_F],
+    trainingSlots: [0, 1, 2, 4, 5, 6],
+    sexVariant: 'female', level: 'intermediate',
+  },
+  BULK_AVA_4D_531: {
+    id: 'BULK_AVA_4D_531',
+    nameKey: 'Bulk Avancé — 5/3/1 BBB 4j',
+    descriptionKey: 'Wendler 5/3/1 + Boring But Big. Force + masse. Cycles de 4 sem.',
+    daysPerWeek: 4, levelKey: 'levelAdvanced',
+    rotation: [D06_BENCH, D06_SQUAT, D06_OHP, D06_DEAD], trainingSlots: [0, 1, 3, 4],
+    sexVariant: 'unisex', level: 'advanced',
   },
 
-  // v1 legacy — same rotation as the male v2 variant for retro-compat
-  full_body: {
-    id: 'full_body',
-    nameKey: 'programFullBody',
-    descriptionKey: 'programFullBodyDesc',
-    daysPerWeek: 3,
-    levelKey: 'levelBeginner',
-    rotation: [FB_H_A, FB_H_B, FB_H_C],
-    trainingSlots: [0, 2, 4],
-    sexVariant: 'unisex',
-    level: 'beginner',
+  // ─── CUT ──────────────────────────────────────────────────────────────────
+  CUT_DEB_3D_FB: {
+    id: 'CUT_DEB_3D_FB',
+    nameKey: 'Cut Débutant — Full Body 3j',
+    descriptionKey: 'Sèche douce avec full body. 3 séances + 3 cardio. 8-12 sem.',
+    daysPerWeek: 3, levelKey: 'levelBeginner',
+    rotation: [D07_A, D07_B, D07_C], trainingSlots: [0, 2, 4],
+    sexVariant: 'unisex', level: 'beginner',
   },
-  upper_lower: {
-    id: 'upper_lower',
-    nameKey: 'programUpperLower',
-    descriptionKey: 'programUpperLowerDesc',
-    daysPerWeek: 4,
-    levelKey: 'levelIntermediate',
-    rotation: [UL_H_UPPER_A, UL_H_LOWER_A, UL_H_UPPER_B, UL_H_LOWER_B],
-    trainingSlots: [0, 1, 3, 4],
-    sexVariant: 'unisex',
-    level: 'intermediate',
+  CUT_DEB_4D_UL: {
+    id: 'CUT_DEB_4D_UL',
+    nameKey: 'Cut Débutant — Upper/Lower 4j',
+    descriptionKey: 'Sèche avec UL. 4 séances + 2-3 cardio. 8-12 sem.',
+    daysPerWeek: 4, levelKey: 'levelBeginner',
+    rotation: [D08_UA, D08_LA, D08_UB, D08_LB], trainingSlots: [0, 1, 3, 4],
+    sexVariant: 'unisex', level: 'beginner',
   },
-  ppl: {
-    id: 'ppl',
-    nameKey: 'programPPL',
-    descriptionKey: 'programPPLDesc',
-    daysPerWeek: 6,
-    levelKey: 'levelAdvanced',
-    rotation: [PPL_H_PUSH_A, PPL_H_PULL_A, PPL_H_LEGS_A, PPL_H_PUSH_B, PPL_H_PULL_B, PPL_H_LEGS_B],
-    trainingSlots: [0, 1, 2, 3, 4, 5],
-    sexVariant: 'unisex',
-    level: 'advanced',
+  CUT_INT_4D_UL_M: {
+    id: 'CUT_INT_4D_UL_M',
+    nameKey: 'Cut Intermédiaire — UL 4j (H)',
+    descriptionKey: 'UL volume modéré. Préserve la force et le muscle. 12-16 sem.',
+    daysPerWeek: 4, levelKey: 'levelIntermediate',
+    rotation: [D09_UP, D09_LP_M, D09_UH, D09_LH_M], trainingSlots: [0, 1, 3, 4],
+    sexVariant: 'male', level: 'intermediate',
+  },
+  CUT_INT_4D_UL_F: {
+    id: 'CUT_INT_4D_UL_F',
+    nameKey: 'Cut Intermédiaire — UL 4j (F)',
+    descriptionKey: 'UL volume modéré, Lower axé fessiers. 12-16 sem.',
+    daysPerWeek: 4, levelKey: 'levelIntermediate',
+    rotation: [D09_UP, D09_LP_F, D09_UH, D09_LH_F], trainingSlots: [0, 1, 3, 4],
+    sexVariant: 'female', level: 'intermediate',
+  },
+  CUT_INT_5D_PPL_UL_M: {
+    id: 'CUT_INT_5D_PPL_UL_M',
+    nameKey: 'Cut Intermédiaire — PPL/UL 5j (H)',
+    descriptionKey: 'Hybride 5j + 3-4 cardio. Préserve volume tout en sèchant.',
+    daysPerWeek: 5, levelKey: 'levelIntermediate',
+    rotation: [D10_U, D10_L, D10_PUSH, D10_PULL, D10_LEGS_M],
+    trainingSlots: [0, 1, 2, 4, 5],
+    sexVariant: 'male', level: 'intermediate',
+  },
+  CUT_INT_5D_PPL_UL_F: {
+    id: 'CUT_INT_5D_PPL_UL_F',
+    nameKey: 'Cut Intermédiaire — PPL/UL 5j (F)',
+    descriptionKey: 'Hybride 5j + 3-4 cardio. Lower axé fessiers.',
+    daysPerWeek: 5, levelKey: 'levelIntermediate',
+    rotation: [D10_U, D10_L, D10_PUSH, D10_PULL, D10_LEGS_F],
+    trainingSlots: [0, 1, 2, 4, 5],
+    sexVariant: 'female', level: 'intermediate',
+  },
+
+  // ─── RECOMP ───────────────────────────────────────────────────────────────
+  RECOMP_DEB_3D_FB: {
+    id: 'RECOMP_DEB_3D_FB',
+    nameKey: 'Recomp Débutant — Full Body 3j',
+    descriptionKey: 'Recomposition douce. Idéal débutant ou retour de pause. 12-16 sem.',
+    daysPerWeek: 3, levelKey: 'levelBeginner',
+    rotation: [D11_A, D11_B, D11_C], trainingSlots: [0, 2, 4],
+    sexVariant: 'unisex', level: 'beginner',
+  },
+  RECOMP_INT_4D_UL_M: {
+    id: 'RECOMP_INT_4D_UL_M',
+    nameKey: 'Recomp Intermédiaire — UL 4j (H)',
+    descriptionKey: 'UL avec rep ranges variés (force + volume). 16-20 sem.',
+    daysPerWeek: 4, levelKey: 'levelIntermediate',
+    rotation: [D12_UA, D12_LA_M, D12_UB, D12_LB_M], trainingSlots: [0, 1, 3, 4],
+    sexVariant: 'male', level: 'intermediate',
+  },
+  RECOMP_INT_4D_UL_F: {
+    id: 'RECOMP_INT_4D_UL_F',
+    nameKey: 'Recomp Intermédiaire — UL 4j (F)',
+    descriptionKey: 'UL Lower axé fessiers. 16-20 sem.',
+    daysPerWeek: 4, levelKey: 'levelIntermediate',
+    rotation: [D12_UA, D12_LA_F, D12_UB, D12_LB_F], trainingSlots: [0, 1, 3, 4],
+    sexVariant: 'female', level: 'intermediate',
+  },
+  RECOMP_INT_5D_HYB_M: {
+    id: 'RECOMP_INT_5D_HYB_M',
+    nameKey: 'Recomp Intermédiaire — Hybride 5j (H)',
+    descriptionKey: 'UL+PPL 5j optimisé recomp. 16-20 sem.',
+    daysPerWeek: 5, levelKey: 'levelIntermediate',
+    rotation: [D13_UP, D13_LP_M, D13_PUSH, D13_PULL, D04_LEGS_M],
+    trainingSlots: [0, 1, 2, 4, 5],
+    sexVariant: 'male', level: 'intermediate',
+  },
+  RECOMP_INT_5D_HYB_F: {
+    id: 'RECOMP_INT_5D_HYB_F',
+    nameKey: 'Recomp Intermédiaire — Hybride 5j (F)',
+    descriptionKey: 'UL+PPL 5j optimisé recomp avec Legs fessiers.',
+    daysPerWeek: 5, levelKey: 'levelIntermediate',
+    rotation: [D13_UP, D13_LP_F, D13_PUSH, D13_PULL, D04_LEGS_F],
+    trainingSlots: [0, 1, 2, 4, 5],
+    sexVariant: 'female', level: 'intermediate',
+  },
+
+  // ─── MAINTAIN ─────────────────────────────────────────────────────────────
+  MAINTAIN_3D_FB: {
+    id: 'MAINTAIN_3D_FB',
+    nameKey: 'Maintien — Full Body 3j',
+    descriptionKey: 'Maintien minimal. 45-55 min. Phases chargées, voyages, transitions.',
+    daysPerWeek: 3, levelKey: 'levelAll',
+    rotation: [D14_A, D14_B, D14_C], trainingSlots: [0, 2, 4],
+    sexVariant: 'unisex', level: 'beginner',
+  },
+  MAINTAIN_4D_UL: {
+    id: 'MAINTAIN_4D_UL',
+    nameKey: 'Maintien — Upper/Lower 4j',
+    descriptionKey: 'Maintien léger. 50-60 min. RIR 2-3, jamais à l\'échec.',
+    daysPerWeek: 4, levelKey: 'levelAll',
+    rotation: [D15_UA, D15_LA, D15_UB, D15_LB], trainingSlots: [0, 1, 3, 4],
+    sexVariant: 'unisex', level: 'beginner',
+  },
+
+  // ─── SPÉCIAL FEMME ────────────────────────────────────────────────────────
+  BULK_INT_4D_UL_GLUTE: {
+    id: 'BULK_INT_4D_UL_GLUTE',
+    nameKey: 'Femme — Bulk 4j Focus Fessiers',
+    descriptionKey: 'Programme dédié femme avec hip thrust principal. Volume fessiers ~20 sets/sem.',
+    daysPerWeek: 4, levelKey: 'levelIntermediate',
+    rotation: [D16_LG1, D16_U1, D16_LG2, D16_U2], trainingSlots: [0, 1, 3, 4],
+    sexVariant: 'female', level: 'intermediate',
   },
 };
 
-export const PROGRAM_IDS = [
-  'full_body_h',
-  'full_body_f',
-  'upper_lower_h',
-  'upper_lower_f',
-  'ppl_h',
-  'ppl_f',
-  'stronglifts_5x5',
-] as const;
+export const PROGRAM_IDS = Object.keys(PROGRAMS) as Array<keyof typeof PROGRAMS>;
 
 export const CARDIO_DAYS = { liss: CARDIO_LISS, hiit: CARDIO_HIIT };
 
-/** Resolve a v1 legacy id to its v2 equivalent for a given sex. */
+// ── Legacy program ID migration ──────────────────────────────────────────────
+// Old users may have a v1/v2 program ID persisted in their activePlan.
+// Map them to a sensible v3 default so the app doesn't show "no program".
+const LEGACY_ID_MAP: Record<string, string> = {
+  full_body: 'BULK_DEB_3D_FB',
+  full_body_h: 'BULK_DEB_3D_FB',
+  full_body_f: 'BULK_DEB_3D_FB',
+  upper_lower: 'BULK_DEB_4D_UL',
+  upper_lower_h: 'BULK_DEB_4D_UL',
+  upper_lower_f: 'BULK_DEB_4D_UL',
+  ppl: 'BULK_INT_6D_PPL_M',
+  ppl_h: 'BULK_INT_6D_PPL_M',
+  ppl_f: 'BULK_INT_6D_PPL_F',
+  stronglifts_5x5: 'BULK_DEB_3D_FB',
+};
+
+/**
+ * Resolve any legacy or v2 program id to a v3 program id.
+ * Sex-aware fallback: if the legacy mapping isn't sex-specific, picks
+ * the variant matching the user's sex when applicable.
+ */
 export function resolveLegacyProgramId(id: string, sex: 'male' | 'female' = 'male'): string {
-  const map: Record<string, [string, string]> = {
-    full_body: ['full_body_h', 'full_body_f'],
-    upper_lower: ['upper_lower_h', 'upper_lower_f'],
-    ppl: ['ppl_h', 'ppl_f'],
-  };
-  const variants = map[id];
-  if (!variants) return id;
-  return sex === 'female' ? variants[1] : variants[0];
+  if (PROGRAMS[id]) return id;
+  const mapped = LEGACY_ID_MAP[id];
+  if (!mapped) return id;
+  // Some defaults vary per sex; rewrite if needed
+  if (sex === 'female' && mapped === 'BULK_INT_6D_PPL_M') return 'BULK_INT_6D_PPL_F';
+  return mapped;
 }
 
 export function getProgramDayById(programId: string, dayId: string): ProgramDay | null {
   if (dayId === 'cardio_liss') return CARDIO_LISS;
   if (dayId === 'cardio_hiit') return CARDIO_HIIT;
 
-  // Defensive: persisted plans from v1 may have stored legacy program IDs
-  // (e.g. 'full_body' instead of 'full_body_h'). Try the v2 mapping if direct
-  // lookup fails so old plans keep resolving without forcing a re-generation.
   let program = PROGRAMS[programId];
   if (!program) {
-    const v2Male = resolveLegacyProgramId(programId, 'male');
-    if (v2Male !== programId) program = PROGRAMS[v2Male];
+    const v3 = resolveLegacyProgramId(programId, 'male');
+    if (v3 !== programId) program = PROGRAMS[v3];
   }
   if (!program) {
-    const v2Female = resolveLegacyProgramId(programId, 'female');
-    if (v2Female !== programId) program = PROGRAMS[v2Female];
+    const v3 = resolveLegacyProgramId(programId, 'female');
+    if (v3 !== programId) program = PROGRAMS[v3];
   }
   if (!program) return null;
   return program.rotation.find((d) => d.id === dayId) ?? null;

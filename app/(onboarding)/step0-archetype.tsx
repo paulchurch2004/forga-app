@@ -70,14 +70,6 @@ const ARCHETYPES: ArchetypeData[] = [
   },
 ];
 
-const INTENSITY_LABEL_KEYS: Record<number, TranslationKey> = {
-  1: 'archetypeIntensity1',
-  2: 'archetypeIntensity2',
-  3: 'archetypeIntensity3',
-  4: 'archetypeIntensity4',
-  5: 'archetypeIntensity5',
-};
-
 function hsl(h: number, s: number, l: number, a = 1): string {
   return `hsla(${h}, ${s}%, ${l}%, ${a})`;
 }
@@ -90,7 +82,6 @@ export default function ArchetypeScreen() {
   const [step, setStep] = useState<0 | 1>(onboardingData.archetype ? 1 : 0);
   const [selectedId, setSelectedId] = useState<Archetype | null>(onboardingData.archetype ?? null);
   const [name, setName] = useState(onboardingData.name ?? '');
-  const [intensity, setIntensity] = useState<number>(onboardingData.intensity ?? 3);
 
   const selected = ARCHETYPES.find((a) => a.id === selectedId) ?? null;
 
@@ -103,7 +94,6 @@ export default function ArchetypeScreen() {
     if (!selected) return;
     setOnboardingData({
       archetype: selected.id,
-      intensity: intensity as 1 | 2 | 3 | 4 | 5,
       name: name.trim() || undefined,
     });
     router.push('/(onboarding)/step1-identity');
@@ -118,8 +108,6 @@ export default function ArchetypeScreen() {
           archetype={selected}
           name={name}
           setName={setName}
-          intensity={intensity}
-          setIntensity={setIntensity}
           onBack={() => setStep(0)}
           onNext={goNext}
           bottomInset={insets.bottom}
@@ -212,8 +200,6 @@ function ConfirmStep({
   archetype,
   name,
   setName,
-  intensity,
-  setIntensity,
   onBack,
   onNext,
   bottomInset,
@@ -221,8 +207,6 @@ function ConfirmStep({
   archetype: ArchetypeData;
   name: string;
   setName: (v: string) => void;
-  intensity: number;
-  setIntensity: (v: number) => void;
   onBack: () => void;
   onNext: () => void;
   bottomInset: number;
@@ -290,46 +274,16 @@ function ConfirmStep({
           />
         </View>
 
-        {/* Intensity */}
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>{t('archetypeIntensityLabel')}</Text>
-          <View style={styles.intensityRow}>
-            {[1, 2, 3, 4, 5].map((i) => {
-              const active = intensity >= i;
-              return (
-                <Pressable
-                  key={i}
-                  onPress={() => setIntensity(i)}
-                  style={[
-                    styles.intensityButton,
-                    {
-                      backgroundColor: active ? accent : 'rgba(255,255,255,0.04)',
-                      borderColor: active ? accent : 'rgba(255,255,255,0.08)',
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.intensityLabel,
-                      { color: active ? '#FFFFFF' : 'rgba(255,255,255,0.38)' },
-                    ]}
-                  >
-                    {t(INTENSITY_LABEL_KEYS[i])}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
 
-        {/* Plan card */}
+        {/* Style card — only training cadence, no fake macros (we don't yet have body data) */}
         <View style={styles.planCard}>
           <Text style={[styles.planLabel, { color: accentSoft }]}>{t('archetypePlanLabel')}</Text>
           <View style={styles.planRow}>
-            <PlanStat value={archetype.plan.calories.toString()} unit="kcal" label={t('archetypePlanCalories')} color={accentLight} />
-            <PlanStat value={archetype.plan.protein.toString()} unit="g" label={t('archetypePlanProteins')} color={accentLight} />
             <PlanStat value={archetype.plan.sessionsPerWeek.toString()} unit={t('archetypePlanSessionsUnit')} label={t('archetypePlanSessions')} color={accentLight} />
           </View>
+          <Text style={styles.planFootnote}>
+            Tes calories et macros seront calculées avec précision à la dernière étape, une fois ton profil complet.
+          </Text>
         </View>
       </ScrollView>
 
@@ -601,24 +555,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderRadius: 12,
   },
-  intensityRow: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  intensityButton: {
-    flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    borderWidth: 1,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  intensityLabel: {
-    fontFamily: fonts.body,
-    fontSize: 10,
-    fontWeight: '600',
-    letterSpacing: 0.4,
-  },
   planCard: {
     backgroundColor: 'rgba(255,255,255,0.03)',
     borderWidth: 1,
@@ -638,6 +574,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 12,
     gap: 10,
+  },
+  planFootnote: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.55)',
+    marginTop: 12,
+    lineHeight: 16,
+    fontStyle: 'italic',
   },
   planStat: {
     flex: 1,
