@@ -50,18 +50,26 @@ export function useTokens() {
     });
   }, []);
 
+  // NOTE: award_video_tokens is locked to service_role (migration 008) to prevent
+  // a user from awarding themselves bonuses. This client-side call will fail until
+  // a server-side AdMob SSV edge function is in place to relay the reward.
   const awardTokens = useCallback(async (
     rewardType: 'coach_messages' | 'food_scan',
   ) => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { success: false };
+    if (!user) return { success: false, reason: 'unauthenticated' };
 
     const { data, error } = await supabase.rpc('award_video_tokens', {
       p_user_id: user.id,
       p_reward_type: rewardType,
     });
 
-    if (!error && data?.success) {
+    if (error) {
+      // Expected until the AdMob SSV edge function is wired
+      return { success: false, reason: 'permission_denied' };
+    }
+
+    if (data?.success) {
       await fetchTokens();
     }
 

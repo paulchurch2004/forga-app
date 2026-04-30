@@ -17,6 +17,7 @@ import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { analyzeFoodPhoto, isVisionAvailable, type FoodAnalysisResult } from '../../src/services/foodVision';
+import { events } from '../../src/services/analytics';
 import { ScreenTopBar } from '../../src/components/ui/ScreenTopBar';
 
 type Status = 'idle' | 'capturing' | 'analyzing' | 'result' | 'error';
@@ -113,6 +114,7 @@ export default function PhotoScanScreen() {
         setFat(String(res.data.fat));
         setStatus('result');
       } else if (res.kind === 'quota_exceeded') {
+        events.quotaExceeded('food_scan');
         router.replace('/paywall?trigger=quota_food_scan');
       } else {
         setStatus('error');

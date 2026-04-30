@@ -71,7 +71,7 @@ export default function TDEECalculator() {
   const weightKg = parseFloat(weightStr);
 
   const isFormValid =
-    !isNaN(age) && age >= 14 && age <= 65 &&
+    !isNaN(age) && age >= 16 && age <= 65 &&
     !isNaN(heightCm) && heightCm >= 120 && heightCm <= 220 &&
     !isNaN(weightKg) && weightKg >= 30 && weightKg <= 250;
 

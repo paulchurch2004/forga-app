@@ -5,12 +5,12 @@
 
 /**
  * Valide l'âge de l'utilisateur.
- * Doit être un entier entre 14 et 120 ans.
+ * Minimum 16 ans (App Store policy + RGPD jeunes utilisateurs).
  */
 export function validateAge(age: number): boolean {
   if (!Number.isFinite(age)) return false;
   if (!Number.isInteger(age)) return false;
-  return age >= 14 && age <= 120;
+  return age >= 16 && age <= 120;
 }
 
 /**

@@ -36,6 +36,9 @@ import {
   type QuickReply,
 } from '../../src/engine/coachChatEngine';
 import { sendCoachMessage, type ChatHistoryEntry } from '../../src/services/coachAI';
+import { events } from '../../src/services/analytics';
+import { useQuota } from '../../src/hooks/useQuota';
+import { usePremium } from '../../src/hooks/usePremium';
 import { fonts, fontSizes, spacing, borderRadius, makeStyles, shadows } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useResponsive } from '../../src/hooks/useResponsive';
@@ -103,6 +106,8 @@ interface ChatMessage {
   timestamp: number;
   /** Proposed actions parsed from the coach reply. */
   actions?: import('../../src/services/coachActions').CoachAction[];
+  /** System-style notice rendered as a centered card with a CTA. */
+  kind?: 'quota_notice';
 }
 
 const COACH_AVATAR = 'https://images.unsplash.com/photo-1534368959876-26bf04f2c947?w=200&q=80';
@@ -171,6 +176,23 @@ function TypingIndicator() {
 function MessageBubble({ message }: { message: ChatMessage }) {
   const styles = useStyles();
 
+  if (message.kind === 'quota_notice') {
+    return (
+      <Animated.View entering={FadeIn.duration(300)} style={styles.quotaRow}>
+        <View style={styles.quotaCard}>
+          <Text style={styles.quotaTitle}>Quota journalier atteint</Text>
+          <Text style={styles.quotaText}>{message.text}</Text>
+          <Pressable
+            style={styles.quotaButton}
+            onPress={() => router.push('/paywall?trigger=quota_coach_message')}
+          >
+            <Text style={styles.quotaButtonText}>Passer en PRO illimité</Text>
+          </Pressable>
+        </View>
+      </Animated.View>
+    );
+  }
+
   if (message.isCoach) {
     return (
       <Animated.View entering={FadeIn.duration(300)} style={styles.coachRow}>
@@ -204,6 +226,8 @@ export default function CoachScreen() {
 
   const profile = useUserStore((s) => s.profile);
   const { currentScore } = useScoreStore();
+  const { isPremium } = usePremium();
+  const coachQuota = useQuota('coach_message');
   const todayMeals = useMealStore((s) => s.todayMeals);
   const engine = useEngine();
   const { currentSlot } = useMealSlot();
@@ -424,7 +448,19 @@ export default function CoachScreen() {
 
     if (result.kind === 'quota_exceeded') {
       setIsTyping(false);
-      router.push('/paywall?trigger=quota_coach_message');
+      events.quotaExceeded('coach_message');
+      const id = String(++messageIdRef.current);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id,
+          text: result.message ?? 'Tu as atteint ta limite de messages aujourd\'hui. Passe à FORGA Pro pour des échanges illimités avec ton coach.',
+          isCoach: true,
+          timestamp: Date.now(),
+          kind: 'quota_notice',
+        },
+      ]);
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
       return;
     }
 
@@ -561,6 +597,14 @@ export default function CoachScreen() {
             <Text style={styles.headerSubtitle}>{t('online')}</Text>
           </View>
         </View>
+        {!isPremium && !coachQuota.loading && (
+          <View style={styles.quotaPill}>
+            <Text style={styles.quotaPillText}>
+              {Math.max(0, coachQuota.cap - coachQuota.used) + coachQuota.bonus}/{coachQuota.cap + coachQuota.bonus}
+            </Text>
+            <Text style={styles.quotaPillSub}>messages</Text>
+          </View>
+        )}
       </LinearGradient>
 
       {/* New: mode toggle Présence vs Conversation (résout friction UX #1 audit) */}
@@ -738,6 +782,27 @@ const useStyles = makeStyles((colors) => ({
     borderRadius: 4,
     backgroundColor: '#00FF88',
   },
+  quotaPill: {
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  quotaPillText: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.white,
+  },
+  quotaPillSub: {
+    fontFamily: fonts.body,
+    fontSize: 9,
+    color: 'rgba(255,255,255,0.7)',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
   headerSubtitle: {
     fontFamily: fonts.body,
     fontSize: fontSizes.xs,
@@ -822,6 +887,55 @@ const useStyles = makeStyles((colors) => ({
     fontSize: fontSizes.md,
     color: colors.white,
     lineHeight: 22,
+  },
+
+  // Quota notice — system-style centered card
+  quotaRow: {
+    alignItems: 'center',
+    marginVertical: spacing.lg,
+    paddingHorizontal: spacing.md,
+  },
+  quotaCard: {
+    backgroundColor: 'rgba(255, 107, 44, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 107, 44, 0.35)',
+    borderRadius: 18,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.lg,
+    width: '100%',
+    maxWidth: 360,
+    alignItems: 'center',
+  },
+  quotaTitle: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+    color: colors.primary,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    marginBottom: spacing.xs,
+  },
+  quotaText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    color: colors.text,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: spacing.md,
+  },
+  quotaButton: {
+    backgroundColor: colors.primary,
+    borderRadius: 14,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    alignSelf: 'stretch',
+    alignItems: 'center',
+  },
+  quotaButtonText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+    color: colors.white,
   },
 
   // Typing

@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "fr.forga.ios",
-      "buildNumber": "43",
+      "buildNumber": "49",
       "infoPlist": {
         "NSCameraUsageDescription": "FORGA utilise la camera pour les photos de progression et scanner les aliments.",
         "NSPhotoLibraryUsageDescription": "FORGA accede a tes photos pour les photos de progression et identifier les aliments.",
@@ -79,7 +79,8 @@
       ],
       "expo-localization",
       "expo-image",
-      "expo-video"
+      "expo-video",
+      "@sentry/react-native"
     ],
     "extra": {
       "eas": {

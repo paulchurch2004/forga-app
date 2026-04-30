@@ -19,6 +19,8 @@ import { useUserStore } from '../src/store/userStore';
 import { useAuthStore } from '../src/store/authStore';
 import { useSettingsStore } from '../src/store/settingsStore';
 import { supabase, isDemoMode } from '../src/services/supabase';
+import { toast } from '../src/store/toastStore';
+import { shareUserDataExport } from '../src/services/dataExport';
 import { calculateTDEE } from '../src/engine/tdee';
 import { calculateMacros } from '../src/engine/macros';
 import { determineMealCount } from '../src/engine/mealPlanner';
@@ -141,8 +143,8 @@ export default function SettingsScreen() {
     const weightNum = parseFloat(currentWeight);
     const targetNum = parseFloat(targetWeight);
 
-    if (!ageNum || ageNum < 14 || ageNum > 65) {
-      showMessage(t('error'), 'Age entre 14 et 65 ans.');
+    if (!ageNum || ageNum < 16 || ageNum > 65) {
+      showMessage(t('error'), 'Age entre 16 et 65 ans.');
       return;
     }
     if (!heightNum || heightNum < 120 || heightNum > 220) {
@@ -212,9 +214,10 @@ export default function SettingsScreen() {
         });
       }
 
+      toast.success(t('save') + ' ✓');
       router.back();
     } catch (err: any) {
-      showMessage(t('error'), err?.message ?? t('errorOccurred'));
+      toast.error(err?.message ?? t('errorOccurred'));
     } finally {
       setSaving(false);
     }
@@ -409,6 +412,49 @@ export default function SettingsScreen() {
           </View>
         </View>
 
+        {/* Training calibration */}
+        <View style={styles.rule} />
+        <Pressable style={styles.linkRow} onPress={() => router.push('/calibration-test')} hitSlop={4}>
+          <Text style={styles.linkText}>Test de calibration</Text>
+          <Text style={styles.linkChevron}>›</Text>
+        </Pressable>
+
+        {/* GDPR data export */}
+        <Pressable
+          style={styles.linkRow}
+          onPress={async () => {
+            try {
+              await shareUserDataExport();
+              toast.success('Export prêt');
+            } catch {
+              toast.error('Export impossible');
+            }
+          }}
+          hitSlop={4}
+        >
+          <Text style={styles.linkText}>Exporter mes données</Text>
+          <Text style={styles.linkChevron}>›</Text>
+        </Pressable>
+
+        {/* About / legal links */}
+        <View style={styles.rule} />
+        <Pressable style={styles.linkRow} onPress={() => router.push('/contact')} hitSlop={4}>
+          <Text style={styles.linkText}>Contact & support</Text>
+          <Text style={styles.linkChevron}>›</Text>
+        </Pressable>
+        <Pressable style={styles.linkRow} onPress={() => router.push('/faq')} hitSlop={4}>
+          <Text style={styles.linkText}>FAQ</Text>
+          <Text style={styles.linkChevron}>›</Text>
+        </Pressable>
+        <Pressable style={styles.linkRow} onPress={() => router.push('/privacy')} hitSlop={4}>
+          <Text style={styles.linkText}>Politique de confidentialité</Text>
+          <Text style={styles.linkChevron}>›</Text>
+        </Pressable>
+        <Pressable style={styles.linkRow} onPress={() => router.push('/terms')} hitSlop={4}>
+          <Text style={styles.linkText}>Conditions d'utilisation</Text>
+          <Text style={styles.linkChevron}>›</Text>
+        </Pressable>
+
         {/* Hidden dev toggle: long-press the version line to enable
             the FORGA Core State debug card on the profile. */}
         <VersionFooter />
@@ -574,6 +620,24 @@ const useStyles = makeStyles((colors) => ({
     height: 1,
     backgroundColor: colors.border,
     marginTop: spacing.lg,
+  },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  linkText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    color: colors.text,
+  },
+  linkChevron: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.lg,
+    color: colors.textMuted,
   },
   chipRow: {
     flexDirection: 'row',

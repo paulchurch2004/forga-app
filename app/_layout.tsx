@@ -50,13 +50,14 @@ import type { MealSlot } from '../src/types/meal';
 import { OfflineBanner } from '../src/components/ui/OfflineBanner';
 import { processQueue } from '../src/services/syncQueue';
 import { initRevenueCat } from '../src/services/revenueCat';
-import { initAnalytics, events } from '../src/services/analytics';
+import { initAnalytics, identifyUser, resetUser, events } from '../src/services/analytics';
 import { loadAllUserData } from '../src/services/userSync';
 import { calculateForgaScore } from '../src/engine/scoreEngine';
 import { useWaterStore } from '../src/store/waterStore';
 import type { ScoreInput } from '../src/types/score';
 import { todayLocalIso, localIso } from '../src/utils/date';
 import { BiometricLockGate } from '../src/components/auth/BiometricLockGate';
+import { ToastHost } from '../src/components/ui/ToastHost';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -194,6 +195,7 @@ function RootLayoutInner() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
+        identifyUser(session.user.id);
         initRevenueCat(session.user.id);
         loadProfileFromSupabase(session.user.id)
           .then(() => loadAllUserData(session.user.id))
@@ -206,10 +208,13 @@ function RootLayoutInner() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       if (session && event === 'SIGNED_IN') {
+        identifyUser(session.user.id);
         setLoading(true);
         loadProfileFromSupabase(session.user.id)
           .then(() => loadAllUserData(session.user.id))
           .finally(() => setLoading(false));
+      } else if (event === 'SIGNED_OUT') {
+        resetUser();
       }
     });
 
@@ -375,6 +380,7 @@ function RootLayoutInner() {
       <BiometricLockGate>
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeColors.background } }} />
       </BiometricLockGate>
+      <ToastHost />
     </QueryClientProvider>
   );
 }

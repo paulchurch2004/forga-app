@@ -47,7 +47,7 @@ export default function Step1Identity() {
   );
 
   const parsedAge = parseInt(age, 10);
-  const isAgeValid = !isNaN(parsedAge) && parsedAge >= 14 && parsedAge <= 65;
+  const isAgeValid = !isNaN(parsedAge) && parsedAge >= 16 && parsedAge <= 65;
   const canContinue = sex !== undefined && isAgeValid;
 
   const handleSexSelect = (value: Sex) => {
@@ -163,6 +163,16 @@ export default function Step1Identity() {
               {t('ageError')}
             </Text>
           )}
+
+          {/* Health disclaimer — required for App Store Health & Fitness category */}
+          <View style={styles.disclaimerCard}>
+            <Text style={styles.disclaimerTitle}>Avant de commencer</Text>
+            <Text style={styles.disclaimerBody}>
+              FORGA n'est pas un substitut à un avis médical. Si tu as un doute sur ta santé, une
+              blessure ou prends un traitement, consulte un médecin avant de modifier ton régime
+              alimentaire ou ton entraînement. L'app est réservée aux personnes de 16 ans et plus.
+            </Text>
+          </View>
         </ScrollView>
 
         {/* Bottom button */}
@@ -308,6 +318,29 @@ const useStyles = makeStyles((colors) => ({
     fontSize: fontSizes.sm,
     color: colors.error,
     marginTop: spacing.sm,
+  },
+  disclaimerCard: {
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.10)',
+    borderRadius: borderRadius.md,
+    padding: spacing.lg,
+    marginTop: spacing['2xl'],
+  },
+  disclaimerTitle: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    fontWeight: '700',
+    color: colors.primary,
+    marginBottom: spacing.xs,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+  },
+  disclaimerBody: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
+    lineHeight: 19,
   },
   bottomBar: {
     paddingTop: spacing.lg,

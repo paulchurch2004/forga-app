@@ -31,8 +31,8 @@ const CLIPS: string[] = [
   'https://assets.mixkit.co/videos/608/608-1080.mp4',
 ];
 
-const CLIP_DURATION_MS = 1000;
-const CROSSFADE_MS = 180;
+const CLIP_DURATION_MS = 1500;
+const CROSSFADE_MS = 350;
 
 interface VideoMontageProps {
   /** Override the default clip list. Use file:// URIs for local bundled assets. */
@@ -63,33 +63,15 @@ export function VideoMontage({ clips = CLIPS, clipDurationMs = CLIP_DURATION_MS 
     if (clips.length === 0) return;
     const interval = setInterval(() => {
       indexRef.current = (indexRef.current + 1) % clips.length;
-      const nextUrl = clips[indexRef.current];
 
       const willShow = activePlayer === 'A' ? 'B' : 'A';
-      const offline = activePlayer; // the one we'll fade out
+      const offline = activePlayer;
 
-      // Tell the about-to-show player its source (was the next-next clip)
-      // and let it pre-buffer briefly before swapping. We just point it at
-      // the url two ahead so the rotation stays seamless.
-      try {
-        const nextNextUrl = clips[(indexRef.current + 1) % clips.length];
-        if (willShow === 'B') {
-          playerB.replace(nextUrl);
-        } else {
-          playerA.replace(nextUrl);
-        }
-        // Pre-warm the about-to-be-hidden player with the clip after next
-        setTimeout(() => {
-          try {
-            if (offline === 'A') playerA.replace(nextNextUrl);
-            else playerB.replace(nextNextUrl);
-          } catch { /* ignore */ }
-        }, CROSSFADE_MS + 50);
-      } catch {
-        /* swap source can fail mid-transition, ignore */
-      }
+      // The willShow player already has the right clip (preloaded last tick),
+      // so we DO NOT replace its source here — that would force a re-buffer
+      // and produce a black flash during the fade-in.
 
-      // Crossfade
+      // Crossfade first.
       Animated.parallel([
         Animated.timing(willShow === 'A' ? opacityA : opacityB, {
           toValue: 1, duration: CROSSFADE_MS, useNativeDriver: true,
@@ -100,6 +82,16 @@ export function VideoMontage({ clips = CLIPS, clipDurationMs = CLIP_DURATION_MS 
       ]).start();
 
       setActivePlayer(willShow);
+
+      // Once the old player is hidden, swap its source to the clip
+      // it'll need to show next time it becomes visible (= 2 clips ahead).
+      const futureUrl = clips[(indexRef.current + 1) % clips.length];
+      setTimeout(() => {
+        try {
+          if (offline === 'A') playerA.replace(futureUrl);
+          else playerB.replace(futureUrl);
+        } catch { /* ignore */ }
+      }, CROSSFADE_MS + 100);
     }, clipDurationMs);
 
     return () => clearInterval(interval);

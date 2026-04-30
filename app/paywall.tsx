@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,10 @@ import {
   Alert,
   Platform,
   ScrollView,
-  Animated,
-  Easing,
-  StyleSheet,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Path, Defs, Pattern, Rect, LinearGradient as SvgLinearGradient, Stop } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useT } from '../src/i18n';
 import { fonts } from '../src/theme/fonts';
@@ -60,11 +57,11 @@ interface FeatureRow {
 }
 
 const FEATURES: FeatureRow[] = [
-  { name: '510 recettes premium',     free: '5 recettes',         pro: 'Illimité' },
+  { name: '800+ recettes',            free: '5 recettes',         pro: 'Illimité' },
   { name: 'Recettes étape par étape', free: 'Liste seulement',    pro: 'Vidéo + pas' },
   { name: 'Coach IA',                 free: '5 messages / jour',  pro: 'Illimité' },
-  { name: "Plans d'entraînement",     free: '1 programme',        pro: '40+ plans' },
-  { name: 'Scan code-barre & photo',  free: '5 scans / jour',     pro: 'Illimité' },
+  { name: "Programmes d'entraînement", free: '1 programme',       pro: 'Tous les programmes' },
+  { name: 'Scan code-barre & photo',  free: '3 scans / jour',     pro: 'Illimité' },
 ];
 
 export default function PaywallScreen() {
@@ -77,16 +74,6 @@ export default function PaywallScreen() {
   const updateProfile = useUserStore((s) => s.updateProfile);
   const user = useAuthStore((s) => s.session?.user);
 
-  // LIVE pulsing dot animation
-  const pulse = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 1, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 0, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-      ])
-    ).start();
-  }, [pulse]);
 
   useEffect(() => {
     events.paywallShown('paywall_screen');
@@ -172,8 +159,6 @@ export default function PaywallScreen() {
     }
   };
 
-  const pulseOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] });
-
   return (
     <View style={{ flex: 1, backgroundColor: TH.bg }}>
       {/* Ambient glows */}
@@ -234,41 +219,9 @@ export default function PaywallScreen() {
           </Text>
         </View>
 
-        {/* Video placeholder card */}
+        {/* Video — gradient border, nothing else */}
         <View style={{ paddingHorizontal: 20, paddingBottom: 14 }}>
-          <View style={{
-            backgroundColor: TH.surface, borderRadius: 16, padding: 14,
-            borderWidth: 1, borderColor: TH.border,
-          }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-              <Text style={{
-                fontFamily: fonts.data, fontSize: 9.5, color: TH.textMuted,
-                letterSpacing: 1.6, textTransform: 'uppercase',
-              }}>Ta transformation</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Animated.View style={{
-                  width: 6, height: 6, borderRadius: 3, backgroundColor: TH.red,
-                  opacity: pulseOpacity,
-                  shadowColor: TH.red, shadowOpacity: 0.8, shadowRadius: 6, shadowOffset: { width: 0, height: 0 },
-                }} />
-                <Text style={{
-                  fontFamily: fonts.data, fontSize: 9, letterSpacing: 1.6,
-                  color: TH.red, textTransform: 'uppercase', fontWeight: '700',
-                }}>Live</Text>
-              </View>
-            </View>
-
-            <VideoPlaceholder />
-
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 }}>
-              <Text style={{ fontFamily: fonts.data, fontSize: 9, letterSpacing: 0.8, color: TH.green, fontWeight: '600' }}>
-                – 4,2KG MASSE GRASSE
-              </Text>
-              <Text style={{ fontFamily: fonts.data, fontSize: 9, letterSpacing: 0.8, color: TH.green, fontWeight: '600' }}>
-                +12% MUSCLE
-              </Text>
-            </View>
-          </View>
+          <VideoPlaceholder />
         </View>
 
         {/* Social proof */}
@@ -531,50 +484,22 @@ function PriceCard({
 }
 
 function VideoPlaceholder() {
+  // Gradient border via outer LinearGradient + inner inset to expose the gradient.
   return (
-    <View style={{
-      height: 110, borderRadius: 10, overflow: 'hidden',
-      backgroundColor: TH.surface, borderWidth: 1, borderColor: TH.borderStrong,
-      position: 'relative',
-    }}>
-      {/* Real fast-cut video montage (10 sport clips, 1s each, looping) */}
-      <VideoMontage />
-
-      {/* Subtle dark overlay so foreground UI (brackets, timecode, LIVE) stays legible */}
-      <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.18)' }]} />
-
-      {/* Diagonal orange stripes for the "technical" feel */}
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-        <Svg width="100%" height="100%">
-          <Defs>
-            <Pattern id="stripes" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-              <Rect width="14" height="14" fill="transparent" />
-              <Rect width="1" height="14" fill="rgba(255,107,44,0.10)" />
-            </Pattern>
-          </Defs>
-          <Rect width="100%" height="100%" fill="url(#stripes)" />
-        </Svg>
+    <LinearGradient
+      colors={['#FF8A3D', '#FF6B2C', '#D8420E']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={{ borderRadius: 18, padding: 1.5 }}
+    >
+      <View style={{
+        height: 180,
+        borderRadius: 16.5,
+        overflow: 'hidden',
+        backgroundColor: '#000',
+      }}>
+        <VideoMontage />
       </View>
-
-      {/* Corner brackets */}
-      <View style={[bracketBase, { top: 6, left: 6, borderTopWidth: 1.5, borderLeftWidth: 1.5 }]} />
-      <View style={[bracketBase, { top: 6, right: 6, borderTopWidth: 1.5, borderRightWidth: 1.5 }]} />
-      <View style={[bracketBase, { bottom: 6, left: 6, borderBottomWidth: 1.5, borderLeftWidth: 1.5 }]} />
-      <View style={[bracketBase, { bottom: 6, right: 6, borderBottomWidth: 1.5, borderRightWidth: 1.5 }]} />
-
-      {/* Timecode */}
-      <Text style={{
-        position: 'absolute', bottom: 6, left: 10,
-        fontFamily: fonts.data, fontSize: 8, letterSpacing: 1.2, color: '#FFFFFF',
-        opacity: 0.85,
-      }}>REC · 00:00:30</Text>
-    </View>
+    </LinearGradient>
   );
 }
-
-const bracketBase = {
-  position: 'absolute' as const,
-  width: 10,
-  height: 10,
-  borderColor: TH.primary,
-};
