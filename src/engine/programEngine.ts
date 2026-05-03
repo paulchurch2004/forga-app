@@ -147,19 +147,20 @@ function addDays(dateStr: string, days: number): string {
   return toLocalDateStr(d);
 }
 
-function getNextMonday(): string {
-  const now = new Date();
-  const day = now.getDay();
-  const isoDay = day === 0 ? 6 : day - 1;
-  if (isoDay === 0) return toLocalDateStr(now);
-  const daysUntilMonday = 7 - isoDay;
-  const monday = new Date(now);
-  monday.setDate(monday.getDate() + daysUntilMonday);
-  return toLocalDateStr(monday);
+/** Plans now start TODAY (not next Monday) — users want to begin immediately. */
+function getPlanStartDate(): string {
+  return toLocalDateStr(new Date());
+}
+
+/** Convert a YYYY-MM-DD string to ISO day-of-week (0=Mon..6=Sun). */
+function isoDayOfWeek(dateStr: string): number {
+  const d = new Date(dateStr + 'T00:00:00');
+  const day = d.getDay(); // 0=Sun..6=Sat
+  return day === 0 ? 6 : day - 1;
 }
 
 function pickCardioDays(trainingSlots: number[], sessionsPerWeek: number): number[] {
-  const restDays = [0, 1, 2, 3, 4, 5].filter((d) => !trainingSlots.includes(d));
+  const restDays = [0, 1, 2, 3, 4, 5, 6].filter((d) => !trainingSlots.includes(d));
   if (restDays.length === 0 || sessionsPerWeek === 0) return [];
   const step = Math.max(1, Math.floor(restDays.length / sessionsPerWeek));
   const picked: number[] = [];
@@ -187,7 +188,7 @@ export function generatePlan(
   const program = PROGRAMS[resolvedId] ?? PROGRAMS[programId];
   if (!program) throw new Error(`Unknown program: ${programId}`);
 
-  const startDate = getNextMonday();
+  const startDate = getPlanStartDate();
   const endDate = addDays(startDate, 27);
   const cardioRec = getCardioRecommendation(obj);
   const cardioDays = pickCardioDays(program.trainingSlots, cardioRec.sessionsPerWeek);
@@ -197,7 +198,9 @@ export function generatePlan(
 
   for (let i = 0; i < 28; i++) {
     const date = addDays(startDate, i);
-    const dow = i % 7;
+    // Use the actual calendar day-of-week (not the index), so training slots
+    // align with real Mondays/Tuesdays/etc. regardless of when the plan starts.
+    const dow = isoDayOfWeek(date);
 
     if (program.trainingSlots.includes(dow)) {
       const dayIdx = rotationIdx % program.rotation.length;

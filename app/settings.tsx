@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  Switch,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +22,7 @@ import { useSettingsStore } from '../src/store/settingsStore';
 import { supabase, isDemoMode } from '../src/services/supabase';
 import { toast } from '../src/store/toastStore';
 import { shareUserDataExport } from '../src/services/dataExport';
+import { isRestSoundEnabled, setRestSoundEnabled } from '../src/services/audioService';
 import { calculateTDEE } from '../src/engine/tdee';
 import { calculateMacros } from '../src/engine/macros';
 import { determineMealCount } from '../src/engine/mealPlanner';
@@ -419,6 +421,10 @@ export default function SettingsScreen() {
           <Text style={styles.linkChevron}>›</Text>
         </Pressable>
 
+        {/* Rest-end sound toggle */}
+        <RestSoundToggle />
+
+
         {/* GDPR data export */}
         <Pressable
           style={styles.linkRow}
@@ -474,6 +480,34 @@ export default function SettingsScreen() {
           )}
         </Pressable>
       </View>
+    </View>
+  );
+}
+
+function RestSoundToggle() {
+  const styles = useStyles();
+  const [enabled, setEnabled] = useState(true);
+
+  useEffect(() => {
+    isRestSoundEnabled().then(setEnabled);
+  }, []);
+
+  const onToggle = async (value: boolean) => {
+    setEnabled(value);
+    await setRestSoundEnabled(value);
+  };
+
+  return (
+    <View style={styles.toggleRow}>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.linkText}>Son fin de repos</Text>
+        <Text style={styles.toggleHint}>Bip + vibration quand le timer du repos se termine</Text>
+      </View>
+      <Switch
+        value={enabled}
+        onValueChange={onToggle}
+        trackColor={{ false: 'rgba(255,255,255,0.15)', true: '#FF6B35' }}
+      />
     </View>
   );
 }
@@ -638,6 +672,20 @@ const useStyles = makeStyles((colors) => ({
     fontFamily: fonts.body,
     fontSize: fontSizes.lg,
     color: colors.textMuted,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    gap: spacing.md,
+  },
+  toggleHint: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
+    marginTop: 2,
   },
   chipRow: {
     flexDirection: 'row',

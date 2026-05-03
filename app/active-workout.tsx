@@ -36,6 +36,7 @@ import { LiveCoachIntervention, type LiveCoachKind } from '../src/components/coa
 import { ReplaceExerciseSheet } from '../src/components/training/ReplaceExerciseSheet';
 import { buildSubstitutesFor } from '../src/utils/exerciseSubstitutes';
 import { DeloadBanner } from '../src/components/training/DeloadBanner';
+import { preloadRestEndSound, playRestEndSound, unloadRestEndSound } from '../src/services/audioService';
 import { WorkoutTopBar } from '../src/components/training/WorkoutTopBar';
 import { ExerciseHeader } from '../src/components/training/ExerciseHeader';
 import { ExerciseDemoCard } from '../src/components/training/ExerciseDemoCard';
@@ -215,6 +216,15 @@ export default function ActiveWorkoutScreen() {
       if (!seen) setShowWorkoutGuide(true);
     });
   }, []);
+
+  // Preload the rest-end sound (no-op if expo-audio not installed)
+  useEffect(() => {
+    preloadRestEndSound().catch(() => { /* silent */ });
+    return () => {
+      unloadRestEndSound().catch(() => { /* silent */ });
+    };
+  }, []);
+
   const restRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startRestTimer = useCallback((seconds: number) => {
@@ -227,13 +237,15 @@ export default function ActiveWorkoutScreen() {
         if (prev <= 1) {
           clearInterval(restRef.current!);
           setIsResting(false);
-          // Stronger end-of-rest signal: distinct vibration pattern + double haptic
-          // (replace with sound via expo-av once installed)
+          // Multi-channel rest-end signal: short audio cue + vibration pattern
+          // + double haptic. Audio is opt-in via Settings (default ON) and
+          // silently skipped if expo-audio isn't installed yet.
           if (Platform.OS !== 'web') {
             Vibration.vibrate([0, 200, 100, 200]);
           }
           triggerHaptic('medium');
           setTimeout(() => triggerHaptic('success'), 250);
+          playRestEndSound().catch(() => { /* ignore */ });
           return 0;
         }
         return prev - 1;
