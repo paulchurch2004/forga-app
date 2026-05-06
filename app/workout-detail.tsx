@@ -6,6 +6,7 @@ import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../src/them
 import { useResponsive } from '../src/hooks/useResponsive';
 import { useT } from '../src/i18n';
 import { useTrainingStore } from '../src/store/trainingStore';
+import { useProgramStore } from '../src/store/programStore';
 import { getWorkoutTypeIcon, getWorkoutTypeKey, getIntensityKey } from '../src/hooks/useTraining';
 import { ScreenTopBar } from '../src/components/ui/ScreenTopBar';
 
@@ -17,6 +18,7 @@ export default function WorkoutDetailScreen() {
   const { workoutId, date } = useLocalSearchParams<{ workoutId: string; date: string }>();
   const workouts = useTrainingStore((s) => s.getWorkoutsForDate(date ?? ''));
   const removeWorkout = useTrainingStore((s) => s.removeWorkout);
+  const unmarkDayCompleted = useProgramStore((s) => s.unmarkDayCompleted);
 
   const workout = workouts.find((w) => w.id === workoutId);
 
@@ -33,6 +35,13 @@ export default function WorkoutDetailScreen() {
   const handleDelete = () => {
     const doDelete = () => {
       removeWorkout(workout.date, workout.id);
+      // Revert the planned-day card to "today / upcoming" so the user can redo it.
+      // Only unmark if no other workout remains for that date.
+      const remaining = useTrainingStore.getState().getWorkoutsForDate(workout.date)
+        .filter((w) => w.id !== workout.id);
+      if (remaining.length === 0) {
+        unmarkDayCompleted(workout.date);
+      }
       router.back();
     };
 

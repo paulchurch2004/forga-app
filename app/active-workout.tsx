@@ -24,6 +24,7 @@ import { hasTutorial } from '../src/data/exerciseTips';
 import { ExerciseTutorialModal } from '../src/components/training/ExerciseTutorialModal';
 import { useTrainingStore } from '../src/store/trainingStore';
 import { syncWorkout } from '../src/services/userSync';
+import { pushWorkoutToHealth } from '../src/hooks/useAppleHealth';
 import { useAuthStore } from '../src/store/authStore';
 import { useProgramStore } from '../src/store/programStore';
 import { useUserStore } from '../src/store/userStore';
@@ -32,6 +33,10 @@ import { getRestConfig, formatRestTime as fmtRest } from '../src/engine/restEngi
 import { suggestNextWeight, type SessionRecord } from '../src/engine/oneRepMax';
 import { RestCircleTimer } from '../src/components/training/RestCircleTimer';
 import { SessionForgee } from '../src/components/training/SessionForgee';
+import { PostWorkoutFeedback, type PostWorkoutFeedbackData } from '../src/components/training/PostWorkoutFeedback';
+import { compareWorkouts, findPreviousWorkoutOfSameType, generatePostWorkoutCoachMessage, pickLiveCoachKind } from '../src/utils/workoutComparison';
+import { usePremiumGate } from '../src/hooks/usePremiumGate';
+import { useTrainingStreak } from '../src/hooks/useTrainingStreak';
 import { LiveCoachIntervention, type LiveCoachKind } from '../src/components/coach/LiveCoachIntervention';
 import { ReplaceExerciseSheet } from '../src/components/training/ReplaceExerciseSheet';
 import { buildSubstitutesFor } from '../src/utils/exerciseSubstitutes';
@@ -148,11 +153,14 @@ export default function ActiveWorkoutScreen() {
   }>();
 
   const addWorkout = useTrainingStore((s) => s.addWorkout);
+  const updateWorkoutFeedback = useTrainingStore((s) => s.updateWorkoutFeedback);
   const markDayCompleted = useProgramStore((s) => s.markDayCompleted);
   const getLastSession = useTrainingStore((s) => s.getLastSessionForExercise);
   const getExerciseHistory = useTrainingStore((s) => s.getExerciseHistory);
+  const { checkWorkoutBadges, currentTrainingStreak, totalWorkouts } = useTrainingStreak();
   const userId = useAuthStore((s) => s.session?.user?.id);
   const objective = useUserStore((s) => s.profile?.objective ?? 'maintain');
+  const { canUseLiveSwap, openPaywall } = usePremiumGate();
   const profile = useUserStore((s) => s.profile);
   const strengthTest = useUserStore((s) => s.strengthTest);
 
@@ -195,6 +203,13 @@ export default function ActiveWorkoutScreen() {
   const [showWorkoutGuide, setShowWorkoutGuide] = useState(false);
   const [showFinisherCardio, setShowFinisherCardio] = useState(false);
   const [showSessionForgee, setShowSessionForgee] = useState(false);
+  const [showPostFeedback, setShowPostFeedback] = useState(false);
+  const [postFeedbackPayload, setPostFeedbackPayload] = useState<{
+    workoutId: string;
+    date: string;
+    comparisonSummary: string;
+    coachMessage: string;
+  } | null>(null);
   const [forgeeStats, setForgeeStats] = useState({ durationMin: 0, volumeKg: 0, prCount: 0 });
   const [liveCoach, setLiveCoach] = useState<LiveCoachKind | null>(null);
   const [liveSwapExIdx, setLiveSwapExIdx] = useState<number | null>(null);
@@ -469,11 +484,19 @@ export default function ActiveWorkoutScreen() {
           startRestTimer(config.restSeconds);
         }
 
-        // Live coach intervention — fire once per exercise on the 2nd set
+        // Live coach intervention — fire once per exercise on the 2nd set,
+        // picking the type based on actual perf vs target and last session.
         if (setIdx === 1 && !liveCoachShownRef.current.has(ex.exerciseId)) {
           liveCoachShownRef.current.add(ex.exerciseId);
-          const kinds: LiveCoachKind[] = ['form', 'rest', 'push', 'swap'];
-          const kind = kinds[Math.floor(Math.random() * kinds.length)];
+          const lastSessionSets = useTrainingStore
+            .getState()
+            .getLastSessionForExercise(ex.exerciseId);
+          const kind = pickLiveCoachKind({
+            weight,
+            reps,
+            targetReps: ex.programExercise.targetReps,
+            lastSessionSets,
+          }) as LiveCoachKind;
           setTimeout(() => setLiveCoach(kind), 800);
         }
       }
@@ -522,6 +545,7 @@ export default function ActiveWorkoutScreen() {
       };
       addWorkout(workout);
       if (userId) syncWorkout(workout, userId);
+      pushWorkoutToHealth(workout).catch(() => {});
       markDayCompleted(date, workoutId);
       triggerHaptic('success');
       router.back();
@@ -576,6 +600,7 @@ export default function ActiveWorkoutScreen() {
 
       addWorkout(workout);
       if (userId) syncWorkout(workout, userId);
+      pushWorkoutToHealth(workout).catch(() => {});
       markDayCompleted(date, workoutId);
       triggerHaptic('success');
 
@@ -589,10 +614,34 @@ export default function ActiveWorkoutScreen() {
         volumeKg: Math.round(totalVol),
         prCount: 0,
       });
+
+      // Compare to previous workout of same type + generate coach message
+      // (use a fresh snapshot of the store so the just-added workout is included)
+      const allWorkouts = useTrainingStore.getState().workouts;
+      const previous = findPreviousWorkoutOfSameType(workout, allWorkouts);
+      const comparison = compareWorkouts(workout, previous);
+      const coachMessage = generatePostWorkoutCoachMessage({
+        firstName: profile?.name?.split(' ')[0],
+        workout,
+        comparison,
+        prCount: 0,
+        trainingStreak: currentTrainingStreak,
+        totalWorkouts: totalWorkouts + 1, // +1 because the workout we just added
+      });
+      setPostFeedbackPayload({
+        workoutId,
+        date,
+        comparisonSummary: comparison.summary,
+        coachMessage,
+      });
+
+      // Unlock any newly-earned badges (first_workout, ten_workouts, streak, etc.)
+      checkWorkoutBadges();
+
       // Ceremony first; finisher cardio comes after the user closes the modal
       setShowSessionForgee(true);
     },
-    [exercises, elapsedSeconds, addWorkout, markDayCompleted, router, t, userId]
+    [exercises, elapsedSeconds, addWorkout, markDayCompleted, router, t, userId, profile?.name, currentTrainingStreak, totalWorkouts, checkWorkoutBadges]
   );
 
   // Finisher cardio timer
@@ -695,6 +744,10 @@ export default function ActiveWorkoutScreen() {
                   style={styles.swapBtn}
                   onPress={() => {
                     triggerHaptic('light');
+                    if (!canUseLiveSwap) {
+                      openPaywall();
+                      return;
+                    }
                     setLiveSwapExIdx(exIdx);
                   }}
                   hitSlop={6}
@@ -702,7 +755,7 @@ export default function ActiveWorkoutScreen() {
                   <Svg width={14} height={14} viewBox="0 0 24 24" fill="none">
                     <Path d="M8 7h12M8 7l4-4M8 7l4 4M16 17H4M16 17l-4-4M16 17l-4 4" stroke="#FF6B35" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
                   </Svg>
-                  <Text style={styles.swapBtnText}>Remplacer</Text>
+                  <Text style={styles.swapBtnText}>Remplacer{canUseLiveSwap ? '' : ' 🔒'}</Text>
                 </Pressable>
               </View>
 
@@ -930,9 +983,34 @@ export default function ActiveWorkoutScreen() {
         stats={forgeeStats}
         onClose={() => {
           setShowSessionForgee(false);
-          setShowFinisherCardio(true);
+          // If we have feedback payload, ask the user; else go straight to finisher
+          if (postFeedbackPayload) {
+            setShowPostFeedback(true);
+          } else {
+            setShowFinisherCardio(true);
+          }
         }}
       />
+
+      {/* Post-workout feedback: rating + RPE + free note + coach message + comparison */}
+      {postFeedbackPayload && (
+        <PostWorkoutFeedback
+          visible={showPostFeedback}
+          comparisonSummary={postFeedbackPayload.comparisonSummary}
+          coachMessage={postFeedbackPayload.coachMessage}
+          onSubmit={(feedback: PostWorkoutFeedbackData) => {
+            updateWorkoutFeedback(postFeedbackPayload.date, postFeedbackPayload.workoutId, feedback);
+            setShowPostFeedback(false);
+            setPostFeedbackPayload(null);
+            setShowFinisherCardio(true);
+          }}
+          onSkip={() => {
+            setShowPostFeedback(false);
+            setPostFeedbackPayload(null);
+            setShowFinisherCardio(true);
+          }}
+        />
+      )}
 
       {/* Live coach intervention — fires mid-workout */}
       {liveCoach && (

@@ -11,7 +11,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
-import { makeStyles } from '../../src/theme';
+import { useTrackOnboardingStep } from '../../src/hooks/useTrackOnboardingStep';import { makeStyles } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
 import { fonts, fontSizes, fontWeights } from '../../src/theme/fonts';
@@ -45,6 +45,7 @@ function getDeadlineDate(months: number): string {
 }
 
 export default function Step4Target() {
+  useTrackOnboardingStep(4);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();

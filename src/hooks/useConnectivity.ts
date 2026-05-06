@@ -5,18 +5,38 @@ export function useConnectivity() {
   const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
-    if (Platform.OS !== 'web' || typeof window === 'undefined') return;
+    // Web: use navigator.onLine + window events
+    if (Platform.OS === 'web') {
+      if (typeof window === 'undefined') return;
+      const update = () => {
+        setIsOnline(typeof navigator !== 'undefined' ? navigator.onLine : true);
+      };
+      update();
+      window.addEventListener('online', update);
+      window.addEventListener('offline', update);
+      return () => {
+        window.removeEventListener('online', update);
+        window.removeEventListener('offline', update);
+      };
+    }
 
-    const update = () => {
-      setIsOnline(typeof navigator !== 'undefined' ? navigator.onLine : true);
-    };
-    update();
-
-    window.addEventListener('online', update);
-    window.addEventListener('offline', update);
+    // Native: NetInfo subscription. Imported dynamically so the hook still works
+    // if the module is missing (e.g. during a fresh install before linking).
+    let unsubscribe: (() => void) | null = null;
+    (async () => {
+      try {
+        const NetInfo = (await import('@react-native-community/netinfo')).default;
+        const state = await NetInfo.fetch();
+        setIsOnline(state.isConnected !== false && state.isInternetReachable !== false);
+        unsubscribe = NetInfo.addEventListener((s) => {
+          setIsOnline(s.isConnected !== false && s.isInternetReachable !== false);
+        });
+      } catch {
+        setIsOnline(true);
+      }
+    })();
     return () => {
-      window.removeEventListener('online', update);
-      window.removeEventListener('offline', update);
+      unsubscribe?.();
     };
   }, []);
 

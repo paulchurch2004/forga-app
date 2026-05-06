@@ -12,7 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
-
+import { useTrackOnboardingStep } from '../../src/hooks/useTrackOnboardingStep';
 const triggerHaptic = (style: 'light' | 'medium' = 'light') => {
   if (Platform.OS === 'web') return;
   import('expo-haptics').then((Haptics) => {
@@ -33,6 +33,7 @@ const STEP = 1;
 const TOTAL_STEPS = 7;
 
 export default function Step1Identity() {
+  useTrackOnboardingStep(1);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();

@@ -7,6 +7,7 @@ import type { Badge, BadgeType } from '../types/user';
 import { BADGE_INFO } from '../types/user';
 import { sendBadgeNotification, scheduleStreakDanger } from '../services/notifications';
 import { syncBadge, syncProfile } from '../services/userSync';
+import { events } from '../services/analytics';
 
 function makeBadge(type: BadgeType): Badge {
   return { id: `${type}_${Date.now()}`, type, unlockedAt: new Date().toISOString() };
@@ -31,7 +32,9 @@ export function useStreak() {
   // Break streak
   const breakStreak = useCallback(() => {
     if (!profile) return;
+    const previousStreak = profile.currentStreak;
     updateProfile({ currentStreak: 0 });
+    if (previousStreak > 0) events.streakLost(previousStreak);
   }, [profile, updateProfile]);
 
   const streakCheckedRef = useRef(false);
@@ -102,6 +105,7 @@ export function useStreak() {
         addBadge(badge);
         notifyBadge(type);
         if (profile?.id) syncBadge(badge, profile.id);
+        events.badgeUnlocked(type);
       };
 
       // first_meal
@@ -149,6 +153,7 @@ export function useStreak() {
     };
     updateProfile(updates);
     if (profile.id) syncProfile(updates, profile.id);
+    events.streakDay(newStreak);
     checkAndUnlockBadges(newStreak);
     // Re-schedule streak danger notification with updated count
     if (Platform.OS !== 'web') {
@@ -163,6 +168,7 @@ export function useStreak() {
     if (!profile.isPremium) return false;
 
     updateProfile({ streakFreezeUsedThisWeek: true });
+    events.streakFreezeUsed();
     return true;
   }, [profile, streakFreezeUsedThisWeek, updateProfile]);
 

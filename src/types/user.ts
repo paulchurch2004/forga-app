@@ -136,7 +136,14 @@ export type BadgeType =
   | 'first_week'
   | 'first_kilo'
   | 'forgeron'
-  | 'month_of_forge';
+  | 'month_of_forge'
+  // Training badges
+  | 'first_workout'
+  | 'ten_workouts'
+  | 'thirty_workouts'
+  | 'hundred_workouts'
+  | 'training_week_streak'
+  | 'training_month_streak';
 
 export const BADGE_INFO: Record<BadgeType, { name: string; description: string }> = {
   first_meal: { name: 'Premier Repas', description: 'Valider son premier repas' },
@@ -144,6 +151,12 @@ export const BADGE_INFO: Record<BadgeType, { name: string; description: string }
   first_kilo: { name: 'Premier Kilo', description: '1 kg de progression vers l\'objectif' },
   forgeron: { name: 'Forgeron', description: 'Score FORGA > 70' },
   month_of_forge: { name: 'Mois de Forge', description: '30 jours de streak' },
+  first_workout: { name: 'Première Séance', description: 'Compléter ta première séance' },
+  ten_workouts: { name: 'Dix Séances', description: '10 séances complétées' },
+  thirty_workouts: { name: 'Trente Séances', description: '30 séances complétées' },
+  hundred_workouts: { name: 'Centurion', description: '100 séances complétées' },
+  training_week_streak: { name: 'Semaine d\'Acier', description: '7 jours d\'entraînement consécutifs' },
+  training_month_streak: { name: 'Mois d\'Acier', description: '30 jours d\'entraînement consécutifs' },
 };
 
 export function getBadgeInfo(type: BadgeType, locale: string = 'fr'): { name: string; description: string } {
@@ -154,6 +167,12 @@ export function getBadgeInfo(type: BadgeType, locale: string = 'fr'): { name: st
       first_kilo: { name: 'Premier Kilo', description: '1 kg de progression vers l\'objectif' },
       forgeron: { name: 'Forgeron', description: 'Score FORGA > 70' },
       month_of_forge: { name: 'Mois de Forge', description: '30 jours de streak' },
+      first_workout: { name: 'Première Séance', description: 'Compléter ta première séance' },
+      ten_workouts: { name: 'Dix Séances', description: '10 séances complétées' },
+      thirty_workouts: { name: 'Trente Séances', description: '30 séances complétées' },
+      hundred_workouts: { name: 'Centurion', description: '100 séances complétées' },
+      training_week_streak: { name: 'Semaine d\'Acier', description: '7 jours d\'entraînement consécutifs' },
+      training_month_streak: { name: 'Mois d\'Acier', description: '30 jours d\'entraînement consécutifs' },
     },
     en: {
       first_meal: { name: 'First Meal', description: 'Validate your first meal' },
@@ -161,6 +180,12 @@ export function getBadgeInfo(type: BadgeType, locale: string = 'fr'): { name: st
       first_kilo: { name: 'First Kilo', description: '1 kg progress toward goal' },
       forgeron: { name: 'Forger', description: 'FORGA Score > 70' },
       month_of_forge: { name: 'Month of Forge', description: '30-day streak' },
+      first_workout: { name: 'First Workout', description: 'Complete your first session' },
+      ten_workouts: { name: 'Ten Workouts', description: '10 workouts completed' },
+      thirty_workouts: { name: 'Thirty Workouts', description: '30 workouts completed' },
+      hundred_workouts: { name: 'Centurion', description: '100 workouts completed' },
+      training_week_streak: { name: 'Iron Week', description: '7 consecutive training days' },
+      training_month_streak: { name: 'Iron Month', description: '30 consecutive training days' },
     },
   };
   return (info[locale] ?? info.fr)[type];

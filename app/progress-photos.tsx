@@ -24,6 +24,7 @@ import { EmptyState } from '../src/components/ui/EmptyState';
 import type { ProgressPhoto } from '../src/types/user';
 import { syncProgressPhoto } from '../src/services/userSync';
 import { todayLocalIso } from '../src/utils/date';
+import { usePremiumGate } from '../src/hooks/usePremiumGate';
 
 // ──────────── COMPARE VIEW ────────────
 
@@ -78,12 +79,13 @@ export default function ProgressPhotosScreen() {
   const { contentMaxWidth } = useResponsive();
   const { colors } = useTheme();
   const styles = useStyles();
-  const { locale } = useT();
+  const { locale, t } = useT();
   const { width: screenWidth } = useWindowDimensions();
 
   const progressPhotos = useUserStore((s) => s.progressPhotos);
   const addProgressPhoto = useUserStore((s) => s.addProgressPhoto);
   const profile = useUserStore((s) => s.profile);
+  const { canAddPhoto, openPaywall, limits } = usePremiumGate();
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [newPhotoUri, setNewPhotoUri] = useState<string | null>(null);
@@ -101,6 +103,18 @@ export default function ProgressPhotosScreen() {
   const imgWidth = (Math.min(screenWidth, contentMaxWidth) - spacing.lg * 2 - spacing.xs * (numCols - 1)) / numCols;
 
   const handlePickImage = useCallback(async (source: 'camera' | 'library') => {
+    if (!canAddPhoto(progressPhotos.length)) {
+      Alert.alert(
+        t('photoCapReachedTitle'),
+        t('photoCapReachedBody', { max: limits.photosTotal }),
+        [
+          { text: t('cancel'), style: 'cancel' },
+          { text: t('upgradeToPremium'), onPress: openPaywall },
+        ],
+      );
+      return;
+    }
+
     let result: ImagePicker.ImagePickerResult;
 
     if (source === 'camera') {
@@ -118,7 +132,7 @@ export default function ProgressPhotosScreen() {
       setNewWeight(profile?.currentWeight?.toString() ?? '');
       setShowAddModal(true);
     }
-  }, [profile]);
+  }, [profile, canAddPhoto, progressPhotos.length, limits.photosTotal, openPaywall, t]);
 
   const handleSave = () => {
     if (!newPhotoUri) return;

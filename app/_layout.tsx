@@ -58,6 +58,8 @@ import type { ScoreInput } from '../src/types/score';
 import { todayLocalIso, localIso } from '../src/utils/date';
 import { BiometricLockGate } from '../src/components/auth/BiometricLockGate';
 import { ToastHost } from '../src/components/ui/ToastHost';
+import { initDeepLinks } from '../src/services/deepLinks';
+import { syncHealthOnForeground } from '../src/hooks/useAppleHealth';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -128,6 +130,10 @@ function RootLayoutInner() {
     initSentry();
     initAnalytics();
     events.appOpened();
+    const unsubscribeDeepLinks = initDeepLinks();
+    return () => {
+      unsubscribeDeepLinks();
+    };
   }, []);
 
   // Notification init + tap listener
@@ -215,6 +221,10 @@ function RootLayoutInner() {
           .finally(() => setLoading(false));
       } else if (event === 'SIGNED_OUT') {
         resetUser();
+        // Drop the user back to the entry point so the auth-aware index.tsx
+        // can route them to welcome/login. Without this, the profile tab stays
+        // mounted with no session and renders blank.
+        router.replace('/');
       }
     });
 
@@ -325,6 +335,7 @@ function RootLayoutInner() {
           checkDayReset();
           autoSaveScore();
           flush();
+          syncHealthOnForeground().catch(() => {});
         }
         appStateRef.current = nextState;
       });

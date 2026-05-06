@@ -7,7 +7,7 @@ import { useTheme } from '../src/context/ThemeContext';
 import { useT } from '../src/i18n';
 import { useResponsive } from '../src/hooks/useResponsive';
 
-const LAST_UPDATED = '18 avril 2026';
+const LAST_UPDATED = '5 mai 2026';
 
 export default function PrivacyScreen() {
   const insets = useSafeAreaInsets();
@@ -46,10 +46,14 @@ export default function PrivacyScreen() {
         <Text style={styles.updated}>{t("lastUpdated", { date: LAST_UPDATED })}</Text>
 
         <Section title="1. Introduction">
-          FORGA (ci-apres "l'Application") est editee par FORGA SAS. La presente
+          FORGA (ci-apres "l'Application") est editee par Paul Church, entrepreneur
+          individuel, 2 allee Armand Praviel, 33000 Bordeaux, France. La presente
           politique de confidentialite decrit comment nous collectons, utilisons et
           protegeons vos donnees personnelles conformement au Reglement General sur
           la Protection des Donnees (RGPD) et a la loi Informatique et Libertes.
+          {'\n\n'}
+          Version complete (registre detaille des sous-traitants et finalites) :
+          forga.fr/privacy
         </Section>
 
         <Section title="2. Donnees collectees">
@@ -88,14 +92,19 @@ export default function PrivacyScreen() {
           L'acces aux donnees est strictement limite aux personnes autorisees.
         </Section>
 
-        <Section title="6. Partage des donnees">
-          Nous ne vendons jamais vos donnees personnelles. Vos donnees peuvent
-          etre partagees avec :{'\n\n'}
-          - Supabase (hebergement et base de donnees){'\n'}
-          - RevenueCat (gestion des abonnements, sur mobile uniquement){'\n'}
-          - Stripe (paiements web){'\n\n'}
-          Ces sous-traitants sont conformes au RGPD et heberges dans l'UE ou
-          beneficient de garanties adequates.
+        <Section title="6. Sous-traitants">
+          Nous ne vendons jamais vos donnees personnelles. Vos donnees sont
+          confiees aux prestataires techniques suivants, tous lies par contrat
+          au RGPD (Standard Contractual Clauses pour les transferts hors UE) :
+          {'\n\n'}
+          - Supabase (hebergement base de donnees, authentification){'\n'}
+          - Apple (Sign in with Apple, In-App Purchases, Apple Health){'\n'}
+          - Google (Sign in with Google, optionnel){'\n'}
+          - RevenueCat (gestion des abonnements){'\n'}
+          - Sentry (detection automatique des plantages, donnees anonymisees){'\n'}
+          - PostHog (analyse anonyme d'usage, donnees pseudonymisees){'\n'}
+          - Anthropic / Google AI (coach IA, message + contexte minimal){'\n\n'}
+          Liste exhaustive avec finalites et URLs de privacy : forga.fr/privacy
         </Section>
 
         <Section title="7. Vos droits">
@@ -130,10 +139,19 @@ export default function PrivacyScreen() {
           depuis les reglages de votre appareil ou dans l'application.
         </Section>
 
-        <Section title="11. Contact">
+        <Section title="11. Mineurs">
+          FORGA est interdit aux personnes de moins de 16 ans. Cette limite
+          est appliquee des l'onboarding (validation de l'age requise). Pour
+          les 16-18 ans, nous recommandons fortement la supervision d'un
+          parent ou d'un professionnel de sante pour toutes les
+          recommandations nutritionnelles et d'entrainement.
+        </Section>
+
+        <Section title="12. Contact">
           Pour toute question relative a vos donnees personnelles :{'\n\n'}
-          E-mail : privacy@forga.fr{'\n'}
-          Adresse : FORGA SAS, France{'\n\n'}
+          E-mail : hello@forga.fr{'\n'}
+          Adresse : Paul Church, 2 allee Armand Praviel, 33000 Bordeaux, France
+          {'\n\n'}
           Vous pouvez egalement introduire une reclamation aupres de la CNIL
           (www.cnil.fr).
         </Section>

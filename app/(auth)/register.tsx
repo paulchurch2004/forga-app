@@ -31,6 +31,10 @@ import { supabase, isDemoMode } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/store/authStore';
 import { useUserStore } from '../../src/store/userStore';
 import { isValidReferralCode } from '../../src/services/referrals';
+import { signInWithApple, isAppleSignInAvailable, signInWithGoogle, SocialAuthError } from '../../src/services/socialAuth';
+import { loadProfileFromSupabase } from '../../src/services/profile';
+import { loadAllUserData } from '../../src/services/userSync';
+import { events } from '../../src/services/analytics';
 
 const EASE_OUT = Easing.out(Easing.cubic);
 
@@ -72,7 +76,27 @@ export default function RegisterScreen() {
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [referralFocused, setReferralFocused] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const setOnboardingData = useUserStore((s) => s.setOnboardingData);
+  const onboardingReferralCode = useUserStore((s) => s.onboardingData.referredByCode);
+
+  useEffect(() => {
+    isAppleSignInAvailable().then(setAppleAvailable);
+  }, []);
+
+  // Pre-fill the referral input when the user opened the app via a
+  // referral deep link (forga.fr/r/<CODE> or forga://r/<CODE>).
+  useEffect(() => {
+    if (onboardingReferralCode && !referralCode) {
+      setReferralCode(onboardingReferralCode);
+      setShowReferral(true);
+    }
+    // We intentionally don't depend on `referralCode` to avoid re-prefilling
+    // after the user manually clears it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onboardingReferralCode]);
 
   // Staggered entrance animations
   const brandStyle = useEntrance(0);
@@ -163,7 +187,75 @@ export default function RegisterScreen() {
         name: name.trim(),
         ...(trimmedCode && isValidReferralCode(trimmedCode) ? { referredByCode: trimmedCode } : {}),
       });
+      events.signUp('email');
       router.replace('/(onboarding)/step0-archetype');
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    setAppleLoading(true);
+    try {
+      const result = await signInWithApple();
+      useAuthStore.getState().setSession(result.session);
+
+      if (result.isNewUser) {
+        // Brand new account → straight into onboarding, pre-filling the name
+        // from Apple if we got one.
+        const trimmedCode = referralCode.trim().toUpperCase();
+        setOnboardingData({
+          ...(result.displayName ? { name: result.displayName } : {}),
+          ...(trimmedCode && isValidReferralCode(trimmedCode) ? { referredByCode: trimmedCode } : {}),
+        });
+        events.signUp('apple');
+        router.replace('/(onboarding)/step0-archetype');
+      } else {
+        // Returning user → load profile + push to home.
+        await loadProfileFromSupabase(result.session.user.id);
+        await loadAllUserData(result.session.user.id);
+        events.signIn('apple');
+        router.replace('/');
+      }
+    } catch (e) {
+      if (e instanceof SocialAuthError && e.code === 'cancelled') {
+        // User dismissed the Apple sheet — silent, no error toast.
+      } else {
+        const message = e instanceof Error ? e.message : 'Apple Sign In failed.';
+        showError(t('error'), message);
+      }
+    } finally {
+      setAppleLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      useAuthStore.getState().setSession(result.session);
+
+      if (result.isNewUser) {
+        const trimmedCode = referralCode.trim().toUpperCase();
+        setOnboardingData({
+          ...(result.displayName ? { name: result.displayName } : {}),
+          ...(trimmedCode && isValidReferralCode(trimmedCode) ? { referredByCode: trimmedCode } : {}),
+        });
+        events.signUp('google');
+        router.replace('/(onboarding)/step0-archetype');
+      } else {
+        await loadProfileFromSupabase(result.session.user.id);
+        await loadAllUserData(result.session.user.id);
+        events.signIn('google');
+        router.replace('/');
+      }
+    } catch (e) {
+      if (e instanceof SocialAuthError && e.code === 'cancelled') {
+        // silent
+      } else {
+        const message = e instanceof Error ? e.message : 'Google Sign In failed.';
+        showError(t('error'), message);
+      }
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -328,6 +420,7 @@ export default function RegisterScreen() {
 
           {/* Social buttons */}
           <Animated.View style={socialStyle}>
+            {!appleAvailable && (
             <Pressable style={styles.socialButton} disabled>
               <Text style={styles.socialIcon}>{'\uF8FF'}</Text>
               <Text style={styles.socialButtonText}>{t('continueWithApple')}</Text>
@@ -335,13 +428,31 @@ export default function RegisterScreen() {
                 <Text style={styles.soonBadgeText}>{t('soon')}</Text>
               </View>
             </Pressable>
+            )}
+            {appleAvailable ? (
+              <Pressable
+                style={styles.socialButtonActive}
+                onPress={handleAppleSignIn}
+                disabled={appleLoading}
+              >
+                {appleLoading ? (
+                  <ActivityIndicator color={colors.white} />
+                ) : (
+                  <Text style={styles.socialButtonTextActive}>{t('continueWithApple')}</Text>
+                )}
+              </Pressable>
+            ) : null}
 
-            <Pressable style={styles.socialButton} disabled>
-              <Text style={styles.socialIcon}>G</Text>
-              <Text style={styles.socialButtonText}>{t('continueWithGoogle')}</Text>
-              <View style={styles.soonBadge}>
-                <Text style={styles.soonBadgeText}>{t('soon')}</Text>
-              </View>
+            <Pressable
+              style={styles.googleButton}
+              onPress={handleGoogleSignIn}
+              disabled={googleLoading}
+            >
+              {googleLoading ? (
+                <ActivityIndicator color={colors.text} />
+              ) : (
+                <Text style={styles.googleButtonText}>{t('continueWithGoogle')}</Text>
+              )}
             </Pressable>
           </Animated.View>
 
@@ -495,6 +606,47 @@ const useStyles = makeStyles((colors) => ({
   },
 
   // Social
+  socialButtonActive: {
+    backgroundColor: '#000000',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  socialIconActive: {
+    fontSize: fontSizes.lg,
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  socialButtonTextActive: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  googleButton: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  googleButtonText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    fontWeight: '600',
+    color: colors.text,
+  },
   socialButton: {
     backgroundColor: colors.surface,
     borderWidth: 1,

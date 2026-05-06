@@ -366,7 +366,7 @@ export const fr = {
   paywallProSubtitle: 'Passe a FORGA PRO pour toutes les suggestions, photos et recettes detaillees.',
 
   // Offline
-  offlineMode: 'Mode hors-ligne',
+  offlineMode: 'Hors-ligne — tes donnees seront syncronisees au retour',
 
   // Coach card
   coachChat: 'Discuter',
@@ -500,8 +500,8 @@ export const fr = {
   restrictions: 'Restrictions',
   scoreIntroDesc: 'Ton Score FORGA demarre a 0. Chaque jour que tu valides, il monte. Chaque jour que tu rates, il descend. A toi de jouer.',
   onboardingDisclaimer: "FORGA est un outil d'aide a la nutrition. Il ne remplace pas l'avis d'un professionnel de sante. Les calculs sont bases sur des formules scientifiques reconnues (Mifflin-St Jeor, ISSN) mais restent des estimations. Consulte un medecin ou un dieteticien si tu as des besoins specifiques.",
-  notifPromptTitle: 'Activer les rappels ?',
-  notifPromptBody: "FORGA peut t'envoyer des rappels pour tes repas et check-ins hebdomadaires.",
+  notifPromptTitle: 'Garde le cap, sans y penser',
+  notifPromptBody: "Un rappel discret a l'heure des repas, un check-in chaque dimanche, et une alerte si ta serie est en danger. Tu peux desactiver a tout moment dans les reglages.",
   enable: 'Activer',
   later: 'Plus tard',
   userNotConnected: 'Utilisateur non connecte.',
@@ -1660,6 +1660,31 @@ export const fr = {
   confirmSignOutSubtitle: 'Tu pourras te reconnecter quand tu veux.',
   sheetThemeSubtitle: 'Sombre, clair ou automatique',
   sheetLanguageSubtitle: 'Choisis ta langue',
+
+  // ── Premium gates ──
+  mealCapReachedTitle: 'Limite quotidienne atteinte',
+  mealCapReachedBody: 'Tu as valide {{max}} repas aujourd\'hui — la limite Free. Passe Premium pour valider sans limite et acceder a tout ton historique nutritionnel.',
+  upgradeToPremium: 'Passer Premium',
+  photoCapReachedTitle: 'Limite de photos atteinte',
+  photoCapReachedBody: 'Tu as utilise tes {{max}} photos de progression Free. Passe Premium pour stocker un nombre illimite de photos et debloquer le comparateur.',
+  measurementCapReachedTitle: 'Limite de mesures atteinte',
+  measurementCapReachedBody: 'Tu as utilise tes {{max}} mesures Free. Passe Premium pour suivre 8 points corporels en illimite.',
+  premiumFeature: 'Reserve aux membres Premium',
+  premiumExerciseStatsSubtitle: 'Debloque les graphes 1RM, Volume et historique illimite',
+  premiumMuscleVolumeSubtitle: 'Debloque la repartition complete par muscle sur 30j',
+  premiumLiveSwapSubtitle: 'Echange un exercice en direct pendant ta seance',
+  mealHistoryFreeBanner: 'Tu vois les {{days}} derniers jours. Passe Premium pour ton historique complet.',
+
+  // Apple Health
+  appleHealthTitle: 'Apple Sante',
+  appleHealthHint: 'Synchronise ton poids et tes seances avec Apple Sante. Reserve Premium.',
+  appleHealthHintEnabled: 'Sync activee. Derniere sync : {{time}}.',
+  appleHealthNotAvailable: 'Apple Sante n\'est pas disponible sur cet appareil.',
+  appleHealthPermissionDenied: 'Permission refusee. Active-la dans Reglages iOS > Confidentialite > Sante > FORGA.',
+  appleHealthSyncSuccess: 'Sync avec Apple Sante effectuee',
+  appleHealthSyncFailed: 'Echec de la synchronisation',
+  appleHealthSyncNow: 'Synchroniser maintenant',
+  appleHealthLastSyncNever: 'Jamais synchronise',
 } as const;
 
 export type TranslationKey = keyof typeof fr;

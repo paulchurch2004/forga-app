@@ -9,7 +9,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
-
+import { useTrackOnboardingStep } from '../../src/hooks/useTrackOnboardingStep';
 const triggerHaptic = (style: 'light' | 'medium' = 'light') => {
   if (Platform.OS === 'web') return;
   import('expo-haptics').then((Haptics) => {
@@ -45,6 +45,7 @@ const ACTIVITY_OPTIONS: ActivityOption[] = [
 ];
 
 export default function Step5Activity() {
+  useTrackOnboardingStep(5);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();

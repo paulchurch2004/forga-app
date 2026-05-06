@@ -22,7 +22,7 @@ export default function TermsScreen() {
       </Pressable>
 
       <Text style={styles.title}>{isFr ? "Conditions Generales d'Utilisation" : 'Terms of Service'}</Text>
-      <Text style={styles.date}>{isFr ? 'Derniere mise a jour : 18 avril 2026' : 'Last updated: April 18, 2026'}</Text>
+      <Text style={styles.date}>{isFr ? 'Derniere mise a jour : 5 mai 2026' : 'Last updated: May 5, 2026'}</Text>
 
       {sections.map((section, i) => (
         <View key={i} style={styles.section}>
@@ -55,7 +55,7 @@ const SECTIONS_FR = [
   },
   {
     title: '5. Abonnement et paiement',
-    body: "FORGA propose une version gratuite et une version premium (FORGA PRO). Les abonnements sont geres via l'App Store (Apple) ou le Google Play Store. Les conditions de renouvellement et d'annulation sont celles de la plateforme de paiement utilisee. Aucun remboursement ne sera effectue pour la periode en cours.",
+    body: "FORGA propose une version gratuite et une version Premium. L'offre annuelle inclut un essai gratuit de 7 jours. Les abonnements sont geres exclusivement via l'App Store (Apple). L'abonnement se renouvelle automatiquement sauf annulation au moins 24h avant la fin de la periode en cours. Tu peux annuler a tout moment dans Reglages iOS > Apple ID > Abonnements. Les remboursements sont geres par Apple via reportaproblem.apple.com.",
   },
   {
     title: '6. Limitation de responsabilite',
@@ -63,7 +63,7 @@ const SECTIONS_FR = [
   },
   {
     title: '7. Propriete intellectuelle',
-    body: "L'ensemble du contenu de l'application (textes, images, logos, algorithmes, base de donnees de repas) est la propriete exclusive de FORGA. Toute reproduction, distribution ou utilisation non autorisee est interdite.",
+    body: "L'ensemble du contenu de l'application (textes, images, logos, algorithmes, base de donnees de repas) est la propriete exclusive de Paul Church. Toute reproduction, distribution ou utilisation non autorisee est interdite.",
   },
   {
     title: '8. Donnees personnelles',
@@ -75,7 +75,7 @@ const SECTIONS_FR = [
   },
   {
     title: '10. Contact',
-    body: 'Pour toute question relative a ces conditions, contactez-nous a : support@forga.fr',
+    body: "Editeur : Paul Church, entrepreneur individuel, 2 allee Armand Praviel, 33000 Bordeaux, France. Pour toute question : hello@forga.fr. Version complete : forga.fr/terms.",
   },
 ];
 
@@ -98,7 +98,7 @@ const SECTIONS_EN = [
   },
   {
     title: '5. Subscription and Payment',
-    body: 'FORGA offers a free version and a premium version (FORGA PRO). Subscriptions are managed through the App Store (Apple) or Google Play Store. Renewal and cancellation terms follow the payment platform used. No refunds will be issued for the current period.',
+    body: "FORGA offers a free version and a Premium version. The annual plan includes a 7-day free trial. Subscriptions are managed exclusively through the App Store (Apple). Subscription renews automatically unless cancelled at least 24 hours before the end of the current period. You can cancel anytime in iOS Settings > Apple ID > Subscriptions. Refunds are handled by Apple via reportaproblem.apple.com.",
   },
   {
     title: '6. Limitation of Liability',
@@ -106,7 +106,7 @@ const SECTIONS_EN = [
   },
   {
     title: '7. Intellectual Property',
-    body: 'All app content (text, images, logos, algorithms, meal database) is the exclusive property of FORGA. Unauthorized reproduction, distribution, or use is prohibited.',
+    body: 'All app content (text, images, logos, algorithms, meal database) is the exclusive property of Paul Church. Unauthorized reproduction, distribution, or use is prohibited.',
   },
   {
     title: '8. Personal Data',
@@ -118,7 +118,7 @@ const SECTIONS_EN = [
   },
   {
     title: '10. Contact',
-    body: 'For any questions regarding these terms, contact us at: support@forga.fr',
+    body: 'Publisher: Paul Church, sole proprietor, 2 allee Armand Praviel, 33000 Bordeaux, France. For any question: hello@forga.fr. Full version: forga.fr/terms.',
   },
 ];
 

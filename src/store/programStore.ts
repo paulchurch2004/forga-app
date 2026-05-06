@@ -32,6 +32,9 @@ interface ProgramState {
 
   selectProgram: (programId: ProgramId, objective: Objective, sex?: Sex) => void;
   markDayCompleted: (date: string, workoutId: string) => void;
+  /** Reverse markDayCompleted — used when the user deletes a workout and we want
+   * the day card to revert to its actionable state ("today" / "upcoming"). */
+  unmarkDayCompleted: (date: string) => void;
   markDaySkipped: (date: string) => void;
   changeProgram: () => void;
   getTodayPlan: () => PlannedDay | null;
@@ -70,6 +73,29 @@ export const useProgramStore = create<ProgramState>()(
         set({
           activePlan: { ...activePlan, days: updatedDays },
           completedDays: { ...completedDays, [date]: workoutId },
+        });
+        syncProgramLazy();
+      },
+
+      unmarkDayCompleted: (date) => {
+        const { activePlan, completedDays } = get();
+        if (!activePlan) return;
+
+        const today = toLocalDateStr();
+        const restoredStatus =
+          date === today ? 'today' : date < today ? 'skipped' : 'upcoming';
+
+        const updatedDays = activePlan.days.map((d) =>
+          d.date === date
+            ? { ...d, status: restoredStatus as PlannedDay['status'], workoutId: undefined }
+            : d
+        );
+
+        const { [date]: _removed, ...rest } = completedDays;
+
+        set({
+          activePlan: { ...activePlan, days: updatedDays },
+          completedDays: rest,
         });
         syncProgramLazy();
       },

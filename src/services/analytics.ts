@@ -174,6 +174,14 @@ export const events = {
   quotaExceeded: (feature: 'coach_message' | 'food_scan') =>
     trackEvent('quota_exceeded', { feature }),
 
+  // Coach LLM
+  coachMessageSent: (props: { cached: boolean; remaining: number; cap: number }) =>
+    trackEvent('coach_message_sent', props),
+  coachMessageFailed: (reason: 'network' | 'auth' | 'quota' | 'server') =>
+    trackEvent('coach_message_failed', { reason }),
+  coachFallbackUsed: () =>
+    trackEvent('coach_fallback_used'),
+
   // Trial
   trialStarted: () => trackEvent('trial_started'),
   trialExpired: () => trackEvent('trial_expired'),

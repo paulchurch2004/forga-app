@@ -37,6 +37,10 @@ interface SettingsState {
   showCoreStateDebug: boolean;
   /** Require biometric auth (Face ID / Touch ID) at app launch + after backgrounding. */
   biometricLockEnabled: boolean;
+  /** Apple Health (HealthKit) sync — Premium-only. iOS only. */
+  appleHealthEnabled: boolean;
+  /** ISO timestamp of last successful Health sync; null if never synced. */
+  lastHealthSyncAt: string | null;
 
   setNotificationsEnabled: (enabled: boolean) => void;
   setMealReminders: (enabled: boolean) => void;
@@ -48,6 +52,8 @@ interface SettingsState {
   setWeightPromptDismissedDate: (date: string | null) => void;
   setShowCoreStateDebug: (enabled: boolean) => void;
   setBiometricLockEnabled: (enabled: boolean) => void;
+  setAppleHealthEnabled: (enabled: boolean) => void;
+  setLastHealthSyncAt: (iso: string | null) => void;
   reset: () => void;
 }
 
@@ -64,6 +70,8 @@ export const useSettingsStore = create<SettingsState>()(
       weightPromptDismissedDate: null,
       showCoreStateDebug: false,
       biometricLockEnabled: false,
+      appleHealthEnabled: false,
+      lastHealthSyncAt: null,
 
       setNotificationsEnabled: (notificationsEnabled) => {
         set({ notificationsEnabled });
@@ -96,6 +104,11 @@ export const useSettingsStore = create<SettingsState>()(
       setWeightPromptDismissedDate: (weightPromptDismissedDate) => set({ weightPromptDismissedDate }),
       setShowCoreStateDebug: (showCoreStateDebug) => set({ showCoreStateDebug }),
       setBiometricLockEnabled: (biometricLockEnabled) => set({ biometricLockEnabled }),
+      setAppleHealthEnabled: (appleHealthEnabled) => {
+        set({ appleHealthEnabled });
+        syncSettingToProfile({ apple_health_enabled: appleHealthEnabled });
+      },
+      setLastHealthSyncAt: (lastHealthSyncAt) => set({ lastHealthSyncAt }),
       reset: () =>
         set({
           notificationsEnabled: true,
@@ -108,6 +121,8 @@ export const useSettingsStore = create<SettingsState>()(
           weightPromptDismissedDate: null,
           showCoreStateDebug: false,
           biometricLockEnabled: false,
+          appleHealthEnabled: false,
+          lastHealthSyncAt: null,
         }),
     }),
     {
@@ -124,6 +139,8 @@ export const useSettingsStore = create<SettingsState>()(
         weightPromptDismissedDate: state.weightPromptDismissedDate,
         showCoreStateDebug: state.showCoreStateDebug,
         biometricLockEnabled: state.biometricLockEnabled,
+        appleHealthEnabled: state.appleHealthEnabled,
+        lastHealthSyncAt: state.lastHealthSyncAt,
       }),
     }
   )

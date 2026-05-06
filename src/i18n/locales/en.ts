@@ -368,7 +368,7 @@ export const en: Record<TranslationKey, string> = {
   paywallProSubtitle: 'Upgrade to FORGA PRO for all suggestions, photos and detailed recipes.',
 
   // Offline
-  offlineMode: 'Offline mode',
+  offlineMode: 'Offline — your data will sync when back online',
 
   // Coach card
   coachChat: 'Chat',
@@ -502,8 +502,8 @@ export const en: Record<TranslationKey, string> = {
   restrictions: 'Restrictions',
   scoreIntroDesc: 'Your FORGA Score starts at 0. Every day you validate, it goes up. Every day you miss, it goes down. Your move.',
   onboardingDisclaimer: 'FORGA is a nutrition assistance tool. It does not replace professional health advice. Calculations are based on recognized scientific formulas (Mifflin-St Jeor, ISSN) but remain estimates. Consult a doctor or dietitian for specific needs.',
-  notifPromptTitle: 'Enable reminders?',
-  notifPromptBody: 'FORGA can send you reminders for meals and weekly check-ins.',
+  notifPromptTitle: 'Stay on track, effortlessly',
+  notifPromptBody: 'A discreet reminder at meal times, a weekly check-in, and an alert if your streak is at risk. You can turn this off anytime in settings.',
   enable: 'Enable',
   later: 'Later',
   userNotConnected: 'User not connected.',
@@ -1662,4 +1662,29 @@ export const en: Record<TranslationKey, string> = {
   confirmSignOutSubtitle: 'You can sign back in anytime.',
   sheetThemeSubtitle: 'Dark, light or automatic',
   sheetLanguageSubtitle: 'Pick your language',
+
+  // ── Premium gates ──
+  mealCapReachedTitle: 'Daily limit reached',
+  mealCapReachedBody: 'You\'ve logged {{max}} meals today — the Free limit. Upgrade to Premium for unlimited tracking and full history access.',
+  upgradeToPremium: 'Upgrade to Premium',
+  photoCapReachedTitle: 'Photo limit reached',
+  photoCapReachedBody: 'You\'ve used your {{max}} Free progress photos. Upgrade to Premium for unlimited photos and the side-by-side comparator.',
+  measurementCapReachedTitle: 'Measurement limit reached',
+  measurementCapReachedBody: 'You\'ve used your {{max}} Free measurements. Upgrade to Premium for 8 body points unlimited.',
+  premiumFeature: 'Premium members only',
+  premiumExerciseStatsSubtitle: 'Unlock 1RM, Volume charts + unlimited history',
+  premiumMuscleVolumeSubtitle: 'Unlock the full per-muscle breakdown over 30d',
+  premiumLiveSwapSubtitle: 'Swap an exercise mid-workout',
+  mealHistoryFreeBanner: 'Showing the last {{days}} days. Upgrade to see your full history.',
+
+  // Apple Health
+  appleHealthTitle: 'Apple Health sync',
+  appleHealthHint: 'Sync your weight and workouts with Apple Health. Premium only.',
+  appleHealthHintEnabled: 'Synced. Last sync: {{time}}.',
+  appleHealthNotAvailable: 'Apple Health is not available on this device.',
+  appleHealthPermissionDenied: 'Health permission denied. Enable it in iOS Settings → Privacy → Health → FORGA.',
+  appleHealthSyncSuccess: 'Synced with Apple Health',
+  appleHealthSyncFailed: 'Sync failed',
+  appleHealthSyncNow: 'Sync now',
+  appleHealthLastSyncNever: 'Never synced',
 };

@@ -43,6 +43,12 @@ interface TrainingState {
   updateOneRepMax: (exerciseId: string, weight: number, reps: number) => UpdateOneRMResult;
   /** Read the current 1RM record for an exercise, or undefined. */
   getOneRepMax: (exerciseId: string) => OneRepMaxRecord | undefined;
+  /** Patch an existing workout with self-reported feedback (rating, RPE, note). */
+  updateWorkoutFeedback: (
+    date: string,
+    workoutId: string,
+    feedback: { rating?: 1 | 2 | 3 | 4 | 5; rpe?: number; note?: string },
+  ) => void;
   checkDayReset: () => void;
   reset: () => void;
 }
@@ -76,6 +82,17 @@ export const useTrainingStore = create<TrainingState>()(
       },
 
       getOneRepMax: (exerciseId) => get().oneRepMaxByExercise[exerciseId],
+
+      updateWorkoutFeedback: (date, workoutId, feedback) =>
+        set((state) => {
+          const list = state.workouts[date] ?? [];
+          const idx = list.findIndex((w) => w.id === workoutId);
+          if (idx === -1) return state;
+          const updated = { ...list[idx], ...feedback };
+          const nextList = [...list];
+          nextList[idx] = updated;
+          return { workouts: { ...state.workouts, [date]: nextList } };
+        }),
 
       addWorkout: (workout) =>
         set((state) => ({

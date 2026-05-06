@@ -4,6 +4,46 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0';
 const GROQ_API_KEY = Deno.env.get('GROQ_API_KEY');
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') || 'https://forga.fr').split(',');
 
+/** Daily caps applied via the `check_and_increment_quota` RPC.
+ *  Premium gets a high cap (still bounded for cost safety, never marketed). */
+const QUOTA_CAP_FREE = 5;
+const QUOTA_CAP_PREMIUM = 200;
+
+/** Module-level response cache. Persists across invocations on the same
+ *  worker (Edge Functions stay warm under load). 5-minute TTL, capped to
+ *  prevent memory growth. Cross-worker dedup is best-effort — a cache miss
+ *  just falls through to a normal LLM call. */
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_MAX = 100;
+type CacheEntry = { reply: string; expiresAt: number };
+const responseCache: Map<string, CacheEntry> = new Map();
+
+function cacheGet(key: string): string | null {
+  const entry = responseCache.get(key);
+  if (!entry) return null;
+  if (entry.expiresAt < Date.now()) {
+    responseCache.delete(key);
+    return null;
+  }
+  return entry.reply;
+}
+
+function cacheSet(key: string, reply: string) {
+  if (responseCache.size >= CACHE_MAX) {
+    const oldestKey = responseCache.keys().next().value;
+    if (oldestKey) responseCache.delete(oldestKey);
+  }
+  responseCache.set(key, { reply, expiresAt: Date.now() + CACHE_TTL_MS });
+}
+
+async function makeCacheKey(userId: string, message: string, ctxFingerprint: string): Promise<string> {
+  const raw = `${userId}|${message.trim().toLowerCase()}|${ctxFingerprint}`;
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(raw));
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
 function getCorsHeaders(req: Request) {
   const origin = req.headers.get('Origin') || '';
   const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
@@ -341,13 +381,26 @@ serve(async (req) => {
       );
     }
 
-    // ✅ Quota check AVANT appel Groq
+    // ✅ Premium-aware quota cap. Free: 5/day. Premium: 200/day (hard cap
+    //    for margin safety — never marketed as illimited externally).
+    const { data: profileRow } = await supabase
+      .from('profiles')
+      .select('is_premium, premium_until')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const premiumActive =
+      Boolean(profileRow?.is_premium) &&
+      (!profileRow?.premium_until ||
+        new Date(profileRow.premium_until).getTime() > Date.now());
+    const dailyCap = premiumActive ? QUOTA_CAP_PREMIUM : QUOTA_CAP_FREE;
+
     const { data: quotaCheck, error: quotaError } = await supabase.rpc(
       'check_and_increment_quota',
       {
         p_user_id: user.id,
         p_feature: 'coach_message',
-        p_daily_cap: 5,
+        p_daily_cap: dailyCap,
       },
     );
 
@@ -377,6 +430,38 @@ serve(async (req) => {
         JSON.stringify({ error: 'Message and context required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       );
+    }
+
+    // Cache lookup — only valid for stateless single-turn questions
+    // (no history). With history the conversation context changes, so
+    // identical-message replies would be misleading.
+    const ctxFingerprint = [
+      context.score?.total ?? 0,
+      context.mealsValidatedCount ?? 0,
+      context.consumedCalories ?? 0,
+      context.consumedProtein ?? 0,
+      context.todayPlanType ?? 'none',
+      context.objective ?? '',
+    ].join(':');
+    const cacheKey = await makeCacheKey(user.id, message, ctxFingerprint);
+    const hasHistory = Array.isArray(history) && history.length > 0;
+    if (!hasHistory) {
+      const cached = cacheGet(cacheKey);
+      if (cached) {
+        return new Response(
+          JSON.stringify({
+            reply: cached,
+            cached: true,
+            quota: {
+              used: quotaCheck.used,
+              cap: quotaCheck.cap,
+              bonus: quotaCheck.bonus,
+              remaining: quotaCheck.remaining,
+            },
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        );
+      }
     }
 
     // Build messages array with system prompt + history + current message
@@ -419,9 +504,12 @@ serve(async (req) => {
       );
     }
 
+    if (!hasHistory) cacheSet(cacheKey, reply);
+
     return new Response(
       JSON.stringify({
         reply,
+        cached: false,
         quota: {
           used: quotaCheck.used,
           cap: quotaCheck.cap,

@@ -18,7 +18,7 @@ export interface QuotaInfo {
 }
 
 export type CoachReply =
-  | { kind: 'ok'; reply: string; quota: QuotaInfo }
+  | { kind: 'ok'; reply: string; quota: QuotaInfo; cached: boolean }
   | { kind: 'quota_exceeded'; message: string; quota: QuotaInfo }
   | { kind: 'unauthenticated' }
   | { kind: 'error' };
@@ -74,6 +74,7 @@ export async function sendCoachMessage(
       kind: 'ok',
       reply: data.reply,
       quota: data.quota ?? { used: 0, cap: 5, bonus: 0, remaining: 0 },
+      cached: Boolean(data.cached),
     };
   } catch {
     return { kind: 'error' };

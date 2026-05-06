@@ -51,4 +51,10 @@ export interface Workout {
   intensity: Intensity;
   exercises: WorkoutExercise[]; // populated for musculation
   note?: string;
+  /** Self-rated overall session quality (1-5 stars). */
+  rating?: 1 | 2 | 3 | 4 | 5;
+  /** Self-rated effort (RPE 1-10). 1=very easy, 10=max effort. */
+  rpe?: number;
+  /** Optional: count of new PRs detected during this session. */
+  prCount?: number;
 }

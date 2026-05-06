@@ -38,6 +38,7 @@ import { useSettingsStore, type ThemeMode, type Locale } from '../../src/store/s
 import { useStreak } from '../../src/hooks/useStreak';
 import { usePremium } from '../../src/hooks/usePremium';
 import { supabase } from '../../src/services/supabase';
+import { captureException } from '../../src/services/sentry';
 import { useAuthStore } from '../../src/store/authStore';
 import { BADGE_INFO, type BadgeType } from '../../src/types/user';
 import { BadgeCard } from '../../src/components/gamification/BadgeCard';
@@ -200,7 +201,10 @@ export default function ProfileScreen() {
       ];
       for (const { table, col } of tables) {
         const { error } = await supabase.from(table).delete().eq(col, userId);
-        if (error) console.error(`[DeleteAccount] Failed to delete from ${table}:`, error.message);
+        if (error) {
+          if (__DEV__) console.error(`[DeleteAccount] Failed to delete from ${table}:`, error.message);
+          captureException(new Error(`Delete failed: ${table} — ${error.message}`), { component: 'DeleteAccount' });
+        }
       }
       await supabase.auth.signOut();
       useUserStore.getState().reset();

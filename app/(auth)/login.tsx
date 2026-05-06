@@ -31,6 +31,9 @@ import { supabase } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/store/authStore';
 import { loadProfileFromSupabase } from '../../src/services/profile';
 import { loadAllUserData } from '../../src/services/userSync';
+import { signInWithApple, isAppleSignInAvailable, signInWithGoogle, SocialAuthError } from '../../src/services/socialAuth';
+import { events } from '../../src/services/analytics';
+import { useUserStore } from '../../src/store/userStore';
 
 const EASE_OUT = Easing.out(Easing.cubic);
 
@@ -59,6 +62,14 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const setOnboardingData = useUserStore((s) => s.setOnboardingData);
+
+  useEffect(() => {
+    isAppleSignInAvailable().then(setAppleAvailable);
+  }, []);
 
   // Staggered entrance animations
   const brandStyle = useEntrance(0);
@@ -118,7 +129,68 @@ export default function LoginScreen() {
       useAuthStore.getState().setSession(data.session);
       await loadProfileFromSupabase(data.session.user.id);
       await loadAllUserData(data.session.user.id);
+      events.signIn('email');
       router.replace('/');
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    setAppleLoading(true);
+    try {
+      const result = await signInWithApple();
+      useAuthStore.getState().setSession(result.session);
+
+      if (result.isNewUser) {
+        if (result.displayName) {
+          setOnboardingData({ name: result.displayName });
+        }
+        events.signUp('apple');
+        router.replace('/(onboarding)/step0-archetype');
+      } else {
+        await loadProfileFromSupabase(result.session.user.id);
+        await loadAllUserData(result.session.user.id);
+        events.signIn('apple');
+        router.replace('/');
+      }
+    } catch (e) {
+      if (e instanceof SocialAuthError && e.code === 'cancelled') {
+        // silent
+      } else {
+        const message = e instanceof Error ? e.message : 'Apple Sign In failed.';
+        showError(t('error'), message);
+      }
+    } finally {
+      setAppleLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      useAuthStore.getState().setSession(result.session);
+
+      if (result.isNewUser) {
+        if (result.displayName) {
+          setOnboardingData({ name: result.displayName });
+        }
+        events.signUp('google');
+        router.replace('/(onboarding)/step0-archetype');
+      } else {
+        await loadProfileFromSupabase(result.session.user.id);
+        await loadAllUserData(result.session.user.id);
+        events.signIn('google');
+        router.replace('/');
+      }
+    } catch (e) {
+      if (e instanceof SocialAuthError && e.code === 'cancelled') {
+        // silent
+      } else {
+        const message = e instanceof Error ? e.message : 'Google Sign In failed.';
+        showError(t('error'), message);
+      }
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -247,6 +319,36 @@ export default function LoginScreen() {
               </Animated.View>
             </Animated.View>
           </View>
+
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>{t('or')}</Text>
+            <View style={styles.dividerLine} />
+          </View>
+          {appleAvailable && (
+            <Pressable
+              style={styles.appleButton}
+              onPress={handleAppleSignIn}
+              disabled={appleLoading}
+            >
+              {appleLoading ? (
+                <ActivityIndicator color={colors.white} />
+              ) : (
+                <Text style={styles.appleButtonText}>{t('continueWithApple')}</Text>
+              )}
+            </Pressable>
+          )}
+          <Pressable
+            style={styles.googleButton}
+            onPress={handleGoogleSignIn}
+            disabled={googleLoading}
+          >
+            {googleLoading ? (
+              <ActivityIndicator color={colors.text} />
+            ) : (
+              <Text style={styles.googleButtonText}>{t('continueWithGoogle')}</Text>
+            )}
+          </Pressable>
 
           {/* Bottom link */}
           <Animated.View style={[styles.bottomLink, bottomStyle]}>
@@ -377,6 +479,56 @@ const useStyles = makeStyles((colors) => ({
     fontWeight: '700',
     color: colors.white,
     letterSpacing: 0.5,
+  },
+
+  // Divider + Apple
+  divider: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    marginTop: spacing['2xl'],
+    marginBottom: spacing.lg,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  dividerText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.textMuted,
+    marginHorizontal: spacing.lg,
+  },
+  appleButton: {
+    backgroundColor: '#000000',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.15)',
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  appleButtonText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    fontWeight: '600' as const,
+    color: '#FFFFFF',
+  },
+  googleButton: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingVertical: spacing.lg,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginTop: spacing.md,
+  },
+  googleButtonText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    fontWeight: '600' as const,
+    color: colors.text,
   },
 
   // Bottom

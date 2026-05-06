@@ -20,6 +20,7 @@ import Animated, {
   FadeIn,
 } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
+import { SkeletonScreen } from '../../src/components/ui/Skeleton';
 import { useSettingsStore } from '../../src/store/settingsStore';
 import { useUserStore } from '../../src/store/userStore';
 import { useScoreStore } from '../../src/store/scoreStore';
@@ -465,6 +466,11 @@ export default function CoachScreen() {
     }
 
     if (result.kind === 'ok') {
+      events.coachMessageSent({
+        cached: result.cached,
+        remaining: result.quota.remaining,
+        cap: result.quota.cap,
+      });
       const aiReply = result.reply;
       // Parse [[ACTION:...]] AND [[MEMORY]] blocks → cleaned text + actions + memories
       const { text, actions, memories: parsedMemories } = parseCoachActionsAndMemories(aiReply);
@@ -490,6 +496,8 @@ export default function CoachScreen() {
       speak(aiReply, locale === 'en' ? 'en-US' : 'fr-FR');
     } else {
       // Fallback to template responses (error / unauthenticated)
+      events.coachMessageFailed(result.kind === 'unauthenticated' ? 'auth' : 'server');
+      events.coachFallbackUsed();
       const response = getCoachResponse(fallbackType, coachContext);
       addCoachMessages(response.messages, response.quickReplies);
     }
@@ -569,9 +577,7 @@ export default function CoachScreen() {
   if (!profile) {
     return (
       <View style={[styles.container, { paddingTop: insets.top, maxWidth: contentMaxWidth }]}>
-        <View style={styles.centerContainer}>
-          <Text style={styles.loadingText}>{t('loading')}</Text>
-        </View>
+        <SkeletonScreen />
       </View>
     );
   }

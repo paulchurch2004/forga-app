@@ -19,7 +19,7 @@ import type { MealSlot } from '../../src/types/meal';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
-import { useAuthStore } from '../../src/store/authStore';
+import { useTrackOnboardingStep } from '../../src/hooks/useTrackOnboardingStep';import { useAuthStore } from '../../src/store/authStore';
 import { makeStyles } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
@@ -79,6 +79,7 @@ const RESTRICTION_LABEL_KEYS: Record<string, string> = {
 };
 
 export default function Step7Summary() {
+  useTrackOnboardingStep(7);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -154,10 +155,21 @@ export default function Step7Summary() {
       const myReferralCode = generateReferralCode();
       const referredByCode = onboardingData.referredByCode;
 
+      // Resolve a non-empty name across all sign-up paths.
+      // Apple often returns no name on subsequent sign-ins; the DB has a NOT NULL
+      // constraint on `name`, so we fall back through every available source.
+      const emailPrefix = user.email ? user.email.split('@')[0] : '';
+      const resolvedName =
+        onboardingData.name?.trim() ||
+        (user.user_metadata?.full_name as string | undefined)?.trim() ||
+        (user.user_metadata?.name as string | undefined)?.trim() ||
+        emailPrefix ||
+        'Utilisateur';
+
       const profileData = {
         id: userId,
         email: user.email ?? '',
-        name: user.user_metadata?.name ?? '',
+        name: resolvedName,
         sex: onboardingData.sex ?? 'male' as const,
         age: onboardingData.age ?? 25,
         heightCm: onboardingData.heightCm ?? 175,
@@ -195,7 +207,7 @@ export default function Step7Summary() {
           .upsert({
             id: userId,
             email: user.email ?? '',
-            name: user.user_metadata?.name ?? null,
+            name: resolvedName,
             sex: onboardingData.sex ?? null,
             age: onboardingData.age ?? null,
             height_cm: onboardingData.heightCm ?? null,
@@ -243,6 +255,10 @@ export default function Step7Summary() {
       // Update local stores
       setProfile(profileData);
       setOnboarded(true);
+      events.onboardingComplete();
+      events.trialStarted();
+      // Onboarding complete — clear the resume marker.
+      useUserStore.getState().setOnboardingStep(0);
 
       // On native: show notification opt-in prompt
       // On web: navigate directly (notifications not supported)

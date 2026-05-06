@@ -210,41 +210,54 @@ export async function syncProgramProgress(userId: string) {
   }
 }
 
-/** Sync profile updates to Supabase */
+/** Sync profile updates to Supabase, falling back to the offline queue if
+ *  the network is down or Supabase rejects the call. */
 export async function syncProfile(updates: Record<string, any>, userId: string) {
   if (isDemoMode) return;
-  try {
-    // Convert camelCase to snake_case for Supabase
-    const snakeUpdates: Record<string, any> = {};
-    const keyMap: Record<string, string> = {
-      currentWeight: 'current_weight',
-      targetWeight: 'target_weight',
-      currentStreak: 'current_streak',
-      bestStreak: 'best_streak',
-      streakFreezeUsedThisWeek: 'streak_freeze_used_this_week',
-      forgaScore: 'forga_score',
-      isPremium: 'is_premium',
-      premiumUntil: 'premium_until',
-      dailyCalories: 'daily_calories',
-      dailyProtein: 'daily_protein',
-      dailyCarbs: 'daily_carbs',
-      dailyFat: 'daily_fat',
-      mealsPerDay: 'meals_per_day',
-      tdee: 'tdee',
-      objective: 'objective',
-      activityLevel: 'activity_level',
-      budget: 'budget',
-      restrictions: 'restrictions',
-    };
-    for (const [key, value] of Object.entries(updates)) {
-      const snakeKey = keyMap[key] ?? key;
-      snakeUpdates[snakeKey] = value;
-    }
-    snakeUpdates.updated_at = new Date().toISOString();
+  // Convert camelCase to snake_case for Supabase
+  const snakeUpdates: Record<string, any> = {};
+  const keyMap: Record<string, string> = {
+    currentWeight: 'current_weight',
+    targetWeight: 'target_weight',
+    currentStreak: 'current_streak',
+    bestStreak: 'best_streak',
+    streakFreezeUsedThisWeek: 'streak_freeze_used_this_week',
+    forgaScore: 'forga_score',
+    isPremium: 'is_premium',
+    premiumUntil: 'premium_until',
+    dailyCalories: 'daily_calories',
+    dailyProtein: 'daily_protein',
+    dailyCarbs: 'daily_carbs',
+    dailyFat: 'daily_fat',
+    mealsPerDay: 'meals_per_day',
+    tdee: 'tdee',
+    objective: 'objective',
+    activityLevel: 'activity_level',
+    budget: 'budget',
+    restrictions: 'restrictions',
+  };
+  for (const [key, value] of Object.entries(updates)) {
+    const snakeKey = keyMap[key] ?? key;
+    snakeUpdates[snakeKey] = value;
+  }
+  snakeUpdates.id = userId;
+  snakeUpdates.updated_at = new Date().toISOString();
 
-    await supabase.from('users').update(snakeUpdates).eq('id', userId);
+  try {
+    const { error } = await supabase
+      .from('users')
+      .update(snakeUpdates)
+      .eq('id', userId);
+    if (error) throw error;
   } catch (err) {
-    if (__DEV__) console.warn('[UserSync] Profile sync failed:', err);
+    if (__DEV__) console.warn('[UserSync] Profile sync failed, queueing:', err);
+    // Fall back to the offline queue — the next foreground / online event
+    // will drain it.
+    await enqueue({
+      table: 'users',
+      operation: 'upsert',
+      data: snakeUpdates,
+    });
   }
 }
 

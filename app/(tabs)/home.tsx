@@ -23,6 +23,7 @@ import { useWeightPrompt } from '../../src/hooks/useWeightPrompt';
 import { StreakBadge } from '../../src/components/ui/StreakBadge';
 import { TutorialOverlay } from '../../src/components/ui/TutorialOverlay';
 import { WeightPromptModal } from '../../src/components/ui/WeightPromptModal';
+import { SkeletonScreen } from '../../src/components/ui/Skeleton';
 import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useTheme } from '../../src/context/ThemeContext';
@@ -297,6 +298,16 @@ export default function HomeScreen() {
     }
   }, [profile, tutorialStep, setTutorialStep]);
 
+  // Ask for tracking permission once, after onboarding is done and user is on
+  // the home screen. Apple recommends asking AFTER showing value, not at launch.
+  useEffect(() => {
+    if (!profile) return;
+    const t = setTimeout(() => {
+      import('../../src/services/tracking').then((m) => m.requestATTIfNeeded());
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [profile]);
+
   useEffect(() => {
     if (shouldPrompt && profile && tutorialStep === -1) {
       const timer = setTimeout(() => setShowWeightModal(true), 1000);
@@ -307,9 +318,7 @@ export default function HomeScreen() {
   if (!profile) {
     return (
       <View style={[styles.wrapper, { paddingTop: insets.top }]}>
-        <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>{t('loading')}</Text>
-        </View>
+        <SkeletonScreen />
       </View>
     );
   }

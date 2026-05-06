@@ -12,7 +12,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
-
+import { useTrackOnboardingStep } from '../../src/hooks/useTrackOnboardingStep';
 const triggerHaptic = (style: 'light' | 'medium' = 'light') => {
   if (Platform.OS === 'web') return;
   import('expo-haptics').then((Haptics) => {
@@ -37,6 +37,7 @@ const WEIGHT_MIN = 30;
 const WEIGHT_MAX = 250;
 
 export default function Step2Body() {
+  useTrackOnboardingStep(2);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();

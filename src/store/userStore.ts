@@ -7,6 +7,9 @@ import type { StrengthTestResult } from '../types/strength';
 interface UserState {
   profile: UserProfile | null;
   onboardingData: OnboardingData;
+  /** Last completed onboarding step (0..7). Used to resume where the user left off
+   *  if they close the app mid-flow. Cleared on completion. */
+  onboardingStep: number;
   badges: Badge[];
   weightLog: WeightEntry[];
   checkIns: WeeklyCheckIn[];
@@ -17,6 +20,7 @@ interface UserState {
   setProfile: (profile: UserProfile | null) => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
   setOnboardingData: (data: Partial<OnboardingData>) => void;
+  setOnboardingStep: (step: number) => void;
   resetOnboarding: () => void;
   setBadges: (badges: Badge[]) => void;
   addBadge: (badge: Badge) => void;
@@ -39,6 +43,7 @@ export const useUserStore = create<UserState>()(
     (set) => ({
       profile: null,
       onboardingData: initialOnboarding,
+      onboardingStep: 0,
       badges: [],
       weightLog: [],
       checkIns: [],
@@ -56,7 +61,8 @@ export const useUserStore = create<UserState>()(
         set((state) => ({
           onboardingData: { ...state.onboardingData, ...data },
         })),
-      resetOnboarding: () => set({ onboardingData: initialOnboarding }),
+      setOnboardingStep: (step) => set({ onboardingStep: step }),
+      resetOnboarding: () => set({ onboardingData: initialOnboarding, onboardingStep: 0 }),
       setBadges: (badges) => set({ badges }),
       addBadge: (badge) =>
         set((state) => ({ badges: [...state.badges, badge] })),
@@ -90,6 +96,8 @@ export const useUserStore = create<UserState>()(
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         profile: state.profile,
+        onboardingData: state.onboardingData,
+        onboardingStep: state.onboardingStep,
         badges: state.badges,
         weightLog: state.weightLog,
         checkIns: state.checkIns,

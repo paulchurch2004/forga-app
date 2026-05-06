@@ -15,7 +15,12 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "fr.forga.ios",
-      "buildNumber": "50",
+      "buildNumber": "53",
+      "usesAppleSignIn": true,
+      "associatedDomains": [
+        "applinks:forga.fr",
+        "applinks:www.forga.fr"
+      ],
       "infoPlist": {
         "NSCameraUsageDescription": "FORGA utilise la camera pour les photos de progression et scanner les aliments.",
         "NSPhotoLibraryUsageDescription": "FORGA accede a tes photos pour les photos de progression et identifier les aliments.",
@@ -81,7 +86,27 @@
       "expo-image",
       "expo-video",
       "@sentry/react-native",
-      "expo-audio"
+      "expo-audio",
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.1058423112158-v2s3fvrcifdu58nvfpao0emtomodv31b"
+        }
+      ],
+      [
+        "expo-tracking-transparency",
+        {
+          "userTrackingPermission": "FORGA utilise des donnees anonymes pour ameliorer ton experience et te proposer du contenu adapte a tes objectifs."
+        }
+      ],
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "FORGA lit ton poids, tes pas et tes calories depuis Apple Sante pour synchroniser ta progression et personnaliser tes recommandations.",
+          "NSHealthUpdateUsageDescription": "FORGA enregistre tes seances dans Apple Sante pour que tu retrouves ton historique d'entrainement au meme endroit que tes autres donnees de sante."
+        }
+      ]
     ],
     "extra": {
       "eas": {

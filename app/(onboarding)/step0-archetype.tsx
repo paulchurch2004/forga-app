@@ -20,6 +20,7 @@ import Animated, {
   Easing,
 } from 'react-native-reanimated';
 import { useUserStore } from '../../src/store/userStore';
+import { useTrackOnboardingStep } from '../../src/hooks/useTrackOnboardingStep';
 import { fonts, fontSizes } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
 import type { Archetype } from '../../src/types/user';
@@ -75,6 +76,7 @@ function hsl(h: number, s: number, l: number, a = 1): string {
 }
 
 export default function ArchetypeScreen() {
+  useTrackOnboardingStep(0);
   const insets = useSafeAreaInsets();
   const setOnboardingData = useUserStore((s) => s.setOnboardingData);
   const onboardingData = useUserStore((s) => s.onboardingData);

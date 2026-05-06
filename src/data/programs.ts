@@ -1107,7 +1107,7 @@ export const PROGRAMS: Record<string, TrainingProgram> = {
   CUT_INT_5D_PPL_UL_F: {
     id: 'CUT_INT_5D_PPL_UL_F',
     nameKey: 'Sèche aggressive — 5 séances + 4 cardios',
-    descriptionKey: 'Sèche sérieuse 5 séances avec un Legs day axé fessiers + 3-4 cardios. Volume maintenu pour préserver muscle et galbe pendant le déficit. Pour les intermédiaires qui veulent un résultat rapide et propre.',
+    descriptionKey: 'Sèche sérieuse 5 séances avec un Legs day axé fessiers + 3-4 cardios. Volume maintenu pour préserver muscle et galbe pendant le déficit. Pour les intermédiaires qui veulent un résultat visible et propre. Les résultats varient selon l\'effort et la nutrition.',
     daysPerWeek: 5, levelKey: 'levelIntermediate',
     rotation: [D10_U, D10_L, D10_PUSH, D10_PULL, D10_LEGS_F],
     trainingSlots: [0, 1, 2, 4, 5],
@@ -1118,7 +1118,7 @@ export const PROGRAMS: Record<string, TrainingProgram> = {
   RECOMP_DEB_3D_FB: {
     id: 'RECOMP_DEB_3D_FB',
     nameKey: 'Recomposition — Perds du gras tout en gagnant du muscle',
-    descriptionKey: 'Le combo magique pour les débutants ou retour de pause : déficit léger (-100/-200 kcal) + protéines élevées + Full Body 3j. Tu perds du gras ET tu prends du muscle en même temps (effet "newbie gains"). 12-16 semaines.',
+    descriptionKey: 'Approche éprouvée pour débutants ou retour de pause : déficit léger (-100/-200 kcal) + protéines élevées + Full Body 3j. Permet souvent de perdre du gras et prendre du muscle en même temps (effet "newbie gains"). 12-16 semaines. Résultats variables selon discipline.',
     daysPerWeek: 3, levelKey: 'levelBeginner',
     rotation: [D11_A, D11_B, D11_C], trainingSlots: [0, 2, 4],
     sexVariant: 'unisex', level: 'beginner',
@@ -1126,7 +1126,7 @@ export const PROGRAMS: Record<string, TrainingProgram> = {
   RECOMP_INT_4D_UL_M: {
     id: 'RECOMP_INT_4D_UL_M',
     nameKey: 'Affine et muscle — 4 séances équilibrées',
-    descriptionKey: 'Pour intermédiaires qui veulent perdre 1-2 kg de gras tout en gagnant un peu de muscle. Découpage haut/bas avec une séance "force" (5-8 reps) et une "volume" (8-12). Carb cycling : plus de glucides les jours d\'entraînement. 16-20 semaines.',
+    descriptionKey: 'Pour intermédiaires qui visent une recomposition (perte de gras + gain musculaire). Découpage haut/bas avec une séance "force" (5-8 reps) et une "volume" (8-12). Carb cycling : plus de glucides les jours d\'entraînement. 16-20 semaines. Résultats variables.',
     daysPerWeek: 4, levelKey: 'levelIntermediate',
     rotation: [D12_UA, D12_LA_M, D12_UB, D12_LB_M], trainingSlots: [0, 1, 3, 4],
     sexVariant: 'male', level: 'intermediate',

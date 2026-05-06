@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import { useUserStore } from '../store/userStore';
 import { checkPremiumStatus } from '../services/revenueCat';
+import { events } from '../services/analytics';
 
 export function usePremium() {
   const profile = useUserStore((s) => s.profile);
@@ -33,15 +34,23 @@ export function usePremium() {
           // Don't expire if user has an active Stripe subscription
           if (!profile.stripeSubscriptionId) {
             updateProfile({ isPremium: false });
+            events.trialExpired();
           }
         }
       }
 
-      // On native, also check RevenueCat for store subscriptions
+      // On native, also check RevenueCat for store subscriptions.
+      // If we find an active subscription while the trial is about to
+      // expire (or already expired), that's a conversion — fire the event.
       if (Platform.OS !== 'web') {
         const premium = await checkPremiumStatus();
         if (premium) {
+          const wasTrialActive = profile?.isPremium && profile?.premiumUntil &&
+            new Date(profile.premiumUntil).getTime() < Date.now() + 24 * 60 * 60 * 1000;
           updateProfile({ isPremium: true });
+          if (wasTrialActive && !profile?.stripeSubscriptionId) {
+            events.trialConverted();
+          }
         }
       }
     } catch {

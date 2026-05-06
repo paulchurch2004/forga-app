@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { View, Text, Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { getMealById } from '../../src/data/meals';
@@ -6,6 +6,7 @@ import { useMealStore } from '../../src/store/mealStore';
 import { useUserStore } from '../../src/store/userStore';
 import { useEngine } from '../../src/hooks/useEngine';
 import { usePremium } from '../../src/hooks/usePremium';
+import { usePremiumGate } from '../../src/hooks/usePremiumGate';
 import { useMealSlot } from '../../src/hooks/useMealSlot';
 import type { MealSlot } from '../../src/types/meal';
 import { useScore } from '../../src/hooks/useScore';
@@ -17,6 +18,7 @@ import { useT } from '../../src/i18n';
 import { syncMeal } from '../../src/services/userSync';
 import { CelebrationOverlay } from '../../src/components/ui/CelebrationOverlay';
 import { todayLocalIso } from '../../src/utils/date';
+import { events } from '../../src/services/analytics';
 
 function generateId(): string {
   return `dm_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -34,11 +36,13 @@ export default function MealDetailScreen() {
 
   const profile = useUserStore((s) => s.profile);
   const addValidatedMeal = useMealStore((s) => s.addValidatedMeal);
+  const todayMeals = useMealStore((s) => s.todayMeals);
   const favorites = useMealStore((s) => s.favorites);
   const toggleFavorite = useMealStore((s) => s.toggleFavorite);
   const isFavorite = useMealStore((s) => s.isFavorite);
   const engine = useEngine();
   const { isPremium } = usePremium();
+  const { canAddMeal, openPaywall, limits } = usePremiumGate();
   const { currentSlot, slots } = useMealSlot();
   const { recalculate } = useScore();
   const { incrementStreak, isTodayValidated } = useStreak();
@@ -49,6 +53,12 @@ export default function MealDetailScreen() {
   }, [id]);
 
   const currentMealSlot = (slotParam as MealSlot) ?? currentSlot?.slot ?? 'lunch';
+
+  useEffect(() => {
+    if (meal) events.mealViewed(meal.id, currentMealSlot);
+    // Only fire once per (meal, slot) view.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meal?.id, currentMealSlot]);
 
   // Calculate slot target macros
   const slotTargetMacros = useMemo(() => {
@@ -79,6 +89,19 @@ export default function MealDetailScreen() {
   const handleValidate = useCallback(async () => {
     if (!meal || !profile || validating) return;
 
+    // Free tier daily cap — block + open paywall before doing anything heavy.
+    if (!canAddMeal(todayMeals.length)) {
+      Alert.alert(
+        t('mealCapReachedTitle'),
+        t('mealCapReachedBody', { max: limits.mealsPerDay }),
+        [
+          { text: t('cancel'), style: 'cancel' },
+          { text: t('upgradeToPremium'), onPress: openPaywall },
+        ],
+      );
+      return;
+    }
+
     setValidating(true);
     try {
       const today = todayLocalIso();
@@ -102,6 +125,7 @@ export default function MealDetailScreen() {
       };
       addValidatedMeal(validatedMeal);
       syncMeal(validatedMeal);
+      events.mealValidated(meal.id, currentMealSlot);
 
       // Increment streak if this is the first meal today
       if (!wasTodayValidated) {
@@ -133,6 +157,11 @@ export default function MealDetailScreen() {
     incrementStreak,
     recalculate,
     t,
+    canAddMeal,
+    todayMeals.length,
+    limits.mealsPerDay,
+    openPaywall,
+    validating,
   ]);
 
   const handleGoBack = useCallback(() => {

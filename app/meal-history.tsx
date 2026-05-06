@@ -15,6 +15,8 @@ import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../src/them
 import { useT } from '../src/i18n';
 import { EmptyState } from '../src/components/ui/EmptyState';
 import { useResponsive } from '../src/hooks/useResponsive';
+import { usePremiumGate } from '../src/hooks/usePremiumGate';
+import { PremiumLock } from '../src/components/ui/PremiumLock';
 
 export default function MealHistoryScreen() {
   const insets = useSafeAreaInsets();
@@ -23,13 +25,28 @@ export default function MealHistoryScreen() {
   const { contentMaxWidth } = useResponsive();
 
   const mealHistory = useMealStore((s) => s.mealHistory);
+  const { mealHistoryDayCap, openPaywall } = usePremiumGate();
 
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
+  // Free users only see the last N days. Compute the cutoff once.
+  const historyCutoff = useMemo(() => {
+    if (mealHistoryDayCap === null) return null;
+    const d = new Date();
+    d.setDate(d.getDate() - mealHistoryDayCap);
+    return d.toISOString().slice(0, 10);
+  }, [mealHistoryDayCap]);
+
   const markedDates = useMemo(() => {
-    return new Set(Object.keys(mealHistory).filter((date) => mealHistory[date].length > 0));
-  }, [mealHistory]);
+    return new Set(
+      Object.keys(mealHistory).filter((date) => {
+        if (mealHistory[date].length === 0) return false;
+        if (historyCutoff && date < historyCutoff) return false;
+        return true;
+      }),
+    );
+  }, [mealHistory, historyCutoff]);
 
   const handleChangeMonth = (delta: number) => {
     setCurrentMonth((prev) => {
@@ -74,6 +91,16 @@ export default function MealHistoryScreen() {
           <Text style={styles.headerTitle}>{t('history')}</Text>
           <View style={{ width: 50 }} />
         </View>
+
+        {mealHistoryDayCap !== null && (
+          <PremiumLock
+            variant="banner"
+            label={t('premiumFeature')}
+            subtitle={t('mealHistoryFreeBanner', { days: mealHistoryDayCap })}
+            onPress={openPaywall}
+            style={{ marginBottom: spacing.lg }}
+          />
+        )}
 
         {/* Calendar */}
         <CalendarGrid

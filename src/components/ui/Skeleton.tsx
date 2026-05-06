@@ -61,6 +61,24 @@ export function SkeletonCard() {
   );
 }
 
+/**
+ * Full-screen skeleton: header chip + 3 cards. Drop-in replacement for
+ * an ActivityIndicator on the initial load of the home/profile/training tabs.
+ */
+export function SkeletonScreen() {
+  return (
+    <View style={styles.screen}>
+      <Skeleton width={120} height={12} radius={6} style={{ marginBottom: 10 }} />
+      <Skeleton width="78%" height={26} radius={8} style={{ marginBottom: 28 }} />
+      <SkeletonCard />
+      <View style={{ height: 14 }} />
+      <SkeletonCard />
+      <View style={{ height: 14 }} />
+      <SkeletonCard />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   block: {
     backgroundColor: 'rgba(255,255,255,0.06)',
@@ -71,5 +89,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.08)',
     borderRadius: 18,
     padding: 18,
+  },
+  screen: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 12,
   },
 });

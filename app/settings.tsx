@@ -23,6 +23,7 @@ import { supabase, isDemoMode } from '../src/services/supabase';
 import { toast } from '../src/store/toastStore';
 import { shareUserDataExport } from '../src/services/dataExport';
 import { isRestSoundEnabled, setRestSoundEnabled } from '../src/services/audioService';
+import { useAppleHealth } from '../src/hooks/useAppleHealth';
 import { calculateTDEE } from '../src/engine/tdee';
 import { calculateMacros } from '../src/engine/macros';
 import { determineMealCount } from '../src/engine/mealPlanner';
@@ -424,6 +425,9 @@ export default function SettingsScreen() {
         {/* Rest-end sound toggle */}
         <RestSoundToggle />
 
+        {/* Apple Health sync (iOS, Premium-only) */}
+        {Platform.OS === 'ios' && <AppleHealthToggle />}
+
 
         {/* GDPR data export */}
         <Pressable
@@ -509,6 +513,92 @@ function RestSoundToggle() {
         trackColor={{ false: 'rgba(255,255,255,0.15)', true: '#FF6B35' }}
       />
     </View>
+  );
+}
+
+function AppleHealthToggle() {
+  const styles = useStyles();
+  const { t } = useT();
+  const { available, enabled, isPremium, lastSyncAt, enable, disable, syncNow } = useAppleHealth();
+  const [busy, setBusy] = useState(false);
+
+  if (available === false) {
+    return (
+      <View style={styles.toggleRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.linkText}>{t('appleHealthTitle' as any)}</Text>
+          <Text style={styles.toggleHint}>{t('appleHealthNotAvailable' as any)}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  const onToggle = async (value: boolean) => {
+    if (busy) return;
+    if (value && !isPremium) {
+      router.push('/paywall' as any);
+      return;
+    }
+    setBusy(true);
+    try {
+      if (value) {
+        const ok = await enable();
+        if (!ok) {
+          showMessage(
+            t('appleHealthTitle' as any),
+            t('appleHealthPermissionDenied' as any),
+          );
+        } else {
+          toast.success(t('appleHealthSyncSuccess' as any));
+        }
+      } else {
+        disable();
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onSyncNow = async () => {
+    if (busy || !enabled) return;
+    setBusy(true);
+    const result = await syncNow();
+    setBusy(false);
+    if (result.ok) toast.success(t('appleHealthSyncSuccess' as any));
+    else toast.error(t('appleHealthSyncFailed' as any));
+  };
+
+  const lastSyncLabel = lastSyncAt
+    ? new Date(lastSyncAt).toLocaleString()
+    : t('appleHealthLastSyncNever' as any);
+
+  return (
+    <>
+      <View style={styles.toggleRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.linkText}>
+            {t('appleHealthTitle' as any)}{!isPremium ? '  🔒' : ''}
+          </Text>
+          <Text style={styles.toggleHint}>
+            {enabled
+              ? (t('appleHealthHintEnabled' as any) as string).replace('{{time}}', lastSyncLabel)
+              : t('appleHealthHint' as any)}
+          </Text>
+        </View>
+        <Switch
+          value={enabled}
+          onValueChange={onToggle}
+          disabled={busy}
+          trackColor={{ false: 'rgba(255,255,255,0.15)', true: '#FF6B35' }}
+        />
+      </View>
+      {enabled && (
+        <Pressable style={styles.linkRow} onPress={onSyncNow} hitSlop={4} disabled={busy}>
+          <Text style={styles.linkText}>{t('appleHealthSyncNow' as any)}</Text>
+          <Text style={styles.linkChevron}>›</Text>
+        </Pressable>
+      )}
+    </>
   );
 }
 

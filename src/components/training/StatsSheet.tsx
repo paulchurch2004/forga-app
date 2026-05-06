@@ -2,6 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { ProfileSheet } from '../profile/ProfileSheet';
 import { fonts } from '../../theme/fonts';
+import { useWeeklyMuscleVolume, getMuscleLabel } from '../../hooks/useWeeklyMuscleVolume';
+import { usePremiumGate } from '../../hooks/usePremiumGate';
+import { PremiumLock } from '../ui/PremiumLock';
+import { useT } from '../../i18n';
 
 interface StatsSheetProps {
   open: boolean;
@@ -31,6 +35,11 @@ export function StatsSheet({
   const volumePct =
     weeklyVolumeTargetKg > 0 ? Math.round((weeklyVolumeKg / weeklyVolumeTargetKg) * 100) : 0;
 
+  const muscleVolume = useWeeklyMuscleVolume();
+  const topVolume = muscleVolume.length > 0 ? muscleVolume[0].volumeKg : 0;
+  const { canSeeMuscleVolume, openPaywall } = usePremiumGate();
+  const { t } = useT();
+
   return (
     <ProfileSheet open={open} onClose={onClose} title="Statistiques de la semaine">
       <View style={styles.grid}>
@@ -55,6 +64,45 @@ export function StatsSheet({
           hint={`${totalDurationMin} min`}
         />
       </View>
+
+      {muscleVolume.length > 0 && !canSeeMuscleVolume && (
+        <View style={{ marginTop: 24 }}>
+          <PremiumLock
+            variant="banner"
+            label={t('premiumFeature')}
+            subtitle={t('premiumMuscleVolumeSubtitle')}
+            onPress={() => {
+              onClose();
+              setTimeout(openPaywall, 250);
+            }}
+          />
+        </View>
+      )}
+
+      {muscleVolume.length > 0 && canSeeMuscleVolume && (
+        <View style={styles.muscleSection}>
+          <Text style={styles.sectionTitle}>VOLUME PAR MUSCLE · 7J</Text>
+          <View style={styles.muscleList}>
+            {muscleVolume.map((m) => {
+              const widthPct = topVolume > 0 ? (m.volumeKg / topVolume) * 100 : 0;
+              return (
+                <View key={m.muscle} style={styles.muscleRow}>
+                  <View style={styles.muscleHeader}>
+                    <Text style={styles.muscleName}>{getMuscleLabel(m.muscle)}</Text>
+                    <Text style={styles.muscleStats}>
+                      {m.volumeKg >= 1000 ? `${(m.volumeKg / 1000).toFixed(1)}k` : m.volumeKg} kg
+                      <Text style={styles.muscleSubStats}>  ·  {m.sets} séries  ·  {m.pctOfTotal}%</Text>
+                    </Text>
+                  </View>
+                  <View style={styles.barTrack}>
+                    <View style={[styles.barFill, { width: `${widthPct}%` }]} />
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      )}
     </ProfileSheet>
   );
 }
@@ -118,5 +166,54 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#FF6B35',
     marginTop: 4,
+  },
+  muscleSection: {
+    marginTop: 24,
+  },
+  sectionTitle: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    color: 'rgba(255,255,255,0.38)',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  muscleList: {
+    gap: 12,
+  },
+  muscleRow: {
+    gap: 6,
+  },
+  muscleHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'baseline',
+  },
+  muscleName: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  muscleStats: {
+    fontFamily: fonts.data,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  muscleSubStats: {
+    fontFamily: fonts.body,
+    fontWeight: '400',
+    color: 'rgba(255,255,255,0.45)',
+  },
+  barTrack: {
+    height: 6,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+    borderRadius: 3,
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: '100%',
+    backgroundColor: '#FF6B35',
+    borderRadius: 3,
   },
 });

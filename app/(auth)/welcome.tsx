@@ -99,7 +99,12 @@ function LogoStack({ phase }: { phase: Phase }) {
       <Animated.View style={wordmarkStyle}>
         <Image source={WORDMARK} style={styles.wordmark} resizeMode="contain" />
       </Animated.View>
-      <Animated.Text style={[styles.tagline, taglineStyle]}>TON COACH NUTRITION INTELLIGENT</Animated.Text>
+      <Animated.Text style={[styles.tagline, taglineStyle]}>NUTRITION · ENTRAINEMENT · PROGRES</Animated.Text>
+      <Animated.View style={[styles.bullets, taglineStyle]}>
+        <Text style={styles.bullet}>{'• Macros calcules pour ton objectif'}</Text>
+        <Text style={styles.bullet}>{'• Plan d’entrainement adapte'}</Text>
+        <Text style={styles.bullet}>{'• Coach IA qui te suit chaque jour'}</Text>
+      </Animated.View>
     </View>
   );
 }
@@ -167,6 +172,17 @@ const styles = StyleSheet.create({
     marginTop: 14,
     letterSpacing: 1.4,
     fontWeight: '600',
+  },
+  bullets: {
+    marginTop: 36,
+    gap: 8,
+  },
+  bullet: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.78)',
+    textAlign: 'center',
+    lineHeight: 18,
   },
   ctaStack: {
     gap: 10,
