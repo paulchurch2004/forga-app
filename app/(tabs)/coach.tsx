@@ -59,6 +59,7 @@ import { useChatStore } from '../../src/store/chatStore';
 import { CoachWelcomeCard } from '../../src/components/coach/CoachWelcomeCard';
 import { getProgramDayById, PROGRAMS } from '../../src/data/programs';
 import { todayLocalIso } from '../../src/utils/date';
+import { impactLight } from '../../src/utils/haptics';
 
 // ──────────── SPEECH HELPERS (Web only) ────────────
 
@@ -158,6 +159,102 @@ function TypingIndicator() {
         <Animated.View style={[styles.typingDot, s3]} />
       </View>
     </Animated.View>
+  );
+}
+
+// ──────────── SEND BUTTON (iMessage style) ────────────
+// Springs in with a slight overshoot when text becomes non-empty.
+// Tap also has a brief press-scale to mimic the iOS button feedback.
+
+function SendButton({ onPress, disabled }: { onPress: () => void; disabled: boolean }) {
+  const styles = useStyles();
+  const { colors } = useTheme();
+  const enterScale = useSharedValue(0.5);
+  const pressScale = useSharedValue(1);
+
+  useEffect(() => {
+    enterScale.value = withSpring(1, { damping: 10, stiffness: 280, mass: 0.5 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: enterScale.value * pressScale.value }],
+  }));
+
+  return (
+    <Animated.View style={animStyle}>
+      <Pressable
+        style={[styles.sendButton, disabled && styles.sendButtonDisabled]}
+        onPress={onPress}
+        disabled={disabled}
+        hitSlop={6}
+        onPressIn={() => {
+          pressScale.value = withTiming(0.88, { duration: 80 });
+        }}
+        onPressOut={() => {
+          pressScale.value = withSpring(1, { damping: 8, stiffness: 300 });
+        }}
+      >
+        <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+          <Path
+            d="M12 4v16M5 11l7-7 7 7"
+            stroke={colors.white}
+            strokeWidth={2.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </Svg>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+// ──────────── TIME SEPARATOR (iMessage style) ────────────
+// Shown above clusters with a > 15min gap. Smart label: "14:32" if today,
+// "Hier 14:32" if yesterday, "Lundi 14:32" if this week, "12 mai 14:32"
+// otherwise.
+
+function formatSeparator(ts: number, locale: string): string {
+  const d = new Date(ts);
+  const now = new Date();
+  const sameDay =
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate();
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday =
+    d.getFullYear() === yesterday.getFullYear() &&
+    d.getMonth() === yesterday.getMonth() &&
+    d.getDate() === yesterday.getDate();
+
+  const time = d.toLocaleTimeString(locale === 'en' ? 'en-US' : 'fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  if (sameDay) return time;
+  if (isYesterday) return `${locale === 'en' ? 'Yesterday' : 'Hier'} ${time}`;
+  // Last 6 days → weekday name
+  const ageDays = Math.floor((now.getTime() - ts) / (24 * 60 * 60 * 1000));
+  if (ageDays < 7) {
+    const weekday = d.toLocaleDateString(locale === 'en' ? 'en-US' : 'fr-FR', {
+      weekday: 'long',
+    });
+    return `${weekday.charAt(0).toUpperCase() + weekday.slice(1)} ${time}`;
+  }
+  const date = d.toLocaleDateString(locale === 'en' ? 'en-US' : 'fr-FR', {
+    day: 'numeric',
+    month: 'short',
+  });
+  return `${date} ${time}`;
+}
+
+function TimeSeparator({ timestamp, locale }: { timestamp: number; locale: string }) {
+  const styles = useStyles();
+  return (
+    <View style={styles.timeSeparator}>
+      <Text style={styles.timeSeparatorText}>{formatSeparator(timestamp, locale)}</Text>
+    </View>
   );
 }
 
@@ -282,6 +379,7 @@ export default function CoachScreen() {
   const [isTyping, setIsTyping] = useState(false);
   const [freeText, setFreeText] = useState('');
   const messageIdRef = useRef(0);
+  const isAtBottomRef = useRef(true);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
 
@@ -586,6 +684,8 @@ export default function CoachScreen() {
     const text = freeText.trim();
     if (!text || !coachContext || isTyping) return;
 
+    impactLight();
+
     const userMsg: ChatMessage = {
       id: String(++messageIdRef.current),
       text,
@@ -670,7 +770,20 @@ export default function CoachScreen() {
           contentContainerStyle={styles.messagesContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+          onScroll={(e) => {
+            const { contentOffset, layoutMeasurement, contentSize } = e.nativeEvent;
+            const distanceFromBottom = contentSize.height - (contentOffset.y + layoutMeasurement.height);
+            // Pin to bottom when user is within ~60px of the end. Lets them
+            // scroll back through history without getting yanked down on
+            // every new message.
+            isAtBottomRef.current = distanceFromBottom < 60;
+          }}
+          scrollEventThrottle={16}
+          onContentSizeChange={() => {
+            if (isAtBottomRef.current) {
+              scrollRef.current?.scrollToEnd({ animated: true });
+            }
+          }}
         >
           {/* Welcome card — shown until user dismisses, reset on logout. */}
           {!welcomeDismissed && (
@@ -688,8 +801,15 @@ export default function CoachScreen() {
               !next || next.kind === 'quota_notice' || next.isCoach !== msg.isCoach;
             const isFirstInCluster =
               !prev || prev.kind === 'quota_notice' || prev.isCoach !== msg.isCoach;
+            // iMessage-style time separator: shown above the first message
+            // of a cluster when there's a gap > 15 min from the previous one
+            // (or always above the first message of the conversation).
+            const TIME_GAP_MS = 15 * 60 * 1000;
+            const showTimeSeparator =
+              !prev || msg.timestamp - prev.timestamp > TIME_GAP_MS;
             return (
               <View key={msg.id}>
+                {showTimeSeparator && <TimeSeparator timestamp={msg.timestamp} locale={locale} />}
                 <MessageBubble
                   message={msg}
                   isLastInCluster={isLastInCluster}
@@ -756,18 +876,7 @@ export default function CoachScreen() {
             )}
           </View>
           {!!freeText.trim() && (
-            <Animated.View entering={FadeIn.duration(140)}>
-              <Pressable
-                style={[styles.sendButton, isTyping && styles.sendButtonDisabled]}
-                onPress={handleSendFreeText}
-                disabled={isTyping}
-                hitSlop={6}
-              >
-                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-                  <Path d="M12 4v16M5 11l7-7 7 7" stroke={colors.white} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-                </Svg>
-              </Pressable>
-            </Animated.View>
+            <SendButton onPress={handleSendFreeText} disabled={isTyping} />
           )}
         </View>
       </View>
@@ -884,6 +993,19 @@ const useStyles = makeStyles((colors) => ({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.md,
     paddingBottom: spacing.lg,
+  },
+
+  // Time separator — centered, all-caps, muted
+  timeSeparator: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+  },
+  timeSeparatorText: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textMuted,
+    letterSpacing: 0.3,
   },
 
   // Bubble row — common to coach and user
