@@ -6,7 +6,6 @@ import {
   ScrollView,
   Pressable,
   Platform,
-  ImageBackground,
   KeyboardAvoidingView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +15,9 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   withDelay,
+  withSpring,
+  withRepeat,
+  withSequence,
   Easing,
   FadeIn,
 } from 'react-native-reanimated';
@@ -40,7 +42,7 @@ import { sendCoachMessage, type ChatHistoryEntry } from '../../src/services/coac
 import { events } from '../../src/services/analytics';
 import { useQuota } from '../../src/hooks/useQuota';
 import { usePremium } from '../../src/hooks/usePremium';
-import { fonts, fontSizes, spacing, borderRadius, makeStyles, shadows } from '../../src/theme';
+import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useT } from '../../src/i18n';
@@ -111,70 +113,71 @@ interface ChatMessage {
   kind?: 'quota_notice';
 }
 
-const COACH_AVATAR = 'https://images.unsplash.com/photo-1534368959876-26bf04f2c947?w=200&q=80';
-const CHAT_BG_IMAGE = 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=800&q=30';
-
-// ──────────── COACH AVATAR ────────────
-
-function CoachAvatar({ size = 36 }: { size?: number }) {
-  const styles = useStyles();
-  const { colors } = useTheme();
-  return (
-    <View style={[styles.avatar, { width: size, height: size, borderRadius: size / 2 }]}>
-      <ImageBackground
-        source={{ uri: COACH_AVATAR }}
-        style={{ width: size, height: size }}
-        imageStyle={{ borderRadius: size / 2 }}
-      />
-      <View style={styles.avatarOnline} />
-    </View>
-  );
-}
-
-// ──────────── TYPING INDICATOR ────────────
+// ──────────── TYPING INDICATOR (iMessage style) ────────────
+// Three dots in a small bubble, "wave" animation. No avatar — iMessage
+// 1-on-1 chats hide avatars inline.
 
 function TypingIndicator() {
   const styles = useStyles();
-  const dot1 = useSharedValue(0.3);
-  const dot2 = useSharedValue(0.3);
-  const dot3 = useSharedValue(0.3);
+  const dot1 = useSharedValue(0);
+  const dot2 = useSharedValue(0);
+  const dot3 = useSharedValue(0);
 
   useEffect(() => {
-    const animate = () => {
-      dot1.value = withTiming(1, { duration: 400 }, () => {
-        dot1.value = withTiming(0.3, { duration: 400 });
-      });
-      dot2.value = withDelay(150, withTiming(1, { duration: 400 }, () => {
-        dot2.value = withTiming(0.3, { duration: 400 });
-      }));
-      dot3.value = withDelay(300, withTiming(1, { duration: 400 }, () => {
-        dot3.value = withTiming(0.3, { duration: 400 });
-      }));
+    const wave = (sv: typeof dot1, delay: number) => {
+      sv.value = withDelay(
+        delay,
+        withRepeat(
+          withSequence(
+            withTiming(-3, { duration: 400, easing: Easing.bezier(0.4, 0, 0.6, 1) }),
+            withTiming(0, { duration: 400, easing: Easing.bezier(0.4, 0, 0.6, 1) }),
+            withTiming(0, { duration: 400 }),
+          ),
+          -1,
+          false,
+        ),
+      );
     };
-    animate();
-    const interval = setInterval(animate, 1200);
-    return () => clearInterval(interval);
+    wave(dot1, 0);
+    wave(dot2, 200);
+    wave(dot3, 400);
   }, []);
 
-  const s1 = useAnimatedStyle(() => ({ opacity: dot1.value }));
-  const s2 = useAnimatedStyle(() => ({ opacity: dot2.value }));
-  const s3 = useAnimatedStyle(() => ({ opacity: dot3.value }));
+  const s1 = useAnimatedStyle(() => ({ transform: [{ translateY: dot1.value }] }));
+  const s2 = useAnimatedStyle(() => ({ transform: [{ translateY: dot2.value }] }));
+  const s3 = useAnimatedStyle(() => ({ transform: [{ translateY: dot3.value }] }));
 
   return (
-    <View style={styles.typingRow}>
-      <CoachAvatar />
-      <View style={styles.typingBubble}>
+    <Animated.View
+      entering={FadeIn.duration(180)}
+      style={[styles.bubbleRow, styles.coachRow]}
+    >
+      <View style={[styles.bubble, styles.coachBubble, styles.typingBubble]}>
         <Animated.View style={[styles.typingDot, s1]} />
         <Animated.View style={[styles.typingDot, s2]} />
         <Animated.View style={[styles.typingDot, s3]} />
       </View>
-    </View>
+    </Animated.View>
   );
 }
 
-// ──────────── MESSAGE BUBBLE ────────────
+// ──────────── MESSAGE BUBBLE (iMessage style) ────────────
+// - Sent (right): FORGA orange tinted, sharp bottom-right corner on tail
+// - Received (left): slate gray, sharp bottom-left corner on tail
+// - Cluster awareness: tail only on the LAST bubble of a same-sender run
+// - Spring scale-in animation matching iMessage send/receive
 
-function MessageBubble({ message }: { message: ChatMessage }) {
+interface BubbleProps {
+  message: ChatMessage;
+  /** True if this is the last message in a same-sender cluster — used to
+   *  decide whether to render the bubble "tail". */
+  isLastInCluster: boolean;
+  /** True if this is the first message in a cluster — used to add a
+   *  little extra top margin between clusters. */
+  isFirstInCluster: boolean;
+}
+
+function MessageBubble({ message, isLastInCluster, isFirstInCluster }: BubbleProps) {
   const styles = useStyles();
 
   if (message.kind === 'quota_notice') {
@@ -194,21 +197,43 @@ function MessageBubble({ message }: { message: ChatMessage }) {
     );
   }
 
-  if (message.isCoach) {
-    return (
-      <Animated.View entering={FadeIn.duration(300)} style={styles.coachRow}>
-        <CoachAvatar />
-        <View style={styles.coachBubble}>
-          <Text style={styles.coachText}>{message.text}</Text>
-        </View>
-      </Animated.View>
-    );
-  }
+  // Spring scale-in: replicates the iMessage "pop" — bubble appears at
+  // ~0.85 scale and springs to 1, matching the iOS send/receive feel.
+  const scale = useSharedValue(0.85);
+  const opacity = useSharedValue(0);
+  useEffect(() => {
+    scale.value = withSpring(1, { damping: 14, stiffness: 220, mass: 0.6 });
+    opacity.value = withTiming(1, { duration: 180 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const animStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  const rowStyle = [
+    styles.bubbleRow,
+    message.isCoach ? styles.coachRow : styles.userRow,
+    isFirstInCluster && styles.clusterFirst,
+  ];
+
+  const bubbleStyle = [
+    styles.bubble,
+    message.isCoach ? styles.coachBubble : styles.userBubble,
+    // Tail is the asymmetric corner — only on the last bubble of a cluster.
+    isLastInCluster
+      ? message.isCoach
+        ? styles.coachTail
+        : styles.userTail
+      : null,
+  ];
 
   return (
-    <Animated.View entering={FadeIn.duration(200)} style={styles.userRow}>
-      <View style={styles.userBubble}>
-        <Text style={styles.userText}>{message.text}</Text>
+    <Animated.View style={[rowStyle, animStyle]}>
+      <View style={bubbleStyle}>
+        <Text style={message.isCoach ? styles.coachText : styles.userText}>
+          {message.text}
+        </Text>
       </View>
     </Animated.View>
   );
@@ -595,7 +620,9 @@ export default function CoachScreen() {
         <Pressable onPress={() => router.back()} hitSlop={16} style={styles.backButton}>
           <Text style={styles.backText}>{'\u2039'}</Text>
         </Pressable>
-        <CoachAvatar size={44} />
+        <View style={styles.headerAvatar}>
+          <Text style={styles.headerAvatarLetter}>F</Text>
+        </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerTitle}>{t('coachForga')}</Text>
           <View style={styles.onlineRow}>
@@ -636,39 +663,47 @@ export default function CoachScreen() {
           onSwitchToConversation={() => setCoachMode('conversation')}
         />
       ) : (
-      <ImageBackground
-        source={{ uri: CHAT_BG_IMAGE }}
-        style={styles.messagesContainer}
-        imageStyle={styles.bgImage}
-      >
-        <View style={styles.bgOverlay}>
-          <ScrollView
-            ref={scrollRef}
-            style={{ flex: 1 }}
-            contentContainerStyle={styles.messagesContent}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
-          >
-            {/* Welcome card — shown until user dismisses, reset on logout. */}
-            {!welcomeDismissed && (
-              <CoachWelcomeCard
-                firstName={profile?.name?.split(' ')[0]}
-                onDismiss={dismissWelcome}
-              />
-            )}
-            {messages.map((msg) => (
+      <View style={styles.messagesContainer}>
+        <ScrollView
+          ref={scrollRef}
+          style={{ flex: 1 }}
+          contentContainerStyle={styles.messagesContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          onContentSizeChange={() => scrollRef.current?.scrollToEnd({ animated: true })}
+        >
+          {/* Welcome card — shown until user dismisses, reset on logout. */}
+          {!welcomeDismissed && (
+            <CoachWelcomeCard
+              firstName={profile?.name?.split(' ')[0]}
+              onDismiss={dismissWelcome}
+            />
+          )}
+          {messages.map((msg, i) => {
+            // Cluster detection: a message is "last in cluster" when the
+            // next message has a different sender (or doesn't exist).
+            const next = messages[i + 1];
+            const prev = messages[i - 1];
+            const isLastInCluster =
+              !next || next.kind === 'quota_notice' || next.isCoach !== msg.isCoach;
+            const isFirstInCluster =
+              !prev || prev.kind === 'quota_notice' || prev.isCoach !== msg.isCoach;
+            return (
               <View key={msg.id}>
-                <MessageBubble message={msg} />
-                {msg.actions?.map((a, i) => (
-                  <ActionProposalCard key={`${msg.id}-action-${i}`} action={a} />
+                <MessageBubble
+                  message={msg}
+                  isLastInCluster={isLastInCluster}
+                  isFirstInCluster={isFirstInCluster}
+                />
+                {msg.actions?.map((a, ai) => (
+                  <ActionProposalCard key={`${msg.id}-action-${ai}`} action={a} />
                 ))}
               </View>
-            ))}
-            {isTyping && <TypingIndicator />}
-          </ScrollView>
-        </View>
-      </ImageBackground>
+            );
+          })}
+          {isTyping && <TypingIndicator />}
+        </ScrollView>
+      </View>
       )}
 
       {/* Quick Replies + Input — visible only in conversation mode */}
@@ -695,36 +730,45 @@ export default function CoachScreen() {
           </ScrollView>
         )}
         <View style={styles.inputRow}>
-          <TextInput
-            style={styles.textInput}
-            value={freeText}
-            onChangeText={setFreeText}
-            placeholder={isListening ? (locale === 'en' ? 'Listening...' : '\u00c9coute...') : t('typeMessage')}
-            placeholderTextColor={isListening ? colors.primary : colors.textMuted}
-            returnKeyType="send"
-            onSubmitEditing={handleSendFreeText}
-          />
-          {isSpeechSupported && (
-            <Pressable
-              style={[styles.micButton, isListening && styles.micButtonActive]}
-              onPress={handleMicPress}
-              disabled={isTyping}
-            >
-              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-                <Path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z" fill={isListening ? colors.white : colors.primary} />
-                <Path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" stroke={isListening ? colors.white : colors.primary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-              </Svg>
-            </Pressable>
+          <View style={styles.inputPill}>
+            <TextInput
+              style={styles.textInput}
+              value={freeText}
+              onChangeText={setFreeText}
+              placeholder={isListening ? (locale === 'en' ? 'Listening...' : '\u00c9coute...') : t('typeMessage')}
+              placeholderTextColor={isListening ? colors.primary : colors.textMuted}
+              returnKeyType="send"
+              onSubmitEditing={handleSendFreeText}
+              multiline
+            />
+            {isSpeechSupported && !freeText.trim() && (
+              <Pressable
+                style={[styles.micEmbedded, isListening && styles.micEmbeddedActive]}
+                onPress={handleMicPress}
+                disabled={isTyping}
+                hitSlop={8}
+              >
+                <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
+                  <Path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3Z" fill={isListening ? colors.white : colors.textSecondary} />
+                  <Path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4M8 23h8" stroke={isListening ? colors.white : colors.textSecondary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+                </Svg>
+              </Pressable>
+            )}
+          </View>
+          {!!freeText.trim() && (
+            <Animated.View entering={FadeIn.duration(140)}>
+              <Pressable
+                style={[styles.sendButton, isTyping && styles.sendButtonDisabled]}
+                onPress={handleSendFreeText}
+                disabled={isTyping}
+                hitSlop={6}
+              >
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                  <Path d="M12 4v16M5 11l7-7 7 7" stroke={colors.white} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
+                </Svg>
+              </Pressable>
+            </Animated.View>
           )}
-          <Pressable
-            style={[styles.sendButton, (!freeText.trim() || isTyping) && styles.sendButtonDisabled]}
-            onPress={handleSendFreeText}
-            disabled={!freeText.trim() || isTyping}
-          >
-            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-              <Path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke={colors.white} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-            </Svg>
-          </Pressable>
         </View>
       </View>
       )}
@@ -815,84 +859,85 @@ const useStyles = makeStyles((colors) => ({
     color: 'rgba(255,255,255,0.85)',
   },
 
-  // Messages — sport background
+  // Header avatar (iMessage-style monogram)
+  headerAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerAvatarLetter: {
+    fontFamily: fonts.display,
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.white,
+  },
+
+  // Messages — solid background, iMessage style
   messagesContainer: {
     flex: 1,
-  },
-  bgImage: {
-    opacity: 0.08,
-  },
-  bgOverlay: {
-    flex: 1,
-    backgroundColor: `${colors.background}E6`,
+    backgroundColor: colors.background,
   },
   messagesContent: {
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.lg,
-    paddingBottom: spacing.xl,
+    paddingVertical: spacing.md,
+    paddingBottom: spacing.lg,
   },
 
-  // Coach bubble — more contrast
-  coachRow: {
+  // Bubble row — common to coach and user
+  bubbleRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginBottom: spacing.md,
-    maxWidth: '88%',
+    marginBottom: 2, // tight by default — clusters of same-sender messages
+    maxWidth: '78%',
   },
-  avatar: {
-    marginRight: spacing.sm,
-    flexShrink: 0,
-    position: 'relative',
-    overflow: 'visible',
+  // First bubble in a cluster gets extra top margin (visual separator
+  // between clusters of different senders).
+  clusterFirst: {
+    marginTop: spacing.sm,
   },
-  avatarOnline: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#00FF88',
-    borderWidth: 2,
-    borderColor: colors.background,
+  coachRow: {
+    alignSelf: 'flex-start',
   },
+  userRow: {
+    alignSelf: 'flex-end',
+    justifyContent: 'flex-end',
+  },
+
+  // Bubble — base style
+  bubble: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 20,
+  },
+
+  // Coach (received) bubble — slate gray, iMessage dark-mode style
   coachBubble: {
-    backgroundColor: colors.surface,
-    borderRadius: 18,
-    borderBottomLeftRadius: 4,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    flex: 1,
-    ...shadows.card,
+    backgroundColor: 'rgba(120,120,128,0.24)',
+  },
+  coachTail: {
+    borderBottomLeftRadius: 6,
   },
   coachText: {
     fontFamily: fonts.body,
-    fontSize: fontSizes.md,
+    fontSize: 16,
     color: colors.text,
-    lineHeight: 22,
+    lineHeight: 21,
   },
 
-  // User bubble — bold primary
-  userRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    marginBottom: spacing.md,
-    maxWidth: '82%',
-    alignSelf: 'flex-end',
-  },
+  // User (sent) bubble — FORGA orange, iMessage shape
   userBubble: {
     backgroundColor: colors.primary,
-    borderRadius: 18,
-    borderBottomRightRadius: 4,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    ...shadows.card,
+  },
+  userTail: {
+    borderBottomRightRadius: 6,
   },
   userText: {
     fontFamily: fonts.body,
-    fontSize: fontSizes.md,
+    fontSize: 16,
     color: colors.white,
-    lineHeight: 22,
+    lineHeight: 21,
   },
 
   // Quota notice — system-style centered card
@@ -944,28 +989,20 @@ const useStyles = makeStyles((colors) => ({
     color: colors.white,
   },
 
-  // Typing
-  typingRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    marginBottom: spacing.md,
-  },
+  // Typing — iMessage 3-dot wave inside a small slate bubble
   typingBubble: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: 18,
-    borderBottomLeftRadius: 4,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    gap: 6,
-    ...shadows.card,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 5,
+    borderBottomLeftRadius: 6,
   },
   typingDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.primary,
+    width: 7,
+    height: 7,
+    borderRadius: 3.5,
+    backgroundColor: 'rgba(255,255,255,0.55)',
   },
 
   // Quick replies — warmer
@@ -998,47 +1035,53 @@ const useStyles = makeStyles((colors) => ({
     color: colors.primary,
   },
 
-  // Input — larger touch targets for mobile
+  // Input — iMessage pill with embedded mic + circular send button
   inputRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     gap: spacing.sm,
   },
+  inputPill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(120,120,128,0.16)',
+    borderRadius: 20,
+    minHeight: 36,
+    paddingLeft: 14,
+    paddingRight: 6,
+    paddingVertical: 2,
+  },
   textInput: {
     flex: 1,
-    backgroundColor: colors.background,
-    borderRadius: 24,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: Platform.OS === 'ios' ? spacing.md : spacing.sm,
     fontFamily: fonts.body,
-    fontSize: fontSizes.md,
+    fontSize: 16,
     color: colors.text,
-    maxHeight: 100,
-    minHeight: 44,
+    maxHeight: 120,
+    paddingVertical: Platform.OS === 'ios' ? 8 : 4,
+    paddingTop: Platform.OS === 'ios' ? 8 : 4,
   },
-  micButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,107,53,0.12)',
+  micEmbedded: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+    marginLeft: 4,
   },
-  micButtonActive: {
+  micEmbeddedActive: {
     backgroundColor: colors.primary,
   },
   sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadows.button,
+    marginBottom: 2,
   },
   sendButtonDisabled: {
     opacity: 0.4,

@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "fr.forga.ios",
-      "buildNumber": "53",
+      "buildNumber": "56",
       "usesAppleSignIn": true,
       "associatedDomains": [
         "applinks:forga.fr",
@@ -60,6 +60,14 @@
       "orientation": "portrait"
     },
     "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.0"
+          }
+        }
+      ],
       "expo-router",
       "expo-font",
       [
@@ -106,7 +114,8 @@
           "NSHealthShareUsageDescription": "FORGA lit ton poids, tes pas et tes calories depuis Apple Sante pour synchroniser ta progression et personnaliser tes recommandations.",
           "NSHealthUpdateUsageDescription": "FORGA enregistre tes seances dans Apple Sante pour que tu retrouves ton historique d'entrainement au meme endroit que tes autres donnees de sante."
         }
-      ]
+      ],
+      "expo-build-properties"
     ],
     "extra": {
       "eas": {
