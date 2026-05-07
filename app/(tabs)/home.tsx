@@ -232,9 +232,14 @@ export default function HomeScreen() {
   const nutritionProgress = targets.calories
     ? Math.min(1, consumed.calories / targets.calories)
     : 0;
-  const todayWorkouts = useTrainingStore((s) => s.workouts[todayLocalIso()] ?? []);
+  // Important: return a primitive (boolean) from the selector — returning
+  // `s.workouts[date] ?? []` would create a fresh empty array each render
+  // and trigger an infinite re-render loop (Zustand uses Object.is).
+  const hasWorkoutToday = useTrainingStore(
+    (s) => (s.workouts[todayLocalIso()]?.length ?? 0) > 0,
+  );
   const seanceProgress = hasActivePlan && todayProgramDay
-    ? (todayWorkouts.length > 0 ? 1 : 0)
+    ? (hasWorkoutToday ? 1 : 0)
     : 1; // rest day or no plan → ring is "complete" (no action expected)
 
   // Compose the coach focus message from real data
