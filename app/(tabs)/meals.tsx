@@ -35,15 +35,31 @@ const FREE_MAX_SUGGESTIONS = 5;
 type BudgetFilter = 'all' | 'eco' | 'premium';
 type RestrictionFilter = 'all' | Restriction;
 
-const SLOT_SHORT: Record<MealSlot, string> = {
-  breakfast: 'Matin',
-  morning_snack: 'Encas',
-  lunch: 'Midi',
-  afternoon_snack: 'Goûter',
-  dinner: 'Soir',
+/** Each slot displays as a 2-line chip:
+ *   ☀️ Matin
+ *   7h-9h
+ * The emoji + time range disambiguate slots much better than a bare label
+ * (user feedback: "the top bar isn't clear enough"). */
+const SLOT_META: Record<MealSlot, { emoji: string; label: string; time: string }> = {
+  breakfast: { emoji: '☀️', label: 'Matin', time: '7h-9h' },
+  morning_snack: { emoji: '🥨', label: 'Encas', time: '10h-11h' },
+  lunch: { emoji: '🍽️', label: 'Midi', time: '12h-14h' },
+  afternoon_snack: { emoji: '🍪', label: 'Goûter', time: '16h-17h' },
+  dinner: { emoji: '🌙', label: 'Soir', time: '19h-21h' },
 };
 
 const SLOT_ORDER: MealSlot[] = ['breakfast', 'morning_snack', 'lunch', 'afternoon_snack', 'dinner'];
+
+/** Map current hour → expected meal slot. Used to subtly highlight the
+ *  "current" chip (border glow) so the user immediately sees which slot
+ *  is now relevant. */
+function getCurrentSlot(hour: number): MealSlot {
+  if (hour < 10) return 'breakfast';
+  if (hour < 12) return 'morning_snack';
+  if (hour < 15) return 'lunch';
+  if (hour < 18) return 'afternoon_snack';
+  return 'dinner';
+}
 
 export default function MealsScreen() {
   const insets = useSafeAreaInsets();
@@ -198,7 +214,8 @@ export default function MealsScreen() {
         </Text>
       </View>
 
-      {/* Slot quick-switcher */}
+      {/* Slot quick-switcher — 2-line chips with emoji + time range.
+          The chip matching the current hour gets a subtle "now" outline. */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -206,14 +223,27 @@ export default function MealsScreen() {
       >
         {SLOT_ORDER.map((s) => {
           const active = selectedSlot === s;
+          const isNow = getCurrentSlot(new Date().getHours()) === s;
+          const meta = SLOT_META[s];
           return (
             <Pressable
               key={s}
               onPress={() => setSelectedSlot(s)}
-              style={[styles.slotChip, active && styles.slotChipActive]}
+              style={[
+                styles.slotChip,
+                active && styles.slotChipActive,
+                !active && isNow && styles.slotChipNow,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={`${meta.label}, ${meta.time}`}
+              accessibilityState={{ selected: active }}
             >
+              <Text style={styles.slotChipEmoji}>{meta.emoji}</Text>
               <Text style={[styles.slotChipText, active && styles.slotChipTextActive]}>
-                {SLOT_SHORT[s]}
+                {meta.label}
+              </Text>
+              <Text style={[styles.slotChipTime, active && styles.slotChipTimeActive]}>
+                {meta.time}
               </Text>
             </Pressable>
           );
@@ -450,25 +480,47 @@ const useStyles = makeStyles((colors) => ({
     paddingBottom: 4,
   },
   slotChip: {
-    paddingVertical: 7,
+    minWidth: 76,
+    paddingVertical: 10,
     paddingHorizontal: 14,
-    borderRadius: 999,
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center' as const,
+    gap: 2,
   },
   slotChipActive: {
     backgroundColor: '#FF6B35',
     borderColor: '#FF6B35',
   },
+  /** Subtle outline glow on the chip whose time range covers the current
+   *  hour — helps the user spot "where they should be" at a glance. */
+  slotChipNow: {
+    borderColor: 'rgba(255,107,53,0.55)',
+    backgroundColor: 'rgba(255,107,53,0.08)',
+  },
+  slotChipEmoji: {
+    fontSize: 18,
+    lineHeight: 22,
+  },
   slotChipText: {
     fontFamily: fonts.body,
     fontSize: 12,
-    fontWeight: '600' as const,
-    color: 'rgba(255,255,255,0.62)',
+    fontWeight: '700' as const,
+    color: 'rgba(255,255,255,0.85)',
   },
   slotChipTextActive: {
     color: '#FFFFFF',
+  },
+  slotChipTime: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    fontWeight: '500' as const,
+    color: 'rgba(255,255,255,0.42)',
+  },
+  slotChipTimeActive: {
+    color: 'rgba(255,255,255,0.85)',
   },
   searchWrap: {
     flexDirection: 'row' as const,

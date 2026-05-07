@@ -8,6 +8,7 @@ import {
   Pressable,
   Platform,
   ImageBackground,
+  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -163,24 +164,165 @@ export default function NutritionScreen() {
     return false;
   }, [checkIns]);
 
-  // Map today's slots → meal items with real recipe image / kcal / done
+  // Open the action sheet for a single specific meal in a slot. Used both
+  // when the slot has only one meal (direct from slot tap) AND when the
+  // user picks one entry from the multi-meals selector.
+  const openSingleMealActions = useCallback(
+    (mealEntry: typeof todayMeals[number]) => {
+      const recipe = getMealById(mealEntry.mealId);
+      const name = mealEntry.customName ?? recipe?.name ?? '';
+      const kcal = Math.round(mealEntry.actualMacros.calories);
+      const protein = Math.round(mealEntry.actualMacros.protein);
+      Alert.alert(
+        name || (t('mealActionTitle' as any) as string),
+        `${kcal} kcal · ${protein}g ${t('proteinLabel' as any)}`,
+        [
+          {
+            text: t('mealActionInfo' as any) as string,
+            onPress: () =>
+              router.push(`/meal/${mealEntry.mealId}?slot=${mealEntry.slot}` as any),
+          },
+          {
+            text: t('mealActionDelete' as any) as string,
+            style: 'destructive',
+            onPress: () => {
+              useMealStore.getState().removeValidatedMealById(mealEntry.id);
+              recalculate();
+              if (Platform.OS !== 'web') {
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+              }
+            },
+          },
+          { text: t('cancel' as any) as string, style: 'cancel' },
+        ],
+      );
+    },
+    [t, recalculate],
+  );
+
+  // Slot tap dispatcher.
+  // - 0 meal in slot  → navigate to selection
+  // - 1 meal in slot  → action sheet (Info / Change / Delete / Cancel)
+  // - 2+ meals        → list-style alert: each meal becomes a button that
+  //                     opens its own action sheet, plus an "Add another"
+  //                     and a "Cancel".
+  const handleSlotPress = useCallback(
+    (slot: string) => {
+      const slotMeals = todayMeals.filter((m) => m.slot === slot);
+
+      if (slotMeals.length === 0) {
+        router.push(`/(tabs)/meals?slot=${slot}`);
+        return;
+      }
+
+      if (slotMeals.length === 1) {
+        const mealEntry = slotMeals[0];
+        const recipe = getMealById(mealEntry.mealId);
+        const name = mealEntry.customName ?? recipe?.name ?? '';
+        const kcal = Math.round(mealEntry.actualMacros.calories);
+        const protein = Math.round(mealEntry.actualMacros.protein);
+        Alert.alert(
+          name || (t('mealActionTitle' as any) as string),
+          `${kcal} kcal · ${protein}g ${t('proteinLabel' as any)}`,
+          [
+            {
+              text: t('mealActionAddAnother' as any) as string,
+              onPress: () => router.push(`/(tabs)/meals?slot=${slot}` as any),
+            },
+            {
+              text: t('mealActionInfo' as any) as string,
+              onPress: () =>
+                router.push(`/meal/${mealEntry.mealId}?slot=${slot}` as any),
+            },
+            {
+              text: t('mealActionDelete' as any) as string,
+              style: 'destructive',
+              onPress: () => {
+                useMealStore.getState().removeValidatedMealById(mealEntry.id);
+                recalculate();
+                if (Platform.OS !== 'web') {
+                  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+                }
+              },
+            },
+            { text: t('cancel' as any) as string, style: 'cancel' },
+          ],
+        );
+        return;
+      }
+
+      // Multiple meals in this slot — let the user pick one to act on.
+      const totalKcal = Math.round(
+        slotMeals.reduce((sum, m) => sum + m.actualMacros.calories, 0),
+      );
+      const summary = slotMeals
+        .map((m) => {
+          const r = getMealById(m.mealId);
+          const n = m.customName ?? r?.name ?? '';
+          return `• ${n} (${Math.round(m.actualMacros.calories)} kcal)`;
+        })
+        .join('\n');
+
+      const buttons: { text: string; onPress?: () => void; style?: 'cancel' | 'destructive' | 'default' }[] = [
+        {
+          text: t('mealActionAddAnother' as any) as string,
+          onPress: () => router.push(`/(tabs)/meals?slot=${slot}` as any),
+        },
+      ];
+
+      // Up to 2 meal-specific buttons (iOS Alert is happiest with ≤4 total).
+      // For more than 2 meals, we show a "See all" that goes to the same
+      // selection screen filtered by slot.
+      slotMeals.slice(0, 2).forEach((m) => {
+        const r = getMealById(m.mealId);
+        const n = m.customName ?? r?.name ?? '';
+        buttons.push({
+          text: `${n.length > 24 ? n.slice(0, 23) + '…' : n}`,
+          onPress: () => openSingleMealActions(m),
+        });
+      });
+
+      buttons.push({ text: t('cancel' as any) as string, style: 'cancel' });
+
+      Alert.alert(
+        `${slotMeals.length} ${t('mealActionMultipleTitle' as any)}`,
+        `${totalKcal} kcal\n\n${summary}`,
+        buttons,
+      );
+    },
+    [todayMeals, t, recalculate, openSingleMealActions],
+  );
+
+  // Map today's slots → meal items with real recipe image / aggregated kcal.
+  // A slot with multiple meals shows "Nom du 1er + N de plus" and the
+  // total kcal sum.
   const mealItems = useMemo<MealSlotPhotoItem[]>(() => {
     return slots.map((s) => {
-      const dailyMeal = todayMeals.find((m) => m.slot === s.slot);
-      const recipe = dailyMeal ? getMealById(dailyMeal.mealId) : undefined;
+      const slotMeals = todayMeals.filter((m) => m.slot === s.slot);
+      const firstRecipe = slotMeals[0] ? getMealById(slotMeals[0].mealId) : undefined;
+      const firstName = slotMeals[0]
+        ? slotMeals[0].customName ?? firstRecipe?.name ?? null
+        : null;
+      const label =
+        slotMeals.length > 1 && firstName
+          ? `${firstName} +${slotMeals.length - 1}`
+          : firstName;
+      const totalKcal = slotMeals.length
+        ? Math.round(slotMeals.reduce((sum, m) => sum + m.actualMacros.calories, 0))
+        : undefined;
       return {
         id: s.slot,
         label: MEAL_SLOT_LABELS[s.slot] ?? s.slot,
         time: MEAL_SLOT_TIMES[s.slot] ?? s.time,
-        meal: dailyMeal ? dailyMeal.customName ?? recipe?.name ?? null : null,
-        kcal: dailyMeal ? Math.round(dailyMeal.actualMacros.calories) : undefined,
-        imageUri: recipe?.photoUrl,
+        meal: label,
+        kcal: totalKcal,
+        imageUri: firstRecipe?.photoUrl,
         done: s.isValidated,
         optional: s.slot === 'pre_bed' || s.slot === 'morning_snack',
-        onPress: () => router.push(`/(tabs)/meals?slot=${s.slot}`),
+        onPress: () => handleSlotPress(s.slot),
       };
     });
-  }, [slots, todayMeals]);
+  }, [slots, todayMeals, handleSlotPress]);
 
   const lastCalorieAdjustment = useMemo(() => {
     return [...checkIns]

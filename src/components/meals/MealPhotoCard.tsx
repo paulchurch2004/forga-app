@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Pressable, Platform, Image } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -6,6 +6,7 @@ import Animated, {
   withSpring,
   withSequence,
 } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { makeStyles, fonts } from '../../theme';
@@ -13,7 +14,35 @@ import { useTheme } from '../../context/ThemeContext';
 import { useMealStore } from '../../store/mealStore';
 import { useUserStore } from '../../store/userStore';
 import { syncMealPreference } from '../../services/userSync';
-import type { Meal } from '../../types/meal';
+import type { Meal, MealSlot } from '../../types/meal';
+
+// Wikimedia and other image hosts often block requests without a clear
+// User-Agent identifier. Setting one fixes "broken image" for ~90% of
+// our meal photoUrls (Wikipedia thumb endpoints reject anonymous UAs).
+const IMAGE_HEADERS = {
+  'User-Agent': 'FORGA/1.0 (https://forga.fr; hello@forga.fr)',
+};
+
+// Slot-specific gradient used as a graceful fallback when the meal's
+// photoUrl fails to load (network error, 403, etc.). Keeps the card
+// visually consistent rather than showing a broken-image icon.
+const SLOT_GRADIENTS: Record<MealSlot, [string, string]> = {
+  breakfast: ['#FF8C42', '#FFB347'],
+  morning_snack: ['#F4A261', '#E76F51'],
+  lunch: ['#FF6B35', '#E8543F'],
+  afternoon_snack: ['#E27D60', '#C0392B'],
+  dinner: ['#8E44AD', '#C0392B'],
+  pre_bed: ['#34495E', '#2C3E50'],
+};
+
+const SLOT_ICON: Record<MealSlot, keyof typeof Ionicons.glyphMap> = {
+  breakfast: 'sunny-outline',
+  morning_snack: 'cafe-outline',
+  lunch: 'restaurant-outline',
+  afternoon_snack: 'cafe-outline',
+  dinner: 'moon-outline',
+  pre_bed: 'moon-outline',
+};
 
 const triggerHaptic = () => {
   if (Platform.OS === 'web') return;
@@ -49,6 +78,9 @@ function MealPhotoCardImpl({ meal, cardWidth, slot }: MealPhotoCardProps) {
 
   const dynamicCardStyle = cardWidth ? { width: cardWidth } : { flex: 1 };
   const imageHeight = cardWidth ? cardWidth : 160; // aspect 1:1
+  const [imageFailed, setImageFailed] = useState(false);
+  const fallbackGradient = SLOT_GRADIENTS[meal.slot] ?? SLOT_GRADIENTS.lunch;
+  const fallbackIcon = SLOT_ICON[meal.slot] ?? 'restaurant-outline';
 
   return (
     <AnimatedPressable
@@ -64,12 +96,24 @@ function MealPhotoCardImpl({ meal, cardWidth, slot }: MealPhotoCardProps) {
       accessibilityLabel={`${meal.name}, ${Math.round(meal.baseMacros.calories)} calories`}
     >
       <View style={[styles.imageWrap, { height: imageHeight }]}>
-        <Image
-          source={{ uri: meal.photoUrl }}
-          style={[styles.image, { width: cardWidth ?? '100%', height: imageHeight }]}
-          resizeMode="cover"
-          fadeDuration={0}
-        />
+        {!imageFailed && meal.photoUrl ? (
+          <Image
+            source={{ uri: meal.photoUrl, headers: IMAGE_HEADERS }}
+            style={[styles.image, { width: cardWidth ?? '100%', height: imageHeight }]}
+            resizeMode="cover"
+            fadeDuration={0}
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <LinearGradient
+            colors={fallbackGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.image, styles.fallbackBg, { width: cardWidth ?? '100%', height: imageHeight }]}
+          >
+            <Ionicons name={fallbackIcon} size={48} color="rgba(255,255,255,0.85)" />
+          </LinearGradient>
+        )}
         <View style={styles.gradient} />
 
         <Pressable
@@ -183,6 +227,10 @@ const useStyles = makeStyles((colors) => ({
   image: {
     width: '100%' as const,
     height: '100%' as const,
+  },
+  fallbackBg: {
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
   },
   gradient: {
     position: 'absolute' as const,

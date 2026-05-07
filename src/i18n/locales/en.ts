@@ -1687,4 +1687,12 @@ export const en: Record<TranslationKey, string> = {
   appleHealthSyncFailed: 'Sync failed',
   appleHealthSyncNow: 'Sync now',
   appleHealthLastSyncNever: 'Never synced',
+
+  // Meal slot action sheet (validated meal tap)
+  mealActionTitle: 'Validated meal',
+  mealActionInfo: 'See details',
+  mealActionChange: 'Change meal',
+  mealActionDelete: 'Delete',
+  mealActionAddAnother: 'Add another meal',
+  mealActionMultipleTitle: 'meals validated',
 };

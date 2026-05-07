@@ -53,8 +53,32 @@ const SLOT_I18N_KEY: Record<MealSlot, Parameters<ReturnType<typeof getTranslatio
   bedtime: 'slotBedtime',
 };
 
+/** Cancel any *already-scheduled* notifications matching a predicate on
+ *  the request's content.data field. Used by every `schedule*` helper
+ *  below to make them idempotent — without this, opening the app 9 times
+ *  would stack 9 copies of the same daily reminder all firing at once. */
+async function cancelMatchingScheduled(
+  match: (data: Record<string, unknown> | undefined) => boolean,
+): Promise<void> {
+  try {
+    const all = await Notifications.getAllScheduledNotificationsAsync();
+    await Promise.all(
+      all
+        .filter((n) => match(n.content.data as Record<string, unknown> | undefined))
+        .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier)),
+    );
+  } catch {
+    /* no-op */
+  }
+}
+
 // ─── Rappel repas ───
 export async function scheduleMealReminder(slot: MealSlot): Promise<string> {
+  // Idempotency: drop any prior daily reminder for this exact slot.
+  await cancelMatchingScheduled(
+    (data) => data?.type === 'meal_reminder' && data?.slot === slot,
+  );
+
   const time = MEAL_SLOT_TIMES[slot];
   const [hours, minutes] = time.split(':').map(Number);
   const slotLabel = t(SLOT_I18N_KEY[slot]).toLowerCase();
@@ -77,6 +101,10 @@ export async function scheduleMealReminder(slot: MealSlot): Promise<string> {
 
 // ─── Streak en danger ───
 export async function scheduleStreakDanger(streakDays: number): Promise<string> {
+  // Idempotency: drop any prior streak-danger reminder before scheduling
+  // a fresh one with the up-to-date streak count.
+  await cancelMatchingScheduled((data) => data?.type === 'streak_danger');
+
   const id = await Notifications.scheduleNotificationAsync({
     content: {
       title: 'FORGA',
@@ -95,6 +123,9 @@ export async function scheduleStreakDanger(streakDays: number): Promise<string> 
 
 // ─── Check-in hebdomadaire (dimanche / Sunday at 20:00) ───
 export async function scheduleWeeklyCheckIn(): Promise<string> {
+  // Idempotency: drop any prior weekly check-in reminder.
+  await cancelMatchingScheduled((data) => data?.type === 'weekly_checkin');
+
   const id = await Notifications.scheduleNotificationAsync({
     content: {
       title: 'FORGA',
@@ -135,6 +166,11 @@ export async function scheduleReactivation(daysSinceLastActivity: number): Promi
 
   const key = messageKey[daysSinceLastActivity];
   if (!key) return;
+
+  // Idempotency: drop any prior reactivation prompt before pushing a new
+  // one. (Triggered with `null`, fires immediately, so this is mostly a
+  // belt-and-braces guard.)
+  await cancelMatchingScheduled((data) => data?.type === 'reactivation');
 
   await Notifications.scheduleNotificationAsync({
     content: {

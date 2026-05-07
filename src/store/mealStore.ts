@@ -15,7 +15,10 @@ interface MealState {
 
   setTodayMeals: (meals: DailyMeal[]) => void;
   addValidatedMeal: (meal: DailyMeal) => void;
+  /** Remove all meals for a given slot. */
   removeValidatedMeal: (slot: MealSlot) => void;
+  /** Remove a single meal by id (within today). */
+  removeValidatedMealById: (id: string) => void;
   setDayPlan: (plan: DayPlan) => void;
   setFavorites: (favorites: string[]) => void;
   toggleFavorite: (mealId: string) => void;
@@ -24,6 +27,9 @@ interface MealState {
   toggleDislike: (mealId: string) => void;
   getMealScore: (mealId: string) => number; // +1 liked, -1 disliked, 0 neutral
   getMealForSlot: (slot: MealSlot) => DailyMeal | undefined;
+  /** Returns ALL meals for a given slot (a single slot can hold multiple
+   *  items — e.g. main dish + dessert at lunch). */
+  getMealsForSlot: (slot: MealSlot) => DailyMeal[];
   getValidatedCount: () => number;
   getHistoryForDate: (date: string) => DailyMeal[];
   checkDayReset: () => void;
@@ -42,18 +48,22 @@ export const useMealStore = create<MealState>()(
       mealHistory: {},
 
       setTodayMeals: (todayMeals) => set({ todayMeals }),
+      // A slot can hold MULTIPLE meals (e.g. main + dessert at lunch).
+      // We only de-dup on identical (mealId, slot, date) to prevent an
+      // accidental double-tap from creating two copies of the same dish —
+      // otherwise we always append. Macros sum naturally because consumers
+      // reduce over `todayMeals`.
       addValidatedMeal: (meal) =>
         set((state) => {
           const date = meal.date;
+          const isExactDupe = (m: DailyMeal) =>
+            m.slot === meal.slot && m.mealId === meal.mealId && m.date === meal.date;
           return {
-            todayMeals: [
-              ...state.todayMeals.filter((m) => m.slot !== meal.slot),
-              meal,
-            ],
+            todayMeals: [...state.todayMeals.filter((m) => !isExactDupe(m)), meal],
             mealHistory: {
               ...state.mealHistory,
               [date]: [
-                ...(state.mealHistory[date] ?? []).filter((m) => m.slot !== meal.slot),
+                ...(state.mealHistory[date] ?? []).filter((m) => !isExactDupe(m)),
                 meal,
               ],
             },
@@ -69,6 +79,19 @@ export const useMealStore = create<MealState>()(
           }
           return {
             todayMeals: state.todayMeals.filter((m) => m.slot !== slot),
+            mealHistory: updatedHistory,
+          };
+        }),
+      removeValidatedMealById: (id) =>
+        set((state) => {
+          const date = state.lastMealDate;
+          const updatedHistory = { ...state.mealHistory };
+          if (date && updatedHistory[date]) {
+            updatedHistory[date] = updatedHistory[date].filter((m) => m.id !== id);
+            if (updatedHistory[date].length === 0) delete updatedHistory[date];
+          }
+          return {
+            todayMeals: state.todayMeals.filter((m) => m.id !== id),
             mealHistory: updatedHistory,
           };
         }),
@@ -102,6 +125,7 @@ export const useMealStore = create<MealState>()(
         return 0;
       },
       getMealForSlot: (slot) => get().todayMeals.find((m) => m.slot === slot),
+      getMealsForSlot: (slot) => get().todayMeals.filter((m) => m.slot === slot),
       getValidatedCount: () => get().todayMeals.length,
       getHistoryForDate: (date) => get().mealHistory[date] ?? [],
       checkDayReset: () => {

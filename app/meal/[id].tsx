@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback, useEffect } from 'react';
-import { View, Text, Alert } from 'react-native';
+import { View, Text, Alert, Platform } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { getMealById } from '../../src/data/meals';
 import { useMealStore } from '../../src/store/mealStore';

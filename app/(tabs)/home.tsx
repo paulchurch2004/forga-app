@@ -38,6 +38,8 @@ import { MiniStatsGrid } from '../../src/components/home/MiniStatsGrid';
 import { QuickAccessRow } from '../../src/components/home/QuickAccessTile';
 import { useMealStore } from '../../src/store/mealStore';
 import { useScoreStore } from '../../src/store/scoreStore';
+import { useTrainingStore } from '../../src/store/trainingStore';
+import { todayLocalIso } from '../../src/utils/date';
 import { useEngine } from '../../src/hooks/useEngine';
 import { useMealSlot } from '../../src/hooks/useMealSlot';
 import { useWater } from '../../src/hooks/useWater';
@@ -221,6 +223,20 @@ export default function HomeScreen() {
 
   const targets = engine?.dailyMacros ?? { calories: 2000, protein: 120, carbs: 220, fat: 60 };
 
+  // Tile progress rings.
+  // Nutrition = ratio of consumed kcal to target (capped at 1).
+  // Séance   = 1 once today has at least one logged workout, else 0.
+  // (We could get fancier with "fraction of exercises completed" mid-session,
+  //  but the workouts list is only updated on session completion, so the
+  //  binary today-done flag is the honest signal here.)
+  const nutritionProgress = targets.calories
+    ? Math.min(1, consumed.calories / targets.calories)
+    : 0;
+  const todayWorkouts = useTrainingStore((s) => s.workouts[todayLocalIso()] ?? []);
+  const seanceProgress = hasActivePlan && todayProgramDay
+    ? (todayWorkouts.length > 0 ? 1 : 0)
+    : 1; // rest day or no plan → ring is "complete" (no action expected)
+
   // Compose the coach focus message from real data
   const focusMsg = useMemo(() => {
     const calLeft = Math.max(0, Math.round(targets.calories - consumed.calories));
@@ -387,6 +403,7 @@ export default function HomeScreen() {
                 }),
                 imageUri: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80',
                 accent: true,
+                progress: nutritionProgress,
                 onPress: () => router.push('/nutrition'),
               },
               hasActivePlan && todayProgramDay
@@ -395,6 +412,7 @@ export default function HomeScreen() {
                     title: `${t(todayProgramDay.nameKey as any)} · ${todayProgramDay.exercises.length * 12} ${t('tileSeanceMin')}`,
                     subtitle: todayProgramDay.muscleGroups.map((g) => t(`muscle_${g}` as any)).join(' & '),
                     imageUri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
+                    progress: seanceProgress,
                     onPress: () => router.push('/(tabs)/training'),
                   }
                 : {
@@ -402,6 +420,7 @@ export default function HomeScreen() {
                     title: t('tileSeanceRestTitle'),
                     subtitle: hasActivePlan ? t('tileSeanceRestSubNoToday') : t('tileSeanceRestSubNoPlan'),
                     imageUri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
+                    progress: 1, // rest day → ring complete, no action pending
                     onPress: () => router.push('/(tabs)/training'),
                   },
             ]}

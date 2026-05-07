@@ -1685,6 +1685,14 @@ export const fr = {
   appleHealthSyncFailed: 'Echec de la synchronisation',
   appleHealthSyncNow: 'Synchroniser maintenant',
   appleHealthLastSyncNever: 'Jamais synchronise',
+
+  // Meal slot action sheet (validated meal tap)
+  mealActionTitle: 'Repas valide',
+  mealActionInfo: 'Voir les details',
+  mealActionChange: 'Changer de repas',
+  mealActionDelete: 'Supprimer',
+  mealActionAddAnother: 'Ajouter un autre repas',
+  mealActionMultipleTitle: 'repas valides',
 } as const;
 
 export type TranslationKey = keyof typeof fr;
