@@ -1393,7 +1393,7 @@ export const en: Record<TranslationKey, string> = {
   ritualImpactOr: 'Max volume, you can hit a PR. Macros dialed.',
 
   // ── Redesign : Weekly Form ──
-  weeklyFormEyebrow: 'WEEKLY FITNESS INDEX',
+  weeklyFormEyebrow: 'FORGA SCORE · WEEKLY',
   weeklyFormBreakdownNutrition: 'Nutrition',
   weeklyFormBreakdownConstance: 'Consistency',
   weeklyFormBreakdownDiscipline: 'Discipline',
@@ -1695,4 +1695,35 @@ export const en: Record<TranslationKey, string> = {
   mealActionDelete: 'Delete',
   mealActionAddAnother: 'Add another meal',
   mealActionMultipleTitle: 'meals validated',
+
+  // Coach quota notice (in-chat card when daily quota reached)
+  coachQuotaTitle: 'Daily quota reached',
+  coachQuotaUpgrade: 'Upgrade to PRO unlimited',
+
+  // Home — score breakdown labels
+  consistencyLabel: 'Consistency',
+  disciplineLabel: 'Discipline',
+  nutritionLabel: 'Nutrition',
+
+  // Meals library header
+  mealsLibraryTitle: 'LIBRARY',
+  mealsCustomLog: 'Log a custom meal',
+
+  // Training section labels (today / done / rest / scheduled / no plan)
+  trainingSectionToday: "TODAY'S SESSION",
+  trainingSectionDone: 'SESSION DONE',
+  trainingSectionRest: 'REST DAY',
+  trainingSectionScheduled: 'SCHEDULED SESSION',
+  trainingSectionNoPlan: 'NO ACTIVE PROGRAM',
+
+  // Settings — validation errors
+  validationAgeRange: 'Age between 16 and 65.',
+  validationHeightRange: 'Height between 120 and 220 cm.',
+  validationWeightRange: 'Weight between 30 and 250 kg.',
+  validationTargetRange: 'Target weight between 30 and 250 kg.',
+  validationUserNotLogged: 'User not logged in.',
+
+  // Profile section labels
+  measurementsLabel: 'Measurements',
+  progressPhotosLabel: 'Progress photos',
 };

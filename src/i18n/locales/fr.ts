@@ -1391,7 +1391,7 @@ export const fr = {
   ritualImpactOr: 'Volume max, tu peux taper un PR. Macros calees.',
 
   // ── Redesign : Weekly Form ──
-  weeklyFormEyebrow: 'INDICE DE FORME · SEMAINE',
+  weeklyFormEyebrow: 'SCORE FORGA · SEMAINE',
   weeklyFormBreakdownNutrition: 'Nutrition',
   weeklyFormBreakdownConstance: 'Constance',
   weeklyFormBreakdownDiscipline: 'Discipline',
@@ -1693,6 +1693,37 @@ export const fr = {
   mealActionDelete: 'Supprimer',
   mealActionAddAnother: 'Ajouter un autre repas',
   mealActionMultipleTitle: 'repas valides',
+
+  // Coach quota notice (in-chat card when daily quota reached)
+  coachQuotaTitle: 'Quota journalier atteint',
+  coachQuotaUpgrade: 'Passer en PRO illimite',
+
+  // Home — score breakdown labels
+  consistencyLabel: 'Constance',
+  disciplineLabel: 'Discipline',
+  nutritionLabel: 'Nutrition',
+
+  // Meals library header
+  mealsLibraryTitle: 'BIBLIOTHEQUE',
+  mealsCustomLog: 'Logger un repas perso',
+
+  // Training section labels (today / done / rest / scheduled / no plan)
+  trainingSectionToday: 'SEANCE DU JOUR',
+  trainingSectionDone: 'SEANCE TERMINEE',
+  trainingSectionRest: 'JOUR DE REPOS',
+  trainingSectionScheduled: 'SEANCE PREVUE',
+  trainingSectionNoPlan: 'PAS DE PROGRAMME ACTIF',
+
+  // Settings — validation errors
+  validationAgeRange: 'Age entre 16 et 65 ans.',
+  validationHeightRange: 'Taille entre 120 et 220 cm.',
+  validationWeightRange: 'Poids entre 30 et 250 kg.',
+  validationTargetRange: 'Poids cible entre 30 et 250 kg.',
+  validationUserNotLogged: 'Utilisateur non connecte.',
+
+  // Profile section labels
+  measurementsLabel: 'Mensurations',
+  progressPhotosLabel: 'Photos de progression',
 } as const;
 
 export type TranslationKey = keyof typeof fr;

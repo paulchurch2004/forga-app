@@ -276,18 +276,19 @@ interface BubbleProps {
 
 function MessageBubble({ message, isLastInCluster, isFirstInCluster }: BubbleProps) {
   const styles = useStyles();
+  const { t } = useT();
 
   if (message.kind === 'quota_notice') {
     return (
       <Animated.View entering={FadeIn.duration(300)} style={styles.quotaRow}>
         <View style={styles.quotaCard}>
-          <Text style={styles.quotaTitle}>Quota journalier atteint</Text>
+          <Text style={styles.quotaTitle}>{t('coachQuotaTitle' as any)}</Text>
           <Text style={styles.quotaText}>{message.text}</Text>
           <Pressable
             style={styles.quotaButton}
             onPress={() => router.push('/paywall?trigger=quota_coach_message')}
           >
-            <Text style={styles.quotaButtonText}>Passer en PRO illimité</Text>
+            <Text style={styles.quotaButtonText}>{t('coachQuotaUpgrade' as any)}</Text>
           </Pressable>
         </View>
       </Animated.View>
@@ -939,7 +940,7 @@ const useStyles = makeStyles((colors) => ({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#00FF88',
+    backgroundColor: colors.success,
   },
   quotaPill: {
     backgroundColor: 'rgba(0,0,0,0.25)',

@@ -293,11 +293,11 @@ export default function HomeScreen() {
     const consistencyPct = currentScore ? Math.round((currentScore.consistency / 30) * 100) : 0;
     const disciplinePct = currentScore ? Math.round((currentScore.discipline / 10) * 100) : 0;
     return [
-      { label: 'Nutrition', value: nutritionPct, color: '#FF6B35' },
-      { label: 'Constance', value: consistencyPct, color: '#5B8BFF' },
-      { label: 'Discipline', value: disciplinePct, color: '#00D4AA' },
+      { label: t('nutritionLabel' as any) as string, value: nutritionPct, color: '#FF6B35' },
+      { label: t('consistencyLabel' as any) as string, value: consistencyPct, color: '#5B8BFF' },
+      { label: t('disciplineLabel' as any) as string, value: disciplinePct, color: '#00D4AA' },
     ];
-  }, [currentScore]);
+  }, [currentScore, t]);
 
   const scrollX = useSharedValue(0);
   const visibleWidth = Math.min(screenWidth, contentMaxWidth);

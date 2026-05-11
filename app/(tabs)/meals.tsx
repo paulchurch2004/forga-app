@@ -188,7 +188,7 @@ export default function MealsScreen() {
             <ArrowLeftIcon color={colors.text} />
           </Pressable>
           <View style={styles.headerTitleWrap}>
-            <Text style={styles.headerEyebrow}>BIBLIOTHÈQUE</Text>
+            <Text style={styles.headerEyebrow}>{t('mealsLibraryTitle' as any)}</Text>
             <Text style={styles.headerTitle}>{slotLabel}</Text>
           </View>
           <Pressable
@@ -477,18 +477,18 @@ const useStyles = makeStyles((colors) => ({
     gap: 8,
     flexDirection: 'row' as const,
     paddingTop: 14,
-    paddingBottom: 4,
+    paddingBottom: 8,
   },
   slotChip: {
-    minWidth: 76,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 16,
+    minWidth: 80,
+    paddingTop: 10,
+    paddingBottom: 12,
+    paddingHorizontal: 12,
+    borderRadius: 14,
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center' as const,
-    gap: 2,
   },
   slotChipActive: {
     backgroundColor: '#FF6B35',
@@ -500,15 +500,22 @@ const useStyles = makeStyles((colors) => ({
     borderColor: 'rgba(255,107,53,0.55)',
     backgroundColor: 'rgba(255,107,53,0.08)',
   },
+  /** All three Text rows below use explicit lineHeight to give a fully
+   *  predictable chip height. Without these, default line-height plus emoji
+   *  descenders make the bottom row overflow the chip's rounded boundary. */
   slotChipEmoji: {
     fontSize: 18,
-    lineHeight: 22,
+    lineHeight: 20,
+    textAlign: 'center' as const,
+    marginBottom: 3,
   },
   slotChipText: {
     fontFamily: fonts.body,
     fontSize: 12,
+    lineHeight: 14,
     fontWeight: '700' as const,
     color: 'rgba(255,255,255,0.85)',
+    textAlign: 'center' as const,
   },
   slotChipTextActive: {
     color: '#FFFFFF',
@@ -516,8 +523,11 @@ const useStyles = makeStyles((colors) => ({
   slotChipTime: {
     fontFamily: fonts.body,
     fontSize: 10,
+    lineHeight: 12,
     fontWeight: '500' as const,
     color: 'rgba(255,255,255,0.42)',
+    textAlign: 'center' as const,
+    marginTop: 2,
   },
   slotChipTimeActive: {
     color: 'rgba(255,255,255,0.85)',

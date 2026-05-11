@@ -223,12 +223,12 @@ export default function TrainingScreen() {
     else if (isSelectedToday) state = 'today';
 
     const sectionLabel = isSelectedToday
-      ? 'SÉANCE DU JOUR'
+      ? (t('trainingSectionToday' as any) as string)
       : isSelectedDone
-      ? 'SÉANCE TERMINÉE'
+      ? (t('trainingSectionDone' as any) as string)
       : isSelectedRest
-      ? 'JOUR DE REPOS'
-      : 'SÉANCE PRÉVUE';
+      ? (t('trainingSectionRest' as any) as string)
+      : (t('trainingSectionScheduled' as any) as string);
 
     const typeLabel = selectedProgramDay ? t(selectedProgramDay.nameKey as any) : '';
     const durationMin = selectedProgramDay

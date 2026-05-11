@@ -44,6 +44,7 @@ import { BADGE_INFO, type BadgeType } from '../../src/types/user';
 import { BadgeCard } from '../../src/components/gamification/BadgeCard';
 import { LineChart, type DataPoint } from '../../src/components/charts/LineChart';
 import { EmptyState } from '../../src/components/ui/EmptyState';
+import { SkeletonScreen } from '../../src/components/ui/Skeleton';
 import { useNotifications } from '../../src/hooks/useNotifications';
 import { events } from '../../src/services/analytics';
 import appJson from '../../app.json';
@@ -146,7 +147,13 @@ export default function ProfileScreen() {
     }
   }, [profile?.referralCode]);
 
-  if (!profile) return null;
+  if (!profile) {
+    return (
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+        <SkeletonScreen />
+      </View>
+    );
+  }
 
   const handleExportData = async () => {
     setExporting(true);
@@ -464,7 +471,7 @@ export default function ProfileScreen() {
           <View style={styles.progressionLeft}>
             <Text style={styles.progressionIcon}>{'\uD83D\uDCCF'}</Text>
             <View>
-              <Text style={styles.progressionTitle}>{locale === 'en' ? 'Measurements' : 'Mensurations'}</Text>
+              <Text style={styles.progressionTitle}>{t('measurementsLabel' as any)}</Text>
               <Text style={styles.progressionSubtitle}>{locale === 'en' ? 'Waist, chest, arms...' : 'Taille, poitrine, bras...'}</Text>
             </View>
           </View>
@@ -481,7 +488,7 @@ export default function ProfileScreen() {
           <View style={styles.progressionLeft}>
             <Text style={styles.progressionIcon}>{'\uD83D\uDCF7'}</Text>
             <View>
-              <Text style={styles.progressionTitle}>{locale === 'en' ? 'Progress Photos' : 'Photos de progression'}</Text>
+              <Text style={styles.progressionTitle}>{t('progressPhotosLabel' as any)}</Text>
               <Text style={styles.progressionSubtitle}>{locale === 'en' ? 'Track your visual transformation' : 'Suis ta transformation visuelle'}</Text>
             </View>
           </View>

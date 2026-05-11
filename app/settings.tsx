@@ -147,26 +147,26 @@ export default function SettingsScreen() {
     const targetNum = parseFloat(targetWeight);
 
     if (!ageNum || ageNum < 16 || ageNum > 65) {
-      showMessage(t('error'), 'Age entre 16 et 65 ans.');
+      showMessage(t('error'), t('validationAgeRange' as any) as string);
       return;
     }
     if (!heightNum || heightNum < 120 || heightNum > 220) {
-      showMessage(t('error'), 'Taille entre 120 et 220 cm.');
+      showMessage(t('error'), t('validationHeightRange' as any) as string);
       return;
     }
     if (!weightNum || weightNum < 30 || weightNum > 250) {
-      showMessage(t('error'), 'Poids entre 30 et 250 kg.');
+      showMessage(t('error'), t('validationWeightRange' as any) as string);
       return;
     }
     if (!targetNum || targetNum < 30 || targetNum > 250) {
-      showMessage(t('error'), 'Poids cible entre 30 et 250 kg.');
+      showMessage(t('error'), t('validationTargetRange' as any) as string);
       return;
     }
 
     setSaving(true);
     try {
       const userId = user?.id ?? profile?.id;
-      if (!userId) throw new Error('Utilisateur non connecte.');
+      if (!userId) throw new Error(t('validationUserNotLogged' as any) as string);
 
       const now = new Date().toISOString();
 

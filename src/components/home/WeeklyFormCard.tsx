@@ -108,11 +108,11 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14,
+    gap: 16,
   },
   logo: {
-    width: 40,
-    height: 40,
+    width: 48,
+    height: 48,
     tintColor: '#FF6B35',
   },
   headerText: {
@@ -134,15 +134,16 @@ const styles = StyleSheet.create({
   },
   scoreValue: {
     fontFamily: fonts.data,
-    fontSize: 30,
+    fontSize: 56,
     fontWeight: '700',
     color: '#FFFFFF',
-    letterSpacing: -0.9,
-    lineHeight: 32,
+    letterSpacing: -2,
+    lineHeight: 60,
   },
   scoreMax: {
-    fontSize: 16,
+    fontSize: 22,
     color: 'rgba(255,255,255,0.38)',
+    fontWeight: '500',
   },
   deltaWrap: {
     flexDirection: 'row',
@@ -151,17 +152,18 @@ const styles = StyleSheet.create({
   },
   deltaIcon: {
     color: '#00D4AA',
-    fontSize: 12,
+    fontSize: 14,
   },
   deltaText: {
     fontFamily: fonts.data,
     color: '#00D4AA',
-    fontSize: 11,
+    fontSize: 13,
+    fontWeight: '600',
   },
   breakdownRow: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 14,
+    marginTop: 20,
   },
   breakdownCol: {
     flex: 1,
