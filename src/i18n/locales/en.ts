@@ -1726,4 +1726,14 @@ export const en: Record<TranslationKey, string> = {
   // Profile section labels
   measurementsLabel: 'Measurements',
   progressPhotosLabel: 'Progress photos',
+
+  // Tracking mode (FORGA Score scope) — section in Settings
+  trackingModeTitle: 'What do you want to track?',
+  trackingModeSubtitle: 'Choose how your FORGA Score is computed. You can change this anytime.',
+  trackingModeBoth: 'Nutrition and training',
+  trackingModeBothDesc: 'FORGA Score includes meals and workouts. Default mode.',
+  trackingModeNutritionOnly: 'Nutrition only',
+  trackingModeNutritionOnlyDesc: "I follow my own training plan elsewhere. Score won't penalise the lack of workouts tracked here.",
+  trackingModeTrainingOnly: 'Training only',
+  trackingModeTrainingOnlyDesc: "I don't want to track meals. Score is computed only on workouts and progress.",
 };

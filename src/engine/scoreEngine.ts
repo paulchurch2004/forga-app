@@ -7,13 +7,42 @@ import type { ForgaScore, ScoreInput } from '../types/score';
  * - Constance (30 pts) : streak + check-ins
  * - Progression (20 pts) : tendance poids vs objectif + % objectif
  * - Discipline (10 pts) : jours actifs + check-in semaine
+ *
+ * Le tracking mode (sur le profil utilisateur) ajuste cette répartition :
+ * - 'both'           : 100% du calcul ci-dessus
+ * - 'nutrition_only' : `activeDaysLast7` est considéré comme déjà fourni
+ *                      par le caller en mode "jours avec repas validé" pour
+ *                      ne pas pénaliser l'absence de séances
+ * - 'training_only'  : pilier nutrition supprimé (0 pt), les 3 autres
+ *                      sont re-normalisés pour totaliser 100
  */
 export function calculateForgaScore(input: ScoreInput): ForgaScore {
-  const nutrition = calculateNutritionScore(input);
+  const mode = input.trackingMode ?? 'both';
+
   const consistency = calculateConsistencyScore(input);
   const progression = calculateProgressionScore(input);
   const discipline = calculateDisciplineScore(input);
 
+  if (mode === 'training_only') {
+    // Pas de tracking nutrition → on supprime ce pilier (40 pts) et on
+    // re-normalise les 60 pts restants sur 100. Aucun pénalité artificielle
+    // sur l'utilisateur qui suit son propre plan alimentaire.
+    const rawTotal = consistency + progression + discipline; // max 60
+    const scale = (raw: number, max: number) =>
+      Math.round((raw / max) * (max / 60) * 100);
+    return {
+      total: Math.round((rawTotal / 60) * 100),
+      nutrition: 0,
+      consistency: scale(consistency, 30),
+      progression: scale(progression, 20),
+      discipline: scale(discipline, 10),
+    };
+  }
+
+  // Modes 'both' et 'nutrition_only' utilisent les 4 piliers.
+  // En 'nutrition_only', le caller doit passer `activeDaysLast7` calculé
+  // sur les repas validés plutôt que les séances (cf. useScore.ts).
+  const nutrition = calculateNutritionScore(input);
   return {
     total: nutrition + consistency + progression + discipline,
     nutrition,

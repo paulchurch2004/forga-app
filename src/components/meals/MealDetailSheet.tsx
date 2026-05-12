@@ -1,12 +1,14 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
-  Image,
   ScrollView,
   Pressable,
+  StyleSheet,
   useWindowDimensions,
 } from 'react-native';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { IngredientRow } from './IngredientRow';
 import { RecipeSteps } from './RecipeSteps';
 import { Button } from '../ui/Button';
@@ -17,6 +19,8 @@ import { useT } from '../../i18n';
 import { useResponsive } from '../../hooks/useResponsive';
 import type { Meal, AdjustedIngredient } from '../../types/meal';
 import type { MacroTarget } from '../../types/engine';
+import { getMealPhotoUrl } from '../../utils/mealPhoto';
+import { getMealEmoji, gradientIndexFor, SLOT_GRADIENT_BUCKETS } from '../../utils/mealEmoji';
 
 interface MacroBarData {
   label: string;
@@ -148,13 +152,10 @@ export function MealDetailSheet({
         bounces={true}
       >
         <View style={[styles.innerContent, { maxWidth: MAX_CONTENT_WIDTH, alignSelf: 'center' as const, width: '100%' }]}>
-          {/* Photo */}
+          {/* Photo — Pollinations-generated, cached on disk. Falls back to a
+              slot-coloured gradient + dish emoji if the image can't load. */}
           <View style={[styles.photoContainer, { height: photoHeight }]}>
-            <Image
-              source={{ uri: meal.photoUrl }}
-              style={styles.photo}
-              resizeMode="cover"
-            />
+            <MealHeroPhoto meal={meal} />
             <View style={styles.photoOverlay} />
 
             {/* Close button */}
@@ -306,6 +307,45 @@ const useMacroBarStyles = makeStyles((colors) => ({
     borderRadius: borderRadius.full,
   },
 }));
+
+/** Hero photo for the meal detail sheet. Uses Pollinations (cached on disk
+ *  by expo-image) and falls back to a gradient + emoji card if the image
+ *  fails to load. Sized by the parent container — fills the whole space. */
+function MealHeroPhoto({ meal }: { meal: Meal }) {
+  const [failed, setFailed] = useState(false);
+  const photoUrl = getMealPhotoUrl(meal);
+  const gradients = SLOT_GRADIENT_BUCKETS[meal.slot] ?? SLOT_GRADIENT_BUCKETS.lunch;
+  const gradient = gradients[gradientIndexFor(meal.id, gradients.length)];
+  const emoji = getMealEmoji(meal);
+
+  if (failed) {
+    return (
+      <LinearGradient
+        colors={gradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          ...StyleSheet.absoluteFillObject,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Text style={{ fontSize: 96, lineHeight: 112 }}>{emoji}</Text>
+      </LinearGradient>
+    );
+  }
+
+  return (
+    <Image
+      source={{ uri: photoUrl }}
+      style={StyleSheet.absoluteFillObject}
+      cachePolicy="memory-disk"
+      contentFit="cover"
+      transition={200}
+      onError={() => setFailed(true)}
+    />
+  );
+}
 
 const useStyles = makeStyles((colors) => ({
   container: {

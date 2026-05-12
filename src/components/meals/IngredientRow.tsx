@@ -1,6 +1,8 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { makeStyles, fonts, fontSizes, spacing } from '../../theme';
+import { useT } from '../../i18n';
+import { formatIngredientQuantity } from '../../data/ingredientUnits';
 import type { AdjustedIngredient, MealIngredient } from '../../types/meal';
 
 interface IngredientRowProps {
@@ -21,15 +23,21 @@ export function IngredientRow({
   index,
 }: IngredientRowProps) {
   const styles = useStyles();
+  const { locale } = useT();
+  const lang: 'fr' | 'en' = locale === 'en' ? 'en' : 'fr';
   const name = ingredient?.name ?? baseIngredient?.name ?? '';
+  const ingredientId = ingredient?.ingredientId ?? baseIngredient?.ingredientId ?? '';
   let quantity: string;
 
   if (ingredient && showAdjusted) {
-    quantity = ingredient.displayQuantity;
+    // Prefer recomputing here over `displayQuantity` so countable ingredients
+    // ("2 bananes") get the natural-unit treatment even when the engine
+    // pre-formatted in grams.
+    quantity = formatIngredientQuantity(ingredientId, ingredient.roundedQuantity, ingredient.unit, lang);
   } else if (ingredient) {
-    quantity = formatBaseQuantity(ingredient.originalQuantity, ingredient.unit);
+    quantity = formatIngredientQuantity(ingredientId, ingredient.originalQuantity, ingredient.unit, lang);
   } else if (baseIngredient) {
-    quantity = formatBaseQuantity(baseIngredient.baseQuantityG, baseIngredient.unit);
+    quantity = formatIngredientQuantity(ingredientId, baseIngredient.baseQuantityG, baseIngredient.unit, lang);
   } else {
     quantity = '';
   }
@@ -47,13 +55,6 @@ export function IngredientRow({
       <Text style={styles.quantity}>{quantity}</Text>
     </View>
   );
-}
-
-function formatBaseQuantity(qty: number, unit: 'g' | 'ml' | 'unit'): string {
-  if (unit === 'unit') {
-    return `${Math.round(qty / 60)}`; // Each egg is ~60g
-  }
-  return `${Math.round(qty)}${unit}`;
 }
 
 const useStyles = makeStyles((colors) => ({

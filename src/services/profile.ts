@@ -55,6 +55,7 @@ export async function loadProfileFromSupabase(userId: string): Promise<boolean> 
     referralCode: data.referral_code ?? '',
     referralCount: data.referral_count ?? 0,
     referredBy: data.referred_by ?? undefined,
+    trackingMode: data.tracking_mode ?? 'both',
     createdAt: data.created_at,
     updatedAt: data.updated_at,
   };

@@ -48,6 +48,16 @@ function roundToPlate(weight: number): number {
   return Math.max(20, snapped);
 }
 
+/** Rounding for **isolation** exercises (curls, lateral raises, leg curl…)
+ *  where the empty-barbell floor would be absurd. Snaps to 1 kg increments
+ *  below 10 kg, then 2.5 kg above. Minimum 1 kg. */
+function roundToDumbbell(weight: number): number {
+  if (weight < 1) return 1;
+  if (weight < 10) return Math.max(1, Math.round(weight));
+  const snapped = Math.round(weight / 2.5) * 2.5;
+  return snapped;
+}
+
 /**
  * Compute initial 5-rep working weights for the main compound lifts.
  * These are intentionally conservative — the first session in the app
@@ -129,11 +139,20 @@ export function runStrengthTest(input: StrengthTestInput): StrengthTestResult {
   };
 }
 
-/** Map an exercise id to the matching StartingWeights field, if any. */
-export function getStartingWeightForExercise(
-  exerciseId: string,
-  weights: StartingWeights,
-): number {
+/** Profile inputs used by the bodyweight-fallback path of
+ *  `getStartingWeightForExercise`. All optional — when missing we fall
+ *  back to conservative defaults (sedentary 70 kg male). */
+export interface StartingWeightProfile {
+  sex?: 'male' | 'female';
+  /** Bodyweight in kg — typically `profile.currentWeight`. */
+  bodyweightKg?: number;
+  /** Self-reported training level; missing = treat as beginner. */
+  trainingLevel?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+}
+
+/** Direct id → main-lift mapping. Same as before — we just promote it to
+ *  its own helper so the public function below stays readable. */
+function getDirectMappedWeight(exerciseId: string, weights: StartingWeights): number {
   switch (exerciseId) {
     case 'squat':
     case 'front_squat':
@@ -165,11 +184,139 @@ export function getStartingWeightForExercise(
     case 'seated_cable_row':
       return weights.row;
     case 'pull_ups':
-      // If user can't pull-up, return 0 → UI suggests assisted/lat pulldown
-      return weights.canPullUp ? 0 : 0;
+      // Bodyweight movement — 0 means "use your own bodyweight", the UI
+      // shows that as an assisted/normal pull-up rather than a load value.
+      return 0;
     case 'lat_pulldown':
-      return weights.row * 0.8; // proxy
+      return weights.row * 0.8;
     default:
-      return 0; // unknown exercise → user enters their own
+      return 0;
   }
+}
+
+/** Per-exercise multiplier applied to one of the 5 main-lift seed weights.
+ *  Numbers are empirical "what a beginner can do" ratios:
+ *    - bicep curl ~ 12-15% of bench (single dumbbell)
+ *    - lateral raise ~ 12-18% of OHP
+ *    - leg curl ~ 35-45% of squat
+ *  We deliberately err on the **conservative** side. */
+const SECONDARY_RATIO: Record<string, { base: 'squat' | 'bench' | 'deadlift' | 'overheadPress' | 'row'; ratio: number }> = {
+  // Chest secondary
+  dumbbell_press: { base: 'bench', ratio: 0.45 },
+  dumbbell_fly: { base: 'bench', ratio: 0.20 },
+  chest_fly: { base: 'bench', ratio: 0.20 },
+  cable_fly: { base: 'bench', ratio: 0.20 },
+  pec_deck: { base: 'bench', ratio: 0.50 },
+  push_up: { base: 'bench', ratio: 0 }, // bodyweight
+  dips: { base: 'bench', ratio: 0 }, // bodyweight
+  // Back secondary
+  dumbbell_row: { base: 'row', ratio: 0.50 },
+  face_pulls: { base: 'row', ratio: 0.40 },
+  cable_row: { base: 'row', ratio: 0.85 },
+  shrugs: { base: 'deadlift', ratio: 0.35 },
+  // Shoulders secondary
+  lateral_raises: { base: 'overheadPress', ratio: 0.15 },
+  front_raises: { base: 'overheadPress', ratio: 0.18 },
+  rear_delt_fly: { base: 'overheadPress', ratio: 0.15 },
+  upright_rows: { base: 'overheadPress', ratio: 0.50 },
+  // Arms
+  bicep_curls: { base: 'bench', ratio: 0.13 },
+  hammer_curls: { base: 'bench', ratio: 0.15 },
+  preacher_curls: { base: 'bench', ratio: 0.13 },
+  cable_curls: { base: 'bench', ratio: 0.20 },
+  tricep_extensions: { base: 'bench', ratio: 0.14 },
+  skull_crushers: { base: 'bench', ratio: 0.30 },
+  tricep_pushdown: { base: 'bench', ratio: 0.40 },
+  tricep_kickback: { base: 'bench', ratio: 0.10 },
+  // Legs secondary
+  lunges: { base: 'squat', ratio: 0.30 },
+  bulgarian_split_squat: { base: 'squat', ratio: 0.25 },
+  step_up: { base: 'squat', ratio: 0.20 },
+  leg_curl: { base: 'squat', ratio: 0.40 },
+  leg_extension: { base: 'squat', ratio: 0.50 },
+  calf_raises: { base: 'squat', ratio: 0.50 },
+  seated_calf_raises: { base: 'squat', ratio: 0.40 },
+  hip_thrust: { base: 'deadlift', ratio: 0.70 },
+  glute_bridge: { base: 'deadlift', ratio: 0.40 },
+  // Core (mostly bodyweight)
+  cable_crunch: { base: 'row', ratio: 0.50 },
+  weighted_decline_situp: { base: 'bench', ratio: 0.20 },
+};
+
+/** Beginner starting weights when **no strength test** has been taken yet.
+ *  Anchored on bodyweight × level coefficient, then scaled by sex (female
+ *  factor ~0.6 vs male). Caller can still override with their own input. */
+function getBodyweightFallback(
+  exerciseId: string,
+  profile: StartingWeightProfile,
+): number {
+  const bw = profile.bodyweightKg ?? 70;
+  const sexFactor = profile.sex === 'female' ? 0.6 : 1;
+  const levelFactor = profile.trainingLevel === 'intermediate'
+    ? 1.4
+    : profile.trainingLevel === 'advanced' || profile.trainingLevel === 'expert'
+      ? 1.8
+      : 1; // beginner / undefined
+
+  // Use the same multipliers as `SEED_MULTIPLIERS_M` for the 5 base lifts,
+  // then apply the SECONDARY_RATIO table for derived exercises.
+  const baseSeeds = {
+    squat: bw * 0.45 * sexFactor * levelFactor,
+    bench: bw * 0.35 * sexFactor * levelFactor,
+    deadlift: bw * 0.70 * sexFactor * levelFactor,
+    overheadPress: bw * 0.25 * sexFactor * levelFactor,
+    row: bw * 0.35 * sexFactor * levelFactor,
+  };
+
+  // Try direct mapping first.
+  const direct = getDirectMappedWeight(exerciseId, {
+    ...baseSeeds,
+    canPullUp: false,
+  });
+  if (direct > 0) return roundToPlate(direct);
+
+  // Then secondary ratio — isolations get the dumbbell-friendly rounding
+  // (1 kg increments below 10 kg) so we don't pre-fill 20 kg on lateral raises.
+  const sec = SECONDARY_RATIO[exerciseId];
+  if (sec) return roundToDumbbell(baseSeeds[sec.base] * sec.ratio);
+
+  // Unknown exercise — keep 0 so the UI shows an empty input rather than a
+  // wild guess.
+  return 0;
+}
+
+/** Estimate the starting weight for a given exercise.
+ *
+ * Priority chain:
+ *   1. Direct id → main-lift mapping (squat → weights.squat).
+ *   2. Secondary ratio → e.g. bicep_curl = bench × 0.13.
+ *   3. Bodyweight fallback when no strength test exists.
+ *   4. 0 → user enters their own.
+ *
+ * The previous version returned 0 for ~60 of the 86 catalogued exercises;
+ * with the secondary ratio table and bodyweight fallback we now cover the
+ * vast majority of the catalogue (curl, leg curl, lateral raises, etc.).  */
+export function getStartingWeightForExercise(
+  exerciseId: string,
+  weights?: StartingWeights,
+  profile?: StartingWeightProfile,
+): number {
+  // 1) Strength-test-aware direct mapping
+  if (weights) {
+    const direct = getDirectMappedWeight(exerciseId, weights);
+    if (direct > 0) return direct;
+
+    // 2) Strength-test-aware secondary ratio (use dumbbell rounding —
+    //    isolations shouldn't snap to a 20 kg floor).
+    const sec = SECONDARY_RATIO[exerciseId];
+    if (sec) return roundToDumbbell(weights[sec.base] * sec.ratio);
+  }
+
+  // 3) Profile-only fallback (no strength test taken yet)
+  if (profile?.bodyweightKg) {
+    return getBodyweightFallback(exerciseId, profile);
+  }
+
+  // 4) Nothing to base on
+  return 0;
 }

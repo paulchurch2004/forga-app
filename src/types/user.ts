@@ -3,6 +3,16 @@ export type Objective = 'bulk' | 'cut' | 'maintain' | 'recomp';
 export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
 export type Budget = 'eco' | 'premium' | 'both';
 export type Restriction = 'vegetarian' | 'vegan' | 'gluten_free' | 'lactose_free' | 'halal' | 'pork_free';
+/** What the user wants tracked in FORGA. Affects which sections of the
+ *  Score FORGA are computed.
+ *  - 'both'           : default, scores both nutrition and training
+ *  - 'nutrition_only' : user follows their own training program elsewhere — we
+ *                       skip the training pillar in the score and base
+ *                       "active days" on meal validations instead of workouts
+ *  - 'training_only'  : user prefers to track only training — the 40-pt
+ *                       nutrition pillar is dropped and the score is
+ *                       re-normalised over the remaining 60 pts.  */
+export type TrackingMode = 'both' | 'nutrition_only' | 'training_only';
 
 // ── Training profile (used by program assignment) ──
 export type TrainingLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
@@ -30,6 +40,10 @@ export interface UserProfile {
   trainingFrequency?: TrainingFrequency;
   equipmentAccess?: EquipmentAccess;
   glutePreference?: GlutePreference;
+
+  /** What sections feed the FORGA Score. Defaults to 'both' when missing
+   *  (backwards-compat for users created before this field existed). */
+  trackingMode?: TrackingMode;
 
   // Computed by engine
   tdee: number;

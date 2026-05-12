@@ -41,6 +41,24 @@ export function syncMeal(meal: DailyMeal) {
   });
 }
 
+/** Sync a weight entry to Supabase. Used by the coach `log_weight` action;
+ *  the standard weight-entry UI already syncs via the same `weight_log`
+ *  upsert pattern below. */
+export function syncWeight(entry: WeightEntry, _userId: string) {
+  if (isDemoMode) return;
+  enqueue({
+    table: 'weight_log',
+    operation: 'upsert',
+    data: {
+      id: entry.id,
+      user_id: entry.userId,
+      date: entry.date,
+      weight: entry.weight,
+      created_at: entry.createdAt,
+    },
+  });
+}
+
 /** Sync a score to Supabase */
 export function syncScore(date: string, score: ForgaScore, userId: string) {
   if (isDemoMode) return;
@@ -235,6 +253,7 @@ export async function syncProfile(updates: Record<string, any>, userId: string) 
     activityLevel: 'activity_level',
     budget: 'budget',
     restrictions: 'restrictions',
+    trackingMode: 'tracking_mode',
   };
   for (const [key, value] of Object.entries(updates)) {
     const snakeKey = keyMap[key] ?? key;

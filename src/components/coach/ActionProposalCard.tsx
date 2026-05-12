@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Alert, Platform } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fonts } from '../../theme/fonts';
@@ -9,6 +9,7 @@ import {
   DESTRUCTIVE_ACTIONS,
   type CoachAction,
 } from '../../services/coachActions';
+import { MEAL_SLOT_LABELS, type MealSlot } from '../../types/meal';
 
 interface ActionProposalCardProps {
   action: CoachAction;
@@ -17,9 +18,29 @@ interface ActionProposalCardProps {
   onStateChange?: (state: 'confirmed' | 'dismissed') => void;
 }
 
+/** Slots offered to the user when overriding a log_meal action's time slot.
+ *  Order matches the natural day flow. */
+const SLOT_PICKER_ORDER: MealSlot[] = [
+  'breakfast',
+  'morning_snack',
+  'lunch',
+  'afternoon_snack',
+  'dinner',
+  'bedtime',
+];
+
 export function ActionProposalCard({ action, initialState = 'pending', onStateChange }: ActionProposalCardProps) {
   const [state, setState] = useState<'pending' | 'confirmed' | 'dismissed' | 'busy' | 'awaiting-confirm'>(initialState);
-  const meta = describeAction(action);
+  // The coach picks a slot but its guess may be wrong (e.g. "j'ai mangé une
+  // banane" — was it the morning snack or afternoon snack?). We let the
+  // user override the slot before validating; the override is stored
+  // locally and applied at execute time.
+  const [slotOverride, setSlotOverride] = useState<MealSlot | null>(null);
+  const effectiveAction: CoachAction =
+    action.type === 'log_meal' && slotOverride
+      ? { ...action, slot: slotOverride }
+      : action;
+  const meta = describeAction(effectiveAction);
   const isDestructive = DESTRUCTIVE_ACTIONS.includes(action.type);
 
   const handleConfirmFirst = () => {
@@ -33,12 +54,30 @@ export function ActionProposalCard({ action, initialState = 'pending', onStateCh
   const doExecute = async () => {
     setState('busy');
     try {
-      await executeCoachAction(action);
+      await executeCoachAction(effectiveAction);
       setState('confirmed');
       onStateChange?.('confirmed');
     } catch {
       setState('pending');
     }
+  };
+
+  /** Show an Action Sheet–style Alert with the 6 meal slots. Tapping one
+   *  updates the override; user can validate after. */
+  const handleEditSlot = () => {
+    if (action.type !== 'log_meal') return;
+    const current = slotOverride ?? action.slot;
+    const buttons = SLOT_PICKER_ORDER.map((slot) => ({
+      text: `${MEAL_SLOT_LABELS[slot]}${slot === current ? ' ✓' : ''}`,
+      onPress: () => setSlotOverride(slot),
+    }));
+    buttons.push({ text: 'Annuler', onPress: () => {}, style: 'cancel' as any });
+    Alert.alert(
+      'Moment de la journée',
+      'Quand as-tu mangé ce repas ?',
+      buttons,
+      { cancelable: true },
+    );
   };
 
   const handleDismiss = () => {
@@ -61,6 +100,24 @@ export function ActionProposalCard({ action, initialState = 'pending', onStateCh
       <Text style={styles.tag}>{meta.tag.toUpperCase()}</Text>
       <Text style={styles.title}>{meta.title}</Text>
       <Text style={styles.subtitle}>{meta.subtitle}</Text>
+
+      {/* Editable slot chip — only for log_meal actions, only while
+          pending. The coach's slot guess is often right but occasionally
+          wrong (a banana could be the morning snack or the afternoon one),
+          so we expose a one-tap correction here. */}
+      {action.type === 'log_meal' && state === 'pending' && (
+        <Pressable
+          onPress={handleEditSlot}
+          style={({ pressed }) => [styles.slotEditPill, pressed && styles.pressed]}
+          hitSlop={4}
+          accessibilityRole="button"
+          accessibilityLabel="Changer le moment de la journée"
+        >
+          <Text style={styles.slotEditPillText}>
+            ✎ {MEAL_SLOT_LABELS[(slotOverride ?? action.slot)]}
+          </Text>
+        </Pressable>
+      )}
 
       {state === 'confirmed' ? (
         <View style={styles.confirmedRow}>
@@ -172,6 +229,23 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.62)',
     marginTop: 4,
     lineHeight: 15,
+  },
+  slotEditPill: {
+    alignSelf: 'flex-start',
+    marginTop: 10,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    backgroundColor: 'rgba(255,107,53,0.10)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,107,53,0.35)',
+    borderRadius: 999,
+  },
+  slotEditPillText: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FF6B35',
+    letterSpacing: 0.2,
   },
   actionsRow: {
     flexDirection: 'row',

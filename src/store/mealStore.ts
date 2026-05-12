@@ -48,18 +48,23 @@ export const useMealStore = create<MealState>()(
       mealHistory: {},
 
       setTodayMeals: (todayMeals) => set({ todayMeals }),
-      // A slot can hold MULTIPLE meals (e.g. main + dessert at lunch).
-      // We only de-dup on identical (mealId, slot, date) to prevent an
-      // accidental double-tap from creating two copies of the same dish —
-      // otherwise we always append. Macros sum naturally because consumers
-      // reduce over `todayMeals`.
+      // A slot can hold MULTIPLE meals (e.g. main + dessert at lunch). Also
+      // a meal can be retroactively added to a past date (user forgot to
+      // log yesterday's dinner) — in that case we only touch `mealHistory`,
+      // never `todayMeals`, otherwise the past entry would pollute today's
+      // score and macro displays. De-dup is exact (mealId+slot+date) so an
+      // accidental double-tap doesn't create two copies of the same dish.
       addValidatedMeal: (meal) =>
         set((state) => {
           const date = meal.date;
+          const today = todayLocalIso();
           const isExactDupe = (m: DailyMeal) =>
             m.slot === meal.slot && m.mealId === meal.mealId && m.date === meal.date;
+          const isToday = date === today;
           return {
-            todayMeals: [...state.todayMeals.filter((m) => !isExactDupe(m)), meal],
+            todayMeals: isToday
+              ? [...state.todayMeals.filter((m) => !isExactDupe(m)), meal]
+              : state.todayMeals,
             mealHistory: {
               ...state.mealHistory,
               [date]: [
@@ -82,13 +87,16 @@ export const useMealStore = create<MealState>()(
             mealHistory: updatedHistory,
           };
         }),
+      // Removes a meal by id from BOTH today's working set and every date in
+      // history. Necessary because the user can now delete a meal logged
+      // yesterday from the history screen — the meal lives only in
+      // `mealHistory[<that-date>]`, never in `todayMeals`.
       removeValidatedMealById: (id) =>
         set((state) => {
-          const date = state.lastMealDate;
-          const updatedHistory = { ...state.mealHistory };
-          if (date && updatedHistory[date]) {
-            updatedHistory[date] = updatedHistory[date].filter((m) => m.id !== id);
-            if (updatedHistory[date].length === 0) delete updatedHistory[date];
+          const updatedHistory: Record<string, DailyMeal[]> = {};
+          for (const [date, meals] of Object.entries(state.mealHistory)) {
+            const filtered = meals.filter((m) => m.id !== id);
+            if (filtered.length > 0) updatedHistory[date] = filtered;
           }
           return {
             todayMeals: state.todayMeals.filter((m) => m.id !== id),

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, Platform, Image } from 'react-native';
+import { View, Text, Pressable, Platform } from 'react-native';
+import { Image } from 'expo-image';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -7,42 +8,26 @@ import Animated, {
   withSequence,
 } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { makeStyles, fonts } from '../../theme';
 import { useTheme } from '../../context/ThemeContext';
 import { useMealStore } from '../../store/mealStore';
 import { useUserStore } from '../../store/userStore';
 import { syncMealPreference } from '../../services/userSync';
-import type { Meal, MealSlot } from '../../types/meal';
+import type { Meal } from '../../types/meal';
+import { getMealEmoji, gradientIndexFor, SLOT_GRADIENT_BUCKETS } from '../../utils/mealEmoji';
+import { getMealPhotoUrl } from '../../utils/mealPhoto';
 
-// Wikimedia and other image hosts often block requests without a clear
-// User-Agent identifier. Setting one fixes "broken image" for ~90% of
-// our meal photoUrls (Wikipedia thumb endpoints reject anonymous UAs).
-const IMAGE_HEADERS = {
-  'User-Agent': 'FORGA/1.0 (https://forga.fr; hello@forga.fr)',
-};
-
-// Slot-specific gradient used as a graceful fallback when the meal's
-// photoUrl fails to load (network error, 403, etc.). Keeps the card
-// visually consistent rather than showing a broken-image icon.
-const SLOT_GRADIENTS: Record<MealSlot, [string, string]> = {
-  breakfast: ['#FF8C42', '#FFB347'],
-  morning_snack: ['#F4A261', '#E76F51'],
-  lunch: ['#FF6B35', '#E8543F'],
-  afternoon_snack: ['#E27D60', '#C0392B'],
-  dinner: ['#8E44AD', '#C0392B'],
-  pre_bed: ['#34495E', '#2C3E50'],
-};
-
-const SLOT_ICON: Record<MealSlot, keyof typeof Ionicons.glyphMap> = {
-  breakfast: 'sunny-outline',
-  morning_snack: 'cafe-outline',
-  lunch: 'restaurant-outline',
-  afternoon_snack: 'cafe-outline',
-  dinner: 'moon-outline',
-  pre_bed: 'moon-outline',
-};
+// Photo strategy: we generate a per-meal photo on the fly through Pollinations
+// (free AI image API, no key required for basic use). The same meal name
+// always yields the same photo (seed = hash of meal.id), and `expo-image`
+// caches it to disk via cachePolicy="memory-disk" so the user only ever waits
+// once. If the URL fails (offline, server error, etc.) we fall back to a
+// gradient + dish-derived emoji card — never a broken-image icon.
+//
+// We deliberately don't trust `meal.photoUrl` from the data files anymore:
+// the inherited Wikimedia URLs were unreliable (403s on thumbs, mismatched
+// dishes, scientific charts in place of food, duplicate URLs across meals).
 
 const triggerHaptic = () => {
   if (Platform.OS === 'web') return;
@@ -55,9 +40,12 @@ interface MealPhotoCardProps {
   meal: Meal;
   cardWidth?: number;
   slot?: string;
+  /** Optional ISO date forwarded to the detail screen for retroactive
+   *  logging (history → "Add a meal" flow). */
+  date?: string;
 }
 
-function MealPhotoCardImpl({ meal, cardWidth, slot }: MealPhotoCardProps) {
+function MealPhotoCardImpl({ meal, cardWidth, slot, date }: MealPhotoCardProps) {
   const { colors } = useTheme();
   const styles = useStyles();
   // Per-meal boolean selectors — only re-render this card when *this meal's*
@@ -78,14 +66,24 @@ function MealPhotoCardImpl({ meal, cardWidth, slot }: MealPhotoCardProps) {
 
   const dynamicCardStyle = cardWidth ? { width: cardWidth } : { flex: 1 };
   const imageHeight = cardWidth ? cardWidth : 160; // aspect 1:1
+  // Fallback gradient + emoji used only if the Pollinations image fails to
+  // load. Two variants per slot so the fallback grid never looks monotonous.
+  const gradients = SLOT_GRADIENT_BUCKETS[meal.slot] ?? SLOT_GRADIENT_BUCKETS.lunch;
+  const gradient = gradients[gradientIndexFor(meal.id, gradients.length)];
+  const emoji = getMealEmoji(meal);
+  const photoUrl = getMealPhotoUrl(meal);
   const [imageFailed, setImageFailed] = useState(false);
-  const fallbackGradient = SLOT_GRADIENTS[meal.slot] ?? SLOT_GRADIENTS.lunch;
-  const fallbackIcon = SLOT_ICON[meal.slot] ?? 'restaurant-outline';
 
   return (
     <AnimatedPressable
       style={[styles.card, dynamicCardStyle, animatedStyle]}
-      onPress={() => router.push(slot ? `/meal/${meal.id}?slot=${slot}` : `/meal/${meal.id}`)}
+      onPress={() => {
+        const qs = [
+          slot ? `slot=${slot}` : null,
+          date ? `date=${date}` : null,
+        ].filter(Boolean).join('&');
+        router.push(qs ? `/meal/${meal.id}?${qs}` : `/meal/${meal.id}`);
+      }}
       onPressIn={() => {
         scale.value = withSpring(0.97, { damping: 15, stiffness: 300 });
       }}
@@ -96,23 +94,30 @@ function MealPhotoCardImpl({ meal, cardWidth, slot }: MealPhotoCardProps) {
       accessibilityLabel={`${meal.name}, ${Math.round(meal.baseMacros.calories)} calories`}
     >
       <View style={[styles.imageWrap, { height: imageHeight }]}>
-        {!imageFailed && meal.photoUrl ? (
-          <Image
-            source={{ uri: meal.photoUrl, headers: IMAGE_HEADERS }}
-            style={[styles.image, { width: cardWidth ?? '100%', height: imageHeight }]}
-            resizeMode="cover"
-            fadeDuration={0}
-            onError={() => setImageFailed(true)}
-          />
-        ) : (
+        {imageFailed ? (
           <LinearGradient
-            colors={fallbackGradient}
+            colors={gradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={[styles.image, styles.fallbackBg, { width: cardWidth ?? '100%', height: imageHeight }]}
+            style={[styles.image, styles.gradientBg, { width: cardWidth ?? '100%', height: imageHeight }]}
           >
-            <Ionicons name={fallbackIcon} size={48} color="rgba(255,255,255,0.85)" />
+            <Text style={styles.emoji}>{emoji}</Text>
           </LinearGradient>
+        ) : (
+          <Image
+            source={{ uri: photoUrl }}
+            // expo-image: in-memory + on-disk cache. After first load, no
+            // network call ever for this meal again.
+            cachePolicy="memory-disk"
+            contentFit="cover"
+            transition={180}
+            // Show the gradient+emoji while the image is loading the first
+            // time (and as a permanent fallback if generation fails).
+            placeholder={null}
+            placeholderContentFit="cover"
+            onError={() => setImageFailed(true)}
+            style={[styles.image, { width: cardWidth ?? '100%', height: imageHeight }]}
+          />
         )}
         <View style={styles.gradient} />
 
@@ -228,9 +233,13 @@ const useStyles = makeStyles((colors) => ({
     width: '100%' as const,
     height: '100%' as const,
   },
-  fallbackBg: {
+  gradientBg: {
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
+  },
+  emoji: {
+    fontSize: 64,
+    lineHeight: 76,
   },
   gradient: {
     position: 'absolute' as const,
@@ -344,7 +353,8 @@ export const MealPhotoCard = React.memo(
   (prev, next) =>
     prev.meal.id === next.meal.id &&
     prev.cardWidth === next.cardWidth &&
-    prev.slot === next.slot
+    prev.slot === next.slot &&
+    prev.date === next.date
 );
 
 export default MealPhotoCard;

@@ -408,7 +408,13 @@ export default function CoachScreen() {
   // Pull extended context for the coach so it can take meaningful actions.
   const programState = useProgramStore((s) => s.activePlan);
   const checkIns = useUserStore((s) => s.checkIns);
+  const weightLog = useUserStore((s) => s.weightLog);
+  const measurements = useUserStore((s) => s.measurements);
+  const badges = useUserStore((s) => s.badges);
   const allWorkouts = useTrainingStore((s) => s.workouts);
+  const oneRepMaxes = useTrainingStore((s) => s.oneRepMaxByExercise);
+  const likedMeals = useMealStore((s) => s.likedMeals);
+  const dislikedMeals = useMealStore((s) => s.dislikedMeals);
   const waterToday = useWaterStore((s) => s.history);
   const waterTarget = useWaterStore((s) => s.dailyTargetMl);
 
@@ -480,6 +486,46 @@ export default function CoachScreen() {
       if (diffDays >= 0) currentWeek = Math.min(4, Math.floor(diffDays / 7) + 1);
     }
 
+    // Recent weights — last 14 entries, oldest first. Lets the coach compute
+    // deltas ("73kg today, +0.3kg vs last week, on track for cut").
+    const recentWeights = [...weightLog]
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-14)
+      .map((w) => ({ date: w.date, weight: w.weight }));
+
+    // Last measurement — pick the row with the most recent date. Partial
+    // entries are fine (the coach handles missing fields gracefully).
+    const lastMeasurementEntry = [...measurements]
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .at(-1);
+    const lastMeasurement = lastMeasurementEntry
+      ? {
+          date: lastMeasurementEntry.date,
+          waistCm: lastMeasurementEntry.waistCm,
+          hipsCm: lastMeasurementEntry.hipsCm,
+          chestCm: lastMeasurementEntry.chestCm,
+          armsCm: lastMeasurementEntry.armsCm,
+          thighsCm: lastMeasurementEntry.thighsCm,
+          bodyFatPercent: lastMeasurementEntry.bodyFatPercent,
+        }
+      : undefined;
+
+    // Top 5 1RM PRs by estimated value. Lets the coach reference real lifts.
+    const topOneRepMaxes = Object.entries(oneRepMaxes)
+      .sort((a, b) => b[1].value - a[1].value)
+      .slice(0, 5)
+      .map(([exerciseId, rec]) => ({
+        exerciseId,
+        weight: Math.round(rec.value),
+        reps: rec.reps,
+      }));
+
+    // Recent badges — last 3 unlocked, ordered most recent first.
+    const recentBadges = [...badges]
+      .sort((a, b) => b.unlockedAt.localeCompare(a.unlockedAt))
+      .slice(0, 3)
+      .map((b) => b.type);
+
     return {
       firstName: profile.name.split(' ')[0],
       hour: new Date().getHours(),
@@ -508,6 +554,24 @@ export default function CoachScreen() {
       lastCheckIn,
       consumedWaterMl,
       targetWaterMl: waterTarget,
+      // ── Newly exposed: profile, body progress, training depth,
+      //    preferences, gamification ──
+      age: profile.age,
+      sex: profile.sex,
+      heightCm: profile.heightCm,
+      currentWeight: profile.currentWeight,
+      targetWeight: profile.targetWeight,
+      targetDeadline: profile.targetDeadline,
+      restrictions: profile.restrictions,
+      trackingMode: profile.trackingMode,
+      recentWeights,
+      lastMeasurement,
+      topOneRepMaxes,
+      programPausedUntil: (programState as any)?.pausedUntil,
+      likedMealsCount: likedMeals.length,
+      dislikedMealsCount: dislikedMeals.length,
+      recentDislikes: dislikedMeals.slice(-5),
+      recentBadges,
     };
   }, [
     profile,
@@ -522,6 +586,12 @@ export default function CoachScreen() {
     allWorkouts,
     waterToday,
     waterTarget,
+    weightLog,
+    measurements,
+    badges,
+    oneRepMaxes,
+    likedMeals,
+    dislikedMeals,
   ]);
 
   // Add coach messages with typing delay

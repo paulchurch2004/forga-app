@@ -37,15 +37,16 @@ type RestrictionFilter = 'all' | Restriction;
 
 /** Each slot displays as a 2-line chip:
  *   ☀️ Matin
- *   7h-9h
- * The emoji + time range disambiguate slots much better than a bare label
- * (user feedback: "the top bar isn't clear enough"). */
+ *   7-9h
+ * Words deliberately simple — "Collation" instead of the ambiguous "Encas".
+ * Times shortened (e.g. "7-9h" not "7h-9h") so they fit on one line on small
+ * phones. */
 const SLOT_META: Record<MealSlot, { emoji: string; label: string; time: string }> = {
-  breakfast: { emoji: '☀️', label: 'Matin', time: '7h-9h' },
-  morning_snack: { emoji: '🥨', label: 'Encas', time: '10h-11h' },
-  lunch: { emoji: '🍽️', label: 'Midi', time: '12h-14h' },
-  afternoon_snack: { emoji: '🍪', label: 'Goûter', time: '16h-17h' },
-  dinner: { emoji: '🌙', label: 'Soir', time: '19h-21h' },
+  breakfast: { emoji: '☀️', label: 'Matin', time: '7-9h' },
+  morning_snack: { emoji: '🥨', label: 'Collation', time: '10-11h' },
+  lunch: { emoji: '🍽️', label: 'Midi', time: '12-14h' },
+  afternoon_snack: { emoji: '🍪', label: 'Goûter', time: '16-17h' },
+  dinner: { emoji: '🌙', label: 'Soir', time: '19-21h' },
 };
 
 const SLOT_ORDER: MealSlot[] = ['breakfast', 'morning_snack', 'lunch', 'afternoon_snack', 'dinner'];
@@ -65,7 +66,12 @@ export default function MealsScreen() {
   const insets = useSafeAreaInsets();
   const { width: windowWidth } = useWindowDimensions();
   const { contentMaxWidth } = useResponsive();
-  const params = useLocalSearchParams<{ slot?: string }>();
+  const params = useLocalSearchParams<{
+    slot?: string;
+    /** Optional ISO date forwarded to /meal/[id]?date= for retroactive
+     *  logging (used by the meal-history screen's "Add a meal" button). */
+    date?: string;
+  }>();
   const { currentSlot } = useMealSlot();
   const { isPremium } = usePremium();
   const engine = useEngine();
@@ -169,9 +175,9 @@ export default function MealsScreen() {
 
   const renderMealItem = useCallback(
     ({ item }: { item: Meal }) => (
-      <MealPhotoCard meal={item} cardWidth={cardWidth} slot={selectedSlot} />
+      <MealPhotoCard meal={item} cardWidth={cardWidth} slot={selectedSlot} date={params.date} />
     ),
-    [cardWidth, selectedSlot]
+    [cardWidth, selectedSlot, params.date]
   );
 
   const keyExtractor = useCallback((item: Meal) => item.id, []);
@@ -238,10 +244,12 @@ export default function MealsScreen() {
               accessibilityLabel={`${meta.label}, ${meta.time}`}
               accessibilityState={{ selected: active }}
             >
-              <Text style={styles.slotChipEmoji}>{meta.emoji}</Text>
-              <Text style={[styles.slotChipText, active && styles.slotChipTextActive]}>
-                {meta.label}
-              </Text>
+              <View style={styles.slotChipTopRow}>
+                <Text style={styles.slotChipEmoji}>{meta.emoji}</Text>
+                <Text style={[styles.slotChipText, active && styles.slotChipTextActive]}>
+                  {meta.label}
+                </Text>
+              </View>
               <Text style={[styles.slotChipTime, active && styles.slotChipTimeActive]}>
                 {meta.time}
               </Text>
@@ -477,13 +485,18 @@ const useStyles = makeStyles((colors) => ({
     gap: 8,
     flexDirection: 'row' as const,
     paddingTop: 14,
-    paddingBottom: 8,
+    paddingBottom: 10,
   },
+  /** 2-line chip layout:
+   *   row 1 (top) — emoji + label inline
+   *   row 2 (below) — small time range
+   *  Vertical hierarchy is now obvious AND nothing overflows the rounded edge.
+   *  Min-width is sized for the longest label ("Collation"). */
   slotChip: {
-    minWidth: 80,
+    minWidth: 96,
     paddingTop: 10,
-    paddingBottom: 12,
-    paddingHorizontal: 12,
+    paddingBottom: 11,
+    paddingHorizontal: 14,
     borderRadius: 14,
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
@@ -500,37 +513,37 @@ const useStyles = makeStyles((colors) => ({
     borderColor: 'rgba(255,107,53,0.55)',
     backgroundColor: 'rgba(255,107,53,0.08)',
   },
-  /** All three Text rows below use explicit lineHeight to give a fully
-   *  predictable chip height. Without these, default line-height plus emoji
-   *  descenders make the bottom row overflow the chip's rounded boundary. */
+  /** Row 1 of the chip: emoji and label sitting on the same line. */
+  slotChipTopRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 5,
+  },
   slotChipEmoji: {
-    fontSize: 18,
-    lineHeight: 20,
-    textAlign: 'center' as const,
-    marginBottom: 3,
+    fontSize: 15,
+    lineHeight: 18,
   },
   slotChipText: {
     fontFamily: fonts.body,
-    fontSize: 12,
-    lineHeight: 14,
+    fontSize: 13,
+    lineHeight: 16,
     fontWeight: '700' as const,
-    color: 'rgba(255,255,255,0.85)',
-    textAlign: 'center' as const,
+    color: 'rgba(255,255,255,0.92)',
   },
   slotChipTextActive: {
     color: '#FFFFFF',
   },
   slotChipTime: {
     fontFamily: fonts.body,
-    fontSize: 10,
-    lineHeight: 12,
-    fontWeight: '500' as const,
-    color: 'rgba(255,255,255,0.42)',
+    fontSize: 11,
+    lineHeight: 14,
+    fontWeight: '600' as const,
+    color: 'rgba(255,255,255,0.48)',
     textAlign: 'center' as const,
-    marginTop: 2,
+    marginTop: 4,
   },
   slotChipTimeActive: {
-    color: 'rgba(255,255,255,0.85)',
+    color: 'rgba(255,255,255,0.9)',
   },
   searchWrap: {
     flexDirection: 'row' as const,

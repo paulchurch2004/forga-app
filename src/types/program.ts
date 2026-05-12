@@ -77,4 +77,9 @@ export interface GeneratedPlan {
   cardioRecommendation: CardioRecommendation;
   /** Per-day exercise swaps. date → originalExerciseId → newExerciseId. */
   exerciseOverrides?: Record<string, Record<string, string>>;
+  /** ISO date until which the program is paused (set by the coach
+   *  `pause_program` action when the user is on vacation/injured). UI
+   *  surfaces a "Programme en pause" banner and the streak engine treats
+   *  paused days as neutral. Cleared by `resume_program`. */
+  pausedUntil?: string;
 }

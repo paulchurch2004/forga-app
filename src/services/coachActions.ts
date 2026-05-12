@@ -93,6 +93,37 @@ export type CoachAction =
       type: 'generate_shopping_list';
       title: string;
       items: Array<{ label: string; quantity?: string; category?: string }>;
+    }
+  | {
+      // "J'ai pesé 78.2 ce matin"
+      type: 'log_weight';
+      weightKg: number;
+      note?: string;
+    }
+  | {
+      // "Mon tour de taille est passé à 82"
+      type: 'log_measurement';
+      field: 'waist' | 'hips' | 'chest' | 'arms' | 'thighs' | 'bodyFatPercent';
+      value: number;
+    }
+  | {
+      // "Rappelle-moi de boire à 16h"
+      type: 'set_reminder';
+      message: string;
+      /** Local time as HH:MM (24h). */
+      atTimeLocal: string;
+      /** When true, schedules the reminder every day; otherwise one-shot. */
+      repeatDaily?: boolean;
+    }
+  | {
+      // "Je pars en vacances 10 jours" → pause program, suspends streak danger
+      type: 'pause_program';
+      daysCount: number;
+      reason?: string;
+    }
+  | {
+      // "Je suis rentré, on reprend"
+      type: 'resume_program';
     };
 
 /** Actions whose UI card should require an extra confirmation step. */
@@ -102,6 +133,7 @@ export const DESTRUCTIVE_ACTIONS: ActionType[] = [
   'set_water_goal',
   'change_objective',
   'update_target',
+  'pause_program',
 ];
 
 // ─── Memory protocol (silent, no UI confirmation) ─────────────
@@ -373,6 +405,67 @@ function validateAction(type: string, payload: any): CoachAction | null {
       }
       return null;
     }
+    case 'log_weight': {
+      if (isFiniteNum(payload?.weightKg) && payload.weightKg > 25 && payload.weightKg < 300) {
+        return {
+          type: 'log_weight',
+          weightKg: Math.round(payload.weightKg * 10) / 10,
+          note: typeof payload.note === 'string' ? payload.note.trim().slice(0, 200) : undefined,
+        };
+      }
+      return null;
+    }
+    case 'log_measurement': {
+      const allowed = ['waist', 'hips', 'chest', 'arms', 'thighs', 'bodyFatPercent'] as const;
+      if (
+        typeof payload?.field === 'string' &&
+        (allowed as readonly string[]).includes(payload.field) &&
+        isFiniteNum(payload?.value) &&
+        payload.value > 0 &&
+        payload.value < 300
+      ) {
+        return {
+          type: 'log_measurement',
+          field: payload.field as typeof allowed[number],
+          value: Math.round(payload.value * 10) / 10,
+        };
+      }
+      return null;
+    }
+    case 'set_reminder': {
+      // Validate HH:MM format strictly — bad time formats would silently
+      // fail when scheduling.
+      const timeMatch = typeof payload?.atTimeLocal === 'string'
+        ? /^([01]?\d|2[0-3]):([0-5]\d)$/.exec(payload.atTimeLocal.trim())
+        : null;
+      if (
+        typeof payload?.message === 'string' &&
+        payload.message.trim().length > 0 &&
+        timeMatch
+      ) {
+        return {
+          type: 'set_reminder',
+          message: payload.message.trim().slice(0, 140),
+          atTimeLocal: `${timeMatch[1].padStart(2, '0')}:${timeMatch[2]}`,
+          repeatDaily: payload.repeatDaily === true,
+        };
+      }
+      return null;
+    }
+    case 'pause_program': {
+      if (isFiniteNum(payload?.daysCount) && payload.daysCount > 0 && payload.daysCount <= 60) {
+        return {
+          type: 'pause_program',
+          daysCount: Math.round(payload.daysCount),
+          reason: typeof payload.reason === 'string' ? payload.reason.trim().slice(0, 200) : undefined,
+        };
+      }
+      return null;
+    }
+    case 'resume_program': {
+      // No fields to validate; payload may be empty object.
+      return { type: 'resume_program' };
+    }
     default:
       return null;
   }
@@ -415,6 +508,16 @@ export async function executeCoachAction(action: CoachAction): Promise<void> {
       return executeUpdateTarget(action);
     case 'generate_shopping_list':
       return executeGenerateShoppingList(action);
+    case 'log_weight':
+      return executeLogWeight(action);
+    case 'log_measurement':
+      return executeLogMeasurement(action);
+    case 'set_reminder':
+      return executeSetReminder(action);
+    case 'pause_program':
+      return executePauseProgram(action);
+    case 'resume_program':
+      return executeResumeProgram();
   }
 }
 
@@ -632,6 +735,118 @@ async function executeGenerateShoppingList(a: Extract<CoachAction, { type: 'gene
   });
 }
 
+async function executeLogWeight(a: Extract<CoachAction, { type: 'log_weight' }>) {
+  const profile = useUserStore.getState().profile;
+  if (!profile) return;
+  const today = todayLocalIso();
+  const entry = {
+    id: `coach-w-${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    userId: profile.id,
+    date: today,
+    weight: a.weightKg,
+    createdAt: new Date().toISOString(),
+  };
+  useUserStore.getState().addWeightEntry(entry);
+  // Best-effort backend sync; failures fall back to the offline queue.
+  try {
+    const { syncWeight } = await import('./userSync');
+    await syncWeight(entry, profile.id);
+  } catch {
+    /* offline queue will handle */
+  }
+}
+
+async function executeLogMeasurement(a: Extract<CoachAction, { type: 'log_measurement' }>) {
+  const profile = useUserStore.getState().profile;
+  if (!profile) return;
+  const today = todayLocalIso();
+  const measurement: import('../types/user').BodyMeasurement = {
+    id: `coach-m-${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    userId: profile.id,
+    date: today,
+    createdAt: new Date().toISOString(),
+    // We only persist the single field the coach reported — the rest stay
+    // unset (the type allows partial entries).
+    ...(a.field === 'waist' ? { waistCm: a.value } : {}),
+    ...(a.field === 'hips' ? { hipsCm: a.value } : {}),
+    ...(a.field === 'chest' ? { chestCm: a.value } : {}),
+    ...(a.field === 'arms' ? { armsCm: a.value } : {}),
+    ...(a.field === 'thighs' ? { thighsCm: a.value } : {}),
+    ...(a.field === 'bodyFatPercent' ? { bodyFatPercent: a.value } : {}),
+  };
+  useUserStore.getState().addMeasurement(measurement);
+}
+
+async function executeSetReminder(a: Extract<CoachAction, { type: 'set_reminder' }>) {
+  // We schedule a one-shot or daily local notification via expo-notifications.
+  // The reminder is tracked with `data.type = 'coach_reminder'` so the
+  // scheduling helpers (cf. services/notifications.ts) recognise it on
+  // app foreground.
+  try {
+    const Notifications = await import('expo-notifications');
+    const [hh, mm] = a.atTimeLocal.split(':').map(Number);
+    if (a.repeatDaily) {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'FORGA',
+          body: a.message,
+          data: { type: 'coach_reminder' },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DAILY,
+          hour: hh,
+          minute: mm,
+        },
+      });
+    } else {
+      // One-shot: schedule for the *next* occurrence of HH:MM (today if
+      // still in the future, otherwise tomorrow).
+      const now = new Date();
+      const at = new Date(now);
+      at.setHours(hh, mm, 0, 0);
+      if (at.getTime() <= now.getTime()) at.setDate(at.getDate() + 1);
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'FORGA',
+          body: a.message,
+          data: { type: 'coach_reminder' },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: at,
+        },
+      });
+    }
+  } catch {
+    /* notifications unavailable (web, denied) — silent */
+  }
+}
+
+async function executePauseProgram(a: Extract<CoachAction, { type: 'pause_program' }>) {
+  // We mark a `pausedUntil` field on the active plan. UI surfaces a
+  // "Programme en pause" banner instead of showing the day's session, and
+  // the streak engine treats paused days as neutral (no penalty).
+  const programStore = await import('../store/programStore');
+  const plan = programStore.useProgramStore.getState().activePlan;
+  if (!plan) return;
+  const pausedUntil = new Date();
+  pausedUntil.setDate(pausedUntil.getDate() + a.daysCount);
+  programStore.useProgramStore.getState().setActivePlan({
+    ...plan,
+    pausedUntil: pausedUntil.toISOString().slice(0, 10),
+  } as typeof plan);
+}
+
+async function executeResumeProgram() {
+  const programStore = await import('../store/programStore');
+  const plan = programStore.useProgramStore.getState().activePlan;
+  if (!plan) return;
+  // Strip the pausedUntil field (set to undefined) — the UI shows
+  // sessions normally again.
+  const { pausedUntil: _ignored, ...rest } = plan as typeof plan & { pausedUntil?: string };
+  programStore.useProgramStore.getState().setActivePlan(rest as typeof plan);
+}
+
 // ─── Display helpers (used by the proposal card) ─────────────
 
 export function describeAction(action: CoachAction): { tag: string; title: string; subtitle: string } {
@@ -733,6 +948,54 @@ export function describeAction(action: CoachAction): { tag: string; title: strin
         tag: 'Liste de courses',
         title: action.title,
         subtitle: `${action.items.length} articles. Tu pourras la cocher dans l'app.`,
+      };
+    }
+    case 'log_weight': {
+      return {
+        tag: 'Pesée',
+        title: `${action.weightKg.toFixed(1)} kg`,
+        subtitle: action.note ?? 'Ajouté à ton historique de poids',
+      };
+    }
+    case 'log_measurement': {
+      const labels: Record<typeof action.field, string> = {
+        waist: 'Tour de taille',
+        hips: 'Tour de hanches',
+        chest: 'Tour de poitrine',
+        arms: 'Tour de bras',
+        thighs: 'Tour de cuisses',
+        bodyFatPercent: '% de gras',
+      };
+      const suffix = action.field === 'bodyFatPercent' ? '%' : 'cm';
+      return {
+        tag: 'Mensurations',
+        title: `${labels[action.field]} : ${action.value} ${suffix}`,
+        subtitle: "Ajouté à ton suivi corporel",
+      };
+    }
+    case 'set_reminder': {
+      return {
+        tag: action.repeatDaily ? 'Rappel quotidien' : 'Rappel ponctuel',
+        title: `${action.atTimeLocal} · ${action.message}`,
+        subtitle: action.repeatDaily
+          ? 'Tu recevras cette notification tous les jours'
+          : 'Tu recevras cette notification au prochain horaire',
+      };
+    }
+    case 'pause_program': {
+      return {
+        tag: 'Programme · pause',
+        title: `Mettre en pause ${action.daysCount} jour${action.daysCount > 1 ? 's' : ''}`,
+        subtitle: action.reason
+          ? `${action.reason}. Streak protégé pendant la pause.`
+          : 'Aucune séance suggérée, streak protégé pendant la pause.',
+      };
+    }
+    case 'resume_program': {
+      return {
+        tag: 'Programme · reprise',
+        title: 'Reprendre le programme',
+        subtitle: 'Les séances reprennent à partir d\'aujourd\'hui',
       };
     }
   }

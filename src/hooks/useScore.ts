@@ -9,6 +9,23 @@ import type { ScoreInput } from '../types/score';
 import { syncScore } from '../services/userSync';
 import { todayLocalIso, localIso } from '../utils/date';
 
+/** "Active days" proxy used in nutrition_only mode: counts how many of the
+ *  last 7 days had at least one validated meal. */
+function countDaysWithMealsLast7(todayDate: string): number {
+  const today = new Date(todayDate);
+  const history = useMealStore.getState().mealHistory;
+  const todayMeals = useMealStore.getState().todayMeals;
+  let count = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = localIso(d);
+    const meals = i === 0 ? todayMeals : (history[key] ?? []);
+    if (meals.length > 0) count++;
+  }
+  return count;
+}
+
 export function useScore() {
   const { currentScore, weeklyChange, scoreHistory, setCurrentScore, setWeeklyChange, saveDailyScore } = useScoreStore();
   const profile = useUserStore((s) => s.profile);
@@ -87,6 +104,16 @@ export function useScore() {
     const waterWeek = waterStore.getWeekHistory(todayDate);
     const waterDaysMet = waterWeek.filter((d) => d.total >= waterStore.dailyTargetMl).length;
 
+    // In 'nutrition_only' mode the user has chosen not to track training
+    // inside FORGA, so penalising them on `activeDaysLast7` (which only
+    // counts logged workouts) would be unfair. We substitute the metric
+    // with "days last 7 with ≥1 validated meal" — same spirit (active
+    // engagement) but computed from data they actually provide.
+    const trackingMode = profile.trackingMode ?? 'both';
+    const activeDaysLast7 = trackingMode === 'nutrition_only'
+      ? countDaysWithMealsLast7(todayDate)
+      : useTrainingStore.getState().getActiveDaysLast7(todayDate);
+
     const input: ScoreInput = {
       mealsValidated: todayMeals.length,
       mealsExpected: profile.mealsPerDay,
@@ -98,9 +125,10 @@ export function useScore() {
       objective: profile.objective,
       goalProgressPercent,
       hasWeightData: weightLog.length >= 2,
-      activeDaysLast7: useTrainingStore.getState().getActiveDaysLast7(todayDate),
+      activeDaysLast7,
       thisWeekCheckIn,
       waterTargetDaysMet: waterDaysMet,
+      trackingMode,
     };
 
     const newScore = calculateForgaScore(input);

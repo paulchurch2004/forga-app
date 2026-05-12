@@ -25,7 +25,14 @@ function generateId(): string {
 }
 
 export default function MealDetailScreen() {
-  const { id, slot: slotParam } = useLocalSearchParams<{ id: string; slot?: string }>();
+  const { id, slot: slotParam, date: dateParam } = useLocalSearchParams<{
+    id: string;
+    slot?: string;
+    /** Optional ISO date (YYYY-MM-DD). When set, the meal is logged
+     *  retroactively to that day (e.g. from the history screen) instead of
+     *  to today. Streak is intentionally NOT incremented for past dates. */
+    date?: string;
+  }>();
   const [validating, setValidating] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const styles = useStyles();
@@ -105,12 +112,14 @@ export default function MealDetailScreen() {
     setValidating(true);
     try {
       const today = todayLocalIso();
+      const targetDate = dateParam ?? today;
+      const isRetro = targetDate !== today;
       const wasTodayValidated = isTodayValidated;
 
       const validatedMeal = {
         id: generateId(),
         userId: profile.id,
-        date: today,
+        date: targetDate,
         slot: currentMealSlot,
         mealId: meal.id,
         adjustedQuantities: adjustedIngredients.reduce(
@@ -127,13 +136,15 @@ export default function MealDetailScreen() {
       syncMeal(validatedMeal);
       events.mealValidated(meal.id, currentMealSlot);
 
-      // Increment streak if this is the first meal today
-      if (!wasTodayValidated) {
-        incrementStreak();
+      // Streak / score touch the *current* state only — skip both when the
+      // user is editing a past day, otherwise they could spam-increment by
+      // retroactively logging meals they already logged.
+      if (!isRetro) {
+        if (!wasTodayValidated) {
+          incrementStreak();
+        }
+        recalculate();
       }
-
-      // Recalculate score
-      recalculate();
 
       // Show celebration then navigate
       setShowCelebration(true);

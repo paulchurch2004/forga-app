@@ -1724,6 +1724,16 @@ export const fr = {
   // Profile section labels
   measurementsLabel: 'Mensurations',
   progressPhotosLabel: 'Photos de progression',
+
+  // Tracking mode (FORGA Score scope) — section in Settings
+  trackingModeTitle: 'Que veux-tu suivre ?',
+  trackingModeSubtitle: 'Choisis comment ton Score FORGA est calcule. Tu peux changer a tout moment.',
+  trackingModeBoth: 'Nutrition et entrainement',
+  trackingModeBothDesc: 'Le Score FORGA prend en compte tes repas et tes seances. C\'est le mode par defaut.',
+  trackingModeNutritionOnly: 'Nutrition uniquement',
+  trackingModeNutritionOnlyDesc: 'Je suis deja mes entrainements ailleurs. Le score ne penalise pas l\'absence de seances tracees ici.',
+  trackingModeTrainingOnly: 'Entrainement uniquement',
+  trackingModeTrainingOnlyDesc: 'Je ne veux pas tracker mes repas. Le score est calcule uniquement sur mes seances et ma progression.',
 } as const;
 
 export type TranslationKey = keyof typeof fr;

@@ -2,6 +2,7 @@
 import type { MacroTarget } from '../types/engine';
 import type { MealIngredient, AdjustedIngredient } from '../types/meal';
 import { smartRound } from './roundingEngine';
+import { formatIngredientQuantity } from '../data/ingredientUnits';
 
 interface PortionResult {
   adjustedIngredients: AdjustedIngredient[];
@@ -28,7 +29,7 @@ export function calculatePortions(
         originalQuantity: ing.baseQuantityG,
         adjustedQuantity: ing.baseQuantityG,
         roundedQuantity: ing.baseQuantityG,
-        displayQuantity: formatQuantity(ing.baseQuantityG, ing.unit),
+        displayQuantity: formatIngredientQuantity(ing.ingredientId, ing.baseQuantityG, ing.unit),
         unit: ing.unit,
       })),
       adjustedMacros: { calories: mealBaseMacros.calories, protein: mealBaseMacros.protein, carbs: mealBaseMacros.carbs, fat: mealBaseMacros.fat },
@@ -54,7 +55,7 @@ export function calculatePortions(
       originalQuantity: ing.baseQuantityG,
       adjustedQuantity: Math.round(adjustedQuantity * 10) / 10,
       roundedQuantity,
-      displayQuantity: formatQuantity(roundedQuantity, ing.unit),
+      displayQuantity: formatIngredientQuantity(ing.ingredientId, roundedQuantity, ing.unit),
       unit: ing.unit,
     };
   });
@@ -74,11 +75,4 @@ export function calculatePortions(
   };
 
   return { adjustedIngredients, adjustedMacros };
-}
-
-function formatQuantity(quantity: number, unit: 'g' | 'ml' | 'unit'): string {
-  if (unit === 'unit') {
-    return quantity === 1 ? '1' : `${quantity}`;
-  }
-  return `${quantity}${unit}`;
 }

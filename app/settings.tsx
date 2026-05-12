@@ -422,6 +422,9 @@ export default function SettingsScreen() {
           <Text style={styles.linkChevron}>›</Text>
         </Pressable>
 
+        {/* Tracking mode (FORGA Score scope) */}
+        <TrackingModeSelector />
+
         {/* Rest-end sound toggle */}
         <RestSoundToggle />
 
@@ -512,6 +515,58 @@ function RestSoundToggle() {
         onValueChange={onToggle}
         trackColor={{ false: 'rgba(255,255,255,0.15)', true: '#FF6B35' }}
       />
+    </View>
+  );
+}
+
+/** Tracking mode picker. Re-balances the FORGA Score so users who follow
+ *  their own training program elsewhere (or who only care about training,
+ *  not nutrition) aren't unfairly penalised on the metric they don't track. */
+function TrackingModeSelector() {
+  const styles = useStyles();
+  const { t } = useT();
+  const profile = useUserStore((s) => s.profile);
+  const updateProfile = useUserStore((s) => s.updateProfile);
+  const current = profile?.trackingMode ?? 'both';
+
+  const options: Array<{ value: 'both' | 'nutrition_only' | 'training_only'; labelKey: string; descKey: string }> = [
+    { value: 'both', labelKey: 'trackingModeBoth', descKey: 'trackingModeBothDesc' },
+    { value: 'nutrition_only', labelKey: 'trackingModeNutritionOnly', descKey: 'trackingModeNutritionOnlyDesc' },
+    { value: 'training_only', labelKey: 'trackingModeTrainingOnly', descKey: 'trackingModeTrainingOnlyDesc' },
+  ];
+
+  const handleSelect = (value: 'both' | 'nutrition_only' | 'training_only') => {
+    if (value === current) return;
+    updateProfile({ trackingMode: value });
+  };
+
+  return (
+    <View style={styles.trackingModeWrap}>
+      <Text style={styles.trackingModeTitle}>{t('trackingModeTitle' as any)}</Text>
+      <Text style={styles.trackingModeSubtitle}>{t('trackingModeSubtitle' as any)}</Text>
+      {options.map((opt) => {
+        const active = current === opt.value;
+        return (
+          <Pressable
+            key={opt.value}
+            style={[styles.trackingModeOption, active && styles.trackingModeOptionActive]}
+            onPress={() => handleSelect(opt.value)}
+            hitSlop={4}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: active }}
+          >
+            <View style={[styles.trackingModeRadio, active && styles.trackingModeRadioActive]}>
+              {active && <View style={styles.trackingModeRadioInner} />}
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.trackingModeLabel, active && styles.trackingModeLabelActive]}>
+                {t(opt.labelKey as any)}
+              </Text>
+              <Text style={styles.trackingModeDesc}>{t(opt.descKey as any)}</Text>
+            </View>
+          </Pressable>
+        );
+      })}
     </View>
   );
 }
@@ -776,6 +831,74 @@ const useStyles = makeStyles((colors) => ({
     fontSize: fontSizes.sm,
     color: colors.textSecondary,
     marginTop: 2,
+  },
+  trackingModeWrap: {
+    paddingVertical: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    gap: spacing.sm,
+  },
+  trackingModeTitle: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    fontWeight: '600' as const,
+    color: colors.text,
+  },
+  trackingModeSubtitle: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
+    marginBottom: spacing.xs,
+  },
+  trackingModeOption: {
+    flexDirection: 'row' as const,
+    alignItems: 'flex-start' as const,
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: 'rgba(255,255,255,0.02)',
+  },
+  trackingModeOptionActive: {
+    borderColor: '#FF6B35',
+    backgroundColor: 'rgba(255,107,53,0.08)',
+  },
+  trackingModeRadio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.3)',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginTop: 2,
+  },
+  trackingModeRadioActive: {
+    borderColor: '#FF6B35',
+  },
+  trackingModeRadioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#FF6B35',
+  },
+  trackingModeLabel: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    fontWeight: '600' as const,
+    color: colors.text,
+  },
+  trackingModeLabelActive: {
+    color: '#FF6B35',
+  },
+  trackingModeDesc: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
+    marginTop: 2,
+    lineHeight: 18,
   },
   chipRow: {
     flexDirection: 'row',

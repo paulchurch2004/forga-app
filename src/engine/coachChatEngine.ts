@@ -69,6 +69,52 @@ export interface CoachContext {
   /** User's daily water intake so far (ml) and target. */
   consumedWaterMl?: number;
   targetWaterMl?: number;
+
+  // ── Profile basics — let the coach reference the user concretely ──
+  /** Year of birth or current age. */
+  age?: number;
+  sex?: 'male' | 'female';
+  heightCm?: number;
+  currentWeight?: number;
+  targetWeight?: number;
+  /** ISO date of the goal deadline. */
+  targetDeadline?: string;
+  /** Dietary restrictions declared by the user (vegan, gluten_free, halal…). */
+  restrictions?: string[];
+  /** 'both' | 'nutrition_only' | 'training_only'. Controls FORGA Score scope. */
+  trackingMode?: 'both' | 'nutrition_only' | 'training_only';
+
+  // ── Body progress — required for the coach to compute weight deltas
+  //    (e.g. "73kg today, +0.3kg vs last week") and act on them ──
+  /** Up to 14 most recent weight entries, oldest first. */
+  recentWeights?: Array<{ date: string; weight: number }>;
+  /** Most recent body measurement (waist/hips/chest/arms/thighs/bf%). */
+  lastMeasurement?: {
+    date: string;
+    waistCm?: number;
+    hipsCm?: number;
+    chestCm?: number;
+    armsCm?: number;
+    thighsCm?: number;
+    bodyFatPercent?: number;
+  };
+
+  // ── Training depth — for tailored progression advice ──
+  /** Up to 5 strongest 1-rep-max records (exerciseId + weight). */
+  topOneRepMaxes?: Array<{ exerciseId: string; weight: number; reps: number }>;
+  /** When the user paused their program, the date until which it's paused. */
+  programPausedUntil?: string;
+
+  // ── Preferences — to avoid recommending what they hate ──
+  /** Number of meals the user has liked / disliked. */
+  likedMealsCount?: number;
+  dislikedMealsCount?: number;
+  /** Up to 5 most recent dislikes (mealIds) — so the coach doesn't suggest them. */
+  recentDislikes?: string[];
+
+  // ── Gamification ──
+  /** Up to 3 most recently unlocked badge types. */
+  recentBadges?: string[];
 }
 
 // ──────────── HELPERS ────────────

@@ -371,20 +371,31 @@ export default function ActiveWorkoutScreen() {
         const lastSets = lastSorted[lastSorted.length - 1]?.sets ?? [];
         previousTopWeight = [...lastSets]
           .sort((a, b) => (b?.weight ?? 0) - (a?.weight ?? 0))[0]?.weight ?? 0;
-      } else if (strengthTest?.startingWeights) {
-        const seed = getStartingWeightForExercise(pe.exerciseId, strengthTest.startingWeights);
+      } else {
+        // No history for this exercise yet. Try (in order):
+        //   1. The strength test seed if it matches the exercise.
+        //   2. A ratio derived from the user's tested lifts.
+        //   3. A bodyweight × level × sex fallback (always available
+        //      provided the profile has a current weight).
+        const seed = getStartingWeightForExercise(
+          pe.exerciseId,
+          strengthTest?.startingWeights,
+          {
+            sex: profile?.sex,
+            bodyweightKg: profile?.currentWeight,
+            trainingLevel: profile?.trainingLevel,
+          },
+        );
         if (seed > 0) {
           suggestedWeight = seed;
-          weightTip = 'Charge calibrée selon ton test';
+          weightTip = strengthTest?.startingWeights
+            ? 'Charge calibrée selon ton test'
+            : 'Estimation conservatrice selon ton poids — ajuste si trop lourd/léger';
         } else {
           weightTip = isCompound
             ? t('weightTipCompound' as any)
             : t('weightTipIsolation' as any);
         }
-      } else {
-        weightTip = isCompound
-          ? t('weightTipCompound' as any)
-          : t('weightTipIsolation' as any);
       }
 
       const sets: ActiveSet[] = Array.from({ length: pe.targetSets }, (_, i) => ({
