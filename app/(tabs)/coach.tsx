@@ -620,14 +620,23 @@ export default function CoachScreen() {
     });
   }, []);
 
-  // Initial greeting — run once when context becomes available
+  // Initial greeting — fire ONCE per chat lifetime, not per component mount.
+  // The chat is persisted in chatStore, so checking `persistedMessages.length`
+  // prevents stacking duplicate greetings every time the user relaunches the
+  // app or switches tabs.
   const greetingSentRef = useRef(false);
   useEffect(() => {
     if (!coachContext || greetingSentRef.current) return;
+    // Already have history (any prior session, including a past greeting) →
+    // skip the auto-greeting entirely. The user can just keep talking.
+    if (persistedMessages.length > 0) {
+      greetingSentRef.current = true;
+      return;
+    }
     greetingSentRef.current = true;
     const response = getCoachResponse('greeting', coachContext);
     addCoachMessages(response.messages, response.quickReplies);
-  }, [coachContext, addCoachMessages]);
+  }, [coachContext, addCoachMessages, persistedMessages.length]);
 
   // Send message to Groq AI with fallback to templates
   const sendToAI = useCallback(async (userText: string, fallbackType: QuestionType) => {
