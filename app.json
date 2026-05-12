@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "fr.forga.ios",
-      "buildNumber": "63",
+      "buildNumber": "64",
       "usesAppleSignIn": true,
       "associatedDomains": [
         "applinks:forga.fr",
