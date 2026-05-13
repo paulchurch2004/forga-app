@@ -36,17 +36,15 @@ type BudgetFilter = 'all' | 'eco' | 'premium';
 type RestrictionFilter = 'all' | Restriction;
 
 /** Each slot displays as a 2-line chip:
- *   ☀️ Matin
+ *   Matin
  *   7-9h
- * Words deliberately simple — "Collation" instead of the ambiguous "Encas".
- * Times shortened (e.g. "7-9h" not "7h-9h") so they fit on one line on small
- * phones. */
-const SLOT_META: Record<MealSlot, { emoji: string; label: string; time: string }> = {
-  breakfast: { emoji: '☀️', label: 'Matin', time: '7-9h' },
-  morning_snack: { emoji: '🥨', label: 'Collation', time: '10-11h' },
-  lunch: { emoji: '🍽️', label: 'Midi', time: '12-14h' },
-  afternoon_snack: { emoji: '🍪', label: 'Goûter', time: '16-17h' },
-  dinner: { emoji: '🌙', label: 'Soir', time: '19-21h' },
+ * Sober text-only design — emojis felt childish / AI-generated. */
+const SLOT_META: Record<MealSlot, { label: string; time: string }> = {
+  breakfast: { label: 'Matin', time: '7-9h' },
+  morning_snack: { label: 'Collation', time: '10-11h' },
+  lunch: { label: 'Midi', time: '12-14h' },
+  afternoon_snack: { label: 'Goûter', time: '16-17h' },
+  dinner: { label: 'Soir', time: '19-21h' },
 };
 
 const SLOT_ORDER: MealSlot[] = ['breakfast', 'morning_snack', 'lunch', 'afternoon_snack', 'dinner'];
@@ -220,7 +218,7 @@ export default function MealsScreen() {
         </Text>
       </View>
 
-      {/* Slot quick-switcher — 2-line chips with emoji + time range.
+      {/* Slot quick-switcher — sober 2-line chips (label + time).
           The chip matching the current hour gets a subtle "now" outline. */}
       <ScrollView
         horizontal
@@ -244,13 +242,16 @@ export default function MealsScreen() {
               accessibilityLabel={`${meta.label}, ${meta.time}`}
               accessibilityState={{ selected: active }}
             >
-              <View style={styles.slotChipTopRow}>
-                <Text style={styles.slotChipEmoji}>{meta.emoji}</Text>
-                <Text style={[styles.slotChipText, active && styles.slotChipTextActive]}>
-                  {meta.label}
-                </Text>
-              </View>
-              <Text style={[styles.slotChipTime, active && styles.slotChipTimeActive]}>
+              <Text
+                style={[styles.slotChipText, active && styles.slotChipTextActive]}
+                numberOfLines={1}
+              >
+                {meta.label}
+              </Text>
+              <Text
+                style={[styles.slotChipTime, active && styles.slotChipTimeActive]}
+                numberOfLines={1}
+              >
                 {meta.time}
               </Text>
             </Pressable>
@@ -485,23 +486,26 @@ const useStyles = makeStyles((colors) => ({
     gap: 8,
     flexDirection: 'row' as const,
     paddingTop: 14,
-    paddingBottom: 10,
+    paddingBottom: 12,
   },
-  /** 2-line chip layout:
-   *   row 1 (top) — emoji + label inline
-   *   row 2 (below) — small time range
-   *  Vertical hierarchy is now obvious AND nothing overflows the rounded edge.
-   *  Min-width is sized for the longest label ("Collation"). */
+  /** Vertical 2-row chip — sober text-only:
+   *   row 1 — label (centered, bold)
+   *   row 2 — time range (centered, muted)
+   *
+   *   Fixed width so longest label ("Collation", 9 chars at 13pt) fits and
+   *   all chips align visually. Explicit lineHeight everywhere =>
+   *   predictable height of 56px (10 + 18 + 2 + 14 + 12). */
   slotChip: {
-    minWidth: 96,
+    width: 92,
     paddingTop: 10,
-    paddingBottom: 11,
-    paddingHorizontal: 14,
-    borderRadius: 14,
+    paddingBottom: 12,
+    paddingHorizontal: 6,
+    borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
     alignItems: 'center' as const,
+    justifyContent: 'center' as const,
   },
   slotChipActive: {
     backgroundColor: '#FF6B35',
@@ -513,37 +517,30 @@ const useStyles = makeStyles((colors) => ({
     borderColor: 'rgba(255,107,53,0.55)',
     backgroundColor: 'rgba(255,107,53,0.08)',
   },
-  /** Row 1 of the chip: emoji and label sitting on the same line. */
-  slotChipTopRow: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    gap: 5,
-  },
-  slotChipEmoji: {
-    fontSize: 15,
-    lineHeight: 18,
-  },
   slotChipText: {
     fontFamily: fonts.body,
     fontSize: 13,
-    lineHeight: 16,
+    lineHeight: 18,
     fontWeight: '700' as const,
     color: 'rgba(255,255,255,0.92)',
+    textAlign: 'center' as const,
+    letterSpacing: 0.1,
   },
   slotChipTextActive: {
     color: '#FFFFFF',
   },
   slotChipTime: {
     fontFamily: fonts.body,
-    fontSize: 11,
+    fontSize: 10,
     lineHeight: 14,
     fontWeight: '600' as const,
-    color: 'rgba(255,255,255,0.48)',
+    color: 'rgba(255,255,255,0.5)',
     textAlign: 'center' as const,
-    marginTop: 4,
+    marginTop: 2,
+    letterSpacing: 0.2,
   },
   slotChipTimeActive: {
-    color: 'rgba(255,255,255,0.9)',
+    color: 'rgba(255,255,255,0.92)',
   },
   searchWrap: {
     flexDirection: 'row' as const,

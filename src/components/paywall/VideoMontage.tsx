@@ -1,38 +1,64 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Animated, StyleSheet, Platform } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
 
 /**
- * Curated list of 10 short sports / extreme effort clips, looped at 1s each.
- * Source: Mixkit free stock video CDN — verified live (HTTP 206 streaming OK).
- * If any URL ever 404s, swap by browsing https://mixkit.co/free-stock-video/<keyword>/
- * and grabbing the 1080p MP4 link.
+ * Sport montage — rapid-fire clip cycler designed to feel like a hype reel.
+ *
+ * Why 3 players instead of 2: with 600 ms-per-clip cuts and HTTP-streamed
+ * MP4s, a single "ping-pong" pair doesn't give the offline player enough
+ * time to buffer the next clip → black flash. A rolling window of 3
+ * players means at any moment there is one VISIBLE, one PRELOADED ready
+ * to become visible, and one ACTIVELY LOADING the clip after that.
+ *
+ * Clip pool is Mixkit free-license, 1080p. The rotation order is
+ * shuffled at mount so two consecutive sessions don't feel identical.
  */
 const CLIPS: string[] = [
-  // Boxing — heavy bag training
-  'https://assets.mixkit.co/videos/40954/40954-1080.mp4',
-  // Female workout / running on treadmill
-  'https://assets.mixkit.co/videos/32809/32809-1080.mp4',
-  // Boxing combat 2 — sparring
-  'https://assets.mixkit.co/videos/40969/40969-1080.mp4',
-  // Tennis serve
-  'https://assets.mixkit.co/videos/869/869-1080.mp4',
-  // Race car — circuit
-  'https://assets.mixkit.co/videos/615/615-1080.mp4',
-  // Skydive / parachute
-  'https://assets.mixkit.co/videos/4052/4052-1080.mp4',
-  // Athlete running / sprint outdoor
-  'https://assets.mixkit.co/videos/606/606-1080.mp4',
-  // Boxing 3 — gym training
-  'https://assets.mixkit.co/videos/40962/40962-1080.mp4',
-  // Tennis 2 — rally
-  'https://assets.mixkit.co/videos/876/876-1080.mp4',
-  // Workout / fitness moves
-  'https://assets.mixkit.co/videos/608/608-1080.mp4',
+  // ── Fight / combat ──
+  'https://assets.mixkit.co/videos/40954/40954-1080.mp4', // heavy bag training
+  'https://assets.mixkit.co/videos/40969/40969-1080.mp4', // sparring
+  'https://assets.mixkit.co/videos/40962/40962-1080.mp4', // gym training
+  'https://assets.mixkit.co/videos/40967/40967-1080.mp4', // boxing footwork
+  'https://assets.mixkit.co/videos/40978/40978-1080.mp4', // bag work
+
+  // ── Run / sprint ──
+  'https://assets.mixkit.co/videos/606/606-1080.mp4',     // outdoor sprint
+  'https://assets.mixkit.co/videos/32809/32809-1080.mp4', // treadmill
+  'https://assets.mixkit.co/videos/4046/4046-1080.mp4',   // running outdoor
+  'https://assets.mixkit.co/videos/4640/4640-1080.mp4',   // sprint focus
+
+  // ── Strength / fitness ──
+  'https://assets.mixkit.co/videos/608/608-1080.mp4',     // fitness moves
+  'https://assets.mixkit.co/videos/4933/4933-1080.mp4',   // pull-ups
+  'https://assets.mixkit.co/videos/5005/5005-1080.mp4',   // deadlift
+  'https://assets.mixkit.co/videos/4922/4922-1080.mp4',   // squat
+  'https://assets.mixkit.co/videos/4990/4990-1080.mp4',   // bench press
+
+  // ── Cardio / endurance ──
+  'https://assets.mixkit.co/videos/4052/4052-1080.mp4',   // skydive
+  'https://assets.mixkit.co/videos/615/615-1080.mp4',     // race car circuit
+  'https://assets.mixkit.co/videos/869/869-1080.mp4',     // tennis serve
+  'https://assets.mixkit.co/videos/876/876-1080.mp4',     // tennis rally
+  'https://assets.mixkit.co/videos/4641/4641-1080.mp4',   // mountain bike
+  'https://assets.mixkit.co/videos/4825/4825-1080.mp4',   // surfing
+  'https://assets.mixkit.co/videos/4945/4945-1080.mp4',   // basketball
+  'https://assets.mixkit.co/videos/4985/4985-1080.mp4',   // climbing
 ];
 
-const CLIP_DURATION_MS = 1500;
-const CROSSFADE_MS = 350;
+const CLIP_DURATION_MS = 600; // sport-montage fast cut feel
+const CROSSFADE_MS = 200; // tight crossfade that hides the source swap
+
+/** Returns a shuffled copy of the input array. Avoids two consecutive
+ *  identical clips by re-shuffling if the join wraps to the same id. */
+function shuffleClips(input: string[]): string[] {
+  const out = [...input];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
 
 interface VideoMontageProps {
   /** Override the default clip list. Use file:// URIs for local bundled assets. */
@@ -42,86 +68,103 @@ interface VideoMontageProps {
 }
 
 export function VideoMontage({ clips = CLIPS, clipDurationMs = CLIP_DURATION_MS }: VideoMontageProps) {
-  // Two players ping-pong: while one shows, the other preloads the next clip.
-  const [activePlayer, setActivePlayer] = useState<'A' | 'B'>('A');
-  const indexRef = useRef(0);
+  // Stable shuffled order per mount.
+  const playlist = useMemo(() => shuffleClips(clips), [clips]);
+
+  // Rolling 3-player window. Player A is visible at mount; B and C are
+  // pre-loaded with the next two clips.
+  const [visibleSlot, setVisibleSlot] = useState<'A' | 'B' | 'C'>('A');
+  // Track which clip index each player currently has loaded.
+  const slotIndexRef = useRef<{ A: number; B: number; C: number }>({ A: 0, B: 1, C: 2 });
+  // Cursor: position in the shuffled playlist that is CURRENTLY visible.
+  const cursorRef = useRef(0);
+
   const opacityA = useRef(new Animated.Value(1)).current;
   const opacityB = useRef(new Animated.Value(0)).current;
+  const opacityC = useRef(new Animated.Value(0)).current;
 
-  const playerA = useVideoPlayer(clips[0] ?? null, (p) => {
+  const playerA = useVideoPlayer(playlist[0] ?? null, (p) => {
     p.loop = true;
     p.muted = true;
     p.play();
   });
-  const playerB = useVideoPlayer(clips[1] ?? null, (p) => {
+  const playerB = useVideoPlayer(playlist[1] ?? null, (p) => {
+    p.loop = true;
+    p.muted = true;
+    p.play();
+  });
+  const playerC = useVideoPlayer(playlist[2] ?? null, (p) => {
     p.loop = true;
     p.muted = true;
     p.play();
   });
 
   useEffect(() => {
-    if (clips.length === 0) return;
+    if (playlist.length === 0) return;
+
     const interval = setInterval(() => {
-      indexRef.current = (indexRef.current + 1) % clips.length;
+      const next = cursorRef.current + 1;
+      cursorRef.current = next;
 
-      const willShow = activePlayer === 'A' ? 'B' : 'A';
-      const offline = activePlayer;
+      // Determine slots:
+      //   incoming  = the player that holds the (cursor) clip and will fade in
+      //   outgoing  = the currently visible player that will fade out
+      //   recycling = the third player that we'll repurpose to load the
+      //               clip at (cursor + 2) — that's the clip we'll need
+      //               2 ticks from now.
+      const slots: Array<'A' | 'B' | 'C'> = ['A', 'B', 'C'];
+      const outgoing = visibleSlot;
+      const others = slots.filter((s) => s !== outgoing);
+      // The "incoming" is whichever of the two non-visible slots holds the
+      // current cursor's clip. We track loaded indices in slotIndexRef.
+      const incoming = others.find((s) => slotIndexRef.current[s] === next % playlist.length)
+        ?? others[0];
+      const recycling = others.find((s) => s !== incoming)!;
 
-      // The willShow player already has the right clip (preloaded last tick),
-      // so we DO NOT replace its source here — that would force a re-buffer
-      // and produce a black flash during the fade-in.
-
-      // Crossfade first.
+      // Crossfade outgoing → incoming.
+      const fadeMap = { A: opacityA, B: opacityB, C: opacityC } as const;
       Animated.parallel([
-        Animated.timing(willShow === 'A' ? opacityA : opacityB, {
-          toValue: 1, duration: CROSSFADE_MS, useNativeDriver: true,
-        }),
-        Animated.timing(offline === 'A' ? opacityA : opacityB, {
-          toValue: 0, duration: CROSSFADE_MS, useNativeDriver: true,
-        }),
+        Animated.timing(fadeMap[incoming], { toValue: 1, duration: CROSSFADE_MS, useNativeDriver: true }),
+        Animated.timing(fadeMap[outgoing], { toValue: 0, duration: CROSSFADE_MS, useNativeDriver: true }),
       ]).start();
 
-      setActivePlayer(willShow);
+      setVisibleSlot(incoming);
 
-      // Once the old player is hidden, swap its source to the clip
-      // it'll need to show next time it becomes visible (= 2 clips ahead).
-      const futureUrl = clips[(indexRef.current + 1) % clips.length];
+      // Once the outgoing player is hidden, repurpose the *recycling* slot
+      // for the clip we'll need next tick. Doing this on the hidden player
+      // means buffering happens off-screen — no black flash.
+      const futureIdx = (next + 1) % playlist.length;
+      const futureUrl = playlist[futureIdx];
+      slotIndexRef.current[recycling] = futureIdx;
       setTimeout(() => {
         try {
-          if (offline === 'A') playerA.replace(futureUrl);
-          else playerB.replace(futureUrl);
-        } catch { /* ignore */ }
-      }, CROSSFADE_MS + 100);
+          if (recycling === 'A') playerA.replace(futureUrl);
+          else if (recycling === 'B') playerB.replace(futureUrl);
+          else playerC.replace(futureUrl);
+        } catch {
+          /* a 404'd clip stays on its previous source — visually fine */
+        }
+      }, CROSSFADE_MS + 80);
     }, clipDurationMs);
 
     return () => clearInterval(interval);
-    // We intentionally don't list `activePlayer` to keep the interval steady.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [clips, clipDurationMs]);
+  }, [playlist, clipDurationMs]);
 
-  if (Platform.OS === 'web' || clips.length === 0) {
-    // expo-video doesn't render on web in dev — return a transparent shell so
-    // the surrounding card layout (brackets, timecode) keeps its dimensions.
+  if (Platform.OS === 'web' || playlist.length === 0) {
     return <View style={StyleSheet.absoluteFill} />;
   }
 
   return (
     <View style={StyleSheet.absoluteFill}>
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: opacityA }]}>
-        <VideoView
-          player={playerA}
-          style={StyleSheet.absoluteFill}
-          contentFit="cover"
-          nativeControls={false}
-        />
+        <VideoView player={playerA} style={StyleSheet.absoluteFill} contentFit="cover" nativeControls={false} />
       </Animated.View>
       <Animated.View style={[StyleSheet.absoluteFill, { opacity: opacityB }]}>
-        <VideoView
-          player={playerB}
-          style={StyleSheet.absoluteFill}
-          contentFit="cover"
-          nativeControls={false}
-        />
+        <VideoView player={playerB} style={StyleSheet.absoluteFill} contentFit="cover" nativeControls={false} />
+      </Animated.View>
+      <Animated.View style={[StyleSheet.absoluteFill, { opacity: opacityC }]}>
+        <VideoView player={playerC} style={StyleSheet.absoluteFill} contentFit="cover" nativeControls={false} />
       </Animated.View>
     </View>
   );
