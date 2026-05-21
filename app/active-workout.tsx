@@ -28,7 +28,7 @@ import { pushWorkoutToHealth } from '../src/hooks/useAppleHealth';
 import { useAuthStore } from '../src/store/authStore';
 import { useProgramStore } from '../src/store/programStore';
 import { useUserStore } from '../src/store/userStore';
-import { getStartingWeightForExercise } from '../src/services/strengthTest';
+import { getStartingWeightForExercise, estimateOneRMForExercise, workingWeightForReps } from '../src/services/strengthTest';
 import { getRestConfig, formatRestTime as fmtRest } from '../src/engine/restEngine';
 import { suggestNextWeight, type SessionRecord } from '../src/engine/oneRepMax';
 import { RestCircleTimer } from '../src/components/training/RestCircleTimer';
@@ -173,6 +173,7 @@ export default function ActiveWorkoutScreen() {
   const markDayCompleted = useProgramStore((s) => s.markDayCompleted);
   const getLastSession = useTrainingStore((s) => s.getLastSessionForExercise);
   const getExerciseHistory = useTrainingStore((s) => s.getExerciseHistory);
+  const oneRepMaxByExercise = useTrainingStore((s) => s.oneRepMaxByExercise);
   const { checkWorkoutBadges, currentTrainingStreak, totalWorkouts } = useTrainingStreak();
   const userId = useAuthStore((s) => s.session?.user?.id);
   const objective = useUserStore((s) => s.profile?.objective ?? 'maintain');
@@ -390,29 +391,55 @@ export default function ActiveWorkoutScreen() {
       let deloadSuggested = false;
       let previousTopWeight = 0;
 
+      // ─── 1RM connu ? On l'utilise (calibration test ou Epley) ───
+      const programId = params.programId ?? '';
+      const is531 = /531/i.test(programId);
+      const oneRM = estimateOneRMForExercise(pe.exerciseId, strengthTest, oneRepMaxByExercise);
+
       const history = getExerciseHistory(pe.exerciseId);
       const sessionRecords: SessionRecord[] = history.map((h) => ({
         date: h.date,
         sets: h.sets,
       }));
 
-      if (sessionRecords.length > 0) {
+      // 5/3/1 : recalcule la charge à chaque séance via la formule Wendler
+      // (% du 1RM courant). C'est le principe même du programme : la
+      // charge est INDEXÉE sur le 1RM, pas sur la progression linéaire
+      // +2.5 kg/séance. Donc on shortcircuite suggestNextWeight ici.
+      const force531Path = is531 && oneRM > 0;
+
+      if (force531Path) {
+        // 5/3/1 Wendler : top set = 85% TM = 76.5% 1RM. La charge est
+        // INDEXÉE sur le 1RM courant, pas sur l'historique (le BBB et
+        // le top set partagent le même exerciseId, donc l'historique
+        // est ambigu pour cet exo).
+        suggestedWeight = Math.max(20, Math.round(oneRM * 0.765 * 2) / 2);
+        weightTip = `Calculé sur ton 1RM ${oneRM} kg (Wendler 85% TM)`;
+      } else if (sessionRecords.length > 0) {
+        // Progression linéaire : +increment si tous reps validés à la
+        // dernière session, sinon même charge ou deload (cf §A.3 spec).
         const suggestion = suggestNextWeight(sessionRecords, isCompound, adjustedReps, isLowerBody);
         suggestedWeight = suggestion.weight;
         weightTip = suggestion.reason;
         deloadSuggested = suggestion.deloadSuggested;
-        // Capture last session top weight (used to revert if user dismisses deload)
         const lastSorted = [...sessionRecords].sort((a, b) => a.date.localeCompare(b.date));
         const lastSets = lastSorted[lastSorted.length - 1]?.sets ?? [];
         previousTopWeight = [...lastSets]
           .sort((a, b) => (b?.weight ?? 0) - (a?.weight ?? 0))[0]?.weight ?? 0;
+      } else if (oneRM > 0) {
+        // Pas d'historique de cet exo dans l'app mais 1RM connu (test
+        // de calibration ou Epley d'un exo similaire). Dérive un working
+        // weight précis pour les reps demandées via Epley inverse.
+        // Avant : un user qui connaît son bench 1RM 95 kg voyait 62.5 kg
+        // pour 10 reps (trop lourd → stagnation). Maintenant : 57 kg.
+        const w = workingWeightForReps(oneRM, adjustedReps);
+        if (w > 0) {
+          suggestedWeight = Math.max(isCompound ? 20 : 1, w);
+          const pct = Math.round((w / oneRM) * 100);
+          weightTip = `${pct}% de ton 1RM ${oneRM} kg pour ${adjustedReps} reps`;
+        }
       } else {
-        // No history for this exercise yet. Try (in order):
-        //   1. The strength test seed if it matches the exercise.
-        //   2. A ratio derived from the user's tested lifts.
-        //   3. A bodyweight × level × sex fallback (always available
-        //      provided the profile has a current weight).
-        // 1er essai : avec les charges du test de calibration
+        // Aucun signal sur l'user pour cet exo → bodyweight fallback.
         let seed = getStartingWeightForExercise(
           pe.exerciseId,
           strengthTest?.startingWeights,
@@ -422,12 +449,6 @@ export default function ActiveWorkoutScreen() {
             trainingLevel: profile?.trainingLevel,
           },
         );
-        // 2e essai : si le test n'a rien donné pour cet exo (cas
-        // possibles : strengthTest pas encore hydraté au mount, ou
-        // l'exo a un mapping cassé, ou la valeur calibrée est 0),
-        // on retente SANS le strengthTest → force le fallback
-        // bodyweight × pattern qui retourne toujours une valeur
-        // sensée tant que profile.currentWeight est set.
         if (seed === 0 && profile?.currentWeight) {
           seed = getStartingWeightForExercise(
             pe.exerciseId,
@@ -440,15 +461,37 @@ export default function ActiveWorkoutScreen() {
           );
         }
         if (seed > 0) {
+          // Le seed du test est calibré pour ~5 reps. Si le programme
+          // demande plus de reps, dérate via Epley pour rester juste
+          // (un working_5 sur 10 reps = trop lourd, l'user stagne).
+          if (strengthTest?.startingWeights && adjustedReps > 6) {
+            // working_5 ≈ 1RM × 0.77 → 1RM ≈ working_5 / 0.77
+            const derivedOneRM = seed / 0.77;
+            const w = workingWeightForReps(derivedOneRM, adjustedReps);
+            if (w > 0) seed = Math.max(isCompound ? 20 : 1, w);
+          }
           suggestedWeight = seed;
           weightTip = strengthTest?.startingWeights
-            ? 'Charge calibrée selon ton test'
-            : 'Estimation conservatrice selon ton poids — ajuste si trop lourd/léger';
+            ? `Calibré selon ton test (${adjustedReps} reps)`
+            : 'Estimation selon ton poids — ajuste si nécessaire';
         } else {
           weightTip = isCompound
             ? t('weightTipCompound' as any)
             : t('weightTipIsolation' as any);
         }
+      }
+
+      // ─── Application du weightFactor programme (ex. 5/3/1 BBB 0.6) ───
+      // Certains programmes ré-utilisent le même exerciseId à des
+      // intensités différentes dans la même séance (5/3/1 : top set
+      // 3×5 lourd PUIS 5×10 light BBB). Sans ce facteur, les deux blocs
+      // héritaient de la même charge → cassé physiologiquement.
+      if (suggestedWeight > 0 && pe.weightFactor && pe.weightFactor !== 1) {
+        const factored = suggestedWeight * pe.weightFactor;
+        suggestedWeight = Math.max(1, Math.round(factored * 2) / 2);
+        const factorPct = Math.round(pe.weightFactor * 100);
+        const factorTip = `Light volume set (${factorPct}% du top set)`;
+        weightTip = weightTip ? `${weightTip} · ${factorTip}` : factorTip;
       }
 
       // ─── Application du loadMultiplier du check-in pré-séance ───

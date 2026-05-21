@@ -439,7 +439,7 @@ export default function ProfileScreen() {
           colors={['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.75)']}
           style={styles.heroOverlay}
         >
-          <View style={[styles.headerTopRow, { top: insets.top + spacing.sm }]}>
+          <View style={[styles.headerTopRow, { top: insets.top }]}>
             <Pressable onPress={() => router.back()} hitSlop={16} style={styles.backRow}>
               <Text style={styles.backText}>{'\u2039'} {t('home')}</Text>
             </Pressable>

@@ -289,6 +289,14 @@ interface BubbleProps {
   userAvatarUri?: string;
 }
 
+/** Avatar du coach FORGA — portrait fitness pro, sert d'identité visuelle
+ *  dans le chat. Une seule URI partagée pour tous les messages (pas
+ *  d'avatar custom par "thématique" du coach, on garde une identité
+ *  cohérente). Pourrait passer à un asset local en v1.1 pour gagner en
+ *  perf/résilience offline. */
+const COACH_AVATAR_URI =
+  'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=200&q=80&auto=format&fit=crop&crop=faces';
+
 function MessageBubble({ message, isLastInCluster, isFirstInCluster, userAvatarUri }: BubbleProps) {
   const styles = useStyles();
   const { t } = useT();
@@ -372,13 +380,31 @@ function MessageBubble({ message, isLastInCluster, isFirstInCluster, userAvatarU
   const showFeedback =
     message.isCoach && !isTyping && message.kind !== 'quota_notice' && isLastInCluster;
 
-  // Avatar user : affiché à droite UNIQUEMENT pour la dernière bulle
-  // d'un cluster user (iMessage pattern). Pour le coach pas d'avatar
-  // côté bulles — le header avec "F" sert d'identification.
+  // Avatars : iMessage pattern — visible UNIQUEMENT sur la dernière
+  // bulle d'un cluster (sinon répétition visuelle). Coach à gauche,
+  // user à droite.
+  const showCoachAvatar = message.isCoach && isLastInCluster && message.kind !== 'quota_notice';
   const showUserAvatar = !message.isCoach && isLastInCluster && !!userAvatarUri;
 
   return (
     <Animated.View style={[rowStyle, animStyle]}>
+      {/* Réserve la zone avatar à gauche pour TOUS les messages coach
+          (avatar affiché ou non), sinon les bulles d'un même cluster
+          ne sont pas alignées verticalement. iMessage fait pareil :
+          avatar seulement sur la dernière, indent identique sur les
+          précédentes. */}
+      {message.isCoach && message.kind !== 'quota_notice' && (
+        showCoachAvatar ? (
+          <Image
+            source={{ uri: COACH_AVATAR_URI }}
+            style={styles.coachAvatar}
+            contentFit="cover"
+            cachePolicy="memory-disk"
+          />
+        ) : (
+          <View style={styles.avatarPlaceholder} />
+        )
+      )}
       <Pressable
         onPress={() => {
           if (isTyping) setSkipTyping(true);
@@ -1356,6 +1382,25 @@ const useStyles = makeStyles((colors) => ({
     marginLeft: 6,
     alignSelf: 'flex-end',
     marginBottom: 2,
+  },
+  /** Avatar coach FORGA affiché à gauche de la dernière bulle d'un
+   *  cluster coach (iMessage pattern). Donne une identité visuelle
+   *  au coach IA plutôt qu'une suite de bulles anonymes. */
+  coachAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    marginRight: 6,
+    alignSelf: 'flex-end',
+    marginBottom: 2,
+  },
+  /** Placeholder transparent — réserve la zone avatar sur les bulles
+   *  coach intermédiaires d'un cluster, pour que toutes les bulles
+   *  soient alignées sur la même verticale (l'avatar n'apparaît que
+   *  sur la dernière du cluster mais l'indent reste constant). */
+  avatarPlaceholder: {
+    width: 28,
+    marginRight: 6,
   },
 
   // Quota notice — system-style centered card

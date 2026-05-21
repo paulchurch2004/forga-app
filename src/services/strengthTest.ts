@@ -370,6 +370,82 @@ function getBodyweightFallback(
   return 0;
 }
 
+/**
+ * Estime le 1RM d'un user pour un exercice, par ordre de fiabilité :
+ *   1. 1RM Epley vivant (`oneRepMaxByExercise[id]`) — calculé à partir
+ *      des vrais sets de l'user dans l'app. Le + à jour.
+ *   2. 1RM connu déclaré au test de calibration (`strengthTest.answers.knownXKg`).
+ *      Mapping : bench_press → knownBenchKg, squat → knownSquatKg,
+ *      deadlift → knownDeadliftKg. Le user a tapé son vrai max.
+ *   3. Working weight du test ÷ 0.65 = 1RM estimé. La formule du test
+ *      pose `working = 1RM × 0.65`, on inverse pour récupérer le 1RM.
+ *   4. 0 si rien — caller doit fall back au seed bodyweight.
+ *
+ * Utilisé par les programmes qui ont besoin d'un 1RM précis (5/3/1 où
+ * top set = 85% TM = 76.5% 1RM, et BBB = 60% TM = 54% 1RM).
+ */
+export function estimateOneRMForExercise(
+  exerciseId: string,
+  strengthTest: StrengthTestResult | null | undefined,
+  oneRepMaxByExercise: Record<string, { value: number }> | null | undefined,
+): number {
+  // 1) Live 1RM via Epley sur les vrais sets passés
+  const live = oneRepMaxByExercise?.[exerciseId]?.value ?? 0;
+  if (live > 0) return live;
+
+  if (!strengthTest) return 0;
+
+  // 2) 1RM déclaré au test de calibration
+  const a = strengthTest.answers ?? {};
+  if (exerciseId === 'bench_press' || exerciseId === 'pause_bench_press' || exerciseId === 'close_grip_bench') {
+    if (a.knownBenchKg && a.knownBenchKg > 0) return a.knownBenchKg;
+  }
+  if (exerciseId === 'squat' || exerciseId === 'pause_squat' || exerciseId === 'front_squat' || exerciseId === 'high_bar_squat') {
+    if (a.knownSquatKg && a.knownSquatKg > 0) return a.knownSquatKg;
+  }
+  if (exerciseId === 'deadlift' || exerciseId === 'romanian_deadlift' || exerciseId === 'sumo_deadlift' || exerciseId === 'rdl') {
+    if (a.knownDeadliftKg && a.knownDeadliftKg > 0) return a.knownDeadliftKg;
+  }
+
+  // 3) Dérivation depuis le working weight du test (1RM ≈ working / 0.65)
+  const sw = strengthTest.startingWeights;
+  if (sw) {
+    if (exerciseId === 'bench_press' && sw.bench > 0) return Math.round(sw.bench / 0.65);
+    if (exerciseId === 'squat' && sw.squat > 0) return Math.round(sw.squat / 0.65);
+    if (exerciseId === 'deadlift' && sw.deadlift > 0) return Math.round(sw.deadlift / 0.65);
+    if (exerciseId === 'overhead_press' && sw.overheadPress > 0) return Math.round(sw.overheadPress / 0.65);
+  }
+
+  return 0;
+}
+
+/**
+ * Renvoie le working weight pour N reps via la formule Epley inversée :
+ *   working = 1RM × (1 - reps/30)
+ *
+ * Concrètement :
+ *   - 5 reps  → 83% 1RM
+ *   - 8 reps  → 73% 1RM
+ *   - 10 reps → 67% 1RM
+ *   - 12 reps → 60% 1RM
+ *
+ * Sans cette dérivation, on prenait le `working` du test (calibré à 5 reps)
+ * tel quel pour des sets à 10 reps → poids trop lourd, l'user n'atteint
+ * jamais la cible et stagne. Avec : on ajuste automatiquement selon les
+ * reps prescrites du programme.
+ */
+export function workingWeightForReps(oneRM: number, reps: number): number {
+  if (oneRM <= 0 || reps <= 0) return 0;
+  // On laisse une marge de sécurité 2-3 RIR : 1RM × (1 - (reps+2)/30)
+  // 5 reps cible → on charge comme si on devait faire 7 reps (= 77% 1RM)
+  // 10 reps cible → on charge comme si 12 reps (= 60% 1RM)
+  // Ça laisse le user à RIR 2 sur le dernier set, conforme à la spec
+  // TRAINING_PROGRAMS_SPEC.md §A.3 (RIR 1-3 sur compounds).
+  const adjustedReps = reps + 2;
+  const pct = Math.max(0.4, 1 - adjustedReps / 30);
+  return Math.round(oneRM * pct * 2) / 2;
+}
+
 /** Estimate the starting weight for a given exercise.
  *
  * Priority chain:

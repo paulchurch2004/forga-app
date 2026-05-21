@@ -19,6 +19,17 @@ export interface ProgramExercise {
   targetSets: number;
   targetReps: number;
   restSeconds: number;
+  /** Multiplicateur appliqué au poids suggéré pour CETTE entrée précise.
+   *  Utilisé quand le même exercice apparaît 2× dans la même séance
+   *  avec des intensités différentes (5/3/1 BBB : top set lourd à 85%
+   *  puis BBB léger à 50-60%). Sans ce facteur, les deux entrées
+   *  héritaient de la MÊME charge → l'user voyait 62.5 kg pour 5 reps
+   *  ET pour 10 reps, ce qui est cassé physiologiquement.
+   *  - undefined : pas de modif (comportement par défaut, top set / unique entry)
+   *  - 0.6 : BBB après top set 5/3/1
+   *  - 0.5 : back-off très léger
+   *  - 1.1+ : top set encore plus lourd qu'un seed standard (rare) */
+  weightFactor?: number;
 }
 
 export interface CardioSpec {

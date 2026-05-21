@@ -138,7 +138,7 @@ export const EXERCISES: Record<string, Exercise> = {
 
   // ── Core ──
   plank: {
-    id: 'plank', nameKey: 'exPlank', muscleGroup: 'core', isCompound: false,
+    id: 'plank', nameKey: 'exPlank', muscleGroup: 'core', isCompound: false, isTimed: true,
     gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Plank.gif',
     videoUrl: yt('plank tutorial proper form'),
   },
@@ -387,7 +387,7 @@ export const EXERCISES: Record<string, Exercise> = {
     videoUrl: yt('weighted crunch tutorial form'),
   },
   side_plank: {
-    id: 'side_plank', nameKey: 'exSidePlank', muscleGroup: 'core', isCompound: false,
+    id: 'side_plank', nameKey: 'exSidePlank', muscleGroup: 'core', isCompound: false, isTimed: true,
     gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Side-Plank.gif',
     videoUrl: yt('side plank tutorial form'),
   },

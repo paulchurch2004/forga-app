@@ -14,7 +14,8 @@ const ex = (
   targetSets: number,
   targetReps: number,
   restSeconds: number,
-): ProgramExercise => ({ exerciseId, targetSets, targetReps, restSeconds });
+  weightFactor?: number,
+): ProgramExercise => ({ exerciseId, targetSets, targetReps, restSeconds, weightFactor });
 
 // ── Cardio days (kept for plan generator) ────────────────────────────────────
 const CARDIO_LISS: ProgramDay = {
@@ -186,7 +187,7 @@ const D03_LH_F: ProgramDay = {
     ex('bulgarian_split_squat', 3, 10, 90),
     ex('romanian_deadlift', 4, 9, 90),
     ex('cable_kickbacks', 3, 13, 60),
-    ex('abductor_machine', 3, 17, 45),
+    ex('abductor_machine', 3, 15, 45),
     ex('calf_raises', 4, 13, 60),
   ],
 };
@@ -317,7 +318,7 @@ const D05_LEGS_A_F: ProgramDay = {
     ex('bulgarian_split_squat', 3, 10, 90),
     ex('cable_kickbacks', 3, 13, 60),
     ex('leg_curl', 3, 11, 60),
-    ex('abductor_machine', 3, 17, 45),
+    ex('abductor_machine', 3, 15, 45),
   ],
 };
 const D05_PUSH_B: ProgramDay = {
@@ -366,7 +367,7 @@ const D05_LEGS_B_F: ProgramDay = {
     ex('single_leg_hip_thrust', 3, 10, 90),
     ex('walking_lunges', 3, 12, 90),
     ex('cable_pull_through', 3, 13, 60),
-    ex('abductor_machine', 3, 18, 45),
+    ex('abductor_machine', 3, 15, 45),
     ex('calf_raises', 4, 13, 60),
   ],
 };
@@ -374,12 +375,17 @@ const D05_LEGS_B_F: ProgramDay = {
 // =============================================================================
 // 06. BULK_AVA_4D_531 — Bulk Avancé 4j 5/3/1 BBB (Week 1 baseline displayed)
 // =============================================================================
+// 5/3/1 BBB (Wendler) : main lift en 3×5 lourd (~85 % TM) PUIS BBB en
+// 5×10 light (~60 % TM) sur le MÊME exercice. Ratio BBB/top = 60/85 ≈
+// 0.70, qu'on applique via weightFactor. Sans ça les deux entrées
+// héritaient de la même charge suggérée (bug remonté par l'user :
+// "62.5 kg pour 5 reps ET 10 reps, c'est cassé").
 const D06_BENCH: ProgramDay = {
   id: 'bulk_ava_4d_531_bench', nameKey: 'Bench Day (5/3/1)', type: 'muscu',
   muscleGroups: ['chest', 'back', 'shoulders', 'arms'],
   exercises: [
     ex('bench_press', 3, 5, 180),
-    ex('bench_press', 5, 10, 90),
+    ex('bench_press', 5, 10, 90, 0.7),
     ex('t_bar_row', 5, 10, 90),
     ex('lateral_raises', 4, 13, 60),
     ex('tricep_pushdown', 3, 11, 60),
@@ -390,7 +396,7 @@ const D06_SQUAT: ProgramDay = {
   muscleGroups: ['legs', 'core'],
   exercises: [
     ex('squat', 3, 5, 240),
-    ex('squat', 5, 10, 120),
+    ex('squat', 5, 10, 120, 0.7),
     ex('leg_curl', 5, 10, 90),
     ex('calf_raises', 4, 12, 60),
     ex('hanging_leg_raise', 3, 10, 60),
@@ -401,8 +407,8 @@ const D06_OHP: ProgramDay = {
   muscleGroups: ['shoulders', 'back', 'arms'],
   exercises: [
     ex('overhead_press', 3, 5, 180),
-    ex('overhead_press', 5, 10, 90),
-    ex('pull_ups', 5, 9, 90),
+    ex('overhead_press', 5, 10, 90, 0.7),
+    ex('pull_ups', 4, 8, 90),
     ex('barbell_curl', 4, 11, 60),
     ex('face_pulls', 3, 13, 45),
   ],
@@ -412,7 +418,7 @@ const D06_DEAD: ProgramDay = {
   muscleGroups: ['back', 'legs'],
   exercises: [
     ex('deadlift', 3, 5, 240),
-    ex('deadlift', 5, 10, 150),
+    ex('deadlift', 5, 10, 150, 0.7),
     ex('front_squat', 3, 8, 120),
     ex('hip_thrust', 4, 10, 90),
     ex('seated_calf_raise', 4, 13, 60),
@@ -582,7 +588,7 @@ const D09_LH_F: ProgramDay = {
     ex('single_leg_hip_thrust', 3, 10, 90),
     ex('walking_lunges', 3, 12, 90),
     ex('cable_pull_through', 3, 13, 60),
-    ex('abductor_machine', 3, 18, 60),
+    ex('abductor_machine', 3, 15, 60),
     ex('calf_raises', 4, 13, 60),
   ],
 };
@@ -771,7 +777,7 @@ const D12_LB_F: ProgramDay = {
     ex('single_leg_hip_thrust', 3, 10, 90),
     ex('walking_lunges', 3, 12, 90),
     ex('cable_pull_through', 3, 13, 60),
-    ex('abductor_machine', 3, 18, 60),
+    ex('abductor_machine', 3, 15, 60),
     ex('calf_raises', 4, 13, 60),
   ],
 };
@@ -962,7 +968,7 @@ const D16_LG2: ProgramDay = {
     ex('walking_lunges', 3, 12, 90),
     ex('glute_bridge', 3, 13, 60),
     ex('seated_leg_curl', 4, 11, 90),
-    ex('abductor_machine', 3, 17, 45),
+    ex('abductor_machine', 3, 15, 45),
   ],
 };
 const D16_U2: ProgramDay = {

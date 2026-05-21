@@ -39,6 +39,12 @@ export interface Exercise {
   nameKey: string; // i18n key
   muscleGroup: MuscleGroup;
   isCompound: boolean;
+  /** Exercice TENU dans le temps plutôt que comptabilisé en reps
+   *  (plank, side_plank, hollow hold, etc.). Quand true : le champ
+   *  `targetReps` du ProgramExercise est interprété comme des SECONDES
+   *  de tenue. L'UI doit afficher "X s" au lieu de "X reps", et la
+   *  progression se valide quand l'user a tenu la durée complète. */
+  isTimed?: boolean;
   /** Démo animée — GIF court (3-5s) qui boucle. Affiché sur la card
    *  d'exercice et dans le picker. Source principale : fitnessprogramer.com */
   gifUrl?: string;
