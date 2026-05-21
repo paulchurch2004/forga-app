@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, {
   useSharedValue,
@@ -18,6 +19,7 @@ import Animated, {
   withSpring,
   withRepeat,
   withSequence,
+  cancelAnimation,
   Easing,
   FadeIn,
 } from 'react-native-reanimated';
@@ -38,10 +40,12 @@ import {
   type CoachContext,
   type QuickReply,
 } from '../../src/engine/coachChatEngine';
-import { sendCoachMessage, type ChatHistoryEntry } from '../../src/services/coachAI';
+import { sendCoachMessage, submitCoachFeedback, type ChatHistoryEntry } from '../../src/services/coachAI';
+import { syncCoachMemory } from '../../src/services/userSync';
 import { events } from '../../src/services/analytics';
 import { useQuota } from '../../src/hooks/useQuota';
 import { usePremium } from '../../src/hooks/usePremium';
+import { useTypewriter } from '../../src/hooks/useTypewriter';
 import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useResponsive } from '../../src/hooks/useResponsive';
@@ -142,6 +146,14 @@ function TypingIndicator() {
     wave(dot1, 0);
     wave(dot2, 200);
     wave(dot3, 400);
+    // Cleanup : annule les animations infinies au unmount, sinon
+    // elles continuent à tourner sur le UI thread quand l'user quitte
+    // le coach → memory leak + frames perdues sur les autres écrans.
+    return () => {
+      cancelAnimation(dot1);
+      cancelAnimation(dot2);
+      cancelAnimation(dot3);
+    };
   }, []);
 
   const s1 = useAnimatedStyle(() => ({ transform: [{ translateY: dot1.value }] }));
@@ -272,9 +284,12 @@ interface BubbleProps {
   /** True if this is the first message in a cluster — used to add a
    *  little extra top margin between clusters. */
   isFirstInCluster: boolean;
+  /** URI de l'avatar user à afficher à droite des bulles user. Provient
+   *  soit du profil custom (avatarUri), soit d'un fallback genré. */
+  userAvatarUri?: string;
 }
 
-function MessageBubble({ message, isLastInCluster, isFirstInCluster }: BubbleProps) {
+function MessageBubble({ message, isLastInCluster, isFirstInCluster, userAvatarUri }: BubbleProps) {
   const styles = useStyles();
   const { t } = useT();
 
@@ -326,13 +341,99 @@ function MessageBubble({ message, isLastInCluster, isFirstInCluster }: BubblePro
       : null,
   ];
 
+  // Animation typewriter — uniquement sur les messages COACH RÉCENTS
+  // (< 3s depuis l'envoi). Les messages plus anciens, rechargés depuis
+  // le storage à l'ouverture du chat, s'affichent direct (sinon l'user
+  // verrait toute sa conversation se re-taper à chaque ouverture).
+  const isLiveMessage = message.isCoach && Date.now() - message.timestamp < 3000;
+  const [skipTyping, setSkipTyping] = useState(false);
+  const { displayed: typedText, isTyping } = useTypewriter(
+    message.text,
+    isLiveMessage,
+    skipTyping,
+  );
+
+  // Feedback : stocké localement pour persistance pendant la session,
+  // submitted vers Supabase via submitCoachFeedback. Pas de UI rollback —
+  // une fois voté, l'user voit son vote (peut le retoucher).
+  const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
+  const handleFeedback = (rating: 'up' | 'down') => {
+    setFeedback(rating);
+    void submitCoachFeedback({
+      messageId: message.id,
+      messageText: message.text,
+      rating,
+    });
+  };
+
+  // Les boutons feedback n'apparaissent que pour les messages coach,
+  // une fois la frappe terminée (sinon ça pollue pendant l'animation),
+  // et pas pour les bulles "quota_notice".
+  const showFeedback =
+    message.isCoach && !isTyping && message.kind !== 'quota_notice' && isLastInCluster;
+
+  // Avatar user : affiché à droite UNIQUEMENT pour la dernière bulle
+  // d'un cluster user (iMessage pattern). Pour le coach pas d'avatar
+  // côté bulles — le header avec "F" sert d'identification.
+  const showUserAvatar = !message.isCoach && isLastInCluster && !!userAvatarUri;
+
   return (
     <Animated.View style={[rowStyle, animStyle]}>
-      <View style={bubbleStyle}>
+      <Pressable
+        onPress={() => {
+          if (isTyping) setSkipTyping(true);
+        }}
+        style={bubbleStyle}
+      >
         <Text style={message.isCoach ? styles.coachText : styles.userText}>
-          {message.text}
+          {typedText}
+          {isTyping && message.isCoach && <Text style={styles.cursor}>▋</Text>}
         </Text>
-      </View>
+      </Pressable>
+      {showUserAvatar && (
+        <Image
+          source={{ uri: userAvatarUri }}
+          style={styles.userAvatar}
+          contentFit="cover"
+          cachePolicy="memory-disk"
+        />
+      )}
+      {showFeedback && (
+        <View style={styles.feedbackRow}>
+          <Pressable
+            onPress={() => handleFeedback('up')}
+            hitSlop={6}
+            style={[styles.feedbackBtn, feedback === 'up' && styles.feedbackBtnActiveUp]}
+            accessibilityRole="button"
+            accessibilityLabel="Réponse utile"
+          >
+            <Text
+              style={[
+                styles.feedbackIcon,
+                feedback === 'up' && styles.feedbackIconActiveUp,
+              ]}
+            >
+              👍
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => handleFeedback('down')}
+            hitSlop={6}
+            style={[styles.feedbackBtn, feedback === 'down' && styles.feedbackBtnActiveDown]}
+            accessibilityRole="button"
+            accessibilityLabel="Réponse à améliorer"
+          >
+            <Text
+              style={[
+                styles.feedbackIcon,
+                feedback === 'down' && styles.feedbackIconActiveDown,
+              ]}
+            >
+              👎
+            </Text>
+          </Pressable>
+        </View>
+      )}
     </Animated.View>
   );
 }
@@ -349,6 +450,17 @@ export default function CoachScreen() {
   const locale = useSettingsStore((s) => s.locale);
 
   const profile = useUserStore((s) => s.profile);
+
+  // Avatar user pour les bulles : photo custom de l'user si dispo, sinon
+  // un portrait Unsplash neutre selon le sexe déclaré. Permet d'incarner
+  // visuellement le sender côté UI (avant : bulles orange anonymes).
+  const userAvatarUri = useMemo(() => {
+    if (profile?.avatarUri) return profile.avatarUri;
+    return profile?.sex === 'female'
+      ? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80&auto=format&fit=crop&crop=faces'
+      : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80&auto=format&fit=crop&crop=faces';
+  }, [profile?.avatarUri, profile?.sex]);
+
   const { currentScore } = useScoreStore();
   const { isPremium } = usePremium();
   const coachQuota = useQuota('coach_message');
@@ -527,7 +639,7 @@ export default function CoachScreen() {
       .map((b) => b.type);
 
     return {
-      firstName: profile.name.split(' ')[0],
+      firstName: profile.name?.split(' ')[0] || 'Champion',
       hour: new Date().getHours(),
       currentStreak,
       isTodayValidated,
@@ -564,6 +676,7 @@ export default function CoachScreen() {
       targetDeadline: profile.targetDeadline,
       restrictions: profile.restrictions,
       trackingMode: profile.trackingMode,
+      menopauseStatus: profile.menopauseStatus,
       recentWeights,
       lastMeasurement,
       topOneRepMaxes,
@@ -633,7 +746,18 @@ export default function CoachScreen() {
       greetingSentRef.current = true;
       return;
     }
+    // Persisted guard : si on a déjà envoyé un greeting aujourd'hui (même
+    // si les messages ont été clear pour rotation hebdo), on ne re-greete
+    // pas. Évite aussi le double-emission sur remount rapide du composant
+    // (le ref local seul ne suffit pas — il est reset à chaque mount).
+    const today = new Date().toISOString().slice(0, 10);
+    const lastGreetingDate = useChatStore.getState().lastGreetingDate;
+    if (lastGreetingDate === today) {
+      greetingSentRef.current = true;
+      return;
+    }
     greetingSentRef.current = true;
+    useChatStore.setState({ lastGreetingDate: today });
     const response = getCoachResponse('greeting', coachContext);
     addCoachMessages(response.messages, response.quickReplies);
   }, [coachContext, addCoachMessages, persistedMessages.length]);
@@ -648,7 +772,17 @@ export default function CoachScreen() {
     // Track user message in history
     chatHistoryRef.current.push({ role: 'user', content: userText });
 
-    const result = await sendCoachMessage(userText, coachContext, chatHistoryRef.current, memories);
+    // Fresh context au moment de l'envoi : `coachContext` est memoized
+    // et son `hour` reste figé à l'ouverture du chat. Si l'user reste
+    // 2h sur l'écran, on enverrait "11h" même à 13h → conseils décalés
+    // ("ton petit-déj" alors qu'on est au déj). On override juste le
+    // champ hour ici, le reste du contexte est de toute façon valable.
+    const freshContext: CoachContext = {
+      ...coachContext,
+      hour: new Date().getHours(),
+    };
+
+    const result = await sendCoachMessage(userText, freshContext, chatHistoryRef.current, memories);
 
     if (result.kind === 'quota_exceeded') {
       setIsTyping(false);
@@ -678,15 +812,31 @@ export default function CoachScreen() {
       // Parse [[ACTION:...]] AND [[MEMORY]] blocks → cleaned text + actions + memories
       const { text, actions, memories: parsedMemories } = parseCoachActionsAndMemories(aiReply);
       // Silently store any new memories the coach extracted from this turn.
-      for (const m of parsedMemories) appendMemory(m);
+      // appendMemory retourne la mémoire créée (null si déduplique) pour
+      // qu'on puisse sync à Supabase — sans ça, perdu au logout/réinstall.
+      const uid = profile?.id;
+      for (const m of parsedMemories) {
+        const created = appendMemory(m);
+        if (created && uid) {
+          syncCoachMemory(created, uid);
+        }
+      }
       // History keeps the cleaned text (no point sending action JSON back to the LLM)
       chatHistoryRef.current.push({ role: 'assistant', content: text });
       const id = String(++messageIdRef.current);
+      // Fallback si le LLM a oublié de mettre du texte avant l'action :
+      // on AFFICHE un message neutre plutôt que le JSON brut "[[ACTION:..."
+      // qui serait incompréhensible pour l'user.
+      const displayText = text.trim().length > 0
+        ? text
+        : (actions.length > 0
+            ? (locale === 'en' ? 'Got it.' : "C'est noté.")
+            : (locale === 'en' ? '...' : '...'));
       setMessages((prev) => [
         ...prev,
         {
           id,
-          text: text || aiReply, // fallback if cleaning emptied the message
+          text: displayText,
           isCoach: true,
           timestamp: Date.now(),
           actions: actions.length > 0 ? actions : undefined,
@@ -695,8 +845,9 @@ export default function CoachScreen() {
       setIsTyping(false);
       setQuickReplies((DEFAULT_QUICK_REPLIES[locale] ?? DEFAULT_QUICK_REPLIES.fr));
       setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
-      // Read response aloud
-      speak(aiReply, locale === 'en' ? 'en-US' : 'fr-FR');
+      // Read response aloud — utilise le texte CLEAN (sans [[ACTION:...]] JSON)
+      // sinon le TTS lit le JSON en bulle bizarre sur Web.
+      speak(displayText, locale === 'en' ? 'en-US' : 'fr-FR');
     } else {
       // Fallback to template responses (error / unauthenticated)
       events.coachMessageFailed(result.kind === 'unauthenticated' ? 'auth' : 'server');
@@ -787,17 +938,31 @@ export default function CoachScreen() {
     );
   }
 
+  // `behavior: undefined` sur Android laissait le clavier couvrir
+  // l'input du coach. `behavior: 'height'` est le bon comportement
+  // Android selon les docs RN officielles.
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
     <View style={[styles.container, { paddingTop: insets.top, maxWidth: contentMaxWidth }]}>
-      {/* Header with gradient */}
+      {/* Header — gradient sobre (gris foncé) avec un léger highlight
+          orange en haut-droite. Avant : full orange dégradé qui saturait
+          l'interface du coach. */}
       <LinearGradient
-        colors={[colors.primary, colors.primaryDark]}
+        colors={['#1A1B23', '#0D0E13']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.header}
       >
-        <Pressable onPress={() => router.back()} hitSlop={16} style={styles.backButton}>
+        {/* Retour explicite vers Home \u2014 `router.back()` peut foirer si
+            Coach a \u00e9t\u00e9 ouvert via une tuile Home (le stack ne contient
+            pas forc\u00e9ment Home dans l'historique de navigation). */}
+        <Pressable
+          onPress={() => router.canGoBack() ? router.back() : router.push('/(tabs)/home')}
+          hitSlop={16}
+          style={styles.backButton}
+          accessibilityRole="button"
+          accessibilityLabel="Retour"
+        >
           <Text style={styles.backText}>{'\u2039'}</Text>
         </Pressable>
         <View style={styles.headerAvatar}>
@@ -894,6 +1059,7 @@ export default function CoachScreen() {
                   message={msg}
                   isLastInCluster={isLastInCluster}
                   isFirstInCluster={isFirstInCluster}
+                  userAvatarUri={userAvatarUri}
                 />
                 {msg.actions?.map((a, ai) => (
                   <ActionProposalCard key={`${msg.id}-action-${ai}`} action={a} />
@@ -1127,6 +1293,45 @@ const useStyles = makeStyles((colors) => ({
     color: colors.text,
     lineHeight: 21,
   },
+  /** Curseur blinkant pendant l'animation typewriter du coach. */
+  cursor: {
+    color: colors.primary,
+    fontWeight: '700' as const,
+    opacity: 0.7,
+  },
+  /** Ligne de feedback thumbs up/down sous chaque bulle du coach. */
+  feedbackRow: {
+    flexDirection: 'row' as const,
+    gap: 4,
+    marginTop: 6,
+    marginLeft: 4,
+  },
+  feedbackBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    backgroundColor: 'transparent',
+  },
+  feedbackBtnActiveUp: {
+    backgroundColor: 'rgba(0,212,170,0.12)',
+  },
+  feedbackBtnActiveDown: {
+    // Rouge dilué (sémantique "négatif") au lieu d'orange (qui se
+    // confondait avec les bulles user et la branding primaire).
+    backgroundColor: 'rgba(255, 80, 80, 0.14)',
+  },
+  feedbackIcon: {
+    fontSize: 14,
+    opacity: 0.35,
+  },
+  feedbackIconActiveUp: {
+    opacity: 1,
+  },
+  feedbackIconActiveDown: {
+    opacity: 1,
+  },
 
   // User (sent) bubble — FORGA orange, iMessage shape
   userBubble: {
@@ -1140,6 +1345,17 @@ const useStyles = makeStyles((colors) => ({
     fontSize: 16,
     color: colors.white,
     lineHeight: 21,
+  },
+  /** Avatar user (photo de profil) affiché à droite de la dernière
+   *  bulle d'un cluster. Si avatarUri custom dispo on l'affiche,
+   *  sinon fallback genré (portrait Unsplash homme/femme). */
+  userAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    marginLeft: 6,
+    alignSelf: 'flex-end',
+    marginBottom: 2,
   },
 
   // Quota notice — system-style centered card
@@ -1207,7 +1423,9 @@ const useStyles = makeStyles((colors) => ({
     backgroundColor: 'rgba(255,255,255,0.55)',
   },
 
-  // Quick replies — warmer
+  // Quick replies — style neutre (gris) avec accent orange uniquement
+  // au press. Avant : bordure + bg orange permanents qui rendaient la
+  // zone trop chargée visuellement.
   repliesContainer: {
     borderTopWidth: 1,
     borderTopColor: colors.border,
@@ -1222,19 +1440,20 @@ const useStyles = makeStyles((colors) => ({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
     borderRadius: borderRadius.full,
-    borderWidth: 1.5,
-    borderColor: colors.primary,
-    backgroundColor: 'rgba(255,107,53,0.1)',
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: 'rgba(120,120,128,0.12)',
   },
   replyButtonPressed: {
-    backgroundColor: 'rgba(255,107,53,0.25)',
+    backgroundColor: 'rgba(255,107,53,0.18)',
+    borderColor: colors.primary,
     transform: [{ scale: 0.96 }],
   },
   replyText: {
     fontFamily: fonts.body,
     fontSize: fontSizes.sm,
-    fontWeight: '700',
-    color: colors.primary,
+    fontWeight: '600',
+    color: colors.text,
   },
 
   // Input — iMessage pill with embedded mic + circular send button

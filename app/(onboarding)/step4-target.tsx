@@ -11,7 +11,9 @@ import {
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
-import { useTrackOnboardingStep } from '../../src/hooks/useTrackOnboardingStep';import { makeStyles } from '../../src/theme';
+import { useTrackOnboardingStep } from '../../src/hooks/useTrackOnboardingStep';
+import { useOnboardingBack } from '../../src/hooks/useOnboardingBack';
+import { makeStyles } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
 import { fonts, fontSizes, fontWeights } from '../../src/theme/fonts';
@@ -28,7 +30,7 @@ const triggerHaptic = (style: 'light' | 'medium' = 'light') => {
 };
 
 const STEP = 4;
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 type Timeline = '3' | '6' | '12';
 
@@ -132,10 +134,7 @@ export default function Step4Target() {
     return rate <= 1.0;
   };
 
-  const handleBack = useCallback(() => {
-    triggerHaptic('light');
-    router.back();
-  }, [router]);
+  const handleBack = useOnboardingBack('/(onboarding)/step3-objective');
 
   const handleNext = useCallback(() => {
     if (!canContinue) return;

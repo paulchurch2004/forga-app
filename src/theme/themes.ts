@@ -5,6 +5,11 @@ export interface ThemeColors {
   primary: string;
   primaryLight: string;
   primaryDark: string;
+  /** Fond très clair de la primary (cards highlighted, badges). Avant on
+   *  voyait `'rgba(255,107,53,0.10)'` hardcodé dans ~10 composants. */
+  primarySoft: string;
+  /** Border medium de la primary, idem soft mais visible sur surface. */
+  primaryBorder: string;
   text: string;
   textSecondary: string;
   textMuted: string;
@@ -16,7 +21,11 @@ export interface ThemeColors {
   scoreMid: string;
   scoreLow: string;
   success: string;
+  /** Variante soft du success (badges check, cards positives). */
+  successSoft: string;
   warning: string;
+  /** Variante soft du warning (badges estimation, cards prudence). */
+  warningSoft: string;
   error: string;
   border: string;
   overlay: string;
@@ -34,6 +43,8 @@ export const darkColors: ThemeColors = {
   primary: '#FF6B35',
   primaryLight: '#FF8A5C',
   primaryDark: '#E55A28',
+  primarySoft: 'rgba(255,107,53,0.10)',
+  primaryBorder: 'rgba(255,107,53,0.30)',
   text: '#FFFFFF',
   textSecondary: 'rgba(255,255,255,0.62)',
   textMuted: 'rgba(255,255,255,0.38)',
@@ -45,7 +56,9 @@ export const darkColors: ThemeColors = {
   scoreMid: '#FFD93D',
   scoreLow: '#FF4757',
   success: '#00D4AA',
+  successSoft: 'rgba(0,212,170,0.12)',
   warning: '#FFD93D',
+  warningSoft: 'rgba(255,217,61,0.12)',
   error: '#FF4757',
   border: 'rgba(255,255,255,0.08)',
   overlay: 'rgba(0,0,0,0.6)',
@@ -63,6 +76,8 @@ export const lightColors: ThemeColors = {
   primary: '#FF6B35',
   primaryLight: '#FF8A5C',
   primaryDark: '#E55A28',
+  primarySoft: 'rgba(255,107,53,0.08)',
+  primaryBorder: 'rgba(255,107,53,0.24)',
   text: '#1A1A2E',
   textSecondary: '#6B6B8D',
   textMuted: '#9B9BB5',
@@ -74,7 +89,9 @@ export const lightColors: ThemeColors = {
   scoreMid: '#E6B800',
   scoreLow: '#E63950',
   success: '#00B894',
+  successSoft: 'rgba(0,184,148,0.10)',
   warning: '#E6B800',
+  warningSoft: 'rgba(230,184,0,0.10)',
   error: '#E63950',
   border: '#E0E0F0',
   overlay: 'rgba(0,0,0,0.3)',

@@ -8,6 +8,7 @@ import Animated, {
   useAnimatedProps,
   withRepeat,
   withTiming,
+  cancelAnimation,
   Easing,
 } from 'react-native-reanimated';
 import { fonts } from '../../theme/fonts';
@@ -58,6 +59,12 @@ function ProgressRing({ width, height, progress, active }: ProgressRingProps) {
     } else {
       dashOffset.value = 0;
     }
+    // Cleanup : annule l'animation infinie au unmount. Sinon la tuile
+    // reste "vivante" en background sur les autres écrans → frames
+    // perdues et battery drain.
+    return () => {
+      cancelAnimation(dashOffset);
+    };
   }, [active, isComplete, perimeter, dashOffset]);
 
   const dotProps = useAnimatedProps(() => ({

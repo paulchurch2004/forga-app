@@ -1,8 +1,38 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, ImageBackground } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
 import { fonts } from '../../theme/fonts';
+
+/**
+ * Image hero pour la card "Séance du jour" — varie selon le groupe
+ * musculaire principal pour donner un contexte visuel immédiat. Avant,
+ * la card était purement texte sur fond uni → froide et anonyme.
+ *
+ * On garde une image fixe par muscle (pas variable par user/sexe) pour
+ * que la card reste lisible sur n'importe quelle pelure. Les photos
+ * sont des Unsplash neutres (équipement / mouvement), choisies pour
+ * que ni un homme ni une femme ne se sente exclu.
+ */
+const MUSCLE_HERO_IMAGES: Record<string, string> = {
+  chest: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=1200&q=70',
+  back: 'https://images.unsplash.com/photo-1583500178690-f7d24c6c9a9d?w=1200&q=70',
+  shoulders: 'https://images.unsplash.com/photo-1532029837206-abbe2b7620e3?w=1200&q=70',
+  arms: 'https://images.unsplash.com/photo-1581122584612-713f89daa8eb?w=1200&q=70',
+  legs: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=1200&q=70',
+  core: 'https://images.unsplash.com/photo-1538805060514-97d9cc17730c?w=1200&q=70',
+  cardio: 'https://images.unsplash.com/photo-1517963879433-6ad2b056d712?w=1200&q=70',
+};
+const DEFAULT_HERO = 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&q=70';
+
+function pickHeroImage(muscleGroups?: string[]): string {
+  if (!muscleGroups || muscleGroups.length === 0) return DEFAULT_HERO;
+  // Priorité : on cherche le premier muscle qui a une image dédiée.
+  for (const m of muscleGroups) {
+    if (MUSCLE_HERO_IMAGES[m]) return MUSCLE_HERO_IMAGES[m];
+  }
+  return DEFAULT_HERO;
+}
 
 export interface SelectedDayExercise {
   id: string;
@@ -25,8 +55,10 @@ interface SelectedDayCardProps {
   title: string;
   /** Optional intention quote, only shown for `today` */
   intentionQuote?: string;
-  /** Muscle chips */
+  /** Muscle chips (versions traduites pour affichage) */
   muscleChips?: string[];
+  /** Muscle groups bruts ('chest', 'back'…) pour piquer l'image hero. */
+  muscleGroups?: string[];
   /** Top 3 exercises preview */
   exercisesPreview?: SelectedDayExercise[];
   /** Total exercises count, for the "Voir les N exercices" CTA */
@@ -121,6 +153,7 @@ function PlannedCard({
   title,
   intentionQuote,
   muscleChips,
+  muscleGroups,
   exercisesPreview,
   totalExercises,
   onStart,
@@ -136,18 +169,34 @@ function PlannedCard({
   const previewLimit = 3;
   const hasMore = (totalExercises ?? 0) > previewLimit;
   const hasExercises = !!exercisesPreview && exercisesPreview.length > 0;
+  const heroImageUri = pickHeroImage(muscleGroups);
 
   return (
     <View style={styles.card}>
-      <View style={styles.plannedHeaderRow}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.plannedEyebrow}>{typeLabel.toUpperCase()} · {durationMin} MIN</Text>
-          <Text style={styles.plannedTitle}>{title}</Text>
-        </View>
-        <Pressable onPress={onActions} style={({ pressed }) => [styles.iconBtn, pressed && styles.pressed]}>
-          <MoreIcon />
-        </Pressable>
-      </View>
+      {/* Hero image avec dégradé sombre par-dessus pour la lisibilité
+          du texte. Donne un contexte visuel immédiat à la séance
+          (pectoraux → photo bench, jambes → photo squat…). */}
+      <ImageBackground
+        source={{ uri: heroImageUri }}
+        style={styles.heroImage}
+        imageStyle={styles.heroImageInner}
+      >
+        <LinearGradient
+          colors={['rgba(0,0,0,0.15)', 'rgba(0,0,0,0.85)']}
+          style={styles.heroOverlay}
+        >
+          <View style={styles.plannedHeaderRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.plannedEyebrow}>{typeLabel.toUpperCase()} · {durationMin} MIN</Text>
+              <Text style={styles.plannedTitle}>{title}</Text>
+            </View>
+            <Pressable onPress={onActions} style={({ pressed }) => [styles.iconBtn, pressed && styles.pressed]}>
+              <MoreIcon />
+            </Pressable>
+          </View>
+        </LinearGradient>
+      </ImageBackground>
+      <View style={styles.heroSpacer} />
 
       {isToday && intentionQuote && (
         <View style={styles.intentionBox}>
@@ -309,6 +358,27 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 18,
     marginTop: 12,
+    overflow: 'hidden' as const, // clip l'image hero aux coins arrondis
+  },
+  /** Image hero en haut de la card "Séance du jour". Étend l'image
+   *  edge-to-edge en cassant le padding du parent via marges négatives. */
+  heroImage: {
+    height: 140,
+    marginHorizontal: -18,
+    marginTop: -18,
+    justifyContent: 'flex-end',
+  },
+  heroImageInner: {
+    // L'overflow:hidden du parent gère les coins, mais on s'assure
+    // que l'image colle bien en haut sans dépasser.
+  },
+  heroOverlay: {
+    flex: 1,
+    padding: 16,
+    justifyContent: 'flex-end',
+  },
+  heroSpacer: {
+    height: 14,
   },
   divider: {
     height: 1,

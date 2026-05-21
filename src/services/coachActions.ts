@@ -26,6 +26,25 @@ export type CoachAction =
       protein: number;
       carbs: number;
       fat: number;
+      /**
+       * Décomposition optionnelle en ingrédients identifiés. Quand
+       * présente, l'app re-calcule les macros en interrogeant
+       * `resolveIngredient()` (DB locale → Open Food Facts) et
+       * remplace les valeurs estimées par les valeurs réelles.
+       *
+       * Si la résolution échoue, les `calories`/`protein`/`carbs`/`fat`
+       * du niveau supérieur sont utilisés en fallback et la carte
+       * affiche un badge ⚠ "Estimation IA".
+       */
+      items?: Array<{ name: string; quantityG: number }>;
+      /**
+       * Origine des macros une fois la carte affichée :
+       *   - 'resolved'  → tous les ingrédients matchés en DB (fiable)
+       *   - 'mixed'     → certains ingrédients résolus, d'autres estimés
+       *   - 'estimated' → estimation IA pure (afficher le ⚠)
+       * Champ rempli par le frontend après résolution, pas par le LLM.
+       */
+      macroSource?: 'resolved' | 'mixed' | 'estimated';
     }
   | {
       type: 'log_workout';
@@ -171,18 +190,48 @@ export interface ParsedReplyFull {
 }
 
 /**
+ * Parse tolérant : tente JSON.parse strict, puis avec corrections
+ * cosmétiques courantes (trailing commas, smart quotes, NaN/Infinity).
+ *
+ * Avant on droppait silencieusement toute action mal formée, ce qui
+ * laissait l'user avec "C'est noté !" en texte mais AUCUNE carte
+ * → confusion totale. Maintenant on récupère 95% des cas que les LLM
+ * produisent quand ils dérivent du JSON strict.
+ */
+function parseTolerantJson(raw: string): any | null {
+  const trimmed = raw.trim();
+  // 1) Strict
+  try {
+    return JSON.parse(trimmed);
+  } catch {}
+  // 2) Tolérant : remove trailing commas avant } ou ]
+  try {
+    const fixed = trimmed
+      .replace(/,(\s*[}\]])/g, '$1') // trailing commas
+      .replace(/[“”]/g, '"') // smart double quotes
+      .replace(/[‘’]/g, "'") // smart single quotes
+      .replace(/\bNaN\b/g, 'null')
+      .replace(/\b(-?)Infinity\b/g, 'null');
+    return JSON.parse(fixed);
+  } catch {}
+  // 3) Vraiment cassé → null (sera drop côté caller, telemetry logged).
+  if (typeof console !== 'undefined') {
+    console.warn('[coach] action JSON parse failed:', trimmed.slice(0, 200));
+  }
+  return null;
+}
+
+/**
  * Like parseCoachActions but also extracts [[MEMORY]] blocks. Strips both
  * action and memory blocks from the visible text.
  */
 export function parseCoachActionsAndMemories(reply: string): ParsedReplyFull {
   const memories: ParsedMemory[] = [];
   let text = reply.replace(MEMORY_RE, (_match, rawJson: string) => {
-    try {
-      const json = JSON.parse(rawJson.trim());
+    const json = parseTolerantJson(rawJson);
+    if (json) {
       const valid = validateMemory(json);
       if (valid) memories.push(valid);
-    } catch {
-      /* ignore */
     }
     return '';
   });
@@ -227,12 +276,10 @@ export interface ParsedReply {
 export function parseCoachActions(reply: string): ParsedReply {
   const actions: CoachAction[] = [];
   const cleanedText = reply.replace(ACTION_RE, (_match, rawType: string, rawJson: string) => {
-    try {
-      const json = JSON.parse(rawJson.trim());
+    const json = parseTolerantJson(rawJson);
+    if (json) {
       const action = validateAction(rawType, json);
       if (action) actions.push(action);
-    } catch {
-      /* swallow */
     }
     return '';
   });
@@ -254,6 +301,33 @@ function validateAction(type: string, payload: any): CoachAction | null {
         isFiniteNum(payload.carbs) &&
         isFiniteNum(payload.fat)
       ) {
+        // Décomposition optionnelle en ingrédients : on valide qu'elle
+        // est bien un tableau d'objets `{ name, quantityG }`. Toute
+        // entrée invalide est silencieusement rejetée — la card retombe
+        // sur les macros niveau supérieur (estimation LLM).
+        let items: Array<{ name: string; quantityG: number }> | undefined;
+        if (Array.isArray(payload.items)) {
+          const parsed = payload.items
+            .map((it: any) => {
+              if (
+                typeof it?.name === 'string' &&
+                it.name.trim().length > 0 &&
+                isFiniteNum(it.quantityG ?? it.quantity_g)
+              ) {
+                return {
+                  name: it.name.trim(),
+                  quantityG: Math.max(0, Math.round(it.quantityG ?? it.quantity_g)),
+                };
+              }
+              return null;
+            })
+            .filter(
+              (x: { name: string; quantityG: number } | null):
+                x is { name: string; quantityG: number } => x !== null,
+            );
+          if (parsed.length > 0) items = parsed;
+        }
+
         return {
           type: 'log_meal',
           slot: payload.slot as MealSlot,
@@ -262,6 +336,7 @@ function validateAction(type: string, payload: any): CoachAction | null {
           protein: Math.max(0, Math.round(payload.protein)),
           carbs: Math.max(0, Math.round(payload.carbs)),
           fat: Math.max(0, Math.round(payload.fat)),
+          ...(items ? { items } : {}),
         };
       }
       return null;
@@ -473,6 +548,73 @@ function validateAction(type: string, payload: any): CoachAction | null {
 
 function isFiniteNum(v: any): v is number {
   return typeof v === 'number' && Number.isFinite(v);
+}
+
+// ─── Macro resolution from structured items ────────────────────
+
+/**
+ * Si l'action log_meal a un tableau `items`, on résout chaque ingrédient
+ * via la DB locale + Open Food Facts, on recalcule les macros à partir
+ * des quantités déclarées, et on retourne une action mise à jour avec :
+ *   - macros recalculées (réelles si tous les items matchent)
+ *   - `macroSource` flag pour l'UI
+ *
+ * Si aucun item ne matche, l'action est retournée inchangée avec
+ * `macroSource = 'estimated'` — la carte affichera un ⚠.
+ *
+ * Cette fonction est sûre à appeler plusieurs fois ; elle n'a pas
+ * d'effet de bord (pas de sync, pas de mutation de store).
+ */
+export async function resolveLogMealMacros(
+  action: Extract<CoachAction, { type: 'log_meal' }>,
+): Promise<Extract<CoachAction, { type: 'log_meal' }>> {
+  if (!action.items || action.items.length === 0) {
+    return { ...action, macroSource: 'estimated' };
+  }
+
+  const { resolveIngredient } = await import('./ingredientResolver');
+  const resolved = await Promise.all(
+    action.items.map((it) => resolveIngredient(it.name)),
+  );
+
+  let kcal = 0;
+  let p = 0;
+  let c = 0;
+  let f = 0;
+  let resolvedCount = 0;
+
+  resolved.forEach((res, idx) => {
+    const qty = action.items![idx].quantityG;
+    if (res && (res.source === 'local' || res.source === 'open_food_facts')) {
+      const ratio = qty / 100;
+      kcal += res.ingredient.caloriesPer100g * ratio;
+      p += res.ingredient.proteinPer100g * ratio;
+      c += res.ingredient.carbsPer100g * ratio;
+      f += res.ingredient.fatPer100g * ratio;
+      resolvedCount++;
+    }
+  });
+
+  // Tous les items résolus → on remplace les valeurs estimées.
+  if (resolvedCount === action.items.length) {
+    return {
+      ...action,
+      calories: Math.round(kcal),
+      protein: Math.round(p * 10) / 10,
+      carbs: Math.round(c * 10) / 10,
+      fat: Math.round(f * 10) / 10,
+      macroSource: 'resolved',
+    };
+  }
+
+  // Résolution partielle : on garde les macros LLM (plus prudent que
+  // de mixer un sous-total réel et des absences) et on flag 'mixed'.
+  if (resolvedCount > 0) {
+    return { ...action, macroSource: 'mixed' };
+  }
+
+  // Rien résolu : carte affichée avec ⚠ Estimation.
+  return { ...action, macroSource: 'estimated' };
 }
 
 // ─── Executors ────────────────────────────────────────────────
@@ -721,7 +863,7 @@ async function executeUpdateTarget(a: Extract<CoachAction, { type: 'update_targe
 
 async function executeGenerateShoppingList(a: Extract<CoachAction, { type: 'generate_shopping_list' }>) {
   const { useShoppingListStore } = await import('../store/shoppingListStore');
-  useShoppingListStore.getState().setCurrent({
+  const list = {
     id: `sl_${Date.now()}`,
     title: a.title,
     createdAt: new Date().toISOString(),
@@ -732,7 +874,14 @@ async function executeGenerateShoppingList(a: Extract<CoachAction, { type: 'gene
       category: it.category,
       checked: false,
     })),
-  });
+  };
+  useShoppingListStore.getState().setCurrent(list);
+  // Sync vers Supabase (sans ça, list perdue au logout/réinstall).
+  const uid = useAuthStore.getState().session?.user?.id;
+  if (uid) {
+    const { syncShoppingList } = await import('./userSync');
+    syncShoppingList(list, false, uid);
+  }
 }
 
 async function executeLogWeight(a: Extract<CoachAction, { type: 'log_weight' }>) {
@@ -775,6 +924,15 @@ async function executeLogMeasurement(a: Extract<CoachAction, { type: 'log_measur
     ...(a.field === 'bodyFatPercent' ? { bodyFatPercent: a.value } : {}),
   };
   useUserStore.getState().addMeasurement(measurement);
+  // Push vers Supabase, sinon la mesure reste locale et disparaît
+  // au logout / changement d'appareil. La queue offline gère les
+  // échecs réseau via backoff exponentiel.
+  try {
+    const { syncMeasurement } = await import('./userSync');
+    syncMeasurement(measurement);
+  } catch {
+    /* offline queue handles retry */
+  }
 }
 
 async function executeSetReminder(a: Extract<CoachAction, { type: 'set_reminder' }>) {

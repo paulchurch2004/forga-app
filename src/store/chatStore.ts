@@ -61,9 +61,16 @@ interface ChatState {
   /** True when the user has tapped "Ne plus afficher" on the welcome card.
    *  Reset to false on logout so re-logged-in users see it again. */
   welcomeDismissed: boolean;
+  /** Date ISO (YYYY-MM-DD) du dernier greeting auto envoyé. Persisté pour
+   *  éviter qu'un remount rapide du composant Coach (nav → Home → Coach)
+   *  re-déclenche un greeting tant que `persistedMessages` n'a pas eu
+   *  le temps de commit. */
+  lastGreetingDate: string | null;
 
   appendMessage: (msg: ChatMessage) => void;
-  appendMemory: (mem: Omit<CoachMemory, 'id' | 'date'> & { date?: string }) => void;
+  /** Append une mémoire et retourne celle créée si nouvelle (null si
+   *  dédupliquée). Le caller peut sync l'objet retourné vers Supabase. */
+  appendMemory: (mem: Omit<CoachMemory, 'id' | 'date'> & { date?: string }) => CoachMemory | null;
   dismissWelcome: () => void;
   /** Wipe all current-week messages but keep memories. Called on week rotation. */
   rotateIfNewWeek: () => void;
@@ -88,32 +95,35 @@ export const useChatStore = create<ChatState>()(
       memories: [],
       weekStart: getMondayIso(),
       welcomeDismissed: false,
+      lastGreetingDate: null,
 
       appendMessage: (msg) =>
         set((s) => ({ messages: [...s.messages, msg] })),
 
-      appendMemory: (mem) =>
-        set((s) => {
-          const newMem: CoachMemory = {
-            id: `mem_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
-            date: mem.date ?? todayLocalIso(),
-            tag: mem.tag,
-            summary: mem.summary,
-            weight: mem.weight,
-          };
-          // Dedupe on summary text (avoid LLM re-asserting the same thing)
-          const exists = s.memories.some((m) => m.summary.toLowerCase() === mem.summary.toLowerCase());
-          if (exists) return {};
-          let next = [...s.memories, newMem];
-          // Cap at MAX_MEMORIES — drop oldest low-weight first.
-          if (next.length > MAX_MEMORIES) {
-            next = [...next].sort((a, b) => {
-              if (a.weight !== b.weight) return b.weight - a.weight; // higher weight stays
-              return b.date.localeCompare(a.date); // newer stays
-            }).slice(0, MAX_MEMORIES);
-          }
-          return { memories: next };
-        }),
+      appendMemory: (mem) => {
+        const state = get();
+        const newMem: CoachMemory = {
+          id: `mem_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          date: mem.date ?? todayLocalIso(),
+          tag: mem.tag,
+          summary: mem.summary,
+          weight: mem.weight,
+        };
+        // Dedupe on summary text (avoid LLM re-asserting the same thing)
+        const exists = state.memories.some((m) => m.summary.toLowerCase() === mem.summary.toLowerCase());
+        if (exists) return null;
+        let next = [...state.memories, newMem];
+        // Cap at MAX_MEMORIES — drop oldest low-weight first.
+        if (next.length > MAX_MEMORIES) {
+          next = [...next].sort((a, b) => {
+            if (a.weight !== b.weight) return b.weight - a.weight; // higher weight stays
+            return b.date.localeCompare(a.date); // newer stays
+          }).slice(0, MAX_MEMORIES);
+        }
+        set({ memories: next });
+        // Retourne la mémoire pour que le caller la sync à Supabase.
+        return newMem;
+      },
 
       dismissWelcome: () => set({ welcomeDismissed: true }),
 
@@ -130,9 +140,10 @@ export const useChatStore = create<ChatState>()(
           memories: [],
           weekStart: getMondayIso(),
           welcomeDismissed: false,
+          lastGreetingDate: null,
         }),
 
-      clearAll: () => set({ messages: [], memories: [], weekStart: getMondayIso(), welcomeDismissed: false }),
+      clearAll: () => set({ messages: [], memories: [], weekStart: getMondayIso(), welcomeDismissed: false, lastGreetingDate: null }),
     }),
     {
       name: 'forga-chat-store',
@@ -142,6 +153,7 @@ export const useChatStore = create<ChatState>()(
         memories: state.memories,
         weekStart: state.weekStart,
         welcomeDismissed: state.welcomeDismissed,
+        lastGreetingDate: state.lastGreetingDate,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) state.rotateIfNewWeek();

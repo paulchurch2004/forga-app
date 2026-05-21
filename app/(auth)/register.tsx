@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   ScrollView,
   Image,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -79,6 +80,11 @@ export default function RegisterScreen() {
   const [appleAvailable, setAppleAvailable] = useState(false);
   const [appleLoading, setAppleLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  // Consentement CGU + Privacy — required par App Store Guideline 5.1.1
+  // (Privacy → Data Collection and Storage) et RGPD art. 6 (base légale).
+  // L'absence de case à cocher explicite est motif de reject AppReview
+  // pour les apps qui collectent santé/poids/photos.
+  const [consentAccepted, setConsentAccepted] = useState(false);
   const setOnboardingData = useUserStore((s) => s.setOnboardingData);
   const onboardingReferralCode = useUserStore((s) => s.onboardingData.referredByCode);
 
@@ -138,6 +144,10 @@ export default function RegisterScreen() {
       showError(t('error'), t('passwordMinLength'));
       return;
     }
+    if (!consentAccepted) {
+      showError(t('error'), t('consentRequired'));
+      return;
+    }
 
     setLoading(true);
 
@@ -193,6 +203,10 @@ export default function RegisterScreen() {
   };
 
   const handleAppleSignIn = async () => {
+    if (!consentAccepted) {
+      showError(t('error'), t('consentRequired'));
+      return;
+    }
     setAppleLoading(true);
     try {
       const result = await signInWithApple();
@@ -218,6 +232,8 @@ export default function RegisterScreen() {
     } catch (e) {
       if (e instanceof SocialAuthError && e.code === 'cancelled') {
         // User dismissed the Apple sheet — silent, no error toast.
+      } else if (e instanceof SocialAuthError && e.code === 'email_in_use') {
+        showError(t('error'), t('socialEmailInUse' as any));
       } else {
         const message = e instanceof Error ? e.message : 'Apple Sign In failed.';
         showError(t('error'), message);
@@ -228,6 +244,10 @@ export default function RegisterScreen() {
   };
 
   const handleGoogleSignIn = async () => {
+    if (!consentAccepted) {
+      showError(t('error'), t('consentRequired'));
+      return;
+    }
     setGoogleLoading(true);
     try {
       const result = await signInWithGoogle();
@@ -250,6 +270,8 @@ export default function RegisterScreen() {
     } catch (e) {
       if (e instanceof SocialAuthError && e.code === 'cancelled') {
         // silent
+      } else if (e instanceof SocialAuthError && e.code === 'email_in_use') {
+        showError(t('error'), t('socialEmailInUse' as any));
       } else {
         const message = e instanceof Error ? e.message : 'Google Sign In failed.';
         showError(t('error'), message);
@@ -271,7 +293,12 @@ export default function RegisterScreen() {
         />
       </Animated.View>
 
-      <View style={styles.flex}>
+      {/* KAV ajouté : 4 inputs (name, email, password, referral) sans
+          KAV cachaient le bouton submit derrière le clavier Android. */}
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
@@ -383,6 +410,39 @@ export default function RegisterScreen() {
               )}
             </Animated.View>
 
+            {/* Consent CGU + Privacy — required avant tout signup. Pas
+                d'auto-check : l'user doit explicitement opt-in (RGPD). */}
+            <Animated.View style={buttonEntranceStyle}>
+              <Pressable
+                onPress={() => setConsentAccepted((v) => !v)}
+                hitSlop={8}
+                style={styles.consentRow}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: consentAccepted }}
+              >
+                <View style={[styles.consentBox, consentAccepted && styles.consentBoxChecked]}>
+                  {consentAccepted && <Text style={styles.consentCheck}>{'✓'}</Text>}
+                </View>
+                <Text style={styles.consentText}>
+                  {t('consentPrefix')}{' '}
+                  <Text
+                    style={styles.consentLink}
+                    onPress={() => router.push('/terms')}
+                  >
+                    {t('consentTerms')}
+                  </Text>
+                  {' '}{t('consentAnd')}{' '}
+                  <Text
+                    style={styles.consentLink}
+                    onPress={() => router.push('/privacy')}
+                  >
+                    {t('consentPrivacy')}
+                  </Text>
+                  .
+                </Text>
+              </Pressable>
+            </Animated.View>
+
             {/* CTA Button */}
             <Animated.View style={buttonEntranceStyle}>
               <Animated.View style={buttonPressStyle}>
@@ -464,7 +524,7 @@ export default function RegisterScreen() {
             </Pressable>
           </Animated.View>
         </ScrollView>
-      </View>
+      </KeyboardAvoidingView>
     </View>
   );
 }
@@ -571,6 +631,46 @@ const useStyles = makeStyles((colors) => ({
     color: colors.primary,
     textAlign: 'center',
     fontWeight: '600',
+  },
+
+  // Consent (CGU + Privacy checkbox)
+  consentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
+  consentBox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 2,
+  },
+  consentBoxChecked: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
+  },
+  consentCheck: {
+    color: colors.white,
+    fontSize: 14,
+    fontWeight: '800',
+  },
+  consentText: {
+    flex: 1,
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
+    lineHeight: 18,
+  },
+  consentLink: {
+    color: colors.primary,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 
   // Button

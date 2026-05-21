@@ -23,6 +23,7 @@ import { WeekDayCalendar, type WeekCalendarDay, type WeekDayStatus } from '../..
 import { QuickStatsRow } from '../../src/components/training/QuickStatsRow';
 import { SelectedDayCard, type SelectedDayState, type SelectedDayExercise } from '../../src/components/training/SelectedDayCard';
 import { ProgramSelectorSheet } from '../../src/components/training/ProgramSelectorSheet';
+import { PreWorkoutCheckInModal, type PreWorkoutCheckInResult } from '../../src/components/training/PreWorkoutCheckInModal';
 import { HistorySheet, type HistoryItem } from '../../src/components/training/HistorySheet';
 import { ReplaceExerciseSheet, type SubstituteOption } from '../../src/components/training/ReplaceExerciseSheet';
 import { buildSubstitutesFor as buildSubstitutesForId } from '../../src/utils/exerciseSubstitutes';
@@ -51,6 +52,9 @@ export default function TrainingScreen() {
   const { colors } = useTheme();
   const profile = useUserStore((s) => s.profile);
   const updateProfile = useUserStore((s) => s.updateProfile);
+  // Strength test : pour afficher la card "Calibre ta force" plus
+  // proéminente quand pas encore fait, et discrète sinon.
+  const strengthTest = useUserStore((s) => s.strengthTest);
   const {
     recentWorkouts,
     weeklyCount,
@@ -289,6 +293,7 @@ export default function TrainingScreen() {
         ? `Consolider ta séance ${typeLabel.toLowerCase()}. On garde l'intensité, on soigne l'exécution.`
         : undefined,
       muscleChips: selectedProgramDay?.muscleGroups.map((g) => t(`muscle_${g}` as any)),
+      muscleGroups: selectedProgramDay?.muscleGroups,
       exercisesPreview,
       totalExercises: selectedProgramDay?.exercises.length,
       volumeKg,
@@ -318,15 +323,34 @@ export default function TrainingScreen() {
     markDaySkipped(date);
   };
 
+  // État du popup pré-séance — ouvert quand l'user tap "Commencer la
+  // séance", fermé une fois qu'il a choisi son état (ou skip).
+  const [showCheckIn, setShowCheckIn] = useState(false);
+
   const handleStartWorkout = () => {
     if (!todayPlan || !todayProgramDay) return;
     triggerHaptic();
+    // Avant : on lançait direct la séance. Maintenant on demande
+    // d'abord à l'user comment il se sent → ajustement charge.
+    setShowCheckIn(true);
+  };
+
+  // Appelé par le popup quand l'user a confirmé son état (ou skip).
+  // `loadMultiplier` : 0.85 (plomb) → 1.08 (or). Passé en query param
+  // à active-workout qui ajustera les charges proposées.
+  const handleCheckInConfirmed = (result: PreWorkoutCheckInResult) => {
+    setShowCheckIn(false);
+    if (!todayPlan || !todayProgramDay) return;
     router.push({
       pathname: '/active-workout',
       params: {
         programDayId: todayPlan.programDayId ?? '',
         date: todayPlan.date,
         programId: hasActivePlan ? (activeProgram?.id ?? '') : '',
+        // Multiplicateur appliqué aux charges suggérées (1.0 = neutre)
+        loadMultiplier: String(result.loadMultiplier),
+        // État de forme pour log + contexte coach
+        metalId: result.metalId,
       },
     });
   };
@@ -588,6 +612,39 @@ export default function TrainingScreen() {
             {selectedDayCardData.sectionLabel}
           </Text>
 
+          {/* Calibration force — proéminente si pas encore faite (CTA
+              gros + couleur primary), discrète sinon (lien "Refaire le
+              test"). Sans calibration, les poids proposés en séance
+              sont des estimations grossières sur le poids du corps. */}
+          {!strengthTest ? (
+            <Pressable
+              onPress={() => router.push('/calibration-test')}
+              style={styles.calibrationCtaMain}
+            >
+              <View style={styles.calibrationIconWrap}>
+                <Text style={styles.calibrationIcon}>⚡</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.calibrationTitle}>
+                  {t('calibrationCtaTitle' as any)}
+                </Text>
+                <Text style={styles.calibrationSub}>
+                  {t('calibrationCtaSub' as any)}
+                </Text>
+              </View>
+              <Text style={styles.calibrationArrow}>›</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              onPress={() => router.push('/calibration-test')}
+              style={styles.calibrationCtaSecondary}
+            >
+              <Text style={styles.calibrationSecondaryText}>
+                {t('calibrationCtaRedo' as any)}
+              </Text>
+            </Pressable>
+          )}
+
           {/* Selected day card — switches between today / done / rest / plan */}
           <SelectedDayCard
             state={selectedDayCardData.state}
@@ -596,6 +653,7 @@ export default function TrainingScreen() {
             title={selectedDayCardData.title}
             intentionQuote={selectedDayCardData.intentionQuote}
             muscleChips={selectedDayCardData.muscleChips}
+            muscleGroups={selectedDayCardData.muscleGroups}
             exercisesPreview={selectedDayCardData.exercisesPreview}
             totalExercises={selectedDayCardData.totalExercises}
             volumeKg={selectedDayCardData.volumeKg}
@@ -707,6 +765,7 @@ export default function TrainingScreen() {
         selectProgram(id, objective);
       }}
       t={t as unknown as (key: string) => string}
+      userSex={profile?.sex}
     />
 
     <HistorySheet
@@ -776,6 +835,15 @@ export default function TrainingScreen() {
       totalDurationMin={recentWorkouts.reduce((a, w) => a + (w.durationMinutes ?? 0), 0)}
       currentStreak={currentStreak}
       bestStreak={bestStreak}
+    />
+
+    {/* Popup pré-séance — capture l'état de l'user avant de lancer
+        la séance pour adapter la charge (-15% si épuisé, +8% si en
+        super forme). Remplace l'ancien Morning Ritual du Home. */}
+    <PreWorkoutCheckInModal
+      visible={showCheckIn}
+      onClose={() => setShowCheckIn(false)}
+      onConfirm={handleCheckInConfirmed}
     />
     </View>
   );
@@ -849,6 +917,62 @@ const useStyles = makeStyles((colors) => ({
     fontFamily: fonts.body,
     fontSize: fontSizes.sm,
     color: colors.textSecondary,
+  },
+  /** Calibration CTA gros — affiché quand l'user n'a pas encore fait
+   *  le test. Card primaire avec dégradé subtil + icône éclair. */
+  calibrationCtaMain: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: spacing.md,
+    padding: spacing.lg,
+    marginTop: spacing.lg,
+    borderRadius: 16,
+    backgroundColor: colors.primarySoft,
+    borderWidth: 1,
+    borderColor: colors.primaryBorder,
+  },
+  calibrationIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.primary,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  calibrationIcon: {
+    fontSize: 22,
+  },
+  calibrationTitle: {
+    fontFamily: fonts.display,
+    fontSize: fontSizes.md,
+    fontWeight: '700' as const,
+    color: colors.text,
+  },
+  calibrationSub: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
+    marginTop: 2,
+    lineHeight: fontSizes.sm * 1.35,
+  },
+  calibrationArrow: {
+    fontSize: 22,
+    color: colors.primary,
+    fontWeight: '600' as const,
+  },
+  /** Variante discrète — affichée quand le test a déjà été fait.
+   *  Simple lien pour permettre de refaire le test si l'user a
+   *  progressé / régressé. */
+  calibrationCtaSecondary: {
+    marginTop: spacing.md,
+    paddingVertical: spacing.sm,
+    alignItems: 'center' as const,
+  },
+  calibrationSecondaryText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.primary,
+    textDecorationLine: 'underline' as const,
   },
   sectionTitle: {
     fontFamily: fonts.display,

@@ -48,18 +48,29 @@ export const useMealStore = create<MealState>()(
       mealHistory: {},
 
       setTodayMeals: (todayMeals) => set({ todayMeals }),
-      // A slot can hold MULTIPLE meals (e.g. main + dessert at lunch). Also
-      // a meal can be retroactively added to a past date (user forgot to
-      // log yesterday's dinner) — in that case we only touch `mealHistory`,
-      // never `todayMeals`, otherwise the past entry would pollute today's
-      // score and macro displays. De-dup is exact (mealId+slot+date) so an
-      // accidental double-tap doesn't create two copies of the same dish.
+      // A slot can hold MULTIPLE meals (e.g. main + dessert at lunch, ou
+      // 3 articles scannés au déjeuner). Also a meal can be retroactively
+      // added to a past date (user forgot to log yesterday's dinner) —
+      // dans ce cas on ne touche pas `todayMeals`, sinon l'entrée passée
+      // pollue le score du jour.
+      //
+      // Stratégie de dédup en deux temps :
+      //   1. Pour les repas DE LA BIBLIOTHÈQUE (mealId stable) : dédup
+      //      sur (slot, mealId, date) → un double-tap accidentel sur le
+      //      même plat ne crée pas 2 entrées.
+      //   2. Pour les repas CUSTOM (`mealId === 'custom'`, ex. scan
+      //      code-barres ou saisie manuelle) : dédup uniquement sur `id`
+      //      (timestamp Date.now()). Chaque scan est intentionnellement
+      //      unique, donc 3 scans au déjeuner = 3 entrées séparées.
       addValidatedMeal: (meal) =>
         set((state) => {
           const date = meal.date;
           const today = todayLocalIso();
+          const isCustom = meal.mealId === 'custom';
           const isExactDupe = (m: DailyMeal) =>
-            m.slot === meal.slot && m.mealId === meal.mealId && m.date === meal.date;
+            isCustom
+              ? m.id === meal.id
+              : m.slot === meal.slot && m.mealId === meal.mealId && m.date === meal.date;
           const isToday = date === today;
           return {
             todayMeals: isToday

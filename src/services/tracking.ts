@@ -5,6 +5,7 @@
 
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setTrackingAllowed } from './analytics';
 
 const STORAGE_KEY = 'forga-att-prompted';
 
@@ -25,8 +26,12 @@ export async function requestATTIfNeeded(): Promise<ATTStatus> {
     try {
       const att = await import('expo-tracking-transparency');
       const result = await att.getTrackingPermissionsAsync();
-      return result.status as ATTStatus;
+      const status = result.status as ATTStatus;
+      // Gate PostHog tracking sur le statut courant (App Store 5.1.2).
+      setTrackingAllowed(status === 'authorized');
+      return status;
     } catch {
+      setTrackingAllowed(false);
       return 'unsupported';
     }
   }
@@ -35,8 +40,11 @@ export async function requestATTIfNeeded(): Promise<ATTStatus> {
     const att = await import('expo-tracking-transparency');
     const result = await att.requestTrackingPermissionsAsync();
     await AsyncStorage.setItem(STORAGE_KEY, 'true');
-    return result.status as ATTStatus;
+    const status = result.status as ATTStatus;
+    setTrackingAllowed(status === 'authorized');
+    return status;
   } catch {
+    setTrackingAllowed(false);
     return 'unsupported';
   }
 }

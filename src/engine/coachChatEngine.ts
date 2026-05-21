@@ -83,6 +83,9 @@ export interface CoachContext {
   restrictions?: string[];
   /** 'both' | 'nutrition_only' | 'training_only'. Controls FORGA Score scope. */
   trackingMode?: 'both' | 'nutrition_only' | 'training_only';
+  /** Statut ménopausique de l'utilisatrice (si renseigné à l'onboarding).
+   *  Permet au coach d'adapter ses conseils nutrition + training. */
+  menopauseStatus?: 'none' | 'peri' | 'post';
 
   // ── Body progress — required for the coach to compute weight deltas
   //    (e.g. "73kg today, +0.3kg vs last week") and act on them ──

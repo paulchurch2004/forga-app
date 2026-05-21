@@ -30,13 +30,20 @@ export function ExerciseTutorialModal({
   const { colors } = useTheme();
 
   if (!exerciseId) return null;
-  const tutorial = EXERCISE_TUTORIALS[exerciseId];
   const exercise = EXERCISES[exerciseId];
-  if (!tutorial || !exercise) return null;
+  if (!exercise) return null;
+  // Avant : on n'affichait le modal QUE si tutorial existait dans
+  // EXERCISE_TUTORIALS (= 30 exos). Maintenant on fallback sur les
+  // données Exercise (gifUrl + videoUrl) pour les ~50 autres exos.
+  // Quand pas de tips détaillées, on affiche juste GIF + bouton vidéo.
+  const tutorial = EXERCISE_TUTORIALS[exerciseId];
+  const videoUrl = tutorial?.videoUrl ?? exercise.videoUrl;
+  const tipKeys = tutorial?.tipKeys ?? [];
 
   const handleWatchVideo = () => {
+    if (!videoUrl) return;
     triggerHaptic();
-    Linking.openURL(tutorial.videoUrl);
+    Linking.openURL(videoUrl);
   };
 
   return (
@@ -79,22 +86,30 @@ export function ExerciseTutorialModal({
               </View>
             )}
 
-            {/* Video button */}
-            <Pressable style={styles.videoBtn} onPress={handleWatchVideo}>
-              <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-                <Path d="M5 3l14 9-14 9V3z" fill={colors.white} />
-              </Svg>
-              <Text style={styles.videoBtnText}>{t('watchTutorial')}</Text>
-            </Pressable>
+            {/* Video button \u2014 montr\u00E9 uniquement si on a une URL */}
+            {videoUrl && (
+              <Pressable style={styles.videoBtn} onPress={handleWatchVideo}>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                  <Path d="M5 3l14 9-14 9V3z" fill={colors.white} />
+                </Svg>
+                <Text style={styles.videoBtnText}>{t('watchTutorial')}</Text>
+              </Pressable>
+            )}
 
-            {/* Tips section */}
-            <Text style={styles.tipsHeader}>{t('formTips')}</Text>
-            {tutorial.tipKeys.map((tipKey) => (
-              <View key={tipKey} style={styles.tipRow}>
-                <Text style={styles.tipBullet}>{'\u25A0'}</Text>
-                <Text style={styles.tipText}>{t(tipKey as any)}</Text>
-              </View>
-            ))}
+            {/* Tips section \u2014 seulement si l'exo a des tips d\u00E9taill\u00E9es
+                (les exos sans entr\u00E9e EXERCISE_TUTORIALS sautent cette
+                section et n'affichent que GIF + bouton vid\u00E9o). */}
+            {tipKeys.length > 0 && (
+              <>
+                <Text style={styles.tipsHeader}>{t('formTips')}</Text>
+                {tipKeys.map((tipKey) => (
+                  <View key={tipKey} style={styles.tipRow}>
+                    <Text style={styles.tipBullet}>{'\u25A0'}</Text>
+                    <Text style={styles.tipText}>{t(tipKey as any)}</Text>
+                  </View>
+                ))}
+              </>
+            )}
           </ScrollView>
         </View>
       </View>

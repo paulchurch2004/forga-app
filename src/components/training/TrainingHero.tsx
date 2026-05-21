@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
+import { router } from 'expo-router';
 import { fonts } from '../../theme/fonts';
 
 const HERO_IMAGE =
@@ -46,6 +47,19 @@ export function TrainingHero({
       />
 
       <View style={styles.topRow}>
+        {/* Bouton retour vers Home — Training est maintenant accessible
+            via la tuile Home (et caché du tab bar), donc on a besoin
+            d'un chemin retour visible. Le swipe-back iOS ne marche pas
+            entre tabs, d'où ce bouton. */}
+        <Pressable
+          onPress={() => router.push('/(tabs)/home')}
+          hitSlop={16}
+          style={({ pressed }) => [styles.backBtn, pressed && styles.pressed]}
+          accessibilityRole="button"
+          accessibilityLabel="Retour à l'accueil"
+        >
+          <BackArrowIcon />
+        </Pressable>
         <Pressable onPress={onProgramPress} style={({ pressed }) => [styles.programPill, pressed && styles.pressed]}>
           <DumbbellIcon />
           <Text style={styles.programPillLabel} numberOfLines={1}>{programName}</Text>
@@ -85,6 +99,14 @@ function ClockIcon() {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
       <Path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z M12 6 v6 l4 2" stroke="#FFFFFF" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+function BackArrowIcon() {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+      <Path d="M15 18L9 12l6-6" stroke="#FFFFFF" strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
   );
 }
@@ -131,6 +153,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  /** Bouton retour vers Home — même style que iconPill (rond noir
+   *  semi-transparent) pour cohérence visuelle. */
+  backBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   pressed: {
     opacity: 0.8,
   },
@@ -150,7 +184,10 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
     marginTop: 6,
-    lineHeight: 32,
+    // lineHeight passé de 32 → 36 (1.2× fontSize) pour éviter le
+    // clipping des descendeurs (g, p, y) sur display font avec
+    // fontSize 30.
+    lineHeight: 36,
     letterSpacing: -0.5,
   },
   subtitle: {

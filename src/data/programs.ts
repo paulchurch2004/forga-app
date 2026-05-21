@@ -1023,7 +1023,7 @@ export const PROGRAMS: Record<string, TrainingProgram> = {
     descriptionKey: 'Le meilleur ratio volume/récupération pour les intermédiaires sérieux. 2 séances haut/bas pour la force, 3 séances Push/Pull/Legs pour le volume. Tu touches chaque muscle 2× par semaine, le sweet spot scientifique pour la masse.',
     daysPerWeek: 5, levelKey: 'levelIntermediate',
     rotation: [D04_U, D04_L, D04_PUSH, D04_PULL, D04_LEGS_M],
-    trainingSlots: [0, 1, 2, 4, 5],
+    trainingSlots: [0, 1, 3, 4, 5],
     sexVariant: 'male', level: 'intermediate',
   },
   BULK_INT_5D_UL_PPL_F: {
@@ -1032,7 +1032,7 @@ export const PROGRAMS: Record<string, TrainingProgram> = {
     descriptionKey: 'Sweet spot pour les intermédiaires. 2 séances haut/bas + 3 séances Push/Pull/Legs avec un Legs day axé fessiers (hip thrust, sumo, walking lunges). Idéal si tu peux mettre 5 séances en gardant un jour de repos par jour.',
     daysPerWeek: 5, levelKey: 'levelIntermediate',
     rotation: [D04_U, D04_L, D04_PUSH, D04_PULL, D04_LEGS_F],
-    trainingSlots: [0, 1, 2, 4, 5],
+    trainingSlots: [0, 1, 3, 4, 5],
     sexVariant: 'female', level: 'intermediate',
   },
   BULK_INT_6D_PPL_M: {
@@ -1101,7 +1101,7 @@ export const PROGRAMS: Record<string, TrainingProgram> = {
     descriptionKey: 'Pour les sèches sérieuses où tu vises -1 kg/semaine. 5 séances de muscu (UL + Push/Pull/Legs) pour maintenir le volume + 3-4 sessions cardio (LISS et 1 HIIT). Demande discipline et bonne récup. Réservé aux intermédiaires bien aguerris.',
     daysPerWeek: 5, levelKey: 'levelIntermediate',
     rotation: [D10_U, D10_L, D10_PUSH, D10_PULL, D10_LEGS_M],
-    trainingSlots: [0, 1, 2, 4, 5],
+    trainingSlots: [0, 1, 3, 4, 5],
     sexVariant: 'male', level: 'intermediate',
   },
   CUT_INT_5D_PPL_UL_F: {
@@ -1110,7 +1110,7 @@ export const PROGRAMS: Record<string, TrainingProgram> = {
     descriptionKey: 'Sèche sérieuse 5 séances avec un Legs day axé fessiers + 3-4 cardios. Volume maintenu pour préserver muscle et galbe pendant le déficit. Pour les intermédiaires qui veulent un résultat visible et propre. Les résultats varient selon l\'effort et la nutrition.',
     daysPerWeek: 5, levelKey: 'levelIntermediate',
     rotation: [D10_U, D10_L, D10_PUSH, D10_PULL, D10_LEGS_F],
-    trainingSlots: [0, 1, 2, 4, 5],
+    trainingSlots: [0, 1, 3, 4, 5],
     sexVariant: 'female', level: 'intermediate',
   },
 
@@ -1145,7 +1145,7 @@ export const PROGRAMS: Record<string, TrainingProgram> = {
     descriptionKey: 'Recomposition au top niveau : 5 séances pour maximiser le stimulus muscle, 1 cardio modéré pour aider le déficit, carb cycling agressif. Demande discipline (sommeil 8h, protéines tracking). Réservé aux intermédiaires assidus.',
     daysPerWeek: 5, levelKey: 'levelIntermediate',
     rotation: [D13_UP, D13_LP_M, D13_PUSH, D13_PULL, D04_LEGS_M],
-    trainingSlots: [0, 1, 2, 4, 5],
+    trainingSlots: [0, 1, 3, 4, 5],
     sexVariant: 'male', level: 'intermediate',
   },
   RECOMP_INT_5D_HYB_F: {
@@ -1154,7 +1154,7 @@ export const PROGRAMS: Record<string, TrainingProgram> = {
     descriptionKey: 'Recomposition haute fréquence avec Legs day axé fessiers. 5 séances + 1-2 cardios LISS. Pour intermédiaires disciplinées qui veulent affiner et galber en même temps. 16-20 semaines.',
     daysPerWeek: 5, levelKey: 'levelIntermediate',
     rotation: [D13_UP, D13_LP_F, D13_PUSH, D13_PULL, D04_LEGS_F],
-    trainingSlots: [0, 1, 2, 4, 5],
+    trainingSlots: [0, 1, 3, 4, 5],
     sexVariant: 'female', level: 'intermediate',
   },
 

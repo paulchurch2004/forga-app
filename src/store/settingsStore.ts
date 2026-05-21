@@ -41,6 +41,25 @@ interface SettingsState {
   appleHealthEnabled: boolean;
   /** ISO timestamp of last successful Health sync; null if never synced. */
   lastHealthSyncAt: string | null;
+  /** Compteur de pas via Apple Health affiché sur le Home. iOS uniquement.
+   *  Off par défaut — l'user doit activer dans Settings (opt-in)
+   *  pour qu'on lise les pas. Compatible avec appleHealthEnabled
+   *  mais reste un toggle séparé : un user peut vouloir sync son
+   *  poids sans pour autant qu'on lui montre les pas. */
+  stepsEnabled: boolean;
+  /** ISO date de la première session de l'app sur ce device. Set
+   *  une seule fois à null → today. Sert à déclencher la demande de
+   *  note App Store après 2 jours d'utilisation. */
+  firstActiveDate: string | null;
+  /** ISO timestamp de la dernière fois où on a montré le prompt
+   *  Apple "Note l'app". iOS limite ça à 3×/an quoi qu'il arrive,
+   *  mais on garde notre propre flag pour ne pas l'appeler à chaque
+   *  foreground inutilement. */
+  reviewPromptShownAt: string | null;
+  /** ISO timestamp du dernier prompt parrainage affiché aux free
+   *  users. On en montre un toutes les 5 nuits max (à l'ouverture
+   *  de l'app) pour inciter à partager sans spammer. */
+  referralPromptShownAt: string | null;
 
   setNotificationsEnabled: (enabled: boolean) => void;
   setMealReminders: (enabled: boolean) => void;
@@ -54,6 +73,7 @@ interface SettingsState {
   setBiometricLockEnabled: (enabled: boolean) => void;
   setAppleHealthEnabled: (enabled: boolean) => void;
   setLastHealthSyncAt: (iso: string | null) => void;
+  setStepsEnabled: (enabled: boolean) => void;
   reset: () => void;
 }
 
@@ -72,6 +92,10 @@ export const useSettingsStore = create<SettingsState>()(
       biometricLockEnabled: false,
       appleHealthEnabled: false,
       lastHealthSyncAt: null,
+      stepsEnabled: false,
+      firstActiveDate: null,
+      reviewPromptShownAt: null,
+      referralPromptShownAt: null,
 
       setNotificationsEnabled: (notificationsEnabled) => {
         set({ notificationsEnabled });
@@ -108,7 +132,15 @@ export const useSettingsStore = create<SettingsState>()(
         set({ appleHealthEnabled });
         syncSettingToProfile({ apple_health_enabled: appleHealthEnabled });
       },
-      setLastHealthSyncAt: (lastHealthSyncAt) => set({ lastHealthSyncAt }),
+      setLastHealthSyncAt: (lastHealthSyncAt) => {
+        set({ lastHealthSyncAt });
+        // Sync à Supabase pour permettre le delta-sync cross-device.
+        syncSettingToProfile({ last_health_sync_at: lastHealthSyncAt });
+      },
+      setStepsEnabled: (stepsEnabled) => {
+        set({ stepsEnabled });
+        syncSettingToProfile({ steps_enabled: stepsEnabled });
+      },
       reset: () =>
         set({
           notificationsEnabled: true,
@@ -123,6 +155,7 @@ export const useSettingsStore = create<SettingsState>()(
           biometricLockEnabled: false,
           appleHealthEnabled: false,
           lastHealthSyncAt: null,
+          stepsEnabled: false,
         }),
     }),
     {
@@ -141,6 +174,10 @@ export const useSettingsStore = create<SettingsState>()(
         biometricLockEnabled: state.biometricLockEnabled,
         appleHealthEnabled: state.appleHealthEnabled,
         lastHealthSyncAt: state.lastHealthSyncAt,
+        firstActiveDate: state.firstActiveDate,
+        reviewPromptShownAt: state.reviewPromptShownAt,
+        referralPromptShownAt: state.referralPromptShownAt,
+        stepsEnabled: state.stepsEnabled,
       }),
     }
   )

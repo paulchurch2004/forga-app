@@ -9,13 +9,31 @@ import type { ForgaScore } from '../types/score';
 import type { Badge, WeightEntry, WeeklyCheckIn } from '../types/user';
 import type { Workout } from '../types/training';
 import type { BodyMeasurement } from '../types/user';
-import { useTrainingStore } from '../store/trainingStore';
+import type { StrengthTestResult } from '../types/strength';
+import { useTrainingStore, type OneRepMaxRecord } from '../store/trainingStore';
 import { useWaterStore } from '../store/waterStore';
 import { useSettingsStore } from '../store/settingsStore';
 import { useProgramStore } from '../store/programStore';
 import { useWeeklyPlanStore } from '../store/weeklyPlanStore';
+import { useChatStore, type CoachMemory } from '../store/chatStore';
+import { useShoppingListStore, type ShoppingList } from '../store/shoppingListStore';
+import { useMetalHistoryStore, type MetalId } from '../store/metalHistoryStore';
 import type { ProgressPhoto } from '../types/user';
 import { todayLocalIso } from '../utils/date';
+
+/** Parse JSON sûr : si l'input est null/undefined, retourne fallback. Si
+ *  c'est déjà un objet (jsonb Supabase), le retourne tel quel. Si c'est
+ *  une string malformée → fallback (au lieu de crash boot). */
+function safeParseJSON<T>(value: unknown, fallback: T): T {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value !== 'string') return value as T;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    if (__DEV__) console.warn('[userSync] JSON.parse failed, using fallback', value);
+    return fallback;
+  }
+}
 
 // ──────────── PUSH (Local → Supabase) ────────────
 
@@ -237,12 +255,16 @@ export async function syncProfile(updates: Record<string, any>, userId: string) 
   const keyMap: Record<string, string> = {
     currentWeight: 'current_weight',
     targetWeight: 'target_weight',
+    targetDeadline: 'target_deadline',
+    heightCm: 'height_cm',
     currentStreak: 'current_streak',
     bestStreak: 'best_streak',
     streakFreezeUsedThisWeek: 'streak_freeze_used_this_week',
     forgaScore: 'forga_score',
     isPremium: 'is_premium',
     premiumUntil: 'premium_until',
+    stripeCustomerId: 'stripe_customer_id',
+    stripeSubscriptionId: 'stripe_subscription_id',
     dailyCalories: 'daily_calories',
     dailyProtein: 'daily_protein',
     dailyCarbs: 'daily_carbs',
@@ -254,11 +276,42 @@ export async function syncProfile(updates: Record<string, any>, userId: string) 
     budget: 'budget',
     restrictions: 'restrictions',
     trackingMode: 'tracking_mode',
+    menopauseStatus: 'menopause_status',
+    // Profil d'entraînement (programme assignment) ajouté en migration 009
+    trainingLevel: 'training_level',
+    trainingFrequency: 'training_frequency',
+    equipmentAccess: 'equipment_access',
+    glutePreference: 'glute_preference',
+    // Photo de profil custom (ajoutée pour permettre upload via Image
+    // Picker côté profile screen)
+    avatarUri: 'avatar_uri',
+    // Profil cyclisme — stocké à plat pour faciliter les requêtes
+    // analytics et éviter un JSONB. Le mapping ci-dessous gère
+    // l'aplatissement object → colonnes via une étape spéciale après
+    // le keyMap loop (cf. ci-dessous).
+    // Référencement
+    referralCode: 'referral_code',
+    referralCount: 'referral_count',
+    referredBy: 'referred_by',
   };
   for (const [key, value] of Object.entries(updates)) {
     const snakeKey = keyMap[key] ?? key;
     snakeUpdates[snakeKey] = value;
   }
+
+  // Aplatissement spécial : `cycling` est un objet imbriqué côté TS
+  // mais stocké à plat en colonnes côté DB (cycling_*). Si l'appelant
+  // pousse `{ cycling: { enabled, distanceKm, ... } }`, on disperse.
+  if (snakeUpdates.cycling && typeof snakeUpdates.cycling === 'object') {
+    const c = snakeUpdates.cycling;
+    snakeUpdates.cycling_enabled = c.enabled ?? false;
+    snakeUpdates.cycling_home_address = c.homeAddress ?? null;
+    snakeUpdates.cycling_destination_address = c.destinationAddress ?? null;
+    snakeUpdates.cycling_distance_km = c.distanceKm ?? null;
+    snakeUpdates.cycling_days_per_week = c.daysPerWeek ?? 0;
+    delete snakeUpdates.cycling;
+  }
+
   snakeUpdates.id = userId;
   snakeUpdates.updated_at = new Date().toISOString();
 
@@ -280,6 +333,116 @@ export async function syncProfile(updates: Record<string, any>, userId: string) 
   }
 }
 
+/**
+ * Sync le résultat du test de calibration force.
+ * Stocké en JSONB sur `users.strength_test` (un seul résultat
+ * courant par user — le précédent est écrasé).
+ */
+export function syncStrengthTest(result: StrengthTestResult, userId: string) {
+  if (isDemoMode) return;
+  // Passe par syncProfile pour réutiliser le path users.update +
+  // fallback queue. Le mapping keyMap ne touche pas `strength_test`
+  // donc on l'envoie déjà en snake_case.
+  void syncProfile({ strength_test: result } as any, userId);
+}
+
+/** Sync un record 1RM (PR sur un exo). Upsert keyé (user_id, exercise_id). */
+export function syncOneRepMax(exerciseId: string, record: OneRepMaxRecord, userId: string) {
+  if (isDemoMode) return;
+  enqueue({
+    table: 'one_rep_max',
+    operation: 'upsert',
+    data: {
+      user_id: userId,
+      exercise_id: exerciseId,
+      value_kg: record.value,
+      weight_kg: record.weight,
+      reps: record.reps,
+      achieved_at: record.achievedAt,
+      updated_at: new Date().toISOString(),
+    },
+  });
+}
+
+/** Sync une mémoire coach IA (préférence, blessure, goal…). */
+export function syncCoachMemory(mem: CoachMemory, userId: string) {
+  if (isDemoMode) return;
+  enqueue({
+    table: 'coach_memories',
+    operation: 'upsert',
+    data: {
+      id: mem.id,
+      user_id: userId,
+      date: mem.date,
+      tag: mem.tag,
+      summary: mem.summary,
+      weight: mem.weight,
+    },
+  });
+}
+
+/** Sync une liste de courses (current ou archivée). */
+export function syncShoppingList(list: ShoppingList, isArchived: boolean, userId: string) {
+  if (isDemoMode) return;
+  enqueue({
+    table: 'shopping_lists',
+    operation: 'upsert',
+    data: {
+      id: list.id,
+      user_id: userId,
+      title: list.title,
+      items: list.items,
+      is_archived: isArchived,
+      created_at: list.createdAt,
+      archived_at: isArchived ? new Date().toISOString() : null,
+    },
+  });
+}
+
+/**
+ * Sync une entrée de frise gamification métal pour une date donnée.
+ * Upsert par (user_id, date) — un seul métal par jour par user.
+ * Sans ce sync, la frise du profil restait purement locale → l'user
+ * perdait toute sa gamification à chaque réinstall/multi-device.
+ */
+export function syncMetalEntry(date: string, metal: MetalId, userId: string) {
+  if (isDemoMode) return;
+  enqueue({
+    table: 'metal_history',
+    operation: 'upsert',
+    data: {
+      user_id: userId,
+      date,
+      metal,
+      updated_at: new Date().toISOString(),
+    },
+  });
+}
+
+/**
+ * Bump `last_active_at` à NOW(). Appelé sur foreground d'app (max
+ * une fois toutes les 6h pour pas spammer la DB). Critique pour le
+ * cron de cleanup à 180 jours — sans ce bump, l'user serait
+ * supprimé même actif.
+ */
+let lastActiveBumpAt = 0;
+const ACTIVE_BUMP_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6h
+export async function bumpLastActiveAt(userId: string) {
+  if (isDemoMode) return;
+  const now = Date.now();
+  if (now - lastActiveBumpAt < ACTIVE_BUMP_INTERVAL_MS) return;
+  lastActiveBumpAt = now;
+  try {
+    await supabase
+      .from('users')
+      .update({ last_active_at: new Date().toISOString() })
+      .eq('id', userId);
+  } catch {
+    // Best-effort. Si ça foire l'user sera bumped au prochain
+    // foreground — pas grave si on rate quelques bumps.
+  }
+}
+
 // ──────────── PULL (Supabase → Local) ────────────
 
 /** Load all user data from Supabase after login */
@@ -288,7 +451,7 @@ export async function loadAllUserData(userId: string): Promise<void> {
 
   try {
     // Fetch all data in parallel
-    const [mealsRes, scoresRes, badgesRes, favoritesRes, weightRes, checkInsRes, workoutsRes, waterRes, measurementsRes, preferencesRes, photosRes, planRes, progressRes] = await Promise.all([
+    const [mealsRes, scoresRes, badgesRes, favoritesRes, weightRes, checkInsRes, workoutsRes, waterRes, measurementsRes, preferencesRes, photosRes, planRes, progressRes, oneRepMaxRes, memoriesRes, shoppingRes, strengthRes, metalRes] = await Promise.all([
       supabase.from('daily_meals').select('*').eq('user_id', userId).order('date', { ascending: true }),
       supabase.from('score_history').select('*').eq('user_id', userId).order('date', { ascending: true }),
       supabase.from('badges').select('*').eq('user_id', userId),
@@ -302,6 +465,15 @@ export async function loadAllUserData(userId: string): Promise<void> {
       supabase.from('progress_photos').select('*').eq('user_id', userId).order('date', { ascending: true }),
       supabase.from('weekly_plans').select('*').eq('user_id', userId).order('week_start', { ascending: false }).limit(1),
       supabase.from('program_progress').select('*').eq('user_id', userId).maybeSingle(),
+      // Nouvelles tables (migration 014) — calibration force, mémoires
+      // coach et listes de courses. Catch silencieusement les erreurs si
+      // la migration n'est pas encore appliquée (l'app continue à marcher).
+      supabase.from('one_rep_max').select('*').eq('user_id', userId),
+      supabase.from('coach_memories').select('*').eq('user_id', userId).order('date', { ascending: false }),
+      supabase.from('shopping_lists').select('*').eq('user_id', userId).order('created_at', { ascending: false }),
+      supabase.from('users').select('strength_test').eq('id', userId).maybeSingle(),
+      // Frise gamification 30 derniers jours (migration 018).
+      supabase.from('metal_history').select('*').eq('user_id', userId).order('date', { ascending: false }).limit(60),
     ]);
 
     // Populate meal history
@@ -332,8 +504,17 @@ export async function loadAllUserData(userId: string): Promise<void> {
         if (row.date === today) todayMeals.push(meal);
       }
 
-      // Merge with existing local history (local takes priority for today)
-      const localHistory = useMealStore.getState().mealHistory;
+      // Merge avec l'historique local en filtrant les meals qui
+      // appartiennent à un AUTRE user (cross-user contamination).
+      // Scénario : User A se déco mal → reset incomplet → User B se
+      // logue → localHistory contient encore des meals de User A
+      // qui auraient écrasé celles de User B sans ce filtre.
+      const rawLocalHistory = useMealStore.getState().mealHistory;
+      const localHistory: Record<string, DailyMeal[]> = {};
+      for (const [date, meals] of Object.entries(rawLocalHistory)) {
+        const sameUserMeals = meals.filter((m) => m.userId === userId);
+        if (sameUserMeals.length > 0) localHistory[date] = sameUserMeals;
+      }
       const merged = { ...mealHistory, ...localHistory };
       useMealStore.setState({ mealHistory: merged });
       if (todayMeals.length > 0 && useMealStore.getState().todayMeals.length === 0) {
@@ -432,7 +613,7 @@ export async function loadAllUserData(userId: string): Promise<void> {
           type: row.type,
           durationMinutes: row.duration_minutes,
           intensity: row.intensity ?? 'moderate',
-          exercises: typeof row.exercises === 'string' ? JSON.parse(row.exercises) : (row.exercises ?? []),
+          exercises: safeParseJSON(row.exercises, []),
           note: row.note ?? undefined,
         };
         if (!workouts[row.date]) workouts[row.date] = [];
@@ -517,7 +698,7 @@ export async function loadAllUserData(userId: string): Promise<void> {
     // Populate weekly meal plan
     if (planRes.data && planRes.data.length > 0) {
       const row = planRes.data[0];
-      const days = typeof row.days === 'string' ? JSON.parse(row.days) : (row.days ?? []);
+      const days = safeParseJSON(row.days, []);
       useWeeklyPlanStore.setState({
         weekStart: row.week_start,
         days,
@@ -529,12 +710,93 @@ export async function loadAllUserData(userId: string): Promise<void> {
       const row = progressRes.data;
       if (row.active_program_id && row.planned_days) {
         try {
-          const activePlan = typeof row.planned_days === 'string' ? JSON.parse(row.planned_days) : row.planned_days;
+          const activePlan = safeParseJSON(row.planned_days, null as any);
           if (activePlan && activePlan.programId) {
             useProgramStore.setState({ activePlan });
           }
         } catch {}
       }
+    }
+
+    // Populate one_rep_max records — keyés par exercise_id côté store.
+    if (oneRepMaxRes.data && oneRepMaxRes.data.length > 0) {
+      const oneRepMaxByExercise: Record<string, OneRepMaxRecord> = {};
+      for (const row of oneRepMaxRes.data) {
+        oneRepMaxByExercise[row.exercise_id] = {
+          value: Number(row.value_kg),
+          weight: Number(row.weight_kg),
+          reps: row.reps,
+          achievedAt: row.achieved_at,
+        };
+      }
+      // Merge avec le local (le record le plus haut gagne — l'user a
+      // pu PR offline sur un autre device).
+      const local = useTrainingStore.getState().oneRepMaxByExercise;
+      const merged: Record<string, OneRepMaxRecord> = { ...oneRepMaxByExercise };
+      for (const [k, v] of Object.entries(local)) {
+        if (!merged[k] || merged[k].value < v.value) merged[k] = v;
+      }
+      useTrainingStore.setState({ oneRepMaxByExercise: merged });
+    }
+
+    // Populate strength_test (calibration force). Une seule colonne
+    // JSONB sur users — pas de merge complexe, le serveur fait foi.
+    if (strengthRes.data?.strength_test) {
+      const st = strengthRes.data.strength_test as StrengthTestResult;
+      useUserStore.getState().setStrengthTest(st);
+    }
+
+    // Populate coach memories. Cap à 50 côté client (cf MAX_MEMORIES
+    // dans chatStore). On garde les plus récentes en cas de surplus.
+    if (memoriesRes.data && memoriesRes.data.length > 0) {
+      const memories: CoachMemory[] = memoriesRes.data.slice(0, 50).map((row: any) => ({
+        id: row.id,
+        date: row.date,
+        tag: row.tag,
+        summary: row.summary,
+        weight: row.weight,
+      }));
+      useChatStore.setState({ memories });
+    }
+
+    // Populate shopping lists — current (is_archived=false, max 1) +
+    // archived (is_archived=true, max 10).
+    if (shoppingRes.data && shoppingRes.data.length > 0) {
+      const lists: ShoppingList[] = shoppingRes.data.map((row: any) => ({
+        id: row.id,
+        title: row.title,
+        createdAt: row.created_at,
+        items: Array.isArray(row.items) ? row.items : [],
+      }));
+      const currentRow = shoppingRes.data.find((r: any) => !r.is_archived);
+      const current = currentRow
+        ? lists.find((l) => l.id === currentRow.id) ?? null
+        : null;
+      const archived = lists.filter((l) => l.id !== current?.id).slice(0, 10);
+      useShoppingListStore.setState({ current, archived });
+    }
+
+    // Frise gamification métaux — restore les check-ins quotidiens
+    // depuis Supabase pour que l'user retrouve sa frise après un
+    // réinstall / changement de device. On merge avec le local : la
+    // valeur la plus récente gagne par date (updated_at fait foi).
+    if (metalRes.data && metalRes.data.length > 0) {
+      const remoteHistory: Record<string, MetalId> = {};
+      for (const row of metalRes.data as any[]) {
+        // Garde-fou : si une ancienne entrée a une clé EN (lead/gold)
+        // qui aurait fui en DB avant le fix du mapping, on convertit.
+        const m = row.metal;
+        const FR_KEYS: Record<string, MetalId> = {
+          lead: 'plomb', iron: 'fer', steel: 'acier', gold: 'or', bronze: 'bronze',
+          plomb: 'plomb', fer: 'fer', acier: 'acier', or: 'or',
+        };
+        const mapped = FR_KEYS[m];
+        if (mapped) remoteHistory[row.date] = mapped;
+      }
+      const localHistory = useMetalHistoryStore.getState().history;
+      useMetalHistoryStore.setState({
+        history: { ...remoteHistory, ...localHistory },
+      });
     }
   } catch (err) {
     if (__DEV__) console.warn('[UserSync] Failed to load user data:', err);

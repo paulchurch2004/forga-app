@@ -10,7 +10,7 @@ import type { MacroInput, MacroTarget } from '../types/engine';
  * 3. Glucides : reste des calories
  */
 export function calculateMacros(input: MacroInput): MacroTarget {
-  const { tdee, weightKg, objective } = input;
+  const { tdee, weightKg, objective, menopauseStatus } = input;
   const ratios = MACRO_RATIOS[objective];
   const adjustment = CALORIE_ADJUSTMENTS[objective];
 
@@ -19,7 +19,18 @@ export function calculateMacros(input: MacroInput): MacroTarget {
   calories = Math.max(SAFETY_LIMITS.minCalories, Math.min(SAFETY_LIMITS.maxCalories, calories));
 
   // Protéines (g/kg)
-  const protein = Math.round(ratios.proteinPerKg * weightKg);
+  //
+  // Pendant la péri/ménopause, la sarcopénie (perte de muscle liée à
+  // l'âge) s'accélère significativement à cause de la baisse de
+  // l'œstrogène. Les guidelines NAMS et ACSM recommandent 2.0 g/kg
+  // au lieu du 1.6 g/kg standard pour préserver la masse musculaire.
+  // On applique cette correction quand on a le statut. Pour la sèche
+  // ou si le ratio standard est déjà >= 2.0, on garde le max.
+  const baseProteinPerKg = ratios.proteinPerKg;
+  const menopauseProteinPerKg = menopauseStatus === 'peri' || menopauseStatus === 'post'
+    ? Math.max(2.0, baseProteinPerKg)
+    : baseProteinPerKg;
+  const protein = Math.round(menopauseProteinPerKg * weightKg);
   const proteinCals = protein * CALS_PER_GRAM.protein;
 
   // Lipides (% des calories)

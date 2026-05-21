@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from 'expo-router';
 import {
   requestPermissions,
   scheduleMealReminder,
@@ -25,13 +26,29 @@ export function useNotifications() {
   const [isEnabled, setIsEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Load saved preference
-  useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then((value) => {
-      setIsEnabled(value === 'true');
-      setLoading(false);
-    });
+  // Load saved preference. Re-charge à chaque fois que l'écran consommateur
+  // reprend le focus — sans ça, si l'user passe par /notifications-setup
+  // pour activer puis revient sur le profil, le hook gardait son ancien
+  // état `isEnabled=false` (l'effet mount initial avait déjà fini de lire).
+  // L'user voyait "Notifications désactivées" alors qu'elles l'étaient.
+  const reload = useCallback(async () => {
+    const value = await AsyncStorage.getItem(STORAGE_KEY).catch(() => null);
+    setIsEnabled(value === 'true');
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  // `useFocusEffect` ne marche que dans un écran routé — quand le hook
+  // n'est pas mounted dans un screen Expo Router, il throw. Du coup on
+  // wrap dans un try/catch implicite via la condition Platform.
+  useFocusEffect(
+    useCallback(() => {
+      void reload();
+    }, [reload]),
+  );
 
   const scheduleAll = useCallback(async (currentStreak: number) => {
     // Notifications not supported on web

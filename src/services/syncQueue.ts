@@ -57,7 +57,28 @@ export async function enqueue(action: Omit<SyncAction, 'id' | 'createdAt'>) {
 
 export async function getQueue(): Promise<SyncAction[]> {
   const raw = await AsyncStorage.getItem(QUEUE_KEY);
-  return raw ? JSON.parse(raw) : [];
+  if (!raw) return [];
+  try {
+    return JSON.parse(raw);
+  } catch (err) {
+    // Queue corrompue (kill -9 pendant write, low disk, etc.). Sans
+    // ce try/catch, l'app crashait au boot ET la queue restait
+    // permanently broken — aucune sync n'aurait plus jamais marché
+    // jusqu'à reset/réinstall. On reset et on continue.
+    if (__DEV__) console.warn('[SyncQueue] Corrupted queue, resetting:', err);
+    try { captureException(err as Error, { component: 'SyncQueue.getQueue' }); } catch {}
+    await AsyncStorage.removeItem(QUEUE_KEY);
+    return [];
+  }
+}
+
+/** Wipe la queue locale. À utiliser au logout/delete-account pour
+ *  éviter que les actions du user A soient sync sous l'identité du
+ *  user B au prochain login sur le même device. processQueue() est
+ *  appelé AVANT le logout pour drainer ce qui peut l'être ; ce qui
+ *  reste est legitimement perdu (sinon fuite cross-compte). */
+export async function clearQueue(): Promise<void> {
+  await AsyncStorage.removeItem(QUEUE_KEY);
 }
 
 /** Test-only / debug helper to inspect queue size without parsing. */
@@ -86,6 +107,17 @@ const ALLOWED_TABLES = [
   'weekly_plans',
   'program_progress',
   'users',
+  // Audit persistance v1 (migration 014) — tables qui closent les
+  // trous identifiés au launch :
+  //   - one_rep_max : historique 1RM par exercice
+  //   - coach_memories : mémoires structurées du coach IA
+  //   - shopping_lists : listes de courses (current + archivées)
+  'one_rep_max',
+  'coach_memories',
+  'shopping_lists',
+  // Frise gamification quotidienne (migration 018) — sans sync ici
+  // l'user perdait sa frise à chaque réinstall/changement de device.
+  'metal_history',
 ];
 
 export async function processQueue(): Promise<void> {

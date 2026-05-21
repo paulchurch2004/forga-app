@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Animated, StyleSheet, Platform } from 'react-native';
 import { useVideoPlayer, VideoView } from 'expo-video';
+import { useUserStore } from '../../store/userStore';
 
 /**
  * Sport montage — rapid-fire clip cycler designed to feel like a hype reel.
@@ -14,37 +15,64 @@ import { useVideoPlayer, VideoView } from 'expo-video';
  * Clip pool is Mixkit free-license, 1080p. The rotation order is
  * shuffled at mount so two consecutive sessions don't feel identical.
  */
-const CLIPS: string[] = [
-  // ── Fight / combat ──
+/**
+ * Pools de clips séparés par sexe. L'user doit pouvoir se projeter
+ * sur les visuels du paywall — c'est l'écran de conversion #1, on
+ * ne peut pas se permettre un mismatch identitaire.
+ *
+ * Pool MALE : combat, force, sprint masculin (les originaux).
+ * Pool FEMALE : pilates, yoga puissance, course, danse, fitness.
+ * Pool MIXED (fallback) : sport "neutre" cardio, sports collectifs,
+ *   activités où le sexe ne ressort pas visuellement.
+ */
+const CLIPS_MALE: string[] = [
+  // Fight / combat (très masculin-coded)
   'https://assets.mixkit.co/videos/40954/40954-1080.mp4', // heavy bag training
   'https://assets.mixkit.co/videos/40969/40969-1080.mp4', // sparring
   'https://assets.mixkit.co/videos/40962/40962-1080.mp4', // gym training
   'https://assets.mixkit.co/videos/40967/40967-1080.mp4', // boxing footwork
   'https://assets.mixkit.co/videos/40978/40978-1080.mp4', // bag work
-
-  // ── Run / sprint ──
+  // Sprint
   'https://assets.mixkit.co/videos/606/606-1080.mp4',     // outdoor sprint
-  'https://assets.mixkit.co/videos/32809/32809-1080.mp4', // treadmill
   'https://assets.mixkit.co/videos/4046/4046-1080.mp4',   // running outdoor
   'https://assets.mixkit.co/videos/4640/4640-1080.mp4',   // sprint focus
-
-  // ── Strength / fitness ──
-  'https://assets.mixkit.co/videos/608/608-1080.mp4',     // fitness moves
+  // Force pure
   'https://assets.mixkit.co/videos/4933/4933-1080.mp4',   // pull-ups
   'https://assets.mixkit.co/videos/5005/5005-1080.mp4',   // deadlift
   'https://assets.mixkit.co/videos/4922/4922-1080.mp4',   // squat
   'https://assets.mixkit.co/videos/4990/4990-1080.mp4',   // bench press
+];
 
-  // ── Cardio / endurance ──
-  'https://assets.mixkit.co/videos/4052/4052-1080.mp4',   // skydive
+const CLIPS_FEMALE: string[] = [
+  // Yoga, pilates, étirement
+  'https://assets.mixkit.co/videos/40368/40368-1080.mp4', // yoga flow
+  'https://assets.mixkit.co/videos/40378/40378-1080.mp4', // pilates
+  'https://assets.mixkit.co/videos/4842/4842-1080.mp4',   // stretching outdoor
+  // Cardio / running
+  'https://assets.mixkit.co/videos/40398/40398-1080.mp4', // running woman
+  'https://assets.mixkit.co/videos/40393/40393-1080.mp4', // jump rope
+  // Fitness / force féminine
+  'https://assets.mixkit.co/videos/40386/40386-1080.mp4', // bodyweight squats
+  'https://assets.mixkit.co/videos/40380/40380-1080.mp4', // dumbbell training
+  'https://assets.mixkit.co/videos/40381/40381-1080.mp4', // kettlebell swing
+  'https://assets.mixkit.co/videos/40400/40400-1080.mp4', // gym cardio
+  // Outdoor / lifestyle
+  'https://assets.mixkit.co/videos/40363/40363-1080.mp4', // outdoor workout
+  'https://assets.mixkit.co/videos/40395/40395-1080.mp4', // dance fitness
+];
+
+/** Clips "mixtes" qui marchent dans les deux pools — ajoutés aux deux. */
+const CLIPS_MIXED: string[] = [
   'https://assets.mixkit.co/videos/615/615-1080.mp4',     // race car circuit
   'https://assets.mixkit.co/videos/869/869-1080.mp4',     // tennis serve
   'https://assets.mixkit.co/videos/876/876-1080.mp4',     // tennis rally
   'https://assets.mixkit.co/videos/4641/4641-1080.mp4',   // mountain bike
   'https://assets.mixkit.co/videos/4825/4825-1080.mp4',   // surfing
-  'https://assets.mixkit.co/videos/4945/4945-1080.mp4',   // basketball
   'https://assets.mixkit.co/videos/4985/4985-1080.mp4',   // climbing
 ];
+
+/** Pool par défaut (rétro-compat avec ancienne signature de prop). */
+const CLIPS: string[] = [...CLIPS_MALE, ...CLIPS_MIXED];
 
 const CLIP_DURATION_MS = 600; // sport-montage fast cut feel
 const CROSSFADE_MS = 200; // tight crossfade that hides the source swap
@@ -67,9 +95,22 @@ interface VideoMontageProps {
   clipDurationMs?: number;
 }
 
-export function VideoMontage({ clips = CLIPS, clipDurationMs = CLIP_DURATION_MS }: VideoMontageProps) {
-  // Stable shuffled order per mount.
-  const playlist = useMemo(() => shuffleClips(clips), [clips]);
+export function VideoMontage({ clips, clipDurationMs = CLIP_DURATION_MS }: VideoMontageProps) {
+  // Sélectionne le pool de clips selon le sexe de l'user.
+  // Si l'user n'a pas encore renseigné son sexe (pré-onboarding,
+  // landing), fallback vers le pool male par défaut.
+  const userSex = useUserStore((s) => s.profile?.sex ?? s.onboardingData.sex);
+  const defaultPool = useMemo(() => {
+    if (userSex === 'female') return [...CLIPS_FEMALE, ...CLIPS_MIXED];
+    return [...CLIPS_MALE, ...CLIPS_MIXED];
+  }, [userSex]);
+
+  // Stable shuffled order per mount. La prop `clips` (override) gagne
+  // sur le pool auto-sélectionné, pour les cas custom (preview, test).
+  const playlist = useMemo(
+    () => shuffleClips(clips ?? defaultPool),
+    [clips, defaultPool],
+  );
 
   // Rolling 3-player window. Player A is visible at mount; B and C are
   // pre-loaded with the next two clips.

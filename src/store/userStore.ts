@@ -94,6 +94,24 @@ export const useUserStore = create<UserState>()(
     {
       name: 'forga-user-store',
       storage: createJSONStorage(() => AsyncStorage),
+      // Versioning IMPORTANT : sans ça, un store v1 ré-hydraté avec un
+      // shape v2 (nouveaux champs cycling, menopauseStatus, avatarUri…)
+      // peut crasher silencieusement quand le code lit un champ nested
+      // qui n'existe pas. À bumper à chaque changement de structure +
+      // ajouter une fonction migrate ci-dessous.
+      version: 1,
+      migrate: (persistedState: any, fromVersion) => {
+        // Future migrations (v2, v3…) ici. Pour l'instant on accepte
+        // tout shape ≥ v0 et le default merge de zustand-persist
+        // remplit les champs manquants avec les valeurs initiales.
+        if (!persistedState) return persistedState;
+        // Garde-fou : si profile.name a été corrompu en undefined,
+        // remplace par '' (sinon crash sur les .split).
+        if (persistedState.profile && persistedState.profile.name == null) {
+          persistedState.profile.name = '';
+        }
+        return persistedState;
+      },
       partialize: (state) => ({
         profile: state.profile,
         onboardingData: state.onboardingData,

@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fonts } from '../../theme/fonts';
 import type { Archetype } from '../../types/user';
@@ -13,6 +14,13 @@ interface ProfileHeroCardProps {
   streak: number;
   formScore: number;
   weight: number;
+  /** URI locale ou URL distante de la photo de profil. Si fourni, on
+   *  l'affiche à la place de l'initiale en gradient. */
+  avatarUri?: string;
+  /** Callback déclenché au tap sur l'avatar. Permet à l'écran parent
+   *  d'ouvrir le picker photo (`expo-image-picker`). Optionnel : si
+   *  absent, l'avatar n'est pas tappable. */
+  onAvatarPress?: () => void;
 }
 
 const ARCHETYPE_LABEL_KEY: Record<Archetype, TranslationKey> = {
@@ -21,23 +29,62 @@ const ARCHETYPE_LABEL_KEY: Record<Archetype, TranslationKey> = {
   explorer: 'archetypeExplorerName',
 };
 
-export function ProfileHeroCard({ name, archetype, cycleLabel, streak, formScore, weight }: ProfileHeroCardProps) {
+export function ProfileHeroCard({
+  name,
+  archetype,
+  cycleLabel,
+  streak,
+  formScore,
+  weight,
+  avatarUri,
+  onAvatarPress,
+}: ProfileHeroCardProps) {
   const { t } = useT();
   const initial = name.charAt(0).toUpperCase();
   const archetypeLabel = archetype ? t(ARCHETYPE_LABEL_KEY[archetype]) : t('profileArchetypeUnknown');
+
+  // Si l'user a une photo custom, on l'affiche à la place de
+  // l'initiale en gradient. Le Pressable wrap rend l'avatar tappable
+  // pour ouvrir le picker (callback fourni par l'écran parent).
+  const avatarContent = avatarUri ? (
+    <Image
+      source={{ uri: avatarUri }}
+      style={styles.avatar}
+      contentFit="cover"
+      cachePolicy="memory-disk"
+    />
+  ) : (
+    <LinearGradient
+      colors={['#FF6B35', '#CC5424']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.avatar}
+    >
+      <Text style={styles.avatarLetter}>{initial}</Text>
+    </LinearGradient>
+  );
 
   return (
     <View style={styles.card}>
       <View style={styles.glow} pointerEvents="none" />
       <View style={styles.headerRow}>
-        <LinearGradient
-          colors={['#FF6B35', '#CC5424']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.avatar}
-        >
-          <Text style={styles.avatarLetter}>{initial}</Text>
-        </LinearGradient>
+        {onAvatarPress ? (
+          <Pressable
+            onPress={onAvatarPress}
+            accessibilityRole="button"
+            accessibilityLabel={t('profileChangePhoto' as any)}
+            hitSlop={8}
+          >
+            {avatarContent}
+            {/* Petit indicateur "édit" en coin bas-droit de l'avatar
+                pour signaler que l'élément est interactif. */}
+            <View style={styles.editBadge} pointerEvents="none">
+              <Text style={styles.editBadgeIcon}>✎</Text>
+            </View>
+          </Pressable>
+        ) : (
+          avatarContent
+        )}
         <View style={{ flex: 1 }}>
           <Text style={styles.eyebrow}>{t('profileArchetypeEyebrow', { name: archetypeLabel.toUpperCase() })}</Text>
           <Text style={styles.name}>{name}</Text>
@@ -110,6 +157,25 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  /** Petit badge "édit" en coin bas-droit de l'avatar quand interactif. */
+  editBadge: {
+    position: 'absolute' as const,
+    bottom: -2,
+    right: -2,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#1A1A24',
+    borderWidth: 2,
+    borderColor: '#FF6B35',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  editBadgeIcon: {
+    fontSize: 11,
+    color: '#FF6B35',
+    fontWeight: '700',
+  },
   eyebrow: {
     fontFamily: fonts.body,
     fontSize: 11,
@@ -124,7 +190,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginTop: 4,
     letterSpacing: -0.5,
-    lineHeight: 28,
+    // lineHeight passé de 28 → 32 pour ne pas clipper les descendeurs
+    // sur display font (l'audit signalait un risque sur les `g/p/y`).
+    lineHeight: 32,
   },
   cycle: {
     fontFamily: fonts.body,

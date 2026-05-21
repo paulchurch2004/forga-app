@@ -10,6 +10,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
 import { useTrackOnboardingStep } from '../../src/hooks/useTrackOnboardingStep';
+import { useOnboardingBack } from '../../src/hooks/useOnboardingBack';
 const triggerHaptic = (style: 'light' | 'medium' = 'light') => {
   if (Platform.OS === 'web') return;
   import('expo-haptics').then((Haptics) => {
@@ -26,8 +27,8 @@ import { fonts, fontSizes, fontWeights } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
 import type { Budget, Restriction } from '../../src/types/user';
 
-const STEP = 6;
-const TOTAL_STEPS = 7;
+const STEP = 7;
+const TOTAL_STEPS = 8;
 
 interface BudgetOption {
   value: Budget;
@@ -56,7 +57,10 @@ const RESTRICTION_OPTIONS: RestrictionOption[] = [
 ];
 
 export default function Step6Preferences() {
-  useTrackOnboardingStep(6);
+  // Step6 vient APRÈS step5b-cycling (qui tracke comme 6 dans le store).
+  // Donc on tracke comme 7 pour rester sur une séquence strictement
+  // croissante — index.tsx résume sur la bonne étape.
+  useTrackOnboardingStep(7);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -88,10 +92,7 @@ export default function Step6Preferences() {
     });
   }, []);
 
-  const handleBack = useCallback(() => {
-    triggerHaptic('light');
-    router.back();
-  }, [router]);
+  const handleBack = useOnboardingBack('/(onboarding)/step5b-cycling');
 
   const handleNext = useCallback(() => {
     triggerHaptic('light');

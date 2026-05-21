@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "fr.forga.ios",
-      "buildNumber": "65",
+      "buildNumber": "74",
       "usesAppleSignIn": true,
       "associatedDomains": [
         "applinks:forga.fr",
@@ -42,9 +42,34 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
+      "androidStatusBar": {
+        "barStyle": "light-content",
+        "translucent": true,
+        "backgroundColor": "#00000000"
+      },
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.POST_NOTIFICATIONS"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "forga.fr"
+            },
+            {
+              "scheme": "https",
+              "host": "www.forga.fr"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
       ]
     },
     "web": {

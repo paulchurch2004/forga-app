@@ -23,7 +23,7 @@ import { EXERCISES } from '../src/data/exercises';
 import { hasTutorial } from '../src/data/exerciseTips';
 import { ExerciseTutorialModal } from '../src/components/training/ExerciseTutorialModal';
 import { useTrainingStore } from '../src/store/trainingStore';
-import { syncWorkout } from '../src/services/userSync';
+import { syncWorkout, syncOneRepMax } from '../src/services/userSync';
 import { pushWorkoutToHealth } from '../src/hooks/useAppleHealth';
 import { useAuthStore } from '../src/store/authStore';
 import { useProgramStore } from '../src/store/programStore';
@@ -150,7 +150,23 @@ export default function ActiveWorkoutScreen() {
     programDayId: string;
     date: string;
     programId: string;
+    /** Multiplicateur de charge issu du PreWorkoutCheckInModal.
+     *  0.85 = épuisé (plomb), 1.08 = en forme (or). Default 1.0 si
+     *  l'user a skip le check-in ou si on arrive ici sans passer par
+     *  la popup (ex: deep link, debug). */
+    loadMultiplier?: string;
+    /** ID du métal choisi par l'user pour traçabilité dans le workout. */
+    metalId?: string;
   }>();
+
+  // Parsed une fois pour toute. Clampé [0.6, 1.2] pour éviter qu'un
+  // bug client passe un multiplicateur aberrant (genre 100) qui
+  // pousserait l'user à mettre 200kg au curl biceps.
+  const loadMultiplier = (() => {
+    const raw = parseFloat(params.loadMultiplier ?? '1');
+    if (!Number.isFinite(raw) || raw <= 0) return 1;
+    return Math.min(1.2, Math.max(0.6, raw));
+  })();
 
   const addWorkout = useTrainingStore((s) => s.addWorkout);
   const updateWorkoutFeedback = useTrainingStore((s) => s.updateWorkoutFeedback);
@@ -239,6 +255,15 @@ export default function ActiveWorkoutScreen() {
       unloadRestEndSound().catch(() => { /* silent */ });
     };
   }, []);
+
+  // ─── Persistance de la séance en cours ───
+  // L'état d'une séance vit en useState et était PERDU si l'user kill
+  // l'app au milieu d'un workout (téléphone qui crash, switch d'app et
+  // OS qui kill en background, batterie morte). Sauvegarde après chaque
+  // changement d'état, restore au mount si match programDay+date et
+  // sauvegarde < 24h.
+  const persistKey = `forga-active-workout:${params.programId}:${params.programDayId}:${params.date}`;
+  const hasRestoredRef = useRef(false);
 
   const restRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -340,14 +365,24 @@ export default function ActiveWorkoutScreen() {
       const lastSession = getLastSession(pe.exerciseId);
       const lastWeight = lastSession?.[0]?.weight ?? 0;
 
-      // Adjust reps based on user objective
-      let adjustedReps = pe.targetReps;
+      // On RESPECTE le targetReps du programme tel quel — pas d'ajustement
+      // par objectif. Avant : on faisait `pe.targetReps - 2` en bulk sur
+      // les compounds, ce qui créait une incohérence entre le détail
+      // affiché (7 reps) et la séance lancée (5 reps). En plus c'était
+      // contre-productif : les programmes bulk ont déjà des rep ranges
+      // calibrés (8-12 hypertrophie, 4-6 force) — pas besoin d'y toucher.
+      // Le user voit maintenant les MÊMES reps partout.
+      const adjustedReps = pe.targetReps;
       const isCompound = exercise?.isCompound ?? false;
-      if (objective === 'bulk' && isCompound) {
-        adjustedReps = Math.max(4, pe.targetReps - 2);
-      } else if (objective === 'cut') {
-        adjustedReps = pe.targetReps + 2;
-      }
+      // Bas du corps = compound qui sollicite jambes/dos lourd → +2.5 kg
+      // par séance (cf TRAINING_PROGRAMS_SPEC.md §A.3). Tout le reste
+      // compound = haut du corps → +1.25 kg. La distinction se fait sur
+      // muscleGroup, plus les exercices qui ont "deadlift" dans l'ID
+      // (deadlift est techniquement back mais sollicite chaîne postérieure
+      // entière donc +2.5 kg est légitime).
+      const isLowerBody =
+        exercise?.muscleGroup === 'legs' ||
+        /deadlift|hip_thrust|romanian|good_morning/i.test(pe.exerciseId);
 
       // Smart weight suggestion via the v3 engine (handles +increment, deload, no-history fallback)
       let suggestedWeight = lastWeight;
@@ -362,7 +397,7 @@ export default function ActiveWorkoutScreen() {
       }));
 
       if (sessionRecords.length > 0) {
-        const suggestion = suggestNextWeight(sessionRecords, isCompound, adjustedReps);
+        const suggestion = suggestNextWeight(sessionRecords, isCompound, adjustedReps, isLowerBody);
         suggestedWeight = suggestion.weight;
         weightTip = suggestion.reason;
         deloadSuggested = suggestion.deloadSuggested;
@@ -377,7 +412,8 @@ export default function ActiveWorkoutScreen() {
         //   2. A ratio derived from the user's tested lifts.
         //   3. A bodyweight × level × sex fallback (always available
         //      provided the profile has a current weight).
-        const seed = getStartingWeightForExercise(
+        // 1er essai : avec les charges du test de calibration
+        let seed = getStartingWeightForExercise(
           pe.exerciseId,
           strengthTest?.startingWeights,
           {
@@ -386,6 +422,23 @@ export default function ActiveWorkoutScreen() {
             trainingLevel: profile?.trainingLevel,
           },
         );
+        // 2e essai : si le test n'a rien donné pour cet exo (cas
+        // possibles : strengthTest pas encore hydraté au mount, ou
+        // l'exo a un mapping cassé, ou la valeur calibrée est 0),
+        // on retente SANS le strengthTest → force le fallback
+        // bodyweight × pattern qui retourne toujours une valeur
+        // sensée tant que profile.currentWeight est set.
+        if (seed === 0 && profile?.currentWeight) {
+          seed = getStartingWeightForExercise(
+            pe.exerciseId,
+            undefined,
+            {
+              sex: profile.sex,
+              bodyweightKg: profile.currentWeight,
+              trainingLevel: profile.trainingLevel,
+            },
+          );
+        }
         if (seed > 0) {
           suggestedWeight = seed;
           weightTip = strengthTest?.startingWeights
@@ -398,11 +451,30 @@ export default function ActiveWorkoutScreen() {
         }
       }
 
+      // ─── Application du loadMultiplier du check-in pré-séance ───
+      // L'user a indiqué son état dans la popup (plomb → or). On
+      // ajuste la charge proposée en conséquence. On snap au demi-kilo
+      // pour rester cohérent avec les fractionnaires standard de
+      // musculation. On ne descend pas en dessous de 1kg pour les
+      // valeurs très faibles (isolation léger).
+      let adjustedWeight = suggestedWeight;
+      if (suggestedWeight > 0 && loadMultiplier !== 1) {
+        const raw = suggestedWeight * loadMultiplier;
+        adjustedWeight = Math.max(1, Math.round(raw * 2) / 2);
+        // On enrichit le tip pour expliquer pourquoi la charge a bougé
+        // (sinon l'user voit -5kg mystérieux et perd confiance).
+        const deltaPct = Math.round((loadMultiplier - 1) * 100);
+        if (deltaPct !== 0) {
+          const sign = deltaPct > 0 ? '+' : '';
+          weightTip = `${weightTip}${weightTip ? ' · ' : ''}Ajusté selon ton état (${sign}${deltaPct}%)`;
+        }
+      }
+
       const sets: ActiveSet[] = Array.from({ length: pe.targetSets }, (_, i) => ({
         id: `s_${pe.exerciseId}_${i}`,
         targetReps: adjustedReps,
         actualReps: String(adjustedReps),
-        weight: suggestedWeight > 0 ? String(suggestedWeight) : '',
+        weight: adjustedWeight > 0 ? String(adjustedWeight) : '',
         completed: false,
       }));
 
@@ -419,6 +491,52 @@ export default function ActiveWorkoutScreen() {
       };
     });
   });
+
+  // Restore au mount : si on retrouve un état sauvegardé pour le même
+  // programDay+date et < 24h, on le ré-applique. Sinon, on garde
+  // l'init calculé à partir du programme.
+  useEffect(() => {
+    if (hasRestoredRef.current) return;
+    hasRestoredRef.current = true;
+    AsyncStorage.getItem(persistKey).then((raw) => {
+      if (!raw) return;
+      try {
+        const parsed = JSON.parse(raw) as {
+          exercises: ActiveExercise[];
+          elapsedSeconds: number;
+          savedAt: number;
+        };
+        const ageMs = Date.now() - (parsed.savedAt ?? 0);
+        if (ageMs > 24 * 60 * 60 * 1000) {
+          // Trop vieux — purge et ignore
+          AsyncStorage.removeItem(persistKey).catch(() => {});
+          return;
+        }
+        if (Array.isArray(parsed.exercises) && parsed.exercises.length > 0) {
+          setExercises(parsed.exercises);
+        }
+        if (typeof parsed.elapsedSeconds === 'number' && parsed.elapsedSeconds > 0) {
+          setElapsedSeconds(parsed.elapsedSeconds);
+        }
+      } catch {
+        // Parse échoué → ignore, on garde l'init
+      }
+    });
+  }, [persistKey]);
+
+  // Save sur changement de state. Throttled à 1.5s pour éviter d'écrire
+  // à chaque keystroke dans les inputs reps/poids.
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      const hasAnyProgress = exercises.some((ex) => ex.sets.some((s) => s.completed)) || elapsedSeconds > 5;
+      if (!hasAnyProgress) return;
+      AsyncStorage.setItem(
+        persistKey,
+        JSON.stringify({ exercises, elapsedSeconds, savedAt: Date.now() }),
+      ).catch(() => {});
+    }, 1500);
+    return () => clearTimeout(handle);
+  }, [exercises, elapsedSeconds, persistKey]);
 
   const updateSet = useCallback(
     (exIdx: number, setIdx: number, field: 'actualReps' | 'weight', value: string) => {
@@ -468,8 +586,16 @@ export default function ActiveWorkoutScreen() {
             setTimeout(() => setPrAlert(null), 3000);
           }
           // Update estimated 1RM (Epley) — silent, just persists the new max
+          // ET sync vers Supabase si nouveau PR (sinon perdu au logout).
           if (reps > 0) {
-            useTrainingStore.getState().updateOneRepMax(exerciseId, weight, reps);
+            const updateResult = useTrainingStore.getState().updateOneRepMax(exerciseId, weight, reps);
+            if (updateResult.isNewOneRM) {
+              const rec = useTrainingStore.getState().oneRepMaxByExercise[exerciseId];
+              const uid = useUserStore.getState().profile?.id;
+              if (rec && uid) {
+                void syncOneRepMax(exerciseId, rec, uid);
+              }
+            }
           }
         }
 
@@ -517,20 +643,26 @@ export default function ActiveWorkoutScreen() {
 
   // Back navigation with confirmation
   const hasProgress = exercises.some((ex) => ex.sets.some((s) => s.completed)) || elapsedSeconds > 30;
+  const discardAndExit = useCallback(() => {
+    // Discard explicite : on supprime le state sauvegardé pour ne pas
+    // re-proposer la séance au prochain mount.
+    AsyncStorage.removeItem(persistKey).catch(() => {});
+    router.back();
+  }, [persistKey, router]);
   const handleBack = useCallback(() => {
     if (!hasProgress) {
       router.back();
       return;
     }
     if (Platform.OS === 'web') {
-      if (confirm(t('confirmLeaveWorkout'))) router.back();
+      if (confirm(t('confirmLeaveWorkout'))) discardAndExit();
     } else {
       Alert.alert(t('confirmLeaveWorkout'), t('confirmLeaveWorkoutSub'), [
         { text: t('stay'), style: 'cancel' },
-        { text: t('leave'), style: 'destructive', onPress: () => router.back() },
+        { text: t('leave'), style: 'destructive', onPress: discardAndExit },
       ]);
     }
-  }, [hasProgress, router, t, elapsedSeconds]);
+  }, [hasProgress, router, t, elapsedSeconds, discardAndExit]);
 
   // Progress
   const completedExercises = exercises.filter((ex) =>
@@ -544,6 +676,14 @@ export default function ActiveWorkoutScreen() {
     const date = params.date;
     const workoutId = `t_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
 
+    // L'état pré-séance choisi via le PreWorkoutCheckInModal est
+    // sauvegardé dans le note du workout — utile pour le coach IA qui
+    // peut référer à "ta dernière séance où tu étais en plomb" et pour
+    // l'historique. On note explicitement le métal + le multiplicateur.
+    const checkInNote = params.metalId
+      ? `État: ${params.metalId}${loadMultiplier !== 1 ? ` (charges ${Math.round((loadMultiplier - 1) * 100) > 0 ? '+' : ''}${Math.round((loadMultiplier - 1) * 100)}%)` : ''}`
+      : undefined;
+
     if (isCardio && programDay?.cardio) {
       const workout: Workout = {
         id: workoutId,
@@ -553,11 +693,13 @@ export default function ActiveWorkoutScreen() {
         durationMinutes: Math.max(1, Math.ceil(elapsedSeconds / 60)),
         intensity: programDay.cardio.intensity,
         exercises: [],
+        note: checkInNote,
       };
       addWorkout(workout);
       if (userId) syncWorkout(workout, userId);
       pushWorkoutToHealth(workout).catch(() => {});
       markDayCompleted(date, workoutId);
+      AsyncStorage.removeItem(persistKey).catch(() => {});
       triggerHaptic('success');
       router.back();
       return;
@@ -607,12 +749,14 @@ export default function ActiveWorkoutScreen() {
         durationMinutes: Math.max(1, Math.ceil(elapsedSeconds / 60)),
         intensity: 'intense',
         exercises: workoutExercises,
+        note: checkInNote,
       };
 
       addWorkout(workout);
       if (userId) syncWorkout(workout, userId);
       pushWorkoutToHealth(workout).catch(() => {});
       markDayCompleted(date, workoutId);
+      AsyncStorage.removeItem(persistKey).catch(() => {});
       triggerHaptic('success');
 
       // Compute Session Forgée stats from the workout

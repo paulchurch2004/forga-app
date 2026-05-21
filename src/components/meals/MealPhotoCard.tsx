@@ -14,7 +14,7 @@ import { makeStyles, fonts } from '../../theme';
 import { useTheme } from '../../context/ThemeContext';
 import { useMealStore } from '../../store/mealStore';
 import { useUserStore } from '../../store/userStore';
-import { syncMealPreference } from '../../services/userSync';
+import { syncFavorite, syncMealPreference } from '../../services/userSync';
 import type { Meal } from '../../types/meal';
 import { getMealEmoji, gradientIndexFor, SLOT_GRADIENT_BUCKETS } from '../../utils/mealEmoji';
 import { getMealPhotoUrl } from '../../utils/mealPhoto';
@@ -128,6 +128,13 @@ function MealPhotoCardImpl({ meal, cardWidth, slot, date }: MealPhotoCardProps) 
             e.stopPropagation?.();
             toggleFavorite(meal.id);
             triggerHaptic();
+            // Persist le toggle vers Supabase (sinon perdu au logout
+            // ou à un changement d'appareil). On lit l'état AVANT le
+            // toggle pour envoyer le bon flag (isFav reflète l'état
+            // d'avant car le state du store n'est pas encore propagé
+            // au moment de l'appel).
+            const userId = useUserStore.getState().profile?.id;
+            if (userId) syncFavorite(meal.id, userId, !isFav);
             favScale.value = withSequence(
               withSpring(1.4, { damping: 6 }),
               withSpring(1, { damping: 10 })
@@ -135,9 +142,17 @@ function MealPhotoCardImpl({ meal, cardWidth, slot, date }: MealPhotoCardProps) 
           }}
           hitSlop={8}
         >
-          <Animated.Text style={[styles.favIcon, isFav && styles.favIconActive, favAnimStyle]}>
-            {isFav ? '♥' : '♡'}
-          </Animated.Text>
+          {/* Heart en Ionicons plutôt qu'un glyphe Unicode ♥/♡ qui
+              rendait inconsistant entre iOS/Android (couleur emoji vs
+              monochrome selon la version OS). Cohérent avec les thumbs
+              up/down ci-dessous. */}
+          <Animated.View style={favAnimStyle}>
+            <Ionicons
+              name={isFav ? 'heart' : 'heart-outline'}
+              size={20}
+              color={isFav ? colors.error : '#FFFFFF'}
+            />
+          </Animated.View>
         </Pressable>
 
         {meal.budget === 'eco' && (
@@ -183,7 +198,7 @@ function MealPhotoCardImpl({ meal, cardWidth, slot, date }: MealPhotoCardProps) 
                   syncMealPreference(meal.id, userId, !isLiked ? 'like' : null);
                 }
               }}
-              hitSlop={6}
+              hitSlop={12}
               style={styles.feedbackBtn}
             >
               <Ionicons
@@ -202,7 +217,7 @@ function MealPhotoCardImpl({ meal, cardWidth, slot, date }: MealPhotoCardProps) 
                   syncMealPreference(meal.id, userId, !isDisliked ? 'dislike' : null);
                 }
               }}
-              hitSlop={6}
+              hitSlop={12}
               style={styles.feedbackBtn}
             >
               <Ionicons

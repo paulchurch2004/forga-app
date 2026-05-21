@@ -4,13 +4,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
+// Tabs visibles dans la barre du bas (mai 2026 : retrait de training
+// et coach qui sont maintenant accessibles via les gros tiles du Home).
+// Si une route n'est pas listée ici, le tab bar la skip (`if (!path)
+// return null`). Le `href: null` côté layout cache la route du
+// navigator par défaut, mais le custom tab bar a besoin de filtrer
+// explicitement aussi.
 const TAB_ICON_PATHS: Record<string, string> = {
   home: 'M3 12l9-8 9 8v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8z',
   meals:
     'M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3',
-  training:
-    'M6.5 6.5h11M6 12h12M17.5 6.5v11M6.5 6.5v11M4 9v6M20 9v6M2 10.5v3M22 10.5v3',
-  coach: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10z',
+  // Cadeau / boîte ouverte — symbole universel pour les offres promo
+  offers:
+    'M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z',
   profile:
     'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z',
 };
@@ -22,12 +28,21 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const bottomPad = Platform.OS === 'ios' ? Math.max(insets.bottom - 4, 8) : 10;
 
+  // Bug fix : training et coach sont des routes valides (accessibles
+  // via les BigTiles du Home) mais ne sont pas dans la tab bar. Si
+  // l'user est sur ces routes, `state.routes[state.index].name` est
+  // 'training'/'coach' qui n'apparaît dans aucun TAB_ICON_PATHS →
+  // AUCUN tab visible n'est focused. On fallback sur Home pour ces cas.
+  const activeRouteName = state.routes[state.index]?.name;
+  const isOnVisibleTab = activeRouteName && TAB_ICON_PATHS[activeRouteName];
+  const fallbackFocusName = isOnVisibleTab ? activeRouteName : 'home';
+
   return (
     <View style={[styles.bar, { paddingBottom: bottomPad }]}>
       {state.routes.map((route, index) => {
-        const focused = state.index === index;
         const path = TAB_ICON_PATHS[route.name];
         if (!path) return null;
+        const focused = route.name === fallbackFocusName;
 
         const onPress = () => {
           const event = navigation.emit({

@@ -26,6 +26,10 @@ export interface MacroInput {
   tdee: number;
   weightKg: number;
   objective: Objective;
+  /** Statut ménopausique pour ajustement nutritionnel. Quand 'peri' ou
+   *  'post', les protéines passent à 2.0 g/kg (lutte contre sarcopénie
+   *  accélérée pendant la transition hormonale). */
+  menopauseStatus?: 'none' | 'peri' | 'post';
 }
 
 export interface MealPlanConfig {
@@ -41,6 +45,13 @@ export interface MealPlanConfig {
 export interface MealPlanInput {
   objective: Objective;
   dailyCalories: number;
+  /** Nombre de repas explicitement défini par l'utilisateur (à
+   *  l'onboarding ou via une modification ultérieure). Quand fourni,
+   *  ce nombre EST la source de vérité — il court-circuite la
+   *  détermination algorithmique. Garantit que le user qui a été
+   *  configuré sur 4 repas n'en voit pas soudainement 6 si ses
+   *  calories sont ré-ajustées. */
+  mealsPerDay?: number;
 }
 
 export interface PortionInput {

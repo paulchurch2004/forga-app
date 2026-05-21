@@ -1,6 +1,6 @@
-import React, { useMemo, useState, useCallback, useEffect } from 'react';
+import React, { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import { View, Text, Alert, Platform } from 'react-native';
-import { useLocalSearchParams, router } from 'expo-router';
+import { useLocalSearchParams, router, useFocusEffect } from 'expo-router';
 import { getMealById } from '../../src/data/meals';
 import { useMealStore } from '../../src/store/mealStore';
 import { useUserStore } from '../../src/store/userStore';
@@ -15,7 +15,7 @@ import { calculatePortions } from '../../src/engine/portionCalculator';
 import { MealDetailSheet } from '../../src/components/meals/MealDetailSheet';
 import { makeStyles, fonts, fontSizes } from '../../src/theme';
 import { useT } from '../../src/i18n';
-import { syncMeal } from '../../src/services/userSync';
+import { syncMeal, syncFavorite } from '../../src/services/userSync';
 import { CelebrationOverlay } from '../../src/components/ui/CelebrationOverlay';
 import { todayLocalIso } from '../../src/utils/date';
 import { events } from '../../src/services/analytics';
@@ -35,6 +35,11 @@ export default function MealDetailScreen() {
   }>();
   const [validating, setValidating] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
+  // Track si l'user a déjà navigué hors de cet écran (swipe back, close…)
+  // Quand true, on n'émet plus de router.replace depuis le timer de
+  // celebration — sinon collision avec la navigation en cours →
+  // l'écran de destination peut rester figé sur iOS.
+  const hasNavigatedAwayRef = useRef(false);
   const styles = useStyles();
   const { t, locale } = useT();
 
@@ -175,7 +180,22 @@ export default function MealDetailScreen() {
     validating,
   ]);
 
+  // Détecte le swipe-back iOS : useFocusEffect's cleanup function fires
+  // dès que l'écran perd le focus (= début du geste, même si l'user
+  // peut encore l'annuler en revenant). On marque ainsi le flag tôt,
+  // AVANT que le timer de celebration ne puisse déclencher un
+  // router.replace conflictuel.
+  useFocusEffect(
+    useCallback(() => {
+      // (onFocus : rien à faire)
+      return () => {
+        hasNavigatedAwayRef.current = true;
+      };
+    }, []),
+  );
+
   const handleGoBack = useCallback(() => {
+    hasNavigatedAwayRef.current = true;
     if (router.canGoBack()) {
       router.back();
     } else {
@@ -185,10 +205,17 @@ export default function MealDetailScreen() {
 
   const handleToggleFavorite = useCallback(() => {
     if (!meal) return;
+    // Lit l'état AVANT le toggle pour envoyer le bon flag à Supabase
+    // (le state local n'est pas encore propagé après le set).
+    const wasFav = useMealStore.getState().favorites.includes(meal.id);
     toggleFavorite(meal.id);
+    // Persist vers Supabase pour que le ♥ survive logout / change device.
+    const userId = useUserStore.getState().profile?.id;
+    if (userId) syncFavorite(meal.id, userId, !wasFav);
   }, [meal, toggleFavorite]);
 
   const handleClose = useCallback(() => {
+    hasNavigatedAwayRef.current = true;
     if (router.canGoBack()) {
       router.back();
     } else {
@@ -208,13 +235,31 @@ export default function MealDetailScreen() {
     );
   }
 
-  // After celebration, navigate to next unvalidated slot or go home
+  // Après la celebration, on REVIENT en arrière (= là où l'user venait)
+  // au lieu de le forcer vers le slot suivant ou /nutrition. Avant,
+  // l'auto-navigation faisait que l'user "se sentait obligé de remplir
+  // toute la journée" — il ne pouvait pas s'échapper sans valider tout.
+  // Maintenant : valide → retour à la liste de repas → user libre de
+  // choisir (logger un autre, revenir à Home, etc.).
   const handleCelebrationDone = useCallback(() => {
     setShowCelebration(false);
 
+    // ⚠ Guard CRITIQUE : si l'user a déjà swipe back PENDANT que le timer
+    // de celebration tournait (950ms), on NE DOIT PAS émettre un
+    // router.back ici — ça collide avec la navigation iOS en cours
+    // et fige l'écran de destination.
+    if (hasNavigatedAwayRef.current) return;
+    hasNavigatedAwayRef.current = true;
+
     // Prompt App Store review after 5th validated meal (native only)
+    // BUG FIX : mealHistory est Record<string, DailyMeal[]>, pas un array.
+    // `.length` retournait undefined → le prompt review n'était JAMAIS
+    // déclenché en prod. Maintenant on somme bien les repas de tous les
+    // jours pour avoir le total réel.
     if (Platform.OS !== 'web') {
-      const totalMeals = useMealStore.getState().mealHistory.length;
+      const mealHistory = useMealStore.getState().mealHistory;
+      const totalMeals = Object.values(mealHistory)
+        .reduce((acc, dayMeals) => acc + dayMeals.length, 0);
       if (totalMeals === 5 || totalMeals === 20) {
         import('expo-store-review')
           .then((SR) => SR.isAvailableAsync().then((ok) => { if (ok) SR.requestReview(); }))
@@ -222,17 +267,14 @@ export default function MealDetailScreen() {
       }
     }
 
-    // Find next unvalidated slot after the current one
-    const allSlots = slots.map((s) => s.slot);
-    const currentIndex = allSlots.indexOf(currentMealSlot);
-    const nextSlot = slots.find((s, i) => i > currentIndex && !s.isValidated);
-
-    if (nextSlot) {
-      router.replace(`/(tabs)/meals?slot=${nextSlot.slot}`);
+    // Retour à l'écran précédent. Fallback /nutrition uniquement si on
+    // ne peut pas revenir (cas rare : deep link direct vers un repas).
+    if (router.canGoBack()) {
+      router.back();
     } else {
       router.replace('/nutrition');
     }
-  }, [slots, currentMealSlot]);
+  }, []);
 
   return (
     <View style={{ flex: 1 }}>

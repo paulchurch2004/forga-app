@@ -9,7 +9,7 @@ import { useTheme } from '../src/context/ThemeContext';
 import { useResponsive } from '../src/hooks/useResponsive';
 import { useT } from '../src/i18n';
 
-const SUPPORT_EMAIL = 'contact@forga.fr';
+const SUPPORT_EMAIL = 'support.forga@gmail.com';
 
 export default function ContactScreen() {
   const insets = useSafeAreaInsets();
@@ -97,8 +97,8 @@ export default function ContactScreen() {
         <Text style={styles.legalTitle}>{isFr ? 'Mentions légales' : 'Legal'}</Text>
         <Text style={styles.legalBody}>
           {isFr
-            ? "Édité par FORGA SAS\nSiège social : France\nResponsable de la publication : direction de FORGA SAS\nContact : contact@forga.fr\n\nPour toute demande relative à tes données personnelles : contact@forga.fr (CNIL : cnil.fr)."
-            : 'Published by FORGA SAS\nRegistered office: France\nPublication manager: FORGA SAS direction\nContact: contact@forga.fr'}
+            ? "Édité par FORGA SAS\nSiège social : France\nResponsable de la publication : direction de FORGA SAS\nContact : support.forga@gmail.com\n\nPour toute demande relative à tes données personnelles : support.forga@gmail.com (CNIL : cnil.fr)."
+            : 'Published by FORGA SAS\nRegistered office: France\nPublication manager: FORGA SAS direction\nContact: support.forga@gmail.com'}
         </Text>
       </View>
 

@@ -29,7 +29,7 @@ const RING_RADIUS = 28;
 const RING_STROKE = 4;
 const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
-export function MacroRingsCard({ title = 'SCORE FORGA DU JOUR', macros }: MacroRingsCardProps) {
+export function MacroRingsCard({ title = 'SCORE NUTRITIONNEL DU JOUR', macros }: MacroRingsCardProps) {
   return (
     <View style={styles.card}>
       <Text style={styles.title}>{title}</Text>

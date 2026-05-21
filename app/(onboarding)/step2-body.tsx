@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
 import { useTrackOnboardingStep } from '../../src/hooks/useTrackOnboardingStep';
+import { useOnboardingBack } from '../../src/hooks/useOnboardingBack';
 const triggerHaptic = (style: 'light' | 'medium' = 'light') => {
   if (Platform.OS === 'web') return;
   import('expo-haptics').then((Haptics) => {
@@ -29,7 +30,7 @@ import { fonts, fontSizes, fontWeights } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
 
 const STEP = 2;
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 const HEIGHT_MIN = 120;
 const HEIGHT_MAX = 220;
@@ -62,10 +63,9 @@ export default function Step2Body() {
     !isNaN(parsedWeight) && parsedWeight >= WEIGHT_MIN && parsedWeight <= WEIGHT_MAX;
   const canContinue = isHeightValid && isWeightValid;
 
-  const handleBack = useCallback(() => {
-    triggerHaptic('light');
-    router.back();
-  }, [router]);
+  // Back avec fallback : si l'user a rouvert l'app sur step2 (stack
+  // vide), router.back() ferait flop → on replace vers step1.
+  const handleBack = useOnboardingBack('/(onboarding)/step1-identity');
 
   const handleNext = useCallback(() => {
     if (!canContinue) return;

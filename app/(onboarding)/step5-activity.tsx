@@ -10,6 +10,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
 import { useTrackOnboardingStep } from '../../src/hooks/useTrackOnboardingStep';
+import { useOnboardingBack } from '../../src/hooks/useOnboardingBack';
 const triggerHaptic = (style: 'light' | 'medium' = 'light') => {
   if (Platform.OS === 'web') return;
   import('expo-haptics').then((Haptics) => {
@@ -27,7 +28,7 @@ import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacin
 import type { ActivityLevel } from '../../src/types/user';
 
 const STEP = 5;
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 interface ActivityOption {
   value: ActivityLevel;
@@ -65,16 +66,16 @@ export default function Step5Activity() {
     setActivityLevel(value);
   }, []);
 
-  const handleBack = useCallback(() => {
-    triggerHaptic('light');
-    router.back();
-  }, [router]);
+  const handleBack = useOnboardingBack('/(onboarding)/step4-target');
 
   const handleNext = useCallback(() => {
     if (!canContinue) return;
     triggerHaptic('light');
     setOnboardingData({ activityLevel });
-    router.push('/(onboarding)/step6-preferences');
+    // Étape vélo intercalée entre activité et préférences — permet
+    // d'affiner le TDEE pour les vélo-commuters (gain souvent
+    // significatif : +200 à +400 kcal/jour).
+    router.push('/(onboarding)/step5b-cycling');
   }, [canContinue, activityLevel, setOnboardingData, router]);
 
   return (

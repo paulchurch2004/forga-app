@@ -19,7 +19,9 @@ import type { MealSlot } from '../../src/types/meal';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
-import { useTrackOnboardingStep } from '../../src/hooks/useTrackOnboardingStep';import { useAuthStore } from '../../src/store/authStore';
+import { useTrackOnboardingStep } from '../../src/hooks/useTrackOnboardingStep';
+import { useOnboardingBack } from '../../src/hooks/useOnboardingBack';
+import { useAuthStore } from '../../src/store/authStore';
 import { makeStyles } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
@@ -45,8 +47,8 @@ const triggerHaptic = (type: 'light' | 'success' = 'light') => {
   }).catch(() => {});
 };
 
-const STEP = 7;
-const TOTAL_STEPS = 7;
+const STEP = 8;
+const TOTAL_STEPS = 8;
 
 const OBJECTIVE_LABEL_KEYS: Record<Objective, string> = {
   bulk: 'objectiveBulk',
@@ -79,7 +81,7 @@ const RESTRICTION_LABEL_KEYS: Record<string, string> = {
 };
 
 export default function Step7Summary() {
-  useTrackOnboardingStep(7);
+  useTrackOnboardingStep(8);
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
@@ -133,10 +135,7 @@ export default function Step7Summary() {
     };
   }, [onboardingData]);
 
-  const handleBack = useCallback(() => {
-    triggerHaptic('light');
-    router.back();
-  }, [router]);
+  const handleBack = useOnboardingBack('/(onboarding)/step6-preferences');
 
   const handleFinish = useCallback(async () => {
     if (isLoading) return;
@@ -196,6 +195,12 @@ export default function Step7Summary() {
         referralCode: myReferralCode,
         referralCount: 0,
         referredBy: referredByCode,
+        // Profil cyclisme issu de l'étape vélo (step5b). Si l'user a
+        // répondu non ou skip, on stocke quand même `enabled: false`
+        // pour ne pas re-poser la question à la prochaine session.
+        cycling: onboardingData.cycling,
+        // Statut ménopausique (uniquement renseigné pour femmes 40+).
+        menopauseStatus: onboardingData.menopauseStatus,
         createdAt: now,
         updatedAt: now,
       };
@@ -229,10 +234,25 @@ export default function Step7Summary() {
             streak_freeze_used_this_week: false,
             forga_score: 0,
             is_premium: true,
-            premium_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+            // 7-day free trial — DOIT être aligné avec ligne 194
+            // (profile local) et avec le paywall messaging "essai
+            // gratuit 7 jours". Avant : 30j ici vs 7j local = état
+            // divergent qui se sync au cold start → user voit son
+            // trial passer de 7j à 30j sans explication.
+            premium_until: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
             referral_code: myReferralCode,
             referral_count: 0,
             referred_by: referredByCode ?? null,
+            // Profil cyclisme stocké à plat — TDEE intègre déjà le bonus,
+            // mais ces colonnes permettent à un autre device de
+            // reconstruire le profil au login + d'éditer dans Settings.
+            cycling_enabled: onboardingData.cycling?.enabled ?? false,
+            cycling_home_address: onboardingData.cycling?.homeAddress ?? null,
+            cycling_destination_address: onboardingData.cycling?.destinationAddress ?? null,
+            cycling_distance_km: onboardingData.cycling?.distanceKm ?? null,
+            cycling_days_per_week: onboardingData.cycling?.daysPerWeek ?? 0,
+            // Statut ménopausique — uniquement renseigné pour femmes 40+
+            menopause_status: onboardingData.menopauseStatus ?? null,
           });
 
         if (error) {

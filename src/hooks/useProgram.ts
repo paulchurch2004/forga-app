@@ -34,8 +34,13 @@ export function useProgram() {
   const recommendedProgramId: ProgramId = useMemo(() => {
     if (!profile) return 'BULK_DEB_3D_FB';
     const sex = profile.sex ?? 'male';
-    return recommendProgram(sex, profile.activityLevel, profile.objective);
-  }, [profile?.sex, profile?.activityLevel, profile?.objective]);
+    return recommendProgram(
+      sex,
+      profile.activityLevel,
+      profile.objective,
+      profile.menopauseStatus,
+    );
+  }, [profile?.sex, profile?.activityLevel, profile?.objective, profile?.menopauseStatus]);
 
   const currentWeek = useMemo(() => {
     return getCurrentWeek();

@@ -9,11 +9,18 @@ interface PrimaryMealActionProps {
   slotLabel: string;
   hint?: string;
   onPress: () => void;
+  /** Override complet du titre (utilisé pour le raccourci coach IA
+   *  dans nutrition.tsx). Si fourni, ignore slotLabel + le template
+   *  i18n par défaut. */
+  customTitle?: string;
+  /** Override du hint sous le titre. Si fourni, ignore le hint i18n. */
+  customHint?: string;
 }
 
-export function PrimaryMealAction({ slotLabel, hint, onPress }: PrimaryMealActionProps) {
+export function PrimaryMealAction({ slotLabel, hint, onPress, customTitle, customHint }: PrimaryMealActionProps) {
   const { t } = useT();
-  const resolvedHint = hint ?? t('primaryMealActionHint');
+  const resolvedTitle = customTitle ?? (t('primaryMealActionTitle', { slot: slotLabel }) as string);
+  const resolvedHint = customHint ?? hint ?? (t('primaryMealActionHint') as string);
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [pressed && { opacity: 0.92 }]}>
       <LinearGradient
@@ -26,9 +33,9 @@ export function PrimaryMealAction({ slotLabel, hint, onPress }: PrimaryMealActio
           <View style={styles.iconWrap}>
             <PlusIcon />
           </View>
-          <View>
-            <Text style={styles.title}>{t('primaryMealActionTitle', { slot: slotLabel })}</Text>
-            <Text style={styles.hint}>{resolvedHint}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.title} numberOfLines={1}>{resolvedTitle}</Text>
+            <Text style={styles.hint} numberOfLines={2}>{resolvedHint}</Text>
           </View>
         </View>
         <ChevronRight />

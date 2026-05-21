@@ -26,10 +26,18 @@ export function determineMealCount(input: MealPlanInput): number {
 }
 
 /**
- * Génère la configuration complète du plan repas
+ * Génère la configuration complète du plan repas.
+ *
+ * Si `input.mealsPerDay` est fourni, il est utilisé tel quel (clipé entre
+ * 4 et 6). C'est la valeur ENREGISTRÉE dans le profil de l'user — elle
+ * doit gagner sur l'algo `determineMealCount`, sinon un user configuré
+ * sur 4 repas verrait soudain 6 slots dès que ses calories changent.
  */
 export function generateMealPlan(input: MealPlanInput): MealPlanConfig {
-  const mealsPerDay = determineMealCount(input);
+  const explicit = input.mealsPerDay;
+  const mealsPerDay = explicit !== undefined
+    ? Math.min(6, Math.max(4, Math.round(explicit)))
+    : determineMealCount(input);
 
   let distribution: Record<string, { caloriePercent: number; label: string; time: string }>;
 

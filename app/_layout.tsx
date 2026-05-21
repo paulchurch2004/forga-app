@@ -1,4 +1,10 @@
+// CRITICAL : doit être la TOUTE PREMIÈRE ligne de l'app — sinon
+// Reanimated peut foirer les animations au premier mount sur Android
+// (l'audit cross-platform a flag ça en P1). Sur iOS c'est moins
+// problématique mais l'import reste idempotent.
+import 'react-native-gesture-handler';
 import React, { useEffect, useRef, Component } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -44,14 +50,14 @@ import { useUserStore } from '../src/store/userStore';
 import { useSettingsStore } from '../src/store/settingsStore';
 import { useScoreStore } from '../src/store/scoreStore';
 import { useTrainingStore } from '../src/store/trainingStore';
-import { getTranslation } from '../src/i18n';
 import { useMealStore } from '../src/store/mealStore';
 import type { MealSlot } from '../src/types/meal';
 import { OfflineBanner } from '../src/components/ui/OfflineBanner';
 import { processQueue } from '../src/services/syncQueue';
 import { initRevenueCat } from '../src/services/revenueCat';
 import { initAnalytics, identifyUser, resetUser, events } from '../src/services/analytics';
-import { loadAllUserData } from '../src/services/userSync';
+import { setUser as setSentryUser } from '../src/services/sentry';
+import { loadAllUserData, bumpLastActiveAt } from '../src/services/userSync';
 import { calculateForgaScore } from '../src/engine/scoreEngine';
 import { useWaterStore } from '../src/store/waterStore';
 import type { ScoreInput } from '../src/types/score';
@@ -60,6 +66,7 @@ import { BiometricLockGate } from '../src/components/auth/BiometricLockGate';
 import { ToastHost } from '../src/components/ui/ToastHost';
 import { initDeepLinks } from '../src/services/deepLinks';
 import { syncHealthOnForeground } from '../src/hooks/useAppleHealth';
+import { maybePromptReview } from '../src/services/reviewPrompt';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -81,10 +88,17 @@ class ErrorBoundary extends Component<
 
   render() {
     if (this.state.hasError) {
+      // IMPORTANT : ne JAMAIS appeler de i18n / store / supabase ici.
+      // Si l'erreur initiale vient de l'un de ces systèmes, le render
+      // du fallback re-throw → double crash → app verrouillée. Texte
+      // hardcodé bilingue minimal.
       return (
         <ScrollView style={{ flex: 1, backgroundColor: '#1a0000', padding: 20 }}>
           <Text style={{ color: '#ff4444', fontSize: 24, fontWeight: 'bold', marginTop: 40 }}>
-            {getTranslation(useSettingsStore.getState().locale)('forgaError')}
+            Oups — quelque chose s'est mal passé
+          </Text>
+          <Text style={{ color: '#ff8888', fontSize: 14, marginTop: 8 }}>
+            Something went wrong. Try reopening the app.
           </Text>
           <Text style={{ color: '#ff8888', fontSize: 14, marginTop: 16 }}>
             {this.state.error?.message}
@@ -202,9 +216,18 @@ function RootLayoutInner() {
       setSession(session);
       if (session) {
         identifyUser(session.user.id);
+        setSentryUser({ id: session.user.id, email: session.user.email });
         initRevenueCat(session.user.id);
+        // Bump last_active_at au démarrage — l'user vient juste d'ouvrir
+        // l'app, il est actif. Évite la suppression auto à 180j si
+        // l'app fait des cold starts longs.
+        void bumpLastActiveAt(session.user.id);
         loadProfileFromSupabase(session.user.id)
           .then(() => loadAllUserData(session.user.id))
+          // Tente la review prompt après le chargement (à ce moment-là
+          // mealCount/workoutCount sont synced → check engagement OK).
+          // Petit délai pour ne pas spammer pendant le splash.
+          .then(() => { setTimeout(() => { void maybePromptReview(); }, 4000); })
           .finally(() => setLoading(false));
       } else {
         setLoading(false);
@@ -215,12 +238,26 @@ function RootLayoutInner() {
       setSession(session);
       if (session && event === 'SIGNED_IN') {
         identifyUser(session.user.id);
+        setSentryUser({ id: session.user.id, email: session.user.email });
         setLoading(true);
-        loadProfileFromSupabase(session.user.id)
-          .then(() => loadAllUserData(session.user.id))
-          .finally(() => setLoading(false));
+        // Avant de PULL les données du nouveau user, on tente de drainer
+        // la queue. Pourquoi : si l'user précédent avait des actions en
+        // attente et que le signOut a foiré (réseau down), la queue
+        // contient des opérations avec user_id ≠ session courante. Le
+        // drain ici va soit les pousser (RLS rejette s'il y a mismatch
+        // → l'action est retried jusqu'à drop), soit les laisser en
+        // place. Dans tous les cas, on évite que des actions d'un
+        // précédent user contaminent les données du nouveau.
+        processQueue()
+          .catch((err) => { if (__DEV__) console.warn('[SyncQueue] Pre-login drain failed:', err); })
+          .finally(() => {
+            loadProfileFromSupabase(session.user.id)
+              .then(() => loadAllUserData(session.user.id))
+              .finally(() => setLoading(false));
+          });
       } else if (event === 'SIGNED_OUT') {
         resetUser();
+        setSentryUser(null);
         // Drop the user back to the entry point so the auth-aware index.tsx
         // can route them to welcome/login. Without this, the profile tab stays
         // mounted with no session and renders blank.
@@ -336,6 +373,15 @@ function RootLayoutInner() {
           autoSaveScore();
           flush();
           syncHealthOnForeground().catch(() => {});
+          // Bump last_active_at — utilisé par le cron pg de suppression
+          // à 180j d'inactivité. Sans ce bump, un user actif au quotidien
+          // serait quand même supprimé par le cron.
+          const uid = useAuthStore.getState().session?.user?.id;
+          if (uid) void bumpLastActiveAt(uid);
+          // Tente la demande de note App Store après 2 jours d'usage
+          // (toutes les conditions sont vérifiées dans le service —
+          // safe à appeler à chaque foreground).
+          void maybePromptReview();
         }
         appStateRef.current = nextState;
       });
@@ -398,12 +444,14 @@ function RootLayoutInner() {
 
 export default function RootLayout() {
   return (
-    <ErrorBoundary>
-      <SafeAreaProvider>
-        <ThemeProvider>
-          <RootLayoutInner />
-        </ThemeProvider>
-      </SafeAreaProvider>
-    </ErrorBoundary>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ErrorBoundary>
+        <SafeAreaProvider>
+          <ThemeProvider>
+            <RootLayoutInner />
+          </ThemeProvider>
+        </SafeAreaProvider>
+      </ErrorBoundary>
+    </GestureHandlerRootView>
   );
 }

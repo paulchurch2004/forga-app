@@ -155,40 +155,63 @@ export interface StartingWeightProfile {
 function getDirectMappedWeight(exerciseId: string, weights: StartingWeights): number {
   switch (exerciseId) {
     case 'squat':
-    case 'front_squat':
-    case 'goblet_squat':
-    case 'pause_squat':
-    case 'hack_squat':
-    case 'leg_press':
       return weights.squat;
+    case 'pause_squat':
+      return roundToPlate(weights.squat * 0.85);
+    case 'front_squat':
+      // Front squat plus dur que back squat (chargement antérieur)
+      return roundToPlate(weights.squat * 0.80);
+    case 'hack_squat':
+      // Machine, généralement on peut charger un peu plus
+      return roundToPlate(weights.squat * 1.10);
+    case 'leg_press':
+      // Leg press = machine guidée, charge typiquement 1.5-2× back squat.
+      // On reste conservateur à 1.5× pour pas pousser quelqu'un à un poids
+      // qu'il ne maîtrise pas.
+      return roundToPlate(weights.squat * 1.50);
+    case 'goblet_squat':
+      // Goblet squat = 1 haltère tenu devant la poitrine, limité par les bras
+      return roundToDumbbell(weights.squat * 0.35);
     case 'bench_press':
-    case 'incline_press':
-    case 'incline_db_press':
-    case 'close_grip_bench':
-    case 'pause_bench':
       return weights.bench;
+    // Variantes de bench → poids réduit (incline, close-grip, pause = plus dur
+    // que le flat, donc on baisse). Les variantes haltères sont gérées via
+    // SECONDARY_RATIO car la charge est PAR bras, pas totale.
+    case 'incline_press':
+    case 'pause_bench':
+      return roundToPlate(weights.bench * 0.85);
+    case 'close_grip_bench':
+      return roundToPlate(weights.bench * 0.80);
     case 'deadlift':
+      return weights.deadlift;
     case 'romanian_deadlift':
     case 'sumo_deadlift':
     case 'rack_pull':
+      return roundToPlate(weights.deadlift * 0.90);
     case 'good_morning':
-      return weights.deadlift;
+      return roundToPlate(weights.deadlift * 0.55);
     case 'overhead_press':
-    case 'seated_db_press':
-    case 'arnold_press':
-    case 'push_press':
       return weights.overheadPress;
+    case 'push_press':
+      return roundToPlate(weights.overheadPress * 1.10); // push = plus de jambe = plus lourd
+    case 'arnold_press':
+      // Arnold press se fait toujours aux haltères, donc PAR bras
+      return roundToDumbbell(weights.overheadPress * 0.50);
     case 'barbell_rows':
+      return weights.row;
     case 't_bar_row':
     case 'pendlay_row':
+      // Variantes barre, légèrement différentes mais charge proche
+      return roundToPlate(weights.row * 0.95);
     case 'seated_cable_row':
-      return weights.row;
+      // Câble = assistance machine, on peut charger un peu plus
+      return roundToPlate(weights.row * 1.10);
     case 'pull_ups':
       // Bodyweight movement — 0 means "use your own bodyweight", the UI
       // shows that as an assisted/normal pull-up rather than a load value.
       return 0;
     case 'lat_pulldown':
-      return weights.row * 0.8;
+      return roundToPlate(weights.row * 0.85);
     default:
       return 0;
   }
@@ -201,46 +224,98 @@ function getDirectMappedWeight(exerciseId: string, weights: StartingWeights): nu
  *    - leg curl ~ 35-45% of squat
  *  We deliberately err on the **conservative** side. */
 const SECONDARY_RATIO: Record<string, { base: 'squat' | 'bench' | 'deadlift' | 'overheadPress' | 'row'; ratio: number }> = {
-  // Chest secondary
-  dumbbell_press: { base: 'bench', ratio: 0.45 },
-  dumbbell_fly: { base: 'bench', ratio: 0.20 },
+  // Chest secondary — TOUS les exercices haltères sont PAR bras donc ratio
+  // beaucoup plus bas que la barre équivalente (ex: bench 60kg ≈ DB 22kg
+  // chaque côté, pas 60kg).
+  dumbbell_press: { base: 'bench', ratio: 0.45 },        // flat DB press, par bras
+  incline_db_press: { base: 'bench', ratio: 0.40 },      // incliné DB, par bras (~85% du flat × 0.5)
+  incline_dumbbell_press: { base: 'bench', ratio: 0.40 }, // alias
+  decline_db_press: { base: 'bench', ratio: 0.45 },
+  db_bench_press: { base: 'bench', ratio: 0.45 },         // alias commun
+  dumbbell_fly: { base: 'bench', ratio: 0.18 },          // PAR bras
   chest_fly: { base: 'bench', ratio: 0.20 },
   cable_fly: { base: 'bench', ratio: 0.20 },
-  pec_deck: { base: 'bench', ratio: 0.50 },
+  incline_fly: { base: 'bench', ratio: 0.16 },           // incliné = plus dur
+  pec_deck: { base: 'bench', ratio: 0.50 },              // machine, total
   push_up: { base: 'bench', ratio: 0 }, // bodyweight
   dips: { base: 'bench', ratio: 0 }, // bodyweight
+
   // Back secondary
-  dumbbell_row: { base: 'row', ratio: 0.50 },
+  dumbbell_row: { base: 'row', ratio: 0.50 },            // PAR bras unilatéral
+  one_arm_db_row: { base: 'row', ratio: 0.55 },          // unilatéral, on peut charger un peu plus
+  meadows_row: { base: 'row', ratio: 0.50 },
+  chest_supported_row: { base: 'row', ratio: 0.80 },     // machine ou T-bar avec support
   face_pulls: { base: 'row', ratio: 0.40 },
   cable_row: { base: 'row', ratio: 0.85 },
+  straight_arm_pulldown: { base: 'row', ratio: 0.40 },
   shrugs: { base: 'deadlift', ratio: 0.35 },
-  // Shoulders secondary
-  lateral_raises: { base: 'overheadPress', ratio: 0.15 },
+  db_shrugs: { base: 'deadlift', ratio: 0.20 },          // PAR bras
+
+  // Shoulders — variantes haltères PAR bras
+  seated_db_press: { base: 'overheadPress', ratio: 0.50 },     // assis DB, par bras
+  standing_db_press: { base: 'overheadPress', ratio: 0.45 },   // debout, plus dur
+  db_shoulder_press: { base: 'overheadPress', ratio: 0.50 },   // alias
+
+  // Shoulders secondary — couvre singulier + pluriel pour matcher
+  // le catalog d'exercises (front_raise vs front_raises, etc.)
+  lateral_raises: { base: 'overheadPress', ratio: 0.15 },      // PAR bras
+  lateral_raise: { base: 'overheadPress', ratio: 0.15 },       // singulier
+  db_lateral_raise: { base: 'overheadPress', ratio: 0.15 },    // alias
+  cable_lateral: { base: 'overheadPress', ratio: 0.12 },
   front_raises: { base: 'overheadPress', ratio: 0.18 },
+  front_raise: { base: 'overheadPress', ratio: 0.18 }, // singulier (catalog)
   rear_delt_fly: { base: 'overheadPress', ratio: 0.15 },
+  rear_delt_raise: { base: 'overheadPress', ratio: 0.15 },
+  reverse_pec_deck: { base: 'overheadPress', ratio: 0.50 }, // machine
   upright_rows: { base: 'overheadPress', ratio: 0.50 },
-  // Arms
+  upright_row: { base: 'overheadPress', ratio: 0.50 }, // singulier (catalog)
+
+  // Arms — biceps (singulier + pluriel + variantes)
   bicep_curls: { base: 'bench', ratio: 0.13 },
+  barbell_curl: { base: 'bench', ratio: 0.20 }, // catalog uses singular
   hammer_curls: { base: 'bench', ratio: 0.15 },
   preacher_curls: { base: 'bench', ratio: 0.13 },
+  preacher_curl: { base: 'bench', ratio: 0.13 }, // singulier (catalog)
+  concentration_curl: { base: 'bench', ratio: 0.10 }, // single arm, plus léger
+  spider_curl: { base: 'bench', ratio: 0.12 },
+  incline_db_curl: { base: 'bench', ratio: 0.12 },
   cable_curls: { base: 'bench', ratio: 0.20 },
+
+  // Arms — triceps
   tricep_extensions: { base: 'bench', ratio: 0.14 },
+  overhead_tricep_extension: { base: 'bench', ratio: 0.14 },
   skull_crushers: { base: 'bench', ratio: 0.30 },
+  jm_press: { base: 'bench', ratio: 0.50 },
   tricep_pushdown: { base: 'bench', ratio: 0.40 },
   tricep_kickback: { base: 'bench', ratio: 0.10 },
-  // Legs secondary
+  cable_kickbacks: { base: 'bench', ratio: 0.10 },
+
+  // Legs secondary — couvre les variants pluriels du catalog
   lunges: { base: 'squat', ratio: 0.30 },
+  walking_lunges: { base: 'squat', ratio: 0.25 }, // catalog
   bulgarian_split_squat: { base: 'squat', ratio: 0.25 },
   step_up: { base: 'squat', ratio: 0.20 },
+  step_ups: { base: 'squat', ratio: 0.20 }, // catalog (pluriel)
   leg_curl: { base: 'squat', ratio: 0.40 },
+  seated_leg_curl: { base: 'squat', ratio: 0.40 },
   leg_extension: { base: 'squat', ratio: 0.50 },
   calf_raises: { base: 'squat', ratio: 0.50 },
   seated_calf_raises: { base: 'squat', ratio: 0.40 },
+  seated_calf_raise: { base: 'squat', ratio: 0.40 }, // singulier (catalog)
   hip_thrust: { base: 'deadlift', ratio: 0.70 },
+  single_leg_hip_thrust: { base: 'deadlift', ratio: 0.30 }, // unilatéral
+  pause_hip_thrust: { base: 'deadlift', ratio: 0.60 },
+  cable_pull_through: { base: 'deadlift', ratio: 0.30 },
   glute_bridge: { base: 'deadlift', ratio: 0.40 },
-  // Core (mostly bodyweight)
+  pistol_squat: { base: 'squat', ratio: 0 }, // bodyweight uniquement
+
+  // Hips abductors
+  abductor_machine: { base: 'squat', ratio: 0.40 },
+
+  // Core (poids additionnel sur certains)
   cable_crunch: { base: 'row', ratio: 0.50 },
   weighted_decline_situp: { base: 'bench', ratio: 0.20 },
+  weighted_crunch: { base: 'bench', ratio: 0.15 },
 };
 
 /** Beginner starting weights when **no strength test** has been taken yet.
@@ -252,20 +327,30 @@ function getBodyweightFallback(
 ): number {
   const bw = profile.bodyweightKg ?? 70;
   const sexFactor = profile.sex === 'female' ? 0.6 : 1;
+  // levelFactor ajusté : avant 1.0 / 1.4 / 1.8 → résultait à un
+  // intermédiaire 70 kg avec bench=34 kg, ce qui est sous-évalué
+  // (un inter type bench 60-70 kg). Nouveaux ratios calibrés sur les
+  // standards strength training (Symmetric Strength, ExRx) pour les
+  // charges de travail (working weight, pas 1RM) à 8-12 reps :
+  //   - beginner : 1.0 (inchangé, pour qui n'a jamais soulevé)
+  //   - intermediate : 1.8 (au lieu de 1.4)
+  //   - advanced/expert : 2.5 (au lieu de 1.8)
   const levelFactor = profile.trainingLevel === 'intermediate'
-    ? 1.4
+    ? 1.8
     : profile.trainingLevel === 'advanced' || profile.trainingLevel === 'expert'
-      ? 1.8
+      ? 2.5
       : 1; // beginner / undefined
 
-  // Use the same multipliers as `SEED_MULTIPLIERS_M` for the 5 base lifts,
-  // then apply the SECONDARY_RATIO table for derived exercises.
+  // Multiplicateurs base lift calibrés sur les standards strength
+  // training pour des working weights à 8-12 reps (≈ 70% du 1RM
+  // estimé). Avant : bench 0.35 et OHP 0.25 → trop léger pour un
+  // débutant homme moyen (0.35×70 = 24 kg = quasi barre vide).
   const baseSeeds = {
-    squat: bw * 0.45 * sexFactor * levelFactor,
-    bench: bw * 0.35 * sexFactor * levelFactor,
-    deadlift: bw * 0.70 * sexFactor * levelFactor,
-    overheadPress: bw * 0.25 * sexFactor * levelFactor,
-    row: bw * 0.35 * sexFactor * levelFactor,
+    squat: bw * 0.50 * sexFactor * levelFactor,
+    bench: bw * 0.40 * sexFactor * levelFactor,
+    deadlift: bw * 0.75 * sexFactor * levelFactor,
+    overheadPress: bw * 0.28 * sexFactor * levelFactor,
+    row: bw * 0.40 * sexFactor * levelFactor,
   };
 
   // Try direct mapping first.
@@ -309,14 +394,73 @@ export function getStartingWeightForExercise(
     // 2) Strength-test-aware secondary ratio (use dumbbell rounding —
     //    isolations shouldn't snap to a 20 kg floor).
     const sec = SECONDARY_RATIO[exerciseId];
-    if (sec) return roundToDumbbell(weights[sec.base] * sec.ratio);
+    if (sec) {
+      const baseVal = weights[sec.base];
+      // Avant : on retournait directement le résultat même si baseVal=0
+      // (cas edge où une charge calibrée serait à 0) → poids 0 affiché.
+      // Maintenant on fall-through au bodyweight fallback si baseVal
+      // n'est pas exploitable.
+      if (typeof baseVal === 'number' && baseVal > 0) {
+        const seed = roundToDumbbell(baseVal * sec.ratio);
+        if (seed > 0) return seed;
+      }
+    }
   }
 
-  // 3) Profile-only fallback (no strength test taken yet)
+  // 3) Profile-only fallback (no strength test exists OU strength test
+  //    avec des charges = 0). On essaie toujours ce path en plus du
+  //    weights path → robustesse.
   if (profile?.bodyweightKg) {
-    return getBodyweightFallback(exerciseId, profile);
+    const bwResult = getBodyweightFallback(exerciseId, profile);
+    if (bwResult > 0) return bwResult;
   }
 
-  // 4) Nothing to base on
+  // 4) Heuristique de dernier recours pour les exercices qui ne sont
+  //    dans aucun mapping. Avant ce filet de sécurité on retournait 0
+  //    → champ poids vide en début de séance → l'user n'avait aucune
+  //    indication. Maintenant on propose un poids conservateur basé
+  //    sur le pattern de l'ID (curl/extension/press/raise/etc.).
+  //    Marche aussi sans strengthTest grâce au profile bodyweight.
+  if (profile?.bodyweightKg) {
+    const bw = profile.bodyweightKg;
+    const sexFactor = profile.sex === 'female' ? 0.6 : 1;
+    const levelFactor = profile.trainingLevel === 'intermediate'
+      ? 1.4
+      : profile.trainingLevel === 'advanced' || profile.trainingLevel === 'expert'
+        ? 1.8
+        : 1;
+
+    const id = exerciseId.toLowerCase();
+
+    // Détection haltères : si l'exo contient db/dumbbell, la charge est
+    // PAR bras donc ~50% du total barbell. Sans ce facteur on suggérait
+    // 62.5 kg par haltère pour quelqu'un qui benchait 62.5 kg à la barre.
+    const isDumbbell = /\b(db|dumbbell|alt[eè]re|haltere)\b/.test(id) || id.includes('_db_') || id.startsWith('db_');
+    const dbFactor = isDumbbell ? 0.5 : 1;
+
+    // Patterns de noms d'exercices → estimation conservatrice
+    // (% du poids du corps × facteur sexe × facteur niveau × facteur haltères).
+    if (id.includes('curl')) return roundToDumbbell(bw * 0.08 * sexFactor * levelFactor * dbFactor);
+    if (id.includes('extension') || id.includes('kickback')) {
+      return roundToDumbbell(bw * 0.10 * sexFactor * levelFactor * dbFactor);
+    }
+    if (id.includes('raise') || id.includes('fly')) {
+      return roundToDumbbell(bw * 0.08 * sexFactor * levelFactor * dbFactor);
+    }
+    if (id.includes('press')) return roundToDumbbell(bw * 0.30 * sexFactor * levelFactor * dbFactor);
+    if (id.includes('row') || id.includes('pulldown')) {
+      return roundToDumbbell(bw * 0.30 * sexFactor * levelFactor * dbFactor);
+    }
+    if (id.includes('squat') || id.includes('lunge') || id.includes('hip')) {
+      return roundToDumbbell(bw * 0.40 * sexFactor * levelFactor * dbFactor);
+    }
+    if (id.includes('calf')) return roundToDumbbell(bw * 0.30 * sexFactor * levelFactor * dbFactor);
+    if (id.includes('crunch') || id.includes('sit')) {
+      return roundToDumbbell(bw * 0.10 * sexFactor * levelFactor);
+    }
+  }
+
+  // 5) Vraiment rien (cardio, bodyweight pur, pas de profile) — 0
+  //    laissera la séance afficher une indication "à toi de jouer".
   return 0;
 }

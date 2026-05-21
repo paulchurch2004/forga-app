@@ -6,6 +6,12 @@ export interface FoodAnalysisResult {
   protein: number;
   carbs: number;
   fat: number;
+  /**
+   * Décomposition ingrédient + quantité que GPT-4o a identifiée sur la photo.
+   * Quand présente, l'app peut résoudre les ingrédients contre la DB locale
+   * (~1 000 items) pour des macros exactes au lieu des estimations vision.
+   */
+  items?: Array<{ name: string; quantityG: number }>;
 }
 
 export interface QuotaInfo {
@@ -54,6 +60,22 @@ export async function analyzeFoodPhoto(base64Image: string): Promise<FoodVisionR
     if (data.error === 'unrecognized') return { kind: 'unrecognized' };
     if (data.error) return { kind: 'error' };
 
+    // Items optionnels : si GPT-4o a décomposé en ingrédients, on les
+    // propage à l'appelant pour résolution locale via INGREDIENTS_ALL.
+    let items: Array<{ name: string; quantityG: number }> | undefined;
+    if (Array.isArray(data.items)) {
+      items = data.items
+        .filter(
+          (it: any) =>
+            it && typeof it.name === 'string' && typeof it.quantityG === 'number',
+        )
+        .map((it: any) => ({
+          name: String(it.name).trim(),
+          quantityG: Math.max(0, Math.round(it.quantityG)),
+        }));
+      if (items && items.length === 0) items = undefined;
+    }
+
     return {
       kind: 'ok',
       data: {
@@ -62,6 +84,7 @@ export async function analyzeFoodPhoto(base64Image: string): Promise<FoodVisionR
         protein: Math.round(data.protein || 0),
         carbs: Math.round(data.carbs || 0),
         fat: Math.round(data.fat || 0),
+        items,
       },
       quota: data.quota ?? { used: 0, cap: 3, bonus: 0, remaining: 0 },
     };

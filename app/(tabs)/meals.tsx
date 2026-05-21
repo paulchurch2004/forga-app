@@ -35,16 +35,15 @@ const FREE_MAX_SUGGESTIONS = 5;
 type BudgetFilter = 'all' | 'eco' | 'premium';
 type RestrictionFilter = 'all' | Restriction;
 
-/** Each slot displays as a 2-line chip:
- *   Matin
- *   7-9h
- * Sober text-only design — emojis felt childish / AI-generated. */
-const SLOT_META: Record<MealSlot, { label: string; time: string }> = {
-  breakfast: { label: 'Matin', time: '7-9h' },
-  morning_snack: { label: 'Collation', time: '10-11h' },
-  lunch: { label: 'Midi', time: '12-14h' },
-  afternoon_snack: { label: 'Goûter', time: '16-17h' },
-  dinner: { label: 'Soir', time: '19-21h' },
+/** Single-line chip — label only. Previous iterations stacked label + time
+ *  on two lines, which never aligned cleanly across the row. Keeping it
+ *  flat matches the filter chips below and reads at a glance. */
+const SLOT_META: Record<MealSlot, { label: string }> = {
+  breakfast: { label: 'Matin' },
+  morning_snack: { label: 'Collation' },
+  lunch: { label: 'Midi' },
+  afternoon_snack: { label: 'Goûter' },
+  dinner: { label: 'Soir' },
 };
 
 const SLOT_ORDER: MealSlot[] = ['breakfast', 'morning_snack', 'lunch', 'afternoon_snack', 'dinner'];
@@ -218,7 +217,7 @@ export default function MealsScreen() {
         </Text>
       </View>
 
-      {/* Slot quick-switcher — sober 2-line chips (label + time).
+      {/* Slot quick-switcher — single-line label chips.
           The chip matching the current hour gets a subtle "now" outline. */}
       <ScrollView
         horizontal
@@ -239,7 +238,7 @@ export default function MealsScreen() {
                 !active && isNow && styles.slotChipNow,
               ]}
               accessibilityRole="button"
-              accessibilityLabel={`${meta.label}, ${meta.time}`}
+              accessibilityLabel={meta.label}
               accessibilityState={{ selected: active }}
             >
               <Text
@@ -247,12 +246,6 @@ export default function MealsScreen() {
                 numberOfLines={1}
               >
                 {meta.label}
-              </Text>
-              <Text
-                style={[styles.slotChipTime, active && styles.slotChipTimeActive]}
-                numberOfLines={1}
-              >
-                {meta.time}
               </Text>
             </Pressable>
           );
@@ -341,7 +334,7 @@ export default function MealsScreen() {
               icon={'✕'}
               title={t('searchNoResultsFor', { query: searchQuery.trim() })}
               subtitle={t('searchTryAnother')}
-              actionLabel="Logger un repas perso"
+              actionLabel={t('logCustomMeal' as any) as string}
               onAction={() => router.push(`/meal/custom?slot=${selectedSlot}` as any)}
             />
           ) : (
@@ -359,8 +352,8 @@ export default function MealsScreen() {
                 <Text style={styles.customCtaPlus}>+</Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.customCtaTitle}>Tu ne trouves pas ton plat ?</Text>
-                <Text style={styles.customCtaSub}>Logger un repas perso (nom + macros)</Text>
+                <Text style={styles.customCtaTitle}>{t('customMealCtaTitle' as any)}</Text>
+                <Text style={styles.customCtaSub}>{t('customMealCtaSub' as any)}</Text>
               </View>
               <Text style={styles.customCtaArrow}>›</Text>
             </Pressable>
@@ -488,19 +481,15 @@ const useStyles = makeStyles((colors) => ({
     paddingTop: 14,
     paddingBottom: 12,
   },
-  /** Vertical 2-row chip — sober text-only:
-   *   row 1 — label (centered, bold)
-   *   row 2 — time range (centered, muted)
-   *
-   *   Fixed width so longest label ("Collation", 9 chars at 13pt) fits and
-   *   all chips align visually. Explicit lineHeight everywhere =>
-   *   predictable height of 56px (10 + 18 + 2 + 14 + 12). */
+  /** Pill chip — single line of text, sized by content. minHeight et
+   *  minWidth explicites pour éviter les rendus "barre vide" observés
+   *  sur certains devices quand le contenu est petit. */
   slotChip: {
-    width: 92,
-    paddingTop: 10,
-    paddingBottom: 12,
-    paddingHorizontal: 6,
-    borderRadius: 12,
+    minHeight: 36,
+    minWidth: 64,
+    paddingVertical: 9,
+    paddingHorizontal: 18,
+    borderRadius: 999,
     backgroundColor: 'rgba(255,255,255,0.04)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.08)',
@@ -517,30 +506,23 @@ const useStyles = makeStyles((colors) => ({
     borderColor: 'rgba(255,107,53,0.55)',
     backgroundColor: 'rgba(255,107,53,0.08)',
   },
+  /** Texte du chip — couleur HEX explicite (pas rgba) pour éviter les
+   *  bugs de rendu opacité sur certains devices iOS. */
   slotChipText: {
     fontFamily: fonts.body,
-    fontSize: 13,
+    fontSize: 14,
     lineHeight: 18,
-    fontWeight: '700' as const,
-    color: 'rgba(255,255,255,0.92)',
+    fontWeight: '600' as const,
+    color: '#FFFFFF',
+    opacity: 0.92,
     textAlign: 'center' as const,
-    letterSpacing: 0.1,
+    letterSpacing: 0.2,
+    includeFontPadding: false,
   },
   slotChipTextActive: {
     color: '#FFFFFF',
-  },
-  slotChipTime: {
-    fontFamily: fonts.body,
-    fontSize: 10,
-    lineHeight: 14,
-    fontWeight: '600' as const,
-    color: 'rgba(255,255,255,0.5)',
-    textAlign: 'center' as const,
-    marginTop: 2,
-    letterSpacing: 0.2,
-  },
-  slotChipTimeActive: {
-    color: 'rgba(255,255,255,0.92)',
+    opacity: 1,
+    fontWeight: '700' as const,
   },
   searchWrap: {
     flexDirection: 'row' as const,

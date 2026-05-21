@@ -10,7 +10,7 @@ import {
   ImageBackground,
   Alert,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useUserStore } from '../src/store/userStore';
@@ -124,6 +124,21 @@ export default function NutritionScreen() {
     await new Promise((resolve) => setTimeout(resolve, 500));
     setRefreshing(false);
   }, [recalculate]);
+
+  // BUG FIX : après validation d'un repas + retour sur nutrition,
+  // le scroll était parfois figé (user devait changer de page et
+  // revenir pour le débloquer). Cause probable : RefreshControl resté
+  // dans un état "pulled" si l'user a navigué pendant l'animation
+  // pull-to-refresh, OU un Modal stale qui intercepte les gestures.
+  // Fix défensif : au focus de l'écran, on force refreshing=false +
+  // on close tout modal stale.
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshing(false);
+      setShowShareModal(false);
+      // Pas de cleanup nécessaire — l'état se gère via setState.
+    }, []),
+  );
 
   const consumedMacros = useMemo(() => {
     const result = { calories: 0, protein: 0, carbs: 0, fat: 0 };
@@ -334,7 +349,7 @@ export default function NutritionScreen() {
     if (!profile) return null;
     const now = new Date();
     const input: CoachInput = {
-      firstName: profile.name.split(' ')[0],
+      firstName: profile.name?.split(' ')[0] || 'Champion',
       hour: now.getHours(),
       dayOfWeek: now.getDay(),
       currentStreak,
@@ -376,7 +391,7 @@ export default function NutritionScreen() {
   else if (hour < 18) greeting = t('greetingAfternoon');
   else greeting = t('greetingEvening');
 
-  const firstName = profile.name.split(' ')[0];
+  const firstName = profile.name?.split(' ')[0] || 'Champion';
 
   return (
     <View style={styles.wrapper}>
@@ -473,7 +488,10 @@ export default function NutritionScreen() {
           </View>
         )}
 
-        {/* SCORE FORGA DU JOUR — 4 anneaux macros animés */}
+        {/* SCORE NUTRITIONNEL DU JOUR — 4 anneaux macros animés.
+            Note : c'est le score de la JOURNÉE nutritionnelle (macros
+            consommées vs cibles), pas le Score FORGA global (qui agrège
+            nutrition + entraînement sur la semaine). */}
         <Animated.View >
           <MacroRingsCard
             macros={[
@@ -520,15 +538,20 @@ export default function NutritionScreen() {
           <MealSlotPhotoList items={mealItems} />
         </Animated.View>
 
-        {/* Primary action — UN seul bouton CTA pour logger le prochain repas (résout friction UX #4) */}
-        {currentSlot && (
-          <Animated.View  style={{ marginTop: spacing.md }}>
-            <PrimaryMealAction
-              slotLabel={(MEAL_SLOT_LABELS[currentSlot.slot] ?? 'le prochain repas').toLowerCase()}
-              onPress={() => router.push(`/(tabs)/meals?slot=${currentSlot.slot}`)}
-            />
-          </Animated.View>
-        )}
+        {/* Primary action — raccourci vers le coach IA pour logger un
+            repas par texte plutôt que via le picker. UX plus rapide :
+            l'user décrit "j'ai mangé un poulet riz", le coach le logge
+            via action card. Évite de scroller le catalogue à 1000+ plats. */}
+        <Animated.View style={{ marginTop: spacing.md }}>
+          <PrimaryMealAction
+            slotLabel=""
+            // On override le title via la prop hint pour que ça
+            // matche exactement ce que l'user a demandé.
+            customTitle={t('mealCoachShortcutTitle' as any) as string}
+            customHint={t('mealCoachShortcutHint' as any) as string}
+            onPress={() => router.push('/(tabs)/coach')}
+          />
+        </Animated.View>
 
         {/* Scan actions with images */}
         <Animated.View >

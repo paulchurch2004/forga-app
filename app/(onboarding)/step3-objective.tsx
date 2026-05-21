@@ -6,10 +6,13 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useUserStore } from '../../src/store/userStore';
 import { useTrackOnboardingStep } from '../../src/hooks/useTrackOnboardingStep';
+import { useOnboardingBack } from '../../src/hooks/useOnboardingBack';
 const triggerHaptic = (style: 'light' | 'medium' = 'light') => {
   if (Platform.OS === 'web') return;
   import('expo-haptics').then((Haptics) => {
@@ -24,30 +27,68 @@ import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
 import { fonts, fontSizes, fontWeights } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
-import type { Objective } from '../../src/types/user';
+import type { Objective, Archetype } from '../../src/types/user';
 
+// 3e étape du flow d'onboarding. L'archétype (Guerrier/Artisan/Explorateur)
+// a été supprimé en tant qu'étape distincte car il faisait doublon avec
+// l'objectif. On dérive désormais l'archétype automatiquement de
+// l'objectif sélectionné pour rester compatible avec ProfileHero et
+// les autres écrans qui l'affichent.
 const STEP = 3;
-const TOTAL_STEPS = 7;
-
-interface ObjectiveOption {
-  value: Objective;
-  label: string;
-  description: string;
-  icon: string;
-}
+const TOTAL_STEPS = 8;
 
 interface ObjectiveOptionDef {
   value: Objective;
   labelKey: string;
   descKey: string;
-  icon: string;
+  /** Image hero adaptée au sexe — homme par défaut, femme si l'user
+   *  s'est identifié comme tel à l'étape précédente. Les visuels
+   *  fitness ne sont pas neutres et l'user doit pouvoir se projeter. */
+  imageMale: string;
+  imageFemale: string;
+  /** Archétype dérivé — alimente le store pour les écrans qui
+   *  utilisent encore `archetype` (ex. ProfileHero). */
+  derivedArchetype: Archetype;
 }
 
+/**
+ * Images Unsplash libres de droits, sélectionnées pour matcher
+ * visuellement chaque objectif × sexe. Le `cachePolicy="memory-disk"`
+ * d'expo-image les met en cache après la 1ère vue → 0 réseau ensuite.
+ */
 const OBJECTIVES_DEFS: ObjectiveOptionDef[] = [
-  { value: 'bulk', labelKey: 'objectiveBulk', descKey: 'objectiveBulkDesc', icon: '\u{1F4AA}' },
-  { value: 'cut', labelKey: 'objectiveCut', descKey: 'objectiveCutDesc', icon: '\u{1F525}' },
-  { value: 'maintain', labelKey: 'objectiveMaintain', descKey: 'objectiveMaintainDesc', icon: '\u{2696}\u{FE0F}' },
-  { value: 'recomp', labelKey: 'objectiveRecomp', descKey: 'objectiveRecompDesc', icon: '\u{1F504}' },
+  {
+    value: 'bulk',
+    labelKey: 'objectiveBulk',
+    descKey: 'objectiveBulkDesc',
+    imageMale: 'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=1200&q=80',
+    imageFemale: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1200&q=80',
+    derivedArchetype: 'warrior',
+  },
+  {
+    value: 'cut',
+    labelKey: 'objectiveCut',
+    descKey: 'objectiveCutDesc',
+    imageMale: 'https://images.unsplash.com/photo-1607962837359-5e7e89f86776?w=1200&q=80',
+    imageFemale: 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=1200&q=80',
+    derivedArchetype: 'warrior',
+  },
+  {
+    value: 'recomp',
+    labelKey: 'objectiveRecomp',
+    descKey: 'objectiveRecompDesc',
+    imageMale: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1200&q=80',
+    imageFemale: 'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=1200&q=80',
+    derivedArchetype: 'craftsman',
+  },
+  {
+    value: 'maintain',
+    labelKey: 'objectiveMaintain',
+    descKey: 'objectiveMaintainDesc',
+    imageMale: 'https://images.unsplash.com/photo-1517963879433-6ad2b056d712?w=1200&q=80',
+    imageFemale: 'https://images.unsplash.com/photo-1599058917765-a780eda07a3e?w=1200&q=80',
+    derivedArchetype: 'explorer',
+  },
 ];
 
 export default function Step3Objective() {
@@ -64,6 +105,12 @@ export default function Step3Objective() {
     onboardingData.objective
   );
 
+  // Sexe sélectionné à l'étape précédente — pilote le choix des
+  // images. Si pour une raison X l'user arrive ici sans avoir
+  // renseigné son sexe (deep link, restauration de session), on
+  // tombe en fallback sur les visuels "male" pour éviter un rendu vide.
+  const userSex = onboardingData.sex ?? 'male';
+
   const canContinue = objective !== undefined;
 
   const handleSelect = useCallback((value: Objective) => {
@@ -71,15 +118,18 @@ export default function Step3Objective() {
     setObjective(value);
   }, []);
 
-  const handleBack = useCallback(() => {
-    triggerHaptic('light');
-    router.back();
-  }, [router]);
+  const handleBack = useOnboardingBack('/(onboarding)/step2-body');
 
   const handleNext = useCallback(() => {
     if (!canContinue) return;
     triggerHaptic('light');
-    setOnboardingData({ objective });
+    const selectedDef = OBJECTIVES_DEFS.find((d) => d.value === objective);
+    setOnboardingData({
+      objective,
+      // Dérive aussi l'archétype pour rester compatible avec les écrans
+      // qui l'affichent (ProfileHero, badges, etc.).
+      archetype: selectedDef?.derivedArchetype,
+    });
     router.push('/(onboarding)/step4-target');
   }, [canContinue, objective, setOnboardingData, router]);
 
@@ -88,7 +138,7 @@ export default function Step3Objective() {
       {/* Progress bar */}
       <View style={styles.progressContainer}>
         <Pressable onPress={handleBack} hitSlop={12} accessibilityLabel={t('back')}>
-          <Text style={styles.backArrow}>{'\u2190'}</Text>
+          <Text style={styles.backArrow}>{'←'}</Text>
         </Pressable>
         <View style={styles.progressTrack}>
           <View
@@ -114,7 +164,7 @@ export default function Step3Objective() {
           {t('onboardingStep3Subtitle')}
         </Text>
 
-        {/* Objective cards */}
+        {/* Objective cards — image en hero + titre clair + description */}
         <View style={styles.cardsContainer}>
           {OBJECTIVES_DEFS.map((item) => {
             const isSelected = objective === item.value;
@@ -132,27 +182,40 @@ export default function Step3Objective() {
                 accessibilityLabel={`${label}: ${desc}`}
                 accessibilityState={{ selected: isSelected }}
               >
-                <Text style={styles.objectiveIcon}>{item.icon}</Text>
-                <View style={styles.objectiveTextContainer}>
-                  <Text
+                {/* Image hero — sélectionnée selon le sexe de l'user
+                    pour qu'il puisse se projeter dans le visuel. */}
+                <View style={styles.imageWrap}>
+                  <Image
+                    source={{
+                      uri: userSex === 'female' ? item.imageFemale : item.imageMale,
+                    }}
+                    style={styles.image}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                    transition={180}
+                  />
+                  {/* Dégradé bas → haut pour faire ressortir le titre */}
+                  <LinearGradient
+                    colors={['transparent', 'rgba(7,7,13,0.85)']}
+                    style={styles.gradient}
+                  />
+                  {/* Titre overlay sur l'image */}
+                  <View style={styles.titleOverlay}>
+                    <Text style={styles.objectiveLabel}>{label}</Text>
+                  </View>
+                  {/* Radio visuel coin haut droit */}
+                  <View
                     style={[
-                      styles.objectiveLabel,
-                      isSelected && styles.objectiveLabelSelected,
+                      styles.radioOuter,
+                      isSelected && styles.radioOuterSelected,
                     ]}
                   >
-                    {label}
-                  </Text>
-                  <Text style={styles.objectiveDescription}>
-                    {desc}
-                  </Text>
+                    {isSelected && <View style={styles.radioInner} />}
+                  </View>
                 </View>
-                <View
-                  style={[
-                    styles.radioOuter,
-                    isSelected && styles.radioOuterSelected,
-                  ]}
-                >
-                  {isSelected && <View style={styles.radioInner} />}
+                {/* Description sous l'image */}
+                <View style={styles.descBox}>
+                  <Text style={styles.objectiveDescription}>{desc}</Text>
                 </View>
               </Pressable>
             );
@@ -235,61 +298,83 @@ const useStyles = makeStyles((colors) => ({
     marginBottom: spacing['3xl'],
   },
   cardsContainer: {
-    gap: spacing.md,
+    gap: spacing.lg,
   },
+  /** Card verticale : image hero + bloc description. Border radius
+   *  global, overflow hidden pour que l'image colle aux coins arrondis. */
   objectiveCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: colors.surface,
     borderRadius: borderRadius.lg,
     borderWidth: 2,
     borderColor: colors.border,
-    paddingVertical: spacing.xl,
-    paddingHorizontal: spacing.xl,
-    gap: spacing.lg,
+    overflow: 'hidden' as const,
   },
   objectiveCardSelected: {
     borderColor: colors.primary,
-    backgroundColor: 'rgba(255, 107, 53, 0.08)',
   },
-  objectiveIcon: {
-    fontSize: 32,
+  imageWrap: {
+    width: '100%' as const,
+    height: 160,
+    position: 'relative' as const,
   },
-  objectiveTextContainer: {
-    flex: 1,
+  image: {
+    width: '100%' as const,
+    height: '100%' as const,
+  },
+  gradient: {
+    position: 'absolute' as const,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '60%' as const,
+  },
+  titleOverlay: {
+    position: 'absolute' as const,
+    bottom: spacing.md,
+    left: spacing.lg,
+    right: spacing.lg,
   },
   objectiveLabel: {
     fontFamily: fonts.display,
-    fontSize: fontSizes.lg,
-    fontWeight: fontWeights.semibold,
-    color: colors.text,
-    marginBottom: 2,
+    fontSize: fontSizes['2xl'],
+    fontWeight: fontWeights.bold,
+    color: '#FFFFFF',
+    letterSpacing: -0.3,
   },
-  objectiveLabelSelected: {
-    color: colors.primary,
+  descBox: {
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
   },
   objectiveDescription: {
     fontFamily: fonts.body,
-    fontSize: fontSizes.sm,
+    fontSize: fontSizes.md,
+    lineHeight: 22,
     color: colors.textSecondary,
   },
+  /** Radio en coin haut droit de l'image — toujours visible
+   *  grâce au fond sombre semi-transparent. */
   radioOuter: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    position: 'absolute' as const,
+    top: spacing.md,
+    right: spacing.md,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     borderWidth: 2,
-    borderColor: colors.textMuted,
+    borderColor: 'rgba(255,255,255,0.7)',
+    backgroundColor: 'rgba(0,0,0,0.35)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   radioOuterSelected: {
     borderColor: colors.primary,
+    backgroundColor: colors.primary,
   },
   radioInner: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: colors.primary,
+    backgroundColor: '#FFFFFF',
   },
   bottomBar: {
     paddingTop: spacing.lg,

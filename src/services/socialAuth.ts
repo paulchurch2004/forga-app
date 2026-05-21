@@ -38,7 +38,7 @@ export interface SocialAuthResult {
 }
 
 export class SocialAuthError extends Error {
-  code: 'cancelled' | 'unsupported' | 'provider' | 'supabase' | 'unknown';
+  code: 'cancelled' | 'unsupported' | 'provider' | 'supabase' | 'email_in_use' | 'unknown';
   constructor(code: SocialAuthError['code'], message: string) {
     super(message);
     this.code = code;
@@ -90,6 +90,14 @@ export async function signInWithApple(): Promise<SocialAuthResult> {
   });
 
   if (error || !data.session) {
+    // Supabase peut renvoyer un statut 422 / 400 quand l'email Apple
+    // est déjà rattaché à un compte créé par email/password (les
+    // providers ne sont pas auto-liés). On distingue ce cas pour
+    // afficher un message clair plutôt qu'une erreur technique.
+    const msg = (error?.message || '').toLowerCase();
+    if (msg.includes('already') || msg.includes('exists') || (error as any)?.status === 422) {
+      throw new SocialAuthError('email_in_use', error?.message || 'Email already registered.');
+    }
     throw new SocialAuthError('supabase', error?.message || 'Supabase rejected Apple token.');
   }
 
@@ -155,6 +163,11 @@ export async function signInWithGoogle(): Promise<SocialAuthResult> {
   });
 
   if (error || !data.session) {
+    // Idem qu'Apple : email rattaché à un compte password existant.
+    const msg = (error?.message || '').toLowerCase();
+    if (msg.includes('already') || msg.includes('exists') || (error as any)?.status === 422) {
+      throw new SocialAuthError('email_in_use', error?.message || 'Email already registered.');
+    }
     throw new SocialAuthError('supabase', error?.message || 'Supabase rejected Google token.');
   }
 

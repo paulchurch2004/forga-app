@@ -75,7 +75,7 @@ const SECTIONS_FR = [
   },
   {
     title: '10. Contact',
-    body: "Editeur : Paul Church, entrepreneur individuel, 2 allee Armand Praviel, 33000 Bordeaux, France. Pour toute question : hello@forga.fr. Version complete : forga.fr/terms.",
+    body: "Editeur : Paul Church, entrepreneur individuel, 2 allee Armand Praviel, 33000 Bordeaux, France. Pour toute question : support.forga@gmail.com. Version complete : forga.fr/terms.",
   },
 ];
 
@@ -118,7 +118,7 @@ const SECTIONS_EN = [
   },
   {
     title: '10. Contact',
-    body: 'Publisher: Paul Church, sole proprietor, 2 allee Armand Praviel, 33000 Bordeaux, France. For any question: hello@forga.fr. Full version: forga.fr/terms.',
+    body: 'Publisher: Paul Church, sole proprietor, 2 allee Armand Praviel, 33000 Bordeaux, France. For any question: support.forga@gmail.com. Full version: forga.fr/terms.',
   },
 ];
 

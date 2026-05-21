@@ -4,16 +4,32 @@ import { router, usePathname } from 'expo-router';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius, SIDEBAR_WIDTH } from '../../theme';
 import { useT } from '../../i18n';
 
+// Routes "satellites" du Home (accessibles via les tiles) qui n'ont
+// pas leur propre entrée sidebar mais doivent quand même highlight la
+// tuile Home pour que l'user garde la spatialisation.
+const HOME_SATELLITE_ROUTES = [
+  '/coach',
+  '/training',
+  '/active-workout',
+  '/nutrition',
+  '/meal',
+  '/scan',
+  '/exercise-tutorial',
+  '/strength-test',
+  '/weekly-review',
+];
+
 export function Sidebar() {
   const styles = useStyles();
   const pathname = usePathname();
   const { t } = useT();
 
+  // Sidebar desktop \u2014 m\u00EAmes 4 tabs que la barre du bas mobile
+  // (training et coach accessibles via les gros tiles du Home).
   const NAV_ITEMS = [
     { route: '/(tabs)/home', label: t('tabHome'), icon: '\u2302' },
     { route: '/(tabs)/meals', label: t('tabMeals'), icon: '\u2615' },
-    { route: '/(tabs)/training', label: t('trainingTitle'), icon: '\uD83C\uDFCB' },
-    { route: '/(tabs)/coach', label: t('tabCoach'), icon: '\u2709' },
+    { route: '/(tabs)/offers', label: t('tabOffers' as any) as string, icon: '\u2605' },
     { route: '/(tabs)/profile', label: t('tabProfile'), icon: '\u2603' },
   ];
 
@@ -31,7 +47,14 @@ export function Sidebar() {
       <View style={styles.nav}>
         {NAV_ITEMS.map((item) => {
           const segment = item.route.replace('/(tabs)/', '');
-          const isActive = pathname === `/${segment}` || pathname.startsWith(`/${segment}/`);
+          let isActive = pathname === `/${segment}` || pathname.startsWith(`/${segment}/`);
+          // Fallback : si on est sur une route satellite du Home
+          // (training, coach, scan, etc — accessibles via les tiles),
+          // on active la tuile Home pour que l'user garde la
+          // spatialisation. Sinon AUCUNE entrée sidebar n'est highlight.
+          if (!isActive && segment === 'home' && HOME_SATELLITE_ROUTES.some((r) => pathname.startsWith(r))) {
+            isActive = true;
+          }
 
           return (
             <Pressable

@@ -70,12 +70,66 @@ export interface UserProfile {
   referralCount: number; // how many people signed up with this code
   referredBy?: string; // referral code used at signup
 
+  /** URI locale ou URL distante de la photo de profil custom de l'user.
+   *  Optionnel — si absent, le hero affiche l'initiale en gradient
+   *  comme fallback. Mis à jour via le bouton "Modifier la photo" sur
+   *  l'écran profil, persisté via Supabase Storage (`avatars` bucket). */
+  avatarUri?: string;
+
+  /** Profil cyclisme commute — quand l'user fait des trajets quotidiens
+   *  à vélo. Ajoute la dépense énergétique au TDEE pour calibrer ses
+   *  calories cibles plus précisément. Absent si l'user a répondu non
+   *  à la question pendant l'onboarding. */
+  cycling?: CyclingProfile;
+
+  /** Statut ménopausique — uniquement pertinent pour les femmes >=40.
+   *  Détermine des ajustements physiologiques importants :
+   *    - TDEE réduit (-5 à -10%) car baisse de l'œstrogène
+   *    - Protéines augmentées (combat sarcopénie accélérée)
+   *    - Calcium / Vit D rehaussés (densité osseuse)
+   *    - Programmes priorisant la force (anti-ostéoporose)
+   *  Valeurs :
+   *    - 'none'      : pas concernée (préménopause normale)
+   *    - 'peri'      : périménopause (cycles irréguliers, début symptômes)
+   *    - 'post'      : ménopause établie (12 mois sans règles)
+   *  Optionnel — l'onboarding ne pose la question qu'aux femmes 40+. */
+  menopauseStatus?: MenopauseStatus;
+
   createdAt: string;
   updatedAt: string;
 }
 
+/**
+ * Configuration des trajets vélo réguliers de l'user. Calculée une
+ * fois à l'onboarding via 2 adresses + route OSRM, puis appliquée
+ * au TDEE quotidien (réparti sur 7 jours pour stabilité).
+ */
+export interface CyclingProfile {
+  /** Trajet vélo activé. Si false, le reste est ignoré dans le calcul. */
+  enabled: boolean;
+  /** Adresse de départ (généralement domicile) — texte saisi par l'user. */
+  homeAddress?: string;
+  /** Adresse de destination (généralement boulot/fac). */
+  destinationAddress?: string;
+  /** Distance one-way en km, calculée par OSRM cycling profile. */
+  distanceKm?: number;
+  /** Nombre de jours par semaine où l'user fait l'aller-retour (1-7). */
+  daysPerWeek: number;
+}
+
 export type Archetype = 'warrior' | 'craftsman' | 'explorer';
 export type IntensityLevel = 1 | 2 | 3 | 4 | 5;
+
+/**
+ * Statut ménopausique. `none` = pas concernée (avant 40 ou postménopause
+ * gérée). `peri` = périménopause (transition, cycles irréguliers,
+ * début des symptômes). `post` = ménopause établie (12+ mois sans règles).
+ *
+ * On utilise ces 3 valeurs (au lieu de 4 avec 'pre') car la distinction
+ * "pré-ménopause normale" et "pas concernée" n'a pas d'impact sur les
+ * calculs — la périménopause est le 1er stade qui change les besoins.
+ */
+export type MenopauseStatus = 'none' | 'peri' | 'post';
 
 export interface OnboardingData {
   archetype?: Archetype;
@@ -92,6 +146,12 @@ export interface OnboardingData {
   budget?: Budget;
   restrictions?: Restriction[];
   referredByCode?: string; // referral code entered at signup
+  /** Profil cyclisme renseigné à l'étape vélo de l'onboarding.
+   *  Reporté dans `UserProfile.cycling` à la finalisation. */
+  cycling?: CyclingProfile;
+  /** Statut ménopausique demandé à l'onboarding pour les femmes 40+.
+   *  Reporté dans UserProfile à la finalisation. Absent si non concernée. */
+  menopauseStatus?: MenopauseStatus;
 }
 
 export interface WeeklyCheckIn {

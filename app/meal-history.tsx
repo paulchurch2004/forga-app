@@ -77,35 +77,73 @@ export default function MealHistoryScreen() {
     );
   }, [selectedMeals]);
 
-  // Action sheet for a meal logged on a past day — info, delete, cancel.
+  // Action sheet for a meal logged on a past day — info/edit, delete, cancel.
   // Uses the by-id removal in mealStore (which scans every mealHistory
   // entry), so it works regardless of how many days ago the meal was logged.
+  //
+  // Edit flow :
+  //  - Repas custom (scan code-barres, saisie perso) → /meal/custom avec
+  //    tous les champs pré-remplis + editingId → la validation supprime
+  //    l'ancien repas et insère le nouveau (replace).
+  //  - Repas bibliothèque (recette) → "Voir la recette" pour consulter ;
+  //    l'édition fine des quantités nécessiterait de reproduire l'UI
+  //    d'ajustement complète, donc on propose "Supprimer + re-ajouter"
+  //    comme workflow plus simple (l'add est à 1 tap depuis le bouton
+  //    dashed en bas de l'écran).
   const handleMealPress = useCallback(
     (meal: typeof selectedMeals[number]) => {
       const recipe = getMealById(meal.mealId);
       const name = meal.customName ?? recipe?.name ?? t('emptyHistoryTitle');
       const kcal = Math.round(meal.actualMacros.calories);
       const protein = Math.round(meal.actualMacros.protein);
+      const isCustom = meal.mealId === 'custom';
+
+      const buttons: Array<{ text: string; style?: 'destructive' | 'cancel' | 'default'; onPress?: () => void }> = [];
+
+      if (isCustom) {
+        // Pour les customs : un seul bouton "Modifier" qui ouvre le form
+        // pré-rempli avec tous les champs + editingId pour le replace.
+        buttons.push({
+          text: 'Modifier',
+          onPress: () => {
+            const params = new URLSearchParams({
+              slot: meal.slot,
+              date: meal.date,
+              editingId: meal.id,
+              name: meal.customName ?? '',
+              calories: String(Math.round(meal.actualMacros.calories)),
+              protein: String(Math.round(meal.actualMacros.protein)),
+              carbs: String(Math.round(meal.actualMacros.carbs)),
+              fat: String(Math.round(meal.actualMacros.fat)),
+            });
+            router.push(`/meal/custom?${params.toString()}` as any);
+          },
+        });
+      } else {
+        // Pour les repas bibliothèque : on garde l'accès à la recette.
+        buttons.push({
+          text: 'Voir la recette',
+          onPress: () => router.push(`/meal/${meal.mealId}?slot=${meal.slot}` as any),
+        });
+      }
+
+      buttons.push({
+        text: t('mealActionDelete' as any) as string,
+        style: 'destructive',
+        onPress: () => {
+          useMealStore.getState().removeValidatedMealById(meal.id);
+          if (Platform.OS !== 'web') {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+          }
+        },
+      });
+
+      buttons.push({ text: t('cancel' as any) as string, style: 'cancel' });
+
       Alert.alert(
         name,
         `${kcal} kcal · ${protein}g ${t('proteinLabel' as any)}`,
-        [
-          {
-            text: t('mealActionInfo' as any) as string,
-            onPress: () => router.push(`/meal/${meal.mealId}?slot=${meal.slot}` as any),
-          },
-          {
-            text: t('mealActionDelete' as any) as string,
-            style: 'destructive',
-            onPress: () => {
-              useMealStore.getState().removeValidatedMealById(meal.id);
-              if (Platform.OS !== 'web') {
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-              }
-            },
-          },
-          { text: t('cancel' as any) as string, style: 'cancel' },
-        ],
+        buttons,
       );
     },
     [t],
@@ -244,7 +282,7 @@ export default function MealHistoryScreen() {
 
 function formatDisplayDate(dateStr: string): string {
   const [y, m, d] = dateStr.split('-').map(Number);
-  const months = ['jan.', 'fev.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'aout', 'sept.', 'oct.', 'nov.', 'dec.'];
+  const months = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
   return `${d} ${months[m - 1]} ${y}`;
 }
 

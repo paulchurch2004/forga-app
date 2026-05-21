@@ -10,6 +10,9 @@ interface MetalHistoryState {
   setMetalForDate: (date: string, metal: MetalId) => void;
   clearMetalForDate: (date: string) => void;
   getLastNDays: (days: number) => Array<{ date: string; metal: MetalId | null }>;
+  /** Wipe complet — appelé au logout pour éviter que user B voit la
+   *  frise gamification de user A sur un device partagé. */
+  reset: () => void;
 }
 
 function pad(n: number): string {
@@ -43,6 +46,7 @@ export const useMetalHistoryStore = create<MetalHistoryState>()(
         }
         return result;
       },
+      reset: () => set({ history: {} }),
     }),
     {
       name: 'forga.metalHistory.v1',

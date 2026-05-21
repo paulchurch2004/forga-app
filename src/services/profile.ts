@@ -56,6 +56,24 @@ export async function loadProfileFromSupabase(userId: string): Promise<boolean> 
     referralCount: data.referral_count ?? 0,
     referredBy: data.referred_by ?? undefined,
     trackingMode: data.tracking_mode ?? 'both',
+    // Statut ménopausique — pertinent uniquement femmes 40+, sinon NULL en DB.
+    menopauseStatus: data.menopause_status ?? undefined,
+    // Photo de profil custom (URI locale en v1, URL Supabase Storage en v1.1).
+    avatarUri: data.avatar_uri ?? undefined,
+    // Profil cyclisme : on reconstruit l'objet imbriqué depuis les
+    // colonnes à plat de la DB. Si `cycling_enabled` est null/false,
+    // on laisse `cycling` undefined pour pas polluer le profil.
+    cycling: data.cycling_enabled
+      ? {
+          enabled: true,
+          homeAddress: data.cycling_home_address ?? undefined,
+          destinationAddress: data.cycling_destination_address ?? undefined,
+          distanceKm: data.cycling_distance_km != null
+            ? Number(data.cycling_distance_km)
+            : undefined,
+          daysPerWeek: data.cycling_days_per_week ?? 0,
+        }
+      : undefined,
     createdAt: data.created_at,
     updatedAt: data.updated_at,
   };
@@ -88,6 +106,16 @@ export async function loadProfileFromSupabase(userId: string): Promise<boolean> 
   }
   if (data.weekly_checkin_reminder !== undefined && data.weekly_checkin_reminder !== null) {
     useSettingsStore.setState({ weeklyCheckInReminder: data.weekly_checkin_reminder });
+  }
+  // Toggle compteur de pas (iOS uniquement, persisté pour rester
+  // synchro entre devices si l'user a déjà accordé HealthKit).
+  if (data.steps_enabled !== undefined && data.steps_enabled !== null) {
+    useSettingsStore.setState({ stepsEnabled: data.steps_enabled });
+  }
+  // Timestamp du dernier sync Apple Health — permet le delta-sync
+  // cross-device sans réimporter tout l'historique.
+  if (data.last_health_sync_at) {
+    useSettingsStore.setState({ lastHealthSyncAt: data.last_health_sync_at });
   }
 
   return !!data.objective;

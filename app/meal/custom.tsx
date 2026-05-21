@@ -42,9 +42,18 @@ export default function CustomMealScreen() {
     protein?: string;
     carbs?: string;
     fat?: string;
+    /** ISO date du repas. Permet d'éditer un repas logué un jour passé
+     *  depuis l'écran historique. Si absent, l'écran s'applique à today. */
+    date?: string;
+    /** ID du repas existant à REMPLACER. Quand fourni, l'écran agit en
+     *  mode "modifier" : à la validation, on supprime l'ancien et on
+     *  insère le nouveau (mêmes macros mises à jour, même date/slot). */
+    editingId?: string;
   }>();
   const addValidatedMeal = useMealStore((s) => s.addValidatedMeal);
+  const removeValidatedMealById = useMealStore((s) => s.removeValidatedMealById);
   const session = useAuthStore((s) => s.session);
+  const isEditing = Boolean(params.editingId);
 
   const [showCelebration, setShowCelebration] = useState(false);
   const celebrationMessages = [t('celebration1'), t('celebration2'), t('celebration3'), t('celebration4'), t('celebration5')];
@@ -74,12 +83,22 @@ export default function CustomMealScreen() {
       return;
     }
 
-    const today = todayLocalIso();
+    // Date du repas : prend celle passée en param (modification rétro
+    // depuis l'historique) ou today si l'écran est ouvert depuis le
+    // flow normal d'ajout.
+    const targetDate = params.date ?? todayLocalIso();
+
+    // En mode édition, on supprime d'abord l'ancien repas (tous dates
+    // confondues — removeValidatedMealById scanne tout mealHistory),
+    // puis on insère le nouveau. C'est équivalent à un "replace".
+    if (isEditing && params.editingId) {
+      removeValidatedMealById(params.editingId);
+    }
 
     const meal = {
       id: `custom-${Date.now()}`,
       userId: session?.user?.id || 'demo-user',
-      date: today,
+      date: targetDate,
       slot: selectedSlot,
       mealId: 'custom',
       customName: name.trim(),
@@ -103,7 +122,10 @@ export default function CustomMealScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScreenTopBar title={t('addCustomMeal')} onBack={() => router.back()} />
+      <ScreenTopBar
+        title={isEditing ? t('editCustomMeal') : t('addCustomMeal')}
+        onBack={() => router.back()}
+      />
 
       <ScrollView
         style={styles.scroll}
@@ -194,7 +216,11 @@ export default function CustomMealScreen() {
 
         {/* Validate — redesign gradient CTA */}
         <View style={{ marginTop: spacing.xl }}>
-          <PrimaryGradientButton label={t('validateMeal')} onPress={handleValidate} size="lg" />
+          <PrimaryGradientButton
+            label={isEditing ? t('saveCustomMealChanges') : t('validateMeal')}
+            onPress={handleValidate}
+            size="lg"
+          />
         </View>
       </ScrollView>
       <CelebrationOverlay

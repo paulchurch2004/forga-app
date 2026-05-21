@@ -1,9 +1,30 @@
 import type { Ingredient } from '../types/meal';
+import { INGREDIENTS_EXTENDED } from './ingredients_extended';
+import { INGREDIENTS_DISHES } from './ingredients_dishes';
+import { INGREDIENTS_MAX } from './ingredients_max';
 
 /**
- * Base de données des ingrédients FORGA
- * Macros pour 100g (ou 100ml / 1 unité selon le type)
- * Sources : tables CIQUAL / USDA
+ * Base de données des ingrédients FORGA — répartie en 4 fichiers :
+ *
+ *   1. `ingredients.ts` (ce fichier, ~180 items) : ingrédients "core",
+ *      utilisés par l'engine de génération de menus. Bruts uniquement.
+ *   2. `ingredients_extended.ts` (~300 items) : marques, fast-food,
+ *      yaourts, pâtisseries, snacks, charcuteries, fromages FR.
+ *   3. `ingredients_dishes.ts` (~245 items) : plats préparés du monde
+ *      pour la couverture Uber Eats / Deliveroo (chirashi, butter chicken,
+ *      bibimbap, paella, tagine, pho, ramen, sushi roll, etc.).
+ *   4. `ingredients_max.ts` (~280 items) : coverage maximum —
+ *      boulangeries régionales FR, marques épicerie (Capri-Sun, Orangina,
+ *      cereales Kellogg's/Nestlé, biscuits LU, chocolats Kinder/Lindt,
+ *      glaces Magnum/Carte d'Or, produits vegan/keto/protéinés RTD),
+ *      cocktails, plats régionaux FR (kig ha farz, daube provençale,
+ *      pissaladière, brandade), fromages internationaux étendus.
+ *
+ * Total combiné via `INGREDIENTS_ALL` : ~1 000 items. Macros 100g/100ml/1u.
+ * Sources : tables CIQUAL / USDA / Open Food Facts (FR-biased).
+ *
+ * Au-delà de ces 1 000 items locaux → bascule automatique vers
+ * Open Food Facts API en runtime (`services/openFoodFacts.ts`).
  */
 export const INGREDIENTS: Record<string, Ingredient> = {
   // ── Protéines animales ──
@@ -1905,5 +1926,42 @@ export const INGREDIENTS: Record<string, Ingredient> = {
   },
 };
 
+/**
+ * Map unifiée : core + extended + dishes + max. Priorité de résolution
+ * en cas de collision d'ID : core > extended > dishes > max. Le spread
+ * va du plus spécialisé au plus générique pour que `INGREDIENTS` (core)
+ * gagne toujours sur les couches étendues.
+ *
+ * Utilisé par le coach IA / le resolver en langage naturel pour
+ * matcher "j'ai mangé un chirashi tartare saumon", "un Kinder Bueno",
+ * "une socca niçoise", "un Magnum White" sur ~1 000 items locaux.
+ */
+export const INGREDIENTS_ALL: Record<string, Ingredient> = {
+  ...INGREDIENTS_MAX,
+  ...INGREDIENTS_DISHES,
+  ...INGREDIENTS_EXTENDED,
+  ...INGREDIENTS,
+};
+
+/** Lookup direct par ID. Cherche dans l'ordre de priorité :
+ *  core → extended → dishes → max. */
 export const getIngredient = (id: string): Ingredient | undefined =>
-  INGREDIENTS[id];
+  INGREDIENTS[id] ??
+  INGREDIENTS_EXTENDED[id] ??
+  INGREDIENTS_DISHES[id] ??
+  INGREDIENTS_MAX[id];
+
+/** Normalise un nom pour comparaison : minuscules, retire les accents
+ *  combinants (U+0300–U+036F après normalisation NFD) et trim. */
+const normalizeName = (s: string): string =>
+  s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+
+/** Cherche par nom (insensible à la casse, retire les accents).
+ *  Retourne le premier match exact, sinon undefined. Pour du fuzzy
+ *  matching utiliser `resolveIngredient` dans `services/ingredientResolver`. */
+export const getIngredientByName = (name: string): Ingredient | undefined => {
+  const normalized = normalizeName(name);
+  return Object.values(INGREDIENTS_ALL).find(
+    (ing) => normalizeName(ing.name) === normalized,
+  );
+};

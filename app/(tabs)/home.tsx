@@ -9,13 +9,7 @@ import {
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  useAnimatedScrollHandler,
-  interpolate,
-  Extrapolation,
-} from 'react-native-reanimated';
+import Animated from 'react-native-reanimated';
 import { useUserStore } from '../../src/store/userStore';
 import { useSettingsStore } from '../../src/store/settingsStore';
 import { useStreak } from '../../src/hooks/useStreak';
@@ -28,161 +22,30 @@ import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/t
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
-import { MorningRitual } from '../../src/components/home/MorningRitual';
+import { BigTileCard } from '../../src/components/home/BigTileCard';
+import { ReferralPromptModal } from '../../src/components/social/ReferralPromptModal';
+import { useReferralPrompt } from '../../src/hooks/useReferralPrompt';
 import { WeeklyFormCard } from '../../src/components/home/WeeklyFormCard';
-import { CoachFocusCard } from '../../src/components/home/CoachFocusCard';
 import { PremiumUpgradeCard } from '../../src/components/home/PremiumUpgradeCard';
 import { usePremium } from '../../src/hooks/usePremium';
 import { CoachingTooltip } from '../../src/components/coach/CoachingTooltip';
 import { MiniStatsGrid } from '../../src/components/home/MiniStatsGrid';
-import { QuickAccessRow } from '../../src/components/home/QuickAccessTile';
+import { StepsCard } from '../../src/components/home/StepsCard';
+import { useSteps } from '../../src/hooks/useSteps';
 import { useMealStore } from '../../src/store/mealStore';
 import { useScoreStore } from '../../src/store/scoreStore';
 import { useTrainingStore } from '../../src/store/trainingStore';
 import { todayLocalIso } from '../../src/utils/date';
 import { useEngine } from '../../src/hooks/useEngine';
-import { useMealSlot } from '../../src/hooks/useMealSlot';
 import { useWater } from '../../src/hooks/useWater';
 import { useProgram } from '../../src/hooks/useProgram';
-import { MEAL_SLOT_LABELS } from '../../src/types/meal';
 
 // ──────────── CARD DATA ────────────
 
-const CARDS = [
-  {
-    key: 'nutrition',
-    image: 'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80',
-    titleKey: 'nutritionCard',
-    subKey: 'nutritionCardSub',
-    route: '/nutrition',
-  },
-  {
-    key: 'training',
-    image: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80',
-    titleKey: 'trainingCard',
-    subKey: 'trainingCardSub',
-    route: '/(tabs)/training',
-  },
-  {
-    key: 'space',
-    image: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?w=800&q=80',
-    titleKey: 'mySpace',
-    subKey: 'mySpaceSub',
-    route: '/(tabs)/profile',
-  },
-  {
-    key: 'boutique',
-    image: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800&q=80',
-    titleKey: 'boutiqueCard',
-    subKey: 'boutiqueCardSub',
-    route: null,
-    comingSoon: true,
-  },
-];
-
-// ──────────── 3D CAROUSEL CARD ────────────
-
-function CarouselCard({
-  card,
-  index,
-  scrollX,
-  cardWidth,
-  cardHeight,
-  snapInterval,
-  t,
-}: {
-  card: typeof CARDS[0];
-  index: number;
-  scrollX: Animated.SharedValue<number>;
-  cardWidth: number;
-  cardHeight: number;
-  snapInterval: number;
-  t: any;
-}) {
-  const styles = useStyles();
-
-  const animatedStyle = useAnimatedStyle(() => {
-    const inputRange = [
-      (index - 1) * snapInterval,
-      index * snapInterval,
-      (index + 1) * snapInterval,
-    ];
-
-    const rotateY = interpolate(scrollX.value, inputRange, [25, 0, -25], Extrapolation.CLAMP);
-    const scale = interpolate(scrollX.value, inputRange, [0.88, 1, 0.88], Extrapolation.CLAMP);
-    const opacity = interpolate(scrollX.value, inputRange, [0.65, 1, 0.65], Extrapolation.CLAMP);
-
-    return {
-      transform: [
-        { perspective: 800 },
-        { rotateY: `${rotateY}deg` },
-        { scale },
-      ],
-      opacity,
-    };
-  });
-
-  const handlePress = useCallback(() => {
-    if (card.route) router.push(card.route as any);
-  }, [card.route]);
-
-  const content = (
-    <ImageBackground
-      source={{ uri: card.image }}
-      style={[styles.carouselImage, { width: cardWidth, height: cardHeight }]}
-      imageStyle={styles.carouselImageInner}
-    >
-      <LinearGradient
-        colors={['rgba(0,0,0,0.05)', 'rgba(0,0,0,0.8)']}
-        style={styles.carouselOverlay}
-      >
-        {card.comingSoon && (
-          <View style={styles.comingSoonBadge}>
-            <Text style={styles.comingSoonText}>{t('comingSoonBadge')}</Text>
-          </View>
-        )}
-        <Text style={styles.carouselTitle}>{t(card.titleKey as any)}</Text>
-        <Text style={styles.carouselDesc}>{t(card.subKey as any)}</Text>
-      </LinearGradient>
-    </ImageBackground>
-  );
-
-  return (
-    <Animated.View style={[{ width: cardWidth, alignItems: 'center' }, animatedStyle]}>
-      {card.route ? (
-        <Pressable onPress={handlePress} style={styles.carouselCard}>{content}</Pressable>
-      ) : (
-        <View style={[styles.carouselCard, { opacity: 0.8 }]}>{content}</View>
-      )}
-    </Animated.View>
-  );
-}
-
-// ──────────── DOT INDICATOR ────────────
-
-function DotIndicator({ scrollX, snapInterval, count }: { scrollX: Animated.SharedValue<number>; snapInterval: number; count: number }) {
-  const { colors } = useTheme();
-  return (
-    <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: spacing.lg }}>
-      {Array.from({ length: count }).map((_, i) => (
-        <DotItem key={i} index={i} scrollX={scrollX} snapInterval={snapInterval} colors={colors} />
-      ))}
-    </View>
-  );
-}
-
-function DotItem({ index, scrollX, snapInterval, colors }: { index: number; scrollX: Animated.SharedValue<number>; snapInterval: number; colors: any }) {
-  const animStyle = useAnimatedStyle(() => {
-    const inputRange = [(index - 1) * snapInterval, index * snapInterval, (index + 1) * snapInterval];
-    const width = interpolate(scrollX.value, inputRange, [8, 24, 8], Extrapolation.CLAMP);
-    const opacity = interpolate(scrollX.value, inputRange, [0.3, 1, 0.3], Extrapolation.CLAMP);
-    return { width, opacity };
-  });
-
-  return (
-    <Animated.View style={[{ height: 8, borderRadius: 4, backgroundColor: colors.primary }, animStyle]} />
-  );
-}
+// Note : le carrousel 3D `CARDS` + `CarouselCard` + `DotIndicator` + `DotItem`
+// a été retiré (mai 2026 — Home restructuré avec BigTileCard à la place).
+// ~135 lignes de code mort supprimées. Si tu veux le ré-introduire en
+// v1.1, l'historique git le contient.
 
 // ──────────── MAIN SCREEN ────────────
 
@@ -192,10 +55,17 @@ export default function HomeScreen() {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const profile = useUserStore((s) => s.profile);
   const { currentStreak, isTodayValidated } = useStreak();
+  // Compteur de pas via Apple Health (Premium opt-in dans Settings).
+  // Renvoie tout à 0 si l'user n'a pas activé `stepsEnabled` ou si
+  // HealthKit refuse — on n'affiche alors pas la carte (cf. JSX plus bas).
+  const stepData = useSteps();
   const tutorialStep = useSettingsStore((s) => s.tutorialStep);
   const setTutorialStep = useSettingsStore((s) => s.setTutorialStep);
   const { shouldPrompt, daysSinceLastWeighIn } = useWeightPrompt();
   const [showWeightModal, setShowWeightModal] = useState(false);
+  // Popup périodique pour les Free users : rappel parrainage (1 sem
+  // Premium par filleul). Logique de timing dans le hook.
+  const referralPrompt = useReferralPrompt();
   const { isPremium } = usePremium();
   const styles = useStyles();
   const { t } = useT();
@@ -203,7 +73,6 @@ export default function HomeScreen() {
   // Real macros / score / next slot for the redesign cards
   const todayMeals = useMealStore((s) => s.todayMeals);
   const engine = useEngine();
-  const { currentSlot, slots } = useMealSlot();
   const currentScore = useScoreStore((s) => s.currentScore);
   const weeklyChange = useScoreStore((s) => s.weeklyChange);
   const { todayTotal: waterMl, dailyTarget: waterGoal } = useWater();
@@ -242,50 +111,6 @@ export default function HomeScreen() {
     ? (hasWorkoutToday ? 1 : 0)
     : 1; // rest day or no plan → ring is "complete" (no action expected)
 
-  // Compose the coach focus message from real data
-  const focusMsg = useMemo(() => {
-    const calLeft = Math.max(0, Math.round(targets.calories - consumed.calories));
-    const protLeft = Math.max(0, Math.round(targets.protein - consumed.protein));
-    const protPct = targets.protein ? consumed.protein / targets.protein : 0;
-    const calPct = targets.calories ? consumed.calories / targets.calories : 0;
-
-    const nextSlot = slots.find((s) => !s.isValidated && s.status !== 'upcoming') ?? currentSlot;
-    const nextSlotName = nextSlot ? (MEAL_SLOT_LABELS[nextSlot.slot] ?? '').toLowerCase() : null;
-
-    // No data yet today
-    if (todayMeals.length === 0) {
-      const grams = Math.round(targets.protein / (slots.length || 4));
-      return nextSlotName
-        ? { message: t('coachFocusOpenerWithSlot', { slot: nextSlotName, grams }), highlight: `${grams}g` }
-        : { message: t('coachFocusOpener'), highlight: '' };
-    }
-
-    if (calLeft === 0 && protLeft === 0) {
-      return { message: t('coachFocusDayDone'), highlight: '' };
-    }
-
-    if (protPct < calPct - 0.1 && protLeft > 20) {
-      return {
-        message: t('coachFocusProteinLever', { slot: nextSlotName ?? t('primaryMealActionFallback'), grams: protLeft }),
-        highlight: `${protLeft}g`,
-      };
-    }
-
-    if (nextSlot?.slot === 'dinner' && calLeft > 200) {
-      return {
-        message: t('coachFocusDinnerLever', { grams: protLeft }),
-        highlight: `${protLeft}g`,
-      };
-    }
-
-    return {
-      message: nextSlotName
-        ? t('coachFocusGenericForSlot', { kcal: calLeft, grams: protLeft, slot: nextSlotName })
-        : t('coachFocusGenericRest', { kcal: calLeft, grams: protLeft }),
-      highlight: `${protLeft}g`,
-    };
-  }, [todayMeals, consumed, targets, currentSlot, slots, t]);
-
   // Weekly form score breakdown — derived from currentScore (each subscore
   // normalised to /100 so the bars are comparable on the card).
   const formBreakdown = useMemo(() => {
@@ -299,18 +124,8 @@ export default function HomeScreen() {
     ];
   }, [currentScore, t]);
 
-  const scrollX = useSharedValue(0);
-  const visibleWidth = Math.min(screenWidth, contentMaxWidth);
-  const cardWidth = visibleWidth * 0.70;
-  const cardSpacing = (visibleWidth - cardWidth) / 2;
-  const snapInterval = cardWidth + spacing.lg;
-  const cardHeight = Math.min(screenHeight - insets.top - insets.bottom - 200, 480);
-
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (event) => {
-      scrollX.value = event.contentOffset.x;
-    },
-  });
+  // Note : scrollX / cardWidth / cardHeight / snapInterval / scrollHandler
+  // ont été retirés avec le carrousel 3D (cf commentaire plus haut).
 
   useEffect(() => {
     if (profile && tutorialStep === 0) {
@@ -350,7 +165,9 @@ export default function HomeScreen() {
   else if (hour < 18) greeting = t('greetingAfternoon');
   else greeting = t('greetingEvening');
 
-  const firstName = profile.name.split(' ')[0];
+  // Null safety : profile.name peut être '' (DB null) ou undefined (store
+  // re-hydraté avec un ancien shape) → split() crash sur undefined.
+  const firstName = profile.name?.split(' ')[0] || 'Champion';
 
   return (
     <View style={[styles.wrapper, { paddingTop: insets.top + spacing.xl }]}>
@@ -371,65 +188,104 @@ export default function HomeScreen() {
           <StreakBadge streak={currentStreak} isActive={isTodayValidated} size="sm" />
         </View>
 
-        {/* Stack centrée — tout le contenu redesign */}
+        {/* Stack centrée — Home restructuré mai 2026.
+            Ordre fixé par produit :
+              1. CTA Premium (non-premium uniquement)
+              2. 3 GROS tiles : Nutrition / Entraînement / Coach IA
+              3. Score FORGA (WeeklyFormCard)
+              4. Mini stats macros (en plus petit)
+            Retiré : MorningRitual (déplacé en popup pré-workout),
+                     CoachFocusCard (remplacé par la grosse tuile Coach),
+                     QuickAccessRow (remplacé par BigTileCard ×3). */}
         <View style={{ maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%', paddingHorizontal: spacing.lg, marginTop: spacing.lg, gap: spacing.md }}>
-          {/* Morning Ritual — check-in métal qui adapte le plan du jour */}
-          <MorningRitual />
-
           {/* Premium upgrade CTA — visible only for non-premium users */}
           {!isPremium && (
             <PremiumUpgradeCard onPress={() => router.push('/paywall')} />
           )}
 
-          {/* Indice de forme hebdo */}
+          {/* GROS TILE 1 — Nutrition / Plan du jour
+              Couleur d'accent : ORANGE (= primary FORGA) pour la
+              nutrition qui est la mission #1 de l'app. */}
+          {/* Image : plat type meal-prep — URL stable Unsplash. */}
+          <BigTileCard
+            eyebrow={t('tileNutritionEyebrow')}
+            title={t('tileNutritionTitle')}
+            subtitle={t('tileNutritionSubtitle', {
+              consumed: Math.round(consumed.calories),
+              target: Math.round(targets.calories),
+            })}
+            imageUri="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=1200&q=80"
+            accent
+            progress={nutritionProgress}
+            onPress={() => router.push('/nutrition')}
+          />
+
+          {/* GROS TILE 2 — Entraînement / Séance du jour
+              Couleur d'accent : BLEU — couleur "fitness/sport" classique,
+              code couleur distinct de la nutrition orange. */}
+          {hasActivePlan && todayProgramDay ? (
+            <BigTileCard
+              eyebrow={t('tileSeanceEyebrow')}
+              title={`${t(todayProgramDay.nameKey as any)} · ${todayProgramDay.exercises.length * 12} ${t('tileSeanceMin')}`}
+              subtitle={todayProgramDay.muscleGroups.map((g) => t(`muscle_${g}` as any)).join(' & ')}
+              imageUri={
+                profile?.sex === 'female'
+                  ? 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1200&q=80'
+                  : 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=1200&q=80'
+              }
+              accentColor="#4A9EFF"
+              progress={seanceProgress}
+              onPress={() => router.push('/(tabs)/training')}
+            />
+          ) : (
+            <BigTileCard
+              eyebrow={t('tileSeanceEyebrow')}
+              title={t('tileSeanceRestTitle')}
+              subtitle={hasActivePlan ? t('tileSeanceRestSubNoToday') : t('tileSeanceRestSubNoPlan')}
+              imageUri={
+                profile?.sex === 'female'
+                  ? 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1200&q=80'
+                  : 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=1200&q=80'
+              }
+              accentColor="#4A9EFF"
+              onPress={() => router.push('/(tabs)/training')}
+            />
+          )}
+
+          {/* GROS TILE 3 — Coach IA
+              Couleur d'accent : VERT — couleur "intelligence/conversation"
+              (rappel des thumbs success dans le coach), bien distinct
+              des 2 autres tuiles. */}
+          <BigTileCard
+            eyebrow={t('homeCoachEyebrow' as any)}
+            title={t('homeCoachTitle' as any)}
+            subtitle={t('homeCoachSubtitle' as any)}
+            imageUri="https://images.unsplash.com/photo-1599058917212-d750089bc07e?w=1200&q=80"
+            accentColor="#00D4AA"
+            onPress={() => router.push('/(tabs)/coach')}
+          />
+
+          {/* Indice de forme hebdo — Score FORGA (conservé) */}
           <WeeklyFormCard
             score={Math.round(currentScore?.total ?? 0)}
             delta={Math.round(weeklyChange ?? 0)}
             breakdown={formBreakdown}
           />
 
-          {/* Coach focus — message dérivé des vraies macros consommées vs cibles */}
-          <CoachFocusCard
-            message={focusMsg.message}
-            highlight={focusMsg.highlight || undefined}
-            onPress={() => router.push('/(tabs)/coach')}
-          />
-
-          {/* Quick access — Nutrition + Séance, vraies données */}
-          <Text style={styles.sectionLabel}>{t('homeTodayLabel')}</Text>
-          <QuickAccessRow
-            tiles={[
-              {
-                eyebrow: t('tileNutritionEyebrow'),
-                title: t('tileNutritionTitle'),
-                subtitle: t('tileNutritionSubtitle', {
-                  consumed: Math.round(consumed.calories),
-                  target: Math.round(targets.calories),
-                }),
-                imageUri: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80',
-                accent: true,
-                progress: nutritionProgress,
-                onPress: () => router.push('/nutrition'),
-              },
-              hasActivePlan && todayProgramDay
-                ? {
-                    eyebrow: t('tileSeanceEyebrow'),
-                    title: `${t(todayProgramDay.nameKey as any)} · ${todayProgramDay.exercises.length * 12} ${t('tileSeanceMin')}`,
-                    subtitle: todayProgramDay.muscleGroups.map((g) => t(`muscle_${g}` as any)).join(' & '),
-                    imageUri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
-                    progress: seanceProgress,
-                    onPress: () => router.push('/(tabs)/training'),
-                  }
-                : {
-                    eyebrow: t('tileSeanceEyebrow'),
-                    title: t('tileSeanceRestTitle'),
-                    subtitle: hasActivePlan ? t('tileSeanceRestSubNoToday') : t('tileSeanceRestSubNoPlan'),
-                    imageUri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600&q=80',
-                    progress: 1, // rest day → ring complete, no action pending
-                    onPress: () => router.push('/(tabs)/training'),
-                  },
-            ]}
-          />
+          {/* Compteur de pas — affiché uniquement si l'user a opt-in
+              dans Settings ET que HealthKit a accordé la permission.
+              Sinon section masquée, pas de carte vide. */}
+          {stepData.isAvailable && (
+            <View style={{ marginTop: 16 }}>
+              <StepsCard
+                steps={stepData.todaySteps}
+                target={stepData.targetSteps}
+                progress={stepData.progress}
+                bonusKcal={stepData.bonusKcal}
+                onPress={() => router.push('/(tabs)/profile')}
+              />
+            </View>
+          )}
 
           {/* Mini stats — vraies données du jour */}
           <MiniStatsGrid
@@ -470,25 +326,26 @@ export default function HomeScreen() {
       {/* Tutorial overlay */}
       <TutorialOverlay step={tutorialStep} />
 
-      {/* First-time coaching tooltips — fire one after the other on first home visit */}
-      <CoachingTooltip
-        id="home-morning-ritual-v1"
-        title={t('tooltipMorningRitualTitle')}
-        body={t('tooltipMorningRitualBody')}
-        delayMs={900}
-      />
-      <CoachingTooltip
-        id="home-coach-focus-v1"
-        title={t('tooltipCoachFocusTitle')}
-        body={t('tooltipCoachFocusBody')}
-        delayMs={5000}
-      />
+      {/* Tooltip Morning Ritual retiré : la feature a été déplacée dans
+          le popup pré-séance (mai 2026). L'ancien body i18n parlait de
+          "Touche un métal pour préciser ton état" — il n'y a plus de
+          métaux sur Home. */}
 
       {/* Weight prompt modal */}
       <WeightPromptModal
         visible={showWeightModal}
         daysSinceLastWeighIn={daysSinceLastWeighIn}
         onClose={() => setShowWeightModal(false)}
+      />
+
+      {/* Referral prompt — rappel périodique aux Free users qu'ils
+          gagnent 1 sem Premium par filleul. Modal géré par le hook
+          useReferralPrompt qui décide quand l'afficher. */}
+      <ReferralPromptModal
+        visible={referralPrompt.shouldShow}
+        referralCode={referralPrompt.referralCode}
+        referralCount={referralPrompt.referralCount}
+        onDismiss={referralPrompt.dismiss}
       />
     </View>
   );

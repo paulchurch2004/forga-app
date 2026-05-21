@@ -92,6 +92,14 @@ export const fr = {
   validateMeal: 'Valider ce repas',
   seeAnother: 'Voir un autre',
   addCustomMeal: 'Repas personnalise',
+  editCustomMeal: 'Modifier le repas',
+  saveCustomMealChanges: 'Enregistrer les modifications',
+  stepsCounterLabel: 'Compteur de pas (Apple Health)',
+  stepsCounterEnabled: 'Active',
+  stepsCounterDisabled: 'Desactive',
+  stepsCounterUnavailable: "Apple Health n'est pas disponible sur ce device. Cette fonctionnalité nécessite un iPhone avec l'app Santé installée.",
+  stepsCounterPermissionDenied: "FORGA n'a pas l'autorisation de lire tes pas. Ouvre Réglages > Confidentialité > Santé > FORGA et active 'Pas'.",
+  openSettings: 'Ouvrir Réglages',
   preparationTime: 'Preparation',
   minutes: 'min',
   difficulty: 'Difficulte',
@@ -286,7 +294,7 @@ export const fr = {
   demoPremiumActivated: 'Premium active en mode demo !',
   restoreSuccess: 'Ton abonnement a ete restaure.',
   noActiveSubscription: 'Aucun abonnement actif trouve.',
-  contactSupport: 'Contacte le support a support@forga.fr pour restaurer ton abonnement web.',
+  contactSupport: 'Contacte le support a support.forga@gmail.com pour restaurer ton abonnement web.',
 
   // Auth
   welcome: 'Bienvenue',
@@ -433,6 +441,37 @@ export const fr = {
   continueWithApple: 'Continuer avec Apple',
   continueWithGoogle: 'Continuer avec Google',
   noThanks: 'Non merci',
+  // Consent (signup — required for App Store 5.1.1 & RGPD)
+  consentPrefix: "J'accepte les",
+  consentTerms: "CGU",
+  consentAnd: "et la",
+  consentPrivacy: "Politique de confidentialité",
+  consentRequired: "Tu dois accepter les CGU et la politique de confidentialité pour créer un compte.",
+  socialEmailInUse: "Cet email est déjà associé à un compte avec mot de passe. Connecte-toi par email d'abord, puis lie ton compte social depuis Profil.",
+
+  // Cycling onboarding (step 5b)
+  cyclingTitle: "Trajets à vélo ?",
+  cyclingSubtitle: "On calibre tes calories selon tes vrais déplacements quotidiens.",
+  cyclingYes: "Oui, je pédale",
+  cyclingNo: "Non, pas mon truc",
+  cyclingHomeLabel: "Adresse de départ",
+  cyclingHomePlaceholder: "12 rue de Belleville, Paris",
+  cyclingDestLabel: "Adresse de destination (boulot, fac…)",
+  cyclingDestPlaceholder: "50 rue de Rivoli, Paris",
+  cyclingComputeBtn: "Calculer la distance",
+  cyclingRecomputeBtn: "Recalculer",
+  cyclingErrCoords: "Impossible de calculer le trajet vélo entre ces deux points.",
+  cyclingErrAddress: "Impossible de calculer la distance. Vérifie les adresses ou ta connexion.",
+  cyclingErrNetwork: "Erreur réseau. Réessaie dans un instant.",
+  cyclingManualToggle: "Pas de connexion ? Saisir la distance manuellement",
+  cyclingManualLabel: "Distance aller simple (km)",
+  cyclingManualPlaceholder: "Ex: 4.5",
+  cyclingDistanceLabel: "DISTANCE TROUVÉE",
+  cyclingDistanceUnit: " · aller simple",
+  cyclingDaysQuestion: "Combien de jours par semaine ?",
+  cyclingDaysAria: "{n} jours par semaine",
+  cyclingKcalBadgeTitle: "+{kcal} kcal/jour",
+  cyclingKcalBadgeSubtitle: "ajoutés à ta cible moyenne (réparti sur 7 jours)",
 
   // Onboarding (additional)
   onboardingStep1Title: 'On commence.',
@@ -454,10 +493,10 @@ export const fr = {
   betweenRange: 'Entre {min} et {max} {unit}.',
   onboardingStep3Title: 'Quel est ton objectif ?',
   onboardingStep3Subtitle: 'Choisis celui qui te correspond. On adapte tout en fonction.',
-  objectiveBulkDesc: 'Construire du muscle',
-  objectiveCutDesc: 'Perdre du gras, garder le muscle',
-  objectiveMaintainDesc: 'Rester ou tu es',
-  objectiveRecompDesc: 'Perdre du gras + gagner du muscle',
+  objectiveBulkDesc: 'Construire du muscle et de la force. Surplus calorique controle, charges progressives. Pour les phases de croissance.',
+  objectiveCutDesc: 'Perdre la graisse tout en preservant le muscle. Deficit calorique mesure, proteines elevees. Pour redevenir sec.',
+  objectiveMaintainDesc: 'Stabiliser ton poids et ton physique actuel. Calories de maintenance, equilibre macro. Pour consolider tes acquis.',
+  objectiveRecompDesc: 'Perdre la graisse et gagner du muscle en meme temps. Strategie precise, exigeante mais payante. Pour transformer ta silhouette.',
   onboardingStep4Title: 'Ton objectif chiffre.',
   onboardingStep4Subtitle: 'Ou tu veux aller, et en combien de temps.',
   onboardingStep4SubtitleNoTarget: 'Tes macros seront calibrees sur ton poids actuel.',
@@ -1478,6 +1517,10 @@ export const fr = {
   profileWeightLabel: 'POIDS',
   profileWeightUnit: 'kg',
   profileCycleLabel: 'Jour {streak} · Cycle consolidation',
+  profileChangePhoto: 'Modifier la photo',
+  profileTakePhoto: 'Prendre une photo',
+  profilePickFromLibrary: 'Choisir dans la galerie',
+  profileRemovePhoto: 'Retirer la photo actuelle',
   profileLast30DaysLabel: '30 DERNIERS JOURS',
   profilePrsLabel: 'PRs FORGES · CE CYCLE',
   profileWeeklyReportEyebrow: 'RAPPORT HEBDO · SEM. EN COURS',
@@ -1566,14 +1609,20 @@ export const fr = {
   archetypeForgeCta: 'FORGER MON PLAN  →',
   archetypeBadge: 'ARCHETYPE',
   archetypeWarriorName: 'Guerrier',
+  archetypeWarriorNameF: 'Athlete',
   archetypeWarriorTagline: 'Force pure. Discipline.',
   archetypeWarriorDesc: "Tu veux etre plus fort, plus dense, plus imposant. La charge, c'est ta medecine. Tu viens chercher la performance brute.",
+  archetypeWarriorDescF: 'Tu veux gagner en force et en tonicite, te sentir puissante et structuree. La charge devient ton outil. Performance et confiance corporelle.',
   archetypeCraftsmanName: 'Artisan',
+  archetypeCraftsmanNameF: 'Sculpteuse',
   archetypeCraftsmanTagline: 'Precision. Progression.',
   archetypeCraftsmanDesc: 'Tu veux sculpter ta forme, affiner, equilibrer. Le travail est methodique, la patience ta force. Chaque seance est un coup de ciseau.',
+  archetypeCraftsmanDescF: 'Tu veux affiner ta silhouette, te recomposer en douceur, gagner en grace et en proportion. Methodique et patiente. Chaque seance compte.',
   archetypeExplorerName: 'Explorateur',
+  archetypeExplorerNameF: 'Aventuriere',
   archetypeExplorerTagline: 'Endurance. Liberte.',
   archetypeExplorerDesc: 'Tu veux te sentir bien, bouger longtemps, voyager leger. Performance sans obsession, forme durable. Le corps comme outil.',
+  archetypeExplorerDescF: 'Tu veux te sentir bien, bouger longtemps, voyager legere. Vitalite et forme durable, sans contrainte. Le corps comme allie au quotidien.',
   archetypeWarriorTrait1: 'Prise de masse',
   archetypeWarriorTrait2: 'Force 1RM',
   archetypeWarriorTrait3: 'Entrainement intense',
@@ -1734,6 +1783,85 @@ export const fr = {
   trackingModeNutritionOnlyDesc: 'Je suis deja mes entrainements ailleurs. Le score ne penalise pas l\'absence de seances tracees ici.',
   trackingModeTrainingOnly: 'Entrainement uniquement',
   trackingModeTrainingOnlyDesc: 'Je ne veux pas tracker mes repas. Le score est calcule uniquement sur mes seances et ma progression.',
+
+  // Groupes musculaires — utilisés dans la tuile "Séance du jour" et le
+  // sélecteur de programme. Avant on affichait `muscle_chest` brut car
+  // les clés n'existaient pas dans le i18n → user qui ne lit pas
+  // l'anglais ne comprenait rien.
+  muscle_chest: 'Pectoraux',
+  muscle_back: 'Dos',
+  muscle_shoulders: 'Épaules',
+  muscle_arms: 'Bras',
+  muscle_legs: 'Jambes',
+  muscle_core: 'Abdos',
+  muscle_cardio: 'Cardio',
+
+  // CTA "repas perso" sur l'écran meals (n'étaient pas traduits, on
+  // voyait du FR brut dans une UI EN).
+  customMealCtaTitle: "Tu ne trouves pas ton plat ?",
+  customMealCtaSub: 'Logger un repas perso (nom + macros)',
+  logCustomMeal: 'Logger un repas perso',
+  // Action sur la card "séance du jour" (Alert.alert hardcodée en FR).
+  duplicateWorkoutTitle: 'Dupliquer la séance ?',
+  duplicateWorkoutMsg: 'On la copie sur un autre jour. Choisis lequel.',
+  // Coach action card buttons (étaient en FR brut sur app EN).
+  coachActionCancel: 'Annuler',
+  coachActionExamine: 'Examiner',
+  coachActionConfirm: 'Confirmer',
+  coachActionDismissed: 'Proposition ignorée',
+
+  // Tab "Offres" — marques partenaires (Gymshark, Nutripure, etc.)
+  // Tile Coach IA sur Home (mai 2026 — Coach est plus dans la tab bar)
+  homeCoachEyebrow: 'COACH IA',
+  homeCoachTitle: 'Discute avec ton coach',
+  homeCoachSubtitle: 'Pose une question, ajuste ton plan, raconte ta séance.',
+
+  // Pop-up de check-in avant séance (remplace Morning Ritual du Home)
+  preWorkoutCheckInTitle: 'Comment tu te sens ?',
+  preWorkoutCheckInSubtitle: 'On adapte la séance à ton état du moment.',
+  preWorkoutCheckInImpactLabel: 'Impact sur ta séance',
+  preWorkoutCheckInStart: 'Commencer la séance',
+  preWorkoutCheckInSkip: 'Passer cette étape',
+
+  // Popup parrainage (rappel périodique aux Free users)
+  // CTA raccourci vers le coach IA sur la page nutrition (remplace
+  // l'ancien "logger goûter" qui forçait à passer par le catalogue).
+  mealCoachShortcutTitle: 'Écris au coach ce que tu as mangé',
+  mealCoachShortcutHint: 'Plus rapide qu\'un picker — décris ton repas en 1 phrase, le coach le logge',
+
+  // CTA Calibration de force depuis le tab Entraînement
+  calibrationCtaTitle: 'Calibre ta force',
+  calibrationCtaSub: '3 questions pour qu\'on te propose les bonnes charges sur chaque exo',
+  calibrationCtaRedo: 'Refaire le test de calibration',
+
+  referralPromptTitle: '1 semaine Premium offerte',
+  referralPromptTagline: 'Pour chaque ami qui télécharge FORGA et crée un compte avec ton code, on te crédite +7 jours d\'abonnement Pro.',
+  referralPromptCount: '{count} filleul(s) déjà parrainé(s)',
+  referralPromptYourCode: 'Ton code',
+  referralPromptShareCta: 'Partager mon code',
+  referralPromptLater: 'Plus tard',
+  referralShareTitle: 'FORGA — Coach nutrition & sport',
+  referralShareMessage: 'Je te file mon code FORGA pour ton coach perso (et toi tu me files 1 semaine d\'abo Pro 😉) : {code}\n\nTélécharge l\'app ici : https://forga.fr',
+
+  tabOffers: 'Offres',
+  offersTitle: 'Offres partenaires',
+  offersSubtitle: 'Réductions exclusives sur les marques que tu aimes',
+  offersEmptyTitle: 'Aucune offre disponible',
+  offersEmptySubtitle: 'De nouveaux partenaires arrivent bientôt.',
+  offersPremiumLockTitle: 'Code réservé aux abonnés Pro',
+  offersPremiumLockBody: 'Débloque tous les codes promo de nos partenaires et économise sur ton équipement, tes compléments, et tes vêtements.',
+  offersUnlockCta: 'Passer en Pro',
+  offersCopyCode: 'Copier le code',
+  offersCodeCopied: 'Code copié !',
+  offersVisitSite: 'Profiter de l\'offre',
+  offersPublicCode: 'Code public',
+  offersProCode: 'Code Pro',
+  offersExpiresOn: 'Expire le {date}',
+  offerCategory_apparel: 'Vêtements',
+  offerCategory_supplements: 'Compléments',
+  offerCategory_equipment: 'Équipement',
+  offerCategory_food: 'Alimentation',
+  offerCategory_other: 'Autres',
 } as const;
 
 export type TranslationKey = keyof typeof fr;

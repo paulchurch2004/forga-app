@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, Pressable, StyleSheet, Alert, Platform } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fonts } from '../../theme/fonts';
 import {
   describeAction,
   executeCoachAction,
+  resolveLogMealMacros,
   DESTRUCTIVE_ACTIONS,
   type CoachAction,
 } from '../../services/coachActions';
@@ -36,12 +37,48 @@ export function ActionProposalCard({ action, initialState = 'pending', onStateCh
   // user override the slot before validating; the override is stored
   // locally and applied at execute time.
   const [slotOverride, setSlotOverride] = useState<MealSlot | null>(null);
+
+  // For log_meal actions, we re-resolve the macros from the structured
+  // `items` array via the local DB + Open Food Facts. The LLM's
+  // estimated macros are kept as a fallback if resolution fails.
+  // While resolving, we show the original (estimated) values to avoid a
+  // visible flicker on the card. Once resolution lands we swap in the
+  // accurate numbers and clear the ⚠ badge if applicable.
+  const [resolvedAction, setResolvedAction] = useState<CoachAction>(action);
+  useEffect(() => {
+    let cancelled = false;
+    if (action.type !== 'log_meal') return;
+    if (!action.items || action.items.length === 0) {
+      // No structured items → action is fully estimated. Tag it so the
+      // ⚠ badge surfaces immediately.
+      setResolvedAction({ ...action, macroSource: 'estimated' });
+      return;
+    }
+    void resolveLogMealMacros(action).then((updated) => {
+      if (!cancelled) setResolvedAction(updated);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [action]);
+
+  const baseAction: CoachAction =
+    resolvedAction.type === 'log_meal' ? resolvedAction : action;
   const effectiveAction: CoachAction =
-    action.type === 'log_meal' && slotOverride
-      ? { ...action, slot: slotOverride }
-      : action;
+    baseAction.type === 'log_meal' && slotOverride
+      ? { ...baseAction, slot: slotOverride }
+      : baseAction;
   const meta = describeAction(effectiveAction);
   const isDestructive = DESTRUCTIVE_ACTIONS.includes(action.type);
+
+  /** True when the displayed macros are an LLM guess (no items resolved
+   *  to a DB hit). Drives the ⚠ "Estimation IA" pill below the subtitle. */
+  const isEstimated =
+    effectiveAction.type === 'log_meal' &&
+    effectiveAction.macroSource === 'estimated';
+  const isPartial =
+    effectiveAction.type === 'log_meal' &&
+    effectiveAction.macroSource === 'mixed';
 
   const handleConfirmFirst = () => {
     if (isDestructive) {
@@ -100,6 +137,17 @@ export function ActionProposalCard({ action, initialState = 'pending', onStateCh
       <Text style={styles.tag}>{meta.tag.toUpperCase()}</Text>
       <Text style={styles.title}>{meta.title}</Text>
       <Text style={styles.subtitle}>{meta.subtitle}</Text>
+
+      {/* Estimation badge: visible quand l'IA n'a pas pu identifier les
+          ingrédients dans la DB (ou Open Food Facts). Les macros affichées
+          sont alors une estimation, pas une mesure. */}
+      {(isEstimated || isPartial) && (
+        <View style={[styles.estimatedPill, isPartial && styles.estimatedPillMixed]}>
+          <Text style={styles.estimatedPillText}>
+            {isPartial ? '~ Partiellement estimé' : '⚠ Estimation IA'}
+          </Text>
+        </View>
+      )}
 
       {/* Editable slot chip — only for log_meal actions, only while
           pending. The coach's slot guess is often right but occasionally
@@ -239,6 +287,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'rgba(255,107,53,0.35)',
     borderRadius: 999,
+  },
+  estimatedPill: {
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    paddingVertical: 3,
+    paddingHorizontal: 8,
+    backgroundColor: 'rgba(255,201,77,0.12)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,201,77,0.40)',
+    borderRadius: 999,
+  },
+  estimatedPillMixed: {
+    backgroundColor: 'rgba(95,180,255,0.10)',
+    borderColor: 'rgba(95,180,255,0.35)',
+  },
+  estimatedPillText: {
+    fontFamily: fonts.body,
+    fontSize: 9,
+    fontWeight: '700',
+    color: '#FFC94D',
+    letterSpacing: 0.5,
   },
   slotEditPillText: {
     fontFamily: fonts.body,

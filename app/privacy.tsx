@@ -117,7 +117,7 @@ export default function PrivacyScreen() {
           - Droit de retrait du consentement : a tout moment{'\n\n'}
           Ces droits sont exercables directement dans l'application (Profil →
           Exporter mes donnees, Supprimer mon compte) ou par e-mail a
-          privacy@forga.fr.
+          support.forga@gmail.com.
         </Section>
 
         <Section title="8. Conservation des donnees">
@@ -149,7 +149,7 @@ export default function PrivacyScreen() {
 
         <Section title="12. Contact">
           Pour toute question relative a vos donnees personnelles :{'\n\n'}
-          E-mail : hello@forga.fr{'\n'}
+          E-mail : support.forga@gmail.com{'\n'}
           Adresse : Paul Church, 2 allee Armand Praviel, 33000 Bordeaux, France
           {'\n\n'}
           Vous pouvez egalement introduire une reclamation aupres de la CNIL

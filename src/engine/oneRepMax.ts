@@ -109,15 +109,27 @@ export interface NextWeightSuggestion {
 /**
  * Suggest weight for the next session based on the last session(s).
  *
- * - All target reps hit → +increment (2.5 kg compound, 1 kg isolation).
- * - Hit some, missed some → keep same weight.
- * - Missed all → after 2 consecutive sub-target sessions, propose -10% deload.
- * - No history → returns 0 weight, leaves it to user input.
+ * Aligné sur TRAINING_PROGRAMS_SPEC.md §A.3 :
+ *   - Débutant : surcharge linéaire à chaque séance si toutes les reps
+ *     prescrites sont validées → **+2.5 kg compounds bas du corps**,
+ *     **+1.25 kg compounds haut du corps**.
+ *   - Intermédiaire+ : double progression (augmenter reps puis charge).
+ *     Concrètement même règle : on monte la charge quand tous les sets
+ *     atteignent la cible (la "borne haute" de la fourchette implicite).
+ *
+ * Et §A.6 (signaux deload) :
+ *   - Régression de force/reps 2 séances consécutives → deload -10 %.
+ *
+ * @param isLowerBody true pour squat/deadlift/leg press/etc. (compound
+ *                    qui sollicite jambes/dos = +2.5 kg). false pour
+ *                    bench/OHP/row (compound haut du corps = +1.25 kg).
+ *                    Ignoré si isCompound=false (isolation +1 kg).
  */
 export function suggestNextWeight(
   history: SessionRecord[],
   isCompound: boolean,
   targetReps: number,
+  isLowerBody: boolean = false,
 ): NextWeightSuggestion {
   if (!Array.isArray(history) || history.length === 0) {
     return {
@@ -142,15 +154,28 @@ export function suggestNextWeight(
     };
   }
 
+  // Règle stricte "all reps hit" — conforme TRAINING_PROGRAMS_SPEC.md §A.3.
+  // Pour monter la charge il faut TOUS les sets à la cible, pas une moyenne.
+  // C'est la double progression : tant que l'user n'a pas atteint la borne
+  // haute de la fourchette, il reste à la même charge et vise plus de reps.
+  // Quand tous les sets valident → +charge la séance suivante.
   const allRepsHit = last.sets.every((s) => (s?.reps ?? 0) >= targetReps);
   const allRepsMissed = last.sets.every((s) => (s?.reps ?? 0) < targetReps);
-  const increment = isCompound ? 2.5 : 1;
+
+  // Increment différencié conformément à la spec :
+  //   - Compound bas du corps (squat, DL, leg press, hip thrust) : +2.5 kg
+  //   - Compound haut du corps (bench, OHP, row, pull-up) : +1.25 kg
+  //   - Isolation (curl, lateral raise, extension) : +1 kg (intermédiaire
+  //     entre haltère 1 kg et plaque 2.5 kg ; rounding gère le snap final)
+  const increment = isCompound
+    ? (isLowerBody ? 2.5 : 1.25)
+    : 1;
 
   if (allRepsHit) {
     return {
       weight: roundToPlate(lastTop.weight + increment),
       changeKg: increment,
-      reason: `+${increment} kg : tu as tout validé la dernière fois.`,
+      reason: `+${increment} kg : tu as validé toutes les reps la dernière fois.`,
       deloadSuggested: false,
     };
   }

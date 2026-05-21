@@ -16,6 +16,7 @@ import { fonts, fontSizes, spacing, makeStyles } from '../src/theme';
 import { useTheme } from '../src/context/ThemeContext';
 import { useUserStore } from '../src/store/userStore';
 import { runStrengthTest } from '../src/services/strengthTest';
+import { syncStrengthTest } from '../src/services/userSync';
 import type { StrengthTestAnswers } from '../src/types/strength';
 
 type Step = 'intro' | 'experience' | 'known_lifts' | 'pushups' | 'squats' | 'pullups' | 'result';
@@ -58,6 +59,13 @@ export default function CalibrationTestScreen() {
   const handleSave = () => {
     if (!result) return;
     setStrengthTest(result);
+    // Sync vers Supabase pour que la calibration survive logout/réinstall.
+    // Sans ce sync, l'user perd ses 5 charges de référence à chaque
+    // changement de device — et le système de suggestion de poids ne
+    // peut plus fonctionner.
+    if (profile?.id) {
+      syncStrengthTest(result, profile.id);
+    }
     Alert.alert(
       'Calibration enregistrée',
       'Tes charges initiales sont prêtes. Première séance, on ajustera en temps réel.',

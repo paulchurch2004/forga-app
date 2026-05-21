@@ -1,4 +1,4 @@
-import type { Objective, ActivityLevel, Sex } from '../types/user';
+import type { Objective, ActivityLevel, Sex, MenopauseStatus } from '../types/user';
 import type {
   ProgramId,
   ProgramDay,
@@ -21,9 +21,29 @@ export function toLocalDateStr(d: Date = new Date()): string {
 // V3 — 16-program library selection
 // ============================================================================
 
+/**
+ * Map activity_level (lifestyle) → training Level (gym experience).
+ *
+ * Important : "activity_level" ne reflète PAS l'expérience en musculation
+ * mais le mode de vie global. Un mec "active" qui fait du sport collectif
+ * 3×/sem n'est PAS automatiquement un lifter intermédiaire/avancé.
+ *
+ * Avant ce fix, `active` mappait sur `advanced` → recommandation 5/3/1
+ * (programme force pure pour vrais avancés) à des users en réalité
+ * intermédiaires qui voulaient juste un PPL classique. Bug majeur.
+ *
+ * Nouvelle règle :
+ *   - sedentary / light  → beginner (full body, 3j/sem)
+ *   - moderate / active  → intermediate (PHUL, PPL, etc.)
+ *   - very_active        → advanced (5/3/1, programmes structurés)
+ *
+ * `very_active` reste mappé en advanced car ce profil est explicitement
+ * "athlète", mais reste accessible à l'user qui veut tester via le
+ * sélecteur de programmes.
+ */
 export function mapActivityToLevel(a: ActivityLevel): Level {
   if (a === 'sedentary' || a === 'light') return 'beginner';
-  if (a === 'moderate') return 'intermediate';
+  if (a === 'moderate' || a === 'active') return 'intermediate';
   return 'advanced';
 }
 
@@ -48,7 +68,8 @@ function defaultDaysPerWeek(activity: ActivityLevel): 3 | 4 | 5 | 6 {
 export function recommendProgram(
   sexOrActivity: Sex | ActivityLevel,
   activityOrObjective: ActivityLevel | Objective,
-  objective?: Objective
+  objective?: Objective,
+  menopauseStatus?: MenopauseStatus,
 ): ProgramId {
   const isLegacy = !objective;
   const sex: Sex = isLegacy ? 'male' : (sexOrActivity as Sex);
@@ -62,6 +83,19 @@ export function recommendProgram(
   const level = mapActivityToLevel(activityLevel);
   const days = defaultDaysPerWeek(activityLevel);
   const isFemale = sex === 'female';
+
+  // Ménopause : priorité absolue à la FORCE pour combattre la
+  // sarcopénie + l'ostéoporose post-baisse œstrogène. On envoie
+  // toujours sur un programme musculation structuré, jamais HIIT/cardio.
+  // Pour les utilisatrices novices, 4 séances upper/lower (charges modérées,
+  // mouvements composés). Pour les intermédiaires, PHUL qui mixe
+  // force pure (Power day) + hypertrophie (Hyper day) — la combinaison
+  // optimale pour densité osseuse + masse musculaire.
+  const isMenopausal = menopauseStatus === 'peri' || menopauseStatus === 'post';
+  if (isFemale && isMenopausal) {
+    if (level === 'beginner') return 'BULK_DEB_4D_UL';
+    return 'BULK_INT_4D_PHUL_F';
+  }
 
   // ─── BULK ──
   if (obj === 'bulk') {

@@ -17,6 +17,7 @@ import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { analyzeFoodPhoto, isVisionAvailable, type FoodAnalysisResult } from '../../src/services/foodVision';
+import { resolveIngredient } from '../../src/services/ingredientResolver';
 import { events } from '../../src/services/analytics';
 import { ScreenTopBar } from '../../src/components/ui/ScreenTopBar';
 
@@ -108,10 +109,43 @@ export default function PhotoScanScreen() {
       if (res.kind === 'ok') {
         setResult(res.data);
         setName(res.data.name);
-        setCalories(String(res.data.calories));
-        setProtein(String(res.data.protein));
-        setCarbs(String(res.data.carbs));
-        setFat(String(res.data.fat));
+        // Si GPT-4o a renvoyé une décomposition `items`, on résout chaque
+        // ingrédient contre la DB locale + Open Food Facts pour des macros
+        // exactes. Sinon on garde les estimations vision (moins précises).
+        let kcal = res.data.calories;
+        let p = res.data.protein;
+        let c = res.data.carbs;
+        let f = res.data.fat;
+        if (res.data.items && res.data.items.length > 0) {
+          const resolved = await Promise.all(
+            res.data.items.map((it) => resolveIngredient(it.name)),
+          );
+          let allResolved = true;
+          let sumKcal = 0, sumP = 0, sumC = 0, sumF = 0;
+          resolved.forEach((r, i) => {
+            const qty = res.data.items![i].quantityG;
+            if (r && (r.source === 'local' || r.source === 'open_food_facts')) {
+              const ratio = qty / 100;
+              sumKcal += r.ingredient.caloriesPer100g * ratio;
+              sumP += r.ingredient.proteinPer100g * ratio;
+              sumC += r.ingredient.carbsPer100g * ratio;
+              sumF += r.ingredient.fatPer100g * ratio;
+            } else {
+              allResolved = false;
+            }
+          });
+          // Tous les items matchés → on remplace par les vraies macros.
+          if (allResolved) {
+            kcal = Math.round(sumKcal);
+            p = Math.round(sumP);
+            c = Math.round(sumC);
+            f = Math.round(sumF);
+          }
+        }
+        setCalories(String(kcal));
+        setProtein(String(p));
+        setCarbs(String(c));
+        setFat(String(f));
         setStatus('result');
       } else if (res.kind === 'quota_exceeded') {
         events.quotaExceeded('food_scan');

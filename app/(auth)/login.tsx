@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   ScrollView,
   Image,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -155,6 +156,8 @@ export default function LoginScreen() {
     } catch (e) {
       if (e instanceof SocialAuthError && e.code === 'cancelled') {
         // silent
+      } else if (e instanceof SocialAuthError && e.code === 'email_in_use') {
+        showError(t('error'), t('socialEmailInUse' as any));
       } else {
         const message = e instanceof Error ? e.message : 'Apple Sign In failed.';
         showError(t('error'), message);
@@ -185,6 +188,8 @@ export default function LoginScreen() {
     } catch (e) {
       if (e instanceof SocialAuthError && e.code === 'cancelled') {
         // silent
+      } else if (e instanceof SocialAuthError && e.code === 'email_in_use') {
+        showError(t('error'), t('socialEmailInUse' as any));
       } else {
         const message = e instanceof Error ? e.message : 'Google Sign In failed.';
         showError(t('error'), message);
@@ -220,7 +225,13 @@ export default function LoginScreen() {
         />
       </Animated.View>
 
-      <View style={styles.flex}>
+      {/* KAV ajouté : sans, le clavier Android cachait le bouton "Sign in"
+          sur les petits devices (l'audit cross-platform a flag ça en P0). */}
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
         <ScrollView
           contentContainerStyle={[
             styles.scrollContent,
@@ -358,7 +369,7 @@ export default function LoginScreen() {
             </Pressable>
           </Animated.View>
         </ScrollView>
-      </View>
+      </KeyboardAvoidingView>
     </View>
   );
 }

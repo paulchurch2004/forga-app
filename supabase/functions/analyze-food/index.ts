@@ -16,10 +16,26 @@ function getCorsHeaders(req: Request) {
 }
 
 const SYSTEM_PROMPT = `Tu es un nutritionniste expert francais. Analyse cette photo d'aliment ou de plat.
+
 Reponds UNIQUEMENT avec un objet JSON valide, sans markdown, sans explication :
-{ "name": "nom du plat", "calories": nombre, "protein": nombre, "carbs": nombre, "fat": nombre }
-Les macros (calories en kcal, protein/carbs/fat en grammes) sont pour la portion visible sur la photo.
-Si tu ne peux pas identifier l'aliment, reponds : { "error": "non_identifie" }`;
+{
+  "name": "nom du plat",
+  "calories": nombre, "protein": nombre, "carbs": nombre, "fat": nombre,
+  "items": [
+    { "name": "nom de l'ingredient identifie", "quantityG": nombre }
+  ]
+}
+
+Regles :
+- name : court (2-5 mots), le nom du plat tel qu'on l'appelle en France
+- calories en kcal, protein/carbs/fat en grammes, pour la portion VISIBLE sur la photo
+- items : liste des ingredients identifies avec leur quantite estimee en grammes
+  - Decompose au maximum (ex : "burger" -> pain + steak + cheddar + salade + tomate + sauce)
+  - Pour les marques visibles (Coca, Big Mac, Snickers) : 1 item avec le nom de la marque
+  - quantityG = poids estime en grammes (1ml ~ 1g pour les liquides)
+- Si tu ne peux pas identifier l'aliment du tout : { "error": "non_identifie" }
+
+L'app dispose d'une base de ~1000 ingredients FR (CIQUAL/USDA + marques) et resout les items en macros exactes. Plus tu decompo es precisement, plus la macro finale est juste.`;
 
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -145,6 +161,22 @@ serve(async (req) => {
       );
     }
 
+    // Propage le tableau `items` si GPT-4o l'a renvoye — l'app le resoudra
+    // contre INGREDIENTS_ALL pour des macros precises.
+    let items: Array<{ name: string; quantityG: number }> | undefined;
+    if (Array.isArray(parsed.items)) {
+      items = parsed.items
+        .filter(
+          (it: any) =>
+            it && typeof it.name === 'string' && typeof it.quantityG === 'number',
+        )
+        .map((it: any) => ({
+          name: String(it.name).trim(),
+          quantityG: Math.max(0, Math.round(it.quantityG)),
+        }));
+      if (items && items.length === 0) items = undefined;
+    }
+
     return new Response(
       JSON.stringify({
         name: parsed.name || 'Aliment',
@@ -152,6 +184,7 @@ serve(async (req) => {
         protein: Math.round(parsed.protein || 0),
         carbs: Math.round(parsed.carbs || 0),
         fat: Math.round(parsed.fat || 0),
+        items,
         quota: quotaCheck,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },

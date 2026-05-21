@@ -39,7 +39,15 @@ export interface Exercise {
   nameKey: string; // i18n key
   muscleGroup: MuscleGroup;
   isCompound: boolean;
-  gifUrl?: string; // animated demo GIF URL
+  /** Démo animée — GIF court (3-5s) qui boucle. Affiché sur la card
+   *  d'exercice et dans le picker. Source principale : fitnessprogramer.com */
+  gifUrl?: string;
+  /** Vidéo tuto longue (1-3 min) sur YouTube — exécution technique
+   *  détaillée + erreurs communes. Cliquable depuis la card "Voir le
+   *  tuto vidéo" qui ouvre l'app YouTube ou le navigateur. Optionnel
+   *  car certains exos très simples (plank, side_plank) n'en ont pas
+   *  besoin. */
+  videoUrl?: string;
 }
 
 export interface Workout {

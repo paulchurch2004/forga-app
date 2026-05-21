@@ -266,12 +266,18 @@ export default function WeeklyReviewScreen() {
           ))}
         </View>
 
-        {/* Progress photo */}
+        {/* Progress photo — placeholder visuel adapté au sexe pour
+            que l'user puisse se projeter dans la transformation. */}
         <Text style={styles.sectionLabel}>{t('weeklyReviewPhotoLabel')}</Text>
         <View style={styles.photoRow}>
           <View style={styles.photo}>
             <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=70' }}
+              source={{
+                uri:
+                  profile?.sex === 'female'
+                    ? 'https://images.unsplash.com/photo-1518310383802-640c2de311b2?w=400&q=70'
+                    : 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&q=70',
+              }}
               style={StyleSheet.absoluteFill}
               contentFit="cover"
               cachePolicy="memory-disk"
@@ -280,7 +286,12 @@ export default function WeeklyReviewScreen() {
           </View>
           <View style={styles.photo}>
             <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=70' }}
+              source={{
+                uri:
+                  profile?.sex === 'female'
+                    ? 'https://images.unsplash.com/photo-1594381898411-846e7d193883?w=400&q=70'
+                    : 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=400&q=70',
+              }}
               style={StyleSheet.absoluteFill}
               contentFit="cover"
               cachePolicy="memory-disk"

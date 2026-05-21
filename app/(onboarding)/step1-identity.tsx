@@ -27,10 +27,10 @@ import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
 import { fonts, fontSizes, fontWeights } from '../../src/theme/fonts';
 import { spacing, borderRadius, MAX_CONTENT_WIDTH } from '../../src/theme/spacing';
-import type { Sex } from '../../src/types/user';
+import type { Sex, MenopauseStatus } from '../../src/types/user';
 
 const STEP = 1;
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 export default function Step1Identity() {
   useTrackOnboardingStep(1);
@@ -46,10 +46,20 @@ export default function Step1Identity() {
   const [age, setAge] = useState<string>(
     onboardingData.age ? String(onboardingData.age) : ''
   );
+  // Statut ménopausique — uniquement demandé aux femmes 40+.
+  // Modifier les besoins physiologiques (TDEE, prot, programme).
+  const [menopauseStatus, setMenopauseStatus] = useState<MenopauseStatus | undefined>(
+    onboardingData.menopauseStatus,
+  );
 
   const parsedAge = parseInt(age, 10);
   const isAgeValid = !isNaN(parsedAge) && parsedAge >= 16 && parsedAge <= 65;
-  const canContinue = sex !== undefined && isAgeValid;
+  const showMenopauseQuestion = sex === 'female' && isAgeValid && parsedAge >= 40;
+  // Bloque "Continuer" tant que l'user n'a pas répondu à la question
+  // ménopause si elle est concernée. `none` est une réponse valide
+  // (signifie "pas concernée par les symptômes").
+  const canContinue = sex !== undefined && isAgeValid &&
+    (!showMenopauseQuestion || menopauseStatus !== undefined);
 
   const handleSexSelect = (value: Sex) => {
     triggerHaptic('medium');
@@ -59,7 +69,13 @@ export default function Step1Identity() {
   const handleNext = () => {
     if (!canContinue) return;
     triggerHaptic('light');
-    setOnboardingData({ sex, age: parsedAge });
+    setOnboardingData({
+      sex,
+      age: parsedAge,
+      // On stocke menopauseStatus uniquement si la question a été posée.
+      // Sinon undefined — pas applicable.
+      menopauseStatus: showMenopauseQuestion ? menopauseStatus : undefined,
+    });
     router.push('/(onboarding)/step2-body');
   };
 
@@ -107,7 +123,12 @@ export default function Step1Identity() {
               accessibilityLabel={t('male')}
               accessibilityState={{ selected: sex === 'male' }}
             >
-              <Text style={styles.sexEmoji}>{'\u{1F4AA}'}</Text>
+              {/* Symbole de Mars (♂) — universellement reconnu, neutre, et
+                  surtout DIFFÉRENT de la femme (avant les deux montraient
+                  un biceps 💪 → confusion totale UX). */}
+              <Text style={[styles.sexEmoji, sex === 'male' && styles.sexEmojiSelected]}>
+                {'♂'}
+              </Text>
               <Text
                 style={[
                   styles.sexLabel,
@@ -128,7 +149,10 @@ export default function Step1Identity() {
               accessibilityLabel={t('female')}
               accessibilityState={{ selected: sex === 'female' }}
             >
-              <Text style={styles.sexEmoji}>{'\u{1F4AA}'}</Text>
+              {/* Symbole de Vénus (♀) — pendant du Mars ci-dessus. */}
+              <Text style={[styles.sexEmoji, sex === 'female' && styles.sexEmojiSelected]}>
+                {'♀'}
+              </Text>
               <Text
                 style={[
                   styles.sexLabel,
@@ -163,6 +187,50 @@ export default function Step1Identity() {
             <Text style={styles.errorText}>
               {t('ageError')}
             </Text>
+          )}
+
+          {/* Question ménopause — conditionnelle (femmes 40+).
+              Importante car la physiologie change significativement :
+              TDEE réduit, protéines majorées, programmes priorisant
+              la force pour anti-sarcopénie et anti-ostéoporose.
+              Ton respectueux et factuel, non-stigmatisant. */}
+          {showMenopauseQuestion && (
+            <View style={styles.menopauseBlock}>
+              <Text style={styles.sectionLabel}>Ménopause</Text>
+              <Text style={styles.menopauseSubtitle}>
+                On adapte tes besoins (protéines, force, récup) en fonction.
+              </Text>
+              <View style={styles.menopauseOptions}>
+                {([
+                  { value: 'none', label: 'Pas concernée' },
+                  { value: 'peri', label: 'Périménopause' },
+                  { value: 'post', label: 'Ménopause' },
+                ] as const).map((opt) => {
+                  const active = menopauseStatus === opt.value;
+                  return (
+                    <Pressable
+                      key={opt.value}
+                      onPress={() => {
+                        triggerHaptic('medium');
+                        setMenopauseStatus(opt.value);
+                      }}
+                      style={[styles.menopauseBtn, active && styles.menopauseBtnActive]}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active }}
+                    >
+                      <Text
+                        style={[
+                          styles.menopauseLabel,
+                          active && styles.menopauseLabelActive,
+                        ]}
+                      >
+                        {opt.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
           )}
 
           {/* Health disclaimer — required for App Store Health & Fitness category */}
@@ -279,6 +347,18 @@ const useStyles = makeStyles((colors) => ({
   },
   sexEmoji: {
     fontSize: 48,
+    // Force la couleur du texte sinon les glyphes Mars/Vénus sont
+    // rendus en noir → invisibles sur fond sombre. `colors.text` =
+    // blanc en dark mode, noir en light mode.
+    color: colors.text,
+    // Léger fontWeight pour que le symbole soit plus épais et plus
+    // visible (sinon le glyph fin se fond avec le fond).
+    fontWeight: '600',
+  },
+  /** Quand la card est sélectionnée, le symbole passe en orange pour
+   *  matcher la border + le label en orange. Feedback visuel cohérent. */
+  sexEmojiSelected: {
+    color: colors.primary,
   },
   sexLabel: {
     fontFamily: fonts.display,
@@ -319,6 +399,47 @@ const useStyles = makeStyles((colors) => ({
     fontSize: fontSizes.sm,
     color: colors.error,
     marginTop: spacing.sm,
+  },
+  /** Bloc ménopause — affiché uniquement femme 40+. Container léger
+   *  pour ne pas alourdir l'écran, espacé après l'âge. */
+  menopauseBlock: {
+    marginTop: spacing.xl,
+  },
+  menopauseSubtitle: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.textSecondary,
+    marginTop: -spacing.sm,
+    marginBottom: spacing.md,
+  },
+  menopauseOptions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  menopauseBtn: {
+    flex: 1,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    alignItems: 'center',
+  },
+  menopauseBtnActive: {
+    borderColor: colors.primary,
+    backgroundColor: 'rgba(255,107,53,0.10)',
+  },
+  menopauseLabel: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  menopauseLabelActive: {
+    color: colors.primary,
+    fontWeight: '700',
   },
   disclaimerCard: {
     backgroundColor: 'rgba(255,255,255,0.04)',

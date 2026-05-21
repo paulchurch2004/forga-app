@@ -131,7 +131,17 @@ export const EXERCISE_TUTORIALS: Record<string, ExerciseTutorial> = {
   },
 };
 
-/** Check if an exercise has tutorial data available */
+/** Check if an exercise has tutorial data available.
+ *  Vrai si :
+ *    - Une entrée existe dans EXERCISE_TUTORIALS (tips détaillées + vidéo)
+ *    - OU l'exo a un GIF / videoUrl dans EXERCISES (tuto basique mais visible)
+ *  Permet de montrer le bouton tuto sur TOUS les exos qui ont au moins
+ *  un GIF démo, plutôt que seulement les 30 "core" qui avaient des tips.
+ */
 export function hasTutorial(exerciseId: string): boolean {
-  return exerciseId in EXERCISE_TUTORIALS;
+  if (exerciseId in EXERCISE_TUTORIALS) return true;
+  // Import lazy pour éviter cycle d'import (EXERCISES importe rien d'ici).
+  const { EXERCISES } = require('./exercises');
+  const ex = EXERCISES[exerciseId];
+  return !!(ex && (ex.gifUrl || ex.videoUrl));
 }

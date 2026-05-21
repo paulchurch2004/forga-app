@@ -23,6 +23,13 @@ let distinctId: string | null = null;
 let queue: QueuedEvent[] = [];
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
 let userId: string | null = null;
+// ATT gate (App Store Guideline 5.1.2 — iOS 14.5+).
+// On iOS, on n'envoie AUCUN event tant que l'ATT n'est pas explicitement
+// autorisé. Si l'user refuse, le tracking reste désactivé. Sur Android/web,
+// pas de notion ATT donc default true.
+// La valeur est mise à jour via setTrackingAllowed() après le prompt ATT
+// (déclenché côté UI post-onboarding par requestATTIfNeeded()).
+let trackingAllowed: boolean = Platform.OS !== 'ios';
 
 function uuidV4(): string {
   // RFC4122 v4 — sufficient for analytics distinct IDs
@@ -51,6 +58,18 @@ export async function initAnalytics(): Promise<void> {
   }
   await ensureDistinctId();
   isInitialized = true;
+  // Sur iOS, restaurer la décision ATT précédente si l'user a déjà été
+  // prompted dans une session passée. Sinon trackingAllowed reste false
+  // jusqu'à ce que requestATTIfNeeded soit appelé par l'UI.
+  if (Platform.OS === 'ios') {
+    try {
+      const att = await import('expo-tracking-transparency');
+      const result = await att.getTrackingPermissionsAsync();
+      trackingAllowed = result.status === 'authorized';
+    } catch {
+      // Module pas dispo (Expo Go, web) → reste false
+    }
+  }
   scheduleFlush();
 }
 
@@ -64,8 +83,27 @@ export function resetUser(): void {
   userId = null;
 }
 
+/** Activé après le prompt ATT iOS. `granted = true` si l'user a tapé
+ *  "Allow Tracking", `false` sinon. Sur Android/web on call avec true au
+ *  boot pour autoriser sans prompt. */
+export function setTrackingAllowed(granted: boolean): void {
+  trackingAllowed = granted;
+  // Si tracking refusé, on vide la queue pour ne pas leak des events
+  // bufferisés avant le prompt.
+  if (!granted) {
+    queue = [];
+    if (flushTimer) {
+      clearTimeout(flushTimer);
+      flushTimer = null;
+    }
+  } else {
+    scheduleFlush();
+  }
+}
+
 export function trackEvent(event: string, properties?: EventProperties): void {
   if (!POSTHOG_KEY) return;
+  if (!trackingAllowed) return;
   const enriched: EventProperties = {
     ...(properties ?? {}),
     platform: Platform.OS,
@@ -201,4 +239,12 @@ export const events = {
     trackEvent('app_opened'),
   screenViewed: (screen: string) =>
     trackEvent('screen_viewed', { screen }),
+
+  // Partner offers (tracking conversion vers les partenaires)
+  partnerOfferCodeCopied: (offerId: string, brand: string) =>
+    trackEvent('partner_offer_code_copied', { offerId, brand }),
+  partnerOfferOpened: (offerId: string, brand: string) =>
+    trackEvent('partner_offer_opened', { offerId, brand }),
+  partnerOfferUnlockTapped: (offerId?: string) =>
+    trackEvent('partner_offer_unlock_tapped', { offerId }),
 } as const;

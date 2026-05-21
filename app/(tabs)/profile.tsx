@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
 import { getScoreColor, getScoreLabel } from '../../src/theme/colors';
@@ -38,11 +39,13 @@ import { useSettingsStore, type ThemeMode, type Locale } from '../../src/store/s
 import { useStreak } from '../../src/hooks/useStreak';
 import { usePremium } from '../../src/hooks/usePremium';
 import { supabase } from '../../src/services/supabase';
+import { processQueue, clearQueue } from '../../src/services/syncQueue';
 import { captureException } from '../../src/services/sentry';
 import { useAuthStore } from '../../src/store/authStore';
 import { BADGE_INFO, type BadgeType } from '../../src/types/user';
 import { BadgeCard } from '../../src/components/gamification/BadgeCard';
 import { LineChart, type DataPoint } from '../../src/components/charts/LineChart';
+import * as ImagePicker from 'expo-image-picker';
 import { EmptyState } from '../../src/components/ui/EmptyState';
 import { SkeletonScreen } from '../../src/components/ui/Skeleton';
 import { useNotifications } from '../../src/hooks/useNotifications';
@@ -66,7 +69,10 @@ export default function ProfileScreen() {
   const { t, locale } = useT();
   const styles = useStyles();
 
+  const scrollRef = useRef<ScrollView>(null);
+
   const profile = useUserStore((s) => s.profile);
+  const updateProfile = useUserStore((s) => s.updateProfile);
   const badges = useUserStore((s) => s.badges);
   const score = useScoreStore((s) => s.currentScore);
   const { currentStreak, bestStreak, streakFreezeUsedThisWeek } = useStreak();
@@ -80,6 +86,12 @@ export default function ProfileScreen() {
   const setLocale = useSettingsStore((s) => s.setLocale);
   const biometricLockEnabled = useSettingsStore((s) => s.biometricLockEnabled);
   const setBiometricLockEnabled = useSettingsStore((s) => s.setBiometricLockEnabled);
+  // Compteur de pas — flag opt-in pour activer la lecture Apple Health.
+  // L'user le toggle dans la section Réglages plus bas. Reactivement
+  // sélectionné pour que le texte "Activé/Désactivé" se rafraîchisse
+  // dès qu'on change l'état.
+  const stepsEnabled = useSettingsStore((s) => s.stepsEnabled);
+  const setStepsEnabled = useSettingsStore((s) => s.setStepsEnabled);
   const bioCaps = useBiometricCapabilities();
   const promptBiometric = usePromptBiometric();
   const [exporting, setExporting] = useState(false);
@@ -118,6 +130,74 @@ export default function ProfileScreen() {
   const lastAdjustment = [...checkIns]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .find((c) => c.calorieAdjustment !== 0);
+
+  /**
+   * Ouvre le picker système (caméra ou bibliothèque selon le choix
+   * de l'user) puis met à jour l'avatarUri dans le profile store.
+   * Le storage Supabase Storage upload est volontairement skip pour
+   * v1 — l'URI locale persiste via Zustand persist, ce qui suffit
+   * jusqu'à ce que l'user change d'appareil. À muscler en v1.1.
+   */
+  const handleChangeAvatar = useCallback(async () => {
+    // Action sheet natif : caméra ou bibliothèque
+    Alert.alert(
+      t('profileChangePhoto' as any) as string,
+      undefined,
+      [
+        {
+          text: t('profileTakePhoto' as any) as string,
+          onPress: async () => {
+            const perm = await ImagePicker.requestCameraPermissionsAsync();
+            if (!perm.granted) return;
+            const result = await ImagePicker.launchCameraAsync({
+              mediaTypes: ['images'],
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 0.8,
+            });
+            if (!result.canceled && result.assets[0]) {
+              // BUG FIX : ImagePicker pose les fichiers dans tmp/ sur
+              // iOS — purgé par l'OS au fil du temps ET non préservé
+              // entre les rebuilds TestFlight. On copie vers
+              // Documents/forga/avatars/ qui survit aux updates.
+              const { persistImage } = await import('../../src/utils/persistImage');
+              const persistedUri = await persistImage(result.assets[0].uri, 'avatars');
+              updateProfile({ avatarUri: persistedUri });
+            }
+          },
+        },
+        {
+          text: t('profilePickFromLibrary' as any) as string,
+          onPress: async () => {
+            const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (!perm.granted) return;
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ['images'],
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 0.8,
+            });
+            if (!result.canceled && result.assets[0]) {
+              const { persistImage } = await import('../../src/utils/persistImage');
+              const persistedUri = await persistImage(result.assets[0].uri, 'avatars');
+              updateProfile({ avatarUri: persistedUri });
+            }
+          },
+        },
+        // Bouton "retirer" uniquement si une photo custom existe
+        ...(profile?.avatarUri
+          ? [
+              {
+                text: t('profileRemovePhoto' as any) as string,
+                style: 'destructive' as const,
+                onPress: () => updateProfile({ avatarUri: undefined }),
+              },
+            ]
+          : []),
+        { text: t('cancel') as string, style: 'cancel' as const },
+      ],
+    );
+  }, [updateProfile, profile?.avatarUri, t]);
 
   const handleCopyCode = useCallback(async () => {
     const code = profile?.referralCode;
@@ -196,23 +276,23 @@ export default function ProfileScreen() {
 
   const performDeleteAccount = async () => {
     try {
-      const userId = profile.id;
-      const tables = [
-        { table: 'daily_meals', col: 'user_id' },
-        { table: 'weekly_checkins', col: 'user_id' },
-        { table: 'weight_log', col: 'user_id' },
-        { table: 'badges', col: 'user_id' },
-        { table: 'favorites', col: 'user_id' },
-        { table: 'score_history', col: 'user_id' },
-        { table: 'users', col: 'id' },
-      ];
-      for (const { table, col } of tables) {
-        const { error } = await supabase.from(table).delete().eq(col, userId);
-        if (error) {
-          if (__DEV__) console.error(`[DeleteAccount] Failed to delete from ${table}:`, error.message);
-          captureException(new Error(`Delete failed: ${table} — ${error.message}`), { component: 'DeleteAccount' });
-        }
+      // Appelle la fonction RPC server-side `delete_my_account` (cf
+      // migration 016). Elle supprime UN SEUL row dans auth.users, et
+      // le ON DELETE CASCADE propage à TOUTES les sous-tables —
+      // garantit qu'aucune donnée orpheline ne reste, et que le compte
+      // disparaît bien de Supabase Authentication (pas que de
+      // public.users). Conformité RGPD complète.
+      const { error: rpcError } = await supabase.rpc('delete_my_account');
+      if (rpcError) {
+        if (__DEV__) console.error('[DeleteAccount] RPC failed:', rpcError.message);
+        captureException(new Error(`delete_my_account RPC failed: ${rpcError.message}`), { component: 'DeleteAccount' });
+        Alert.alert(t('error'), t('errorOccurred'));
+        return;
       }
+
+      // À ce point l'user n'existe plus côté serveur. On nettoie le
+      // local et on déclenche le signOut (qui sera de toute façon
+      // forcé au prochain appel API vu que le JWT est plus valide).
       await supabase.auth.signOut();
       useUserStore.getState().reset();
       useMealStore.getState().reset();
@@ -221,6 +301,24 @@ export default function ProfileScreen() {
       useWaterStore.getState().reset();
       const { useChatStore } = await import('../../src/store/chatStore');
       useChatStore.getState().resetOnLogout();
+      // Reset training store + shopping list aussi — sinon les
+      // PR/listes du user supprimé persistent en local et seraient
+      // sync à un autre compte au prochain login.
+      const { useTrainingStore } = await import('../../src/store/trainingStore');
+      useTrainingStore.getState().reset();
+      const { useShoppingListStore } = await import('../../src/store/shoppingListStore');
+      useShoppingListStore.getState().reset();
+      // Reset prompts user-scoped + clear sync queue (cf signOut).
+      useSettingsStore.setState({
+        firstActiveDate: null,
+        reviewPromptShownAt: null,
+        referralPromptShownAt: null,
+      });
+      try {
+        await clearQueue();
+      } catch (err) {
+        if (__DEV__) console.warn('[DeleteAccount] clearQueue failed:', err);
+      }
     } catch (error: any) {
       Alert.alert(t('error'), t('errorOccurred'));
     }
@@ -242,6 +340,24 @@ export default function ProfileScreen() {
   const handleSignOut = () => setSheet('logout');
 
   const performSignOut = async () => {
+    // ⚠ ÉTAPE CRITIQUE — drainer la sync queue AVANT le reset.
+    //
+    // Sans ça, tout ce que l'user a logué depuis le dernier foreground
+    // (repas, séances, poids, mesures) est encore en pending dans la
+    // queue locale et JAMAIS pushé vers Supabase. Le reset qui suit
+    // wipe le cache local → la donnée est perdue pour toujours.
+    //
+    // En cas d'échec réseau, on tente quand même le signOut — l'user
+    // ne doit pas rester coincé en attente d'une queue qui drain pas.
+    // Les actions resteront dans la queue (AsyncStorage persistant)
+    // et seront re-tentées au prochain login. C'est OK : `processQueue`
+    // est idempotent (`upsert` partout).
+    try {
+      await processQueue();
+    } catch (err) {
+      if (__DEV__) console.warn('[SignOut] processQueue failed before logout:', err);
+    }
+
     await supabase.auth.signOut();
     useUserStore.getState().reset();
     useMealStore.getState().reset();
@@ -252,6 +368,45 @@ export default function ProfileScreen() {
     // (or the same user logging back in) sees the welcome again.
     const { useChatStore } = await import('../../src/store/chatStore');
     useChatStore.getState().resetOnLogout();
+    // Reset des 5 stores user-scoped qui étaient OUBLIÉS ici → cross-user
+    // contamination sur device partagé (gym, famille). Sans ce reset,
+    // user B voyait les workouts/programme/listes/gamification de user A.
+    const { useTrainingStore } = await import('../../src/store/trainingStore');
+    useTrainingStore.getState().reset();
+    const { useProgramStore } = await import('../../src/store/programStore');
+    useProgramStore.getState().reset?.();
+    const { useWeeklyPlanStore } = await import('../../src/store/weeklyPlanStore');
+    useWeeklyPlanStore.getState().reset?.();
+    const { useShoppingListStore } = await import('../../src/store/shoppingListStore');
+    useShoppingListStore.getState().reset();
+    // Frise gamification métaux — sinon user B voit les 30 derniers
+    // jours de user A sur le profil.
+    const { useMetalHistoryStore } = await import('../../src/store/metalHistoryStore');
+    useMetalHistoryStore.getState().reset();
+    // Reset des settings USER-scoped (Apple Health timestamp, biometric,
+    // steps), tout en gardant le thème + locale qui sont device-level.
+    // Les timestamps de prompts (review/referral) sont aussi user-scoped :
+    // sans reset, user B sur le même device hériterait des compteurs de
+    // user A → soit prompt loupé (déjà "shown" pour A), soit prompt
+    // immédiat (firstActiveDate trop ancien).
+    useSettingsStore.setState({
+      appleHealthEnabled: false,
+      lastHealthSyncAt: null,
+      stepsEnabled: false,
+      biometricLockEnabled: false,
+      firstActiveDate: null,
+      reviewPromptShownAt: null,
+      referralPromptShownAt: null,
+    });
+
+    // Wipe la sync queue : tout ce qui restait dedans est perdu
+    // intentionnellement pour éviter que des actions de user A soient
+    // push-sync sous le user_id de user B au prochain login.
+    try {
+      await clearQueue();
+    } catch (err) {
+      if (__DEV__) console.warn('[SignOut] clearQueue failed:', err);
+    }
   };
 
   const objectiveLabels: Record<string, string> = {
@@ -273,7 +428,7 @@ export default function ProfileScreen() {
   ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top, maxWidth: contentMaxWidth }]}>
+    <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top, maxWidth: contentMaxWidth }]}>
       {/* Hero Header */}
       <ImageBackground
         source={{ uri: PROFILE_HEADER_IMAGE }}
@@ -284,9 +439,14 @@ export default function ProfileScreen() {
           colors={['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.75)']}
           style={styles.heroOverlay}
         >
-          <Pressable onPress={() => router.back()} hitSlop={16} style={styles.backRow}>
-            <Text style={styles.backText}>{'\u2039'} {t('home')}</Text>
-          </Pressable>
+          <View style={[styles.headerTopRow, { top: insets.top + spacing.sm }]}>
+            <Pressable onPress={() => router.back()} hitSlop={16} style={styles.backRow}>
+              <Text style={styles.backText}>{'\u2039'} {t('home')}</Text>
+            </Pressable>
+            {/* L'ic\u00f4ne engrenage a \u00e9t\u00e9 retir\u00e9e \u2014 la section R\u00e9glages
+                est d\u00e9j\u00e0 accessible juste en dessous (Appearance, Langue,
+                Notifications, etc.). Doublon inutile dans le header. */}
+          </View>
           <Text style={styles.name}>{profile.name}</Text>
           <Text style={styles.email}>{profile.email}</Text>
           {isPremium && (
@@ -308,12 +468,14 @@ export default function ProfileScreen() {
           streak={currentStreak}
           formScore={score.total}
           weight={weightLog[weightLog.length - 1]?.weight ?? profile.currentWeight ?? 0}
+          avatarUri={profile.avatarUri}
+          onAvatarPress={handleChangeAvatar}
         />
       </View>
 
       {/* 30 derniers jours — vraies check-ins métaux du Morning Ritual */}
       <View style={{ marginTop: 24 }}>
-        <Text style={styles.sectionTitle}>{t('profileLast30DaysLabel')}</Text>
+        <Text style={[styles.sectionTitle, { textAlign: 'center' }]}>{t('profileLast30DaysLabel')}</Text>
         <MetalDays30Card
           days={metal30.map((d) => (d.metal ?? 'repos') as MetalKey)}
         />
@@ -443,7 +605,10 @@ export default function ProfileScreen() {
           onPress={() => router.push('/checkin')}
         >
           <View style={styles.progressionLeft}>
-            <Text style={styles.progressionIcon}>{'\uD83D\uDCCA'}</Text>
+            {/* Avant : mix d'emojis Unicode (\uD83D\uDCCA, \u2197, \uD83D\uDCCF, \uD83D\uDCF7) qui rendaient
+                avec des styles diff\u00E9rents (couleur native vs glyphe noir).
+                Maintenant tout en Ionicons pour coh\u00E9rence visuelle. */}
+            <Ionicons name="stats-chart-outline" size={20} color={colors.primary} style={styles.progressionIconV2} />
             <View>
               <Text style={styles.progressionTitle}>{t('weeklyCheckIn')}</Text>
               <Text style={styles.progressionSubtitle}>{t('checkInSubtitle')}</Text>
@@ -456,7 +621,7 @@ export default function ProfileScreen() {
           onPress={() => router.push('/progression')}
         >
           <View style={styles.progressionLeft}>
-            <Text style={styles.progressionIcon}>{'\u2197'}</Text>
+            <Ionicons name="trending-up-outline" size={20} color={colors.primary} style={styles.progressionIconV2} />
             <View>
               <Text style={styles.progressionTitle}>{t('myProgress')}</Text>
               <Text style={styles.progressionSubtitle}>{t('progressSubtitle')}</Text>
@@ -469,7 +634,7 @@ export default function ProfileScreen() {
           onPress={() => router.push('/measurements')}
         >
           <View style={styles.progressionLeft}>
-            <Text style={styles.progressionIcon}>{'\uD83D\uDCCF'}</Text>
+            <Ionicons name="resize-outline" size={20} color={colors.primary} style={styles.progressionIconV2} />
             <View>
               <Text style={styles.progressionTitle}>{t('measurementsLabel' as any)}</Text>
               <Text style={styles.progressionSubtitle}>{locale === 'en' ? 'Waist, chest, arms...' : 'Taille, poitrine, bras...'}</Text>
@@ -486,7 +651,7 @@ export default function ProfileScreen() {
           onPress={() => router.push('/progress-photos')}
         >
           <View style={styles.progressionLeft}>
-            <Text style={styles.progressionIcon}>{'\uD83D\uDCF7'}</Text>
+            <Ionicons name="camera-outline" size={20} color={colors.primary} style={styles.progressionIconV2} />
             <View>
               <Text style={styles.progressionTitle}>{t('progressPhotosLabel' as any)}</Text>
               <Text style={styles.progressionSubtitle}>{locale === 'en' ? 'Track your visual transformation' : 'Suis ta transformation visuelle'}</Text>
@@ -552,7 +717,8 @@ export default function ProfileScreen() {
         )}
       </View>
 
-      {/* Appearance — opens sheet */}
+      {/* Appearance — opens sheet. La roue dentée du header pousse
+          maintenant vers /settings, donc plus besoin d'onLayout ici. */}
       <View style={styles.section}>
         <Pressable style={styles.actionRow} onPress={() => setSheet('theme')}>
           <Text style={styles.actionText}>{t('appearance')}</Text>
@@ -592,6 +758,61 @@ export default function ProfileScreen() {
           </Pressable>
         )}
 
+        {/* Toggle compteur de pas (iOS only, lit Apple Health).
+            Demande la permission HealthKit au tap si pas déjà accordée.
+            Si refus ou HealthKit indisponible : on prévient l'user pour
+            qu'il sache POURQUOI rien ne se passe (avant, silence radio
+            → impression de "row qui ne réagit pas au tap"). */}
+        {Platform.OS === 'ios' && (
+          <Pressable
+            style={styles.actionRow}
+            onPress={async () => {
+              if (stepsEnabled) {
+                setStepsEnabled(false);
+                return;
+              }
+              const { requestHealthPermissions, isHealthAvailable } =
+                await import('../../src/services/appleHealth');
+              const availability = await isHealthAvailable();
+              if (!availability.available) {
+                // Pas de HealthKit sur ce device → on l'explique au lieu
+                // de rester silencieux. L'user comprend qu'il ne peut pas
+                // activer cette feature ici, mais peut au moins savoir
+                // pourquoi.
+                Alert.alert(
+                  t('stepsCounterLabel' as any),
+                  t('stepsCounterUnavailable' as any),
+                );
+                return;
+              }
+              const granted = await requestHealthPermissions();
+              if (granted) {
+                setStepsEnabled(true);
+              } else {
+                // L'user a refusé OU iOS a déjà refusé une fois (le
+                // sheet de permission ne s'affiche plus). On guide vers
+                // Réglages > Confidentialité > Santé pour ré-autoriser.
+                Alert.alert(
+                  t('stepsCounterLabel' as any),
+                  t('stepsCounterPermissionDenied' as any),
+                  [
+                    { text: t('cancel') ?? 'Annuler', style: 'cancel' },
+                    {
+                      text: t('openSettings' as any) ?? 'Ouvrir Réglages',
+                      onPress: () => Linking.openURL('app-settings:'),
+                    },
+                  ],
+                );
+              }
+            }}
+          >
+            <Text style={styles.actionText}>{t('stepsCounterLabel' as any)}</Text>
+            <Text style={styles.actionValue}>
+              {stepsEnabled ? t('stepsCounterEnabled' as any) : t('stepsCounterDisabled' as any)} {'›'}
+            </Text>
+          </Pressable>
+        )}
+
         {Platform.OS !== 'web' && bioCaps.available && (
           <Pressable
             style={styles.actionRow}
@@ -622,9 +843,9 @@ export default function ProfileScreen() {
 
         <Pressable style={styles.actionRow} onPress={() => {
           if (Platform.OS === 'web') {
-            window.open('mailto:support@forga.fr', '_blank');
+            window.open('mailto:support.forga@gmail.com', '_blank');
           } else {
-            import('expo-linking').then((L) => L.openURL('mailto:support@forga.fr')).catch(() => {});
+            import('expo-linking').then((L) => L.openURL('mailto:support.forga@gmail.com')).catch(() => {});
           }
         }}>
           <Text style={styles.actionText}>{t('contactSupportBtn')}</Text>
@@ -784,7 +1005,11 @@ const useStyles = makeStyles((colors) => ({
   },
   heroImage: {
     width: '100%',
-    height: 180,
+    // Hauteur réduite à 170 (avant 220) — la ProfileHeroCard juste en
+    // dessous porte déjà l'identité (nom, archétype, stats), donc le
+    // hero peut être plus compact. On garde assez de marge pour le
+    // back button (top=insets.top+sm) sans empiéter sur name + email.
+    height: 170,
     marginBottom: spacing.xl,
   },
   heroImageInner: {
@@ -798,10 +1023,20 @@ const useStyles = makeStyles((colors) => ({
     borderBottomLeftRadius: borderRadius.xl,
     borderBottomRightRadius: borderRadius.xl,
   },
-  backRow: {
+  /** Ligne supérieure du hero : bouton retour (gauche) + roue
+   *  dentée réglages (droite). Position absolue pour ne pas pousser
+   *  le titre name + email plus bas. */
+  headerTopRow: {
     position: 'absolute',
     top: spacing.md,
     left: spacing.xl,
+    right: spacing.xl,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  backRow: {
+    // L'absolute positioning d'origine est maintenant dans headerTopRow.
   },
   backText: {
     fontFamily: fonts.body,
@@ -1133,6 +1368,12 @@ const useStyles = makeStyles((colors) => ({
   progressionIcon: {
     fontSize: 24,
     color: colors.primary,
+  },
+  /** Wrapper width: 24 pour aligner les Ionicons (qui n'ont pas
+   *  d'ascent/descent comme des emojis) avec le texte voisin. */
+  progressionIconV2: {
+    width: 24,
+    textAlign: 'center',
   },
   progressionTitle: {
     fontFamily: fonts.display,

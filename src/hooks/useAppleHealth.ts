@@ -18,6 +18,7 @@ import {
 } from '../services/appleHealth';
 import type { Workout } from '../types/training';
 import type { WeightEntry } from '../types/user';
+import { syncWeight } from '../services/userSync';
 
 interface SyncResult {
   imported: number;
@@ -100,6 +101,10 @@ async function runSync(): Promise<SyncResult> {
       };
       // re-read add fn to avoid stale closure
       useUserStore.getState().addWeightEntry(entry);
+      // Push aussi vers Supabase, sinon les pesées importées d'Apple
+      // Health restent locales et disparaissent au logout / changement
+      // d'appareil. La queue offline gère la persistance.
+      syncWeight(entry, profile.id);
       knownDates.add(dayKey);
       imported += 1;
     }
