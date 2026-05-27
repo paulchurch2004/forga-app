@@ -1,5 +1,6 @@
-// FORGA — Program Assignment v3
-// Maps a user profile to one of the 16 programs in src/data/programs.ts.
+// FORGA — Program Assignment v4
+// Maps a user profile to one of the 60 programs in src/data/programs.ts.
+// New convention : `${OBJ}_${LEVEL}_${LOC}_${SEX}` (ex. BULK_INTERMEDIATE_GYM_M).
 // Includes validation, gender variant resolution, and a defensive fallback.
 
 import { supabase } from './supabase';
@@ -10,6 +11,7 @@ import type {
   ActivityLevel,
   TrainingLevel,
   TrainingFrequency,
+  TrainingLocation,
   EquipmentAccess,
   GlutePreference,
 } from '../types/user';
@@ -20,6 +22,10 @@ export interface AssignmentInput {
   age: number;
   trainingLevel?: TrainingLevel;
   trainingFrequency?: TrainingFrequency;
+  /** Salle ou maison — pilote le choix de la version GYM vs HOME du
+   *  même split. Si absent, on tombe sur GYM par défaut (équipement
+   *  standard pour le marché francophone). */
+  trainingLocation?: TrainingLocation;
   equipmentAccess?: EquipmentAccess;
   glutePreference?: GlutePreference;
   /** Used as a fallback when training_level / training_frequency aren't set (legacy users). */
@@ -32,45 +38,18 @@ export interface AssignmentResult {
   warnings: string[];
 }
 
-/** Map (objective, level, frequency) → program id, with sex-aware variants. */
-function lookupProgram(
+/** Construit l'ID programme V4 selon la convention de nommage des 60
+ *  programmes (cf src/data/programs.ts buildProgram). */
+function buildProgramId(
   objective: Objective,
   level: TrainingLevel,
-  frequency: TrainingFrequency,
+  location: TrainingLocation,
   sex: Sex,
-): string | null {
-  const isFemale = sex === 'female';
-
-  // ─── BULK ──
-  if (objective === 'bulk') {
-    if (level === 'beginner') {
-      return frequency >= 4 ? 'BULK_DEB_4D_UL' : 'BULK_DEB_3D_FB';
-    }
-    if (level === 'advanced' || level === 'expert') return 'BULK_AVA_4D_531';
-    // intermediate
-    if (frequency >= 6) return isFemale ? 'BULK_INT_6D_PPL_F' : 'BULK_INT_6D_PPL_M';
-    if (frequency === 5) return isFemale ? 'BULK_INT_5D_UL_PPL_F' : 'BULK_INT_5D_UL_PPL_M';
-    return isFemale ? 'BULK_INT_4D_PHUL_F' : 'BULK_INT_4D_PHUL_M';
-  }
-
-  // ─── CUT ──
-  if (objective === 'cut') {
-    if (level === 'beginner') {
-      return frequency >= 4 ? 'CUT_DEB_4D_UL' : 'CUT_DEB_3D_FB';
-    }
-    if (frequency >= 5) return isFemale ? 'CUT_INT_5D_PPL_UL_F' : 'CUT_INT_5D_PPL_UL_M';
-    return isFemale ? 'CUT_INT_4D_UL_F' : 'CUT_INT_4D_UL_M';
-  }
-
-  // ─── MAINTAIN ──
-  if (objective === 'maintain') {
-    return frequency >= 4 ? 'MAINTAIN_4D_UL' : 'MAINTAIN_3D_FB';
-  }
-
-  // ─── RECOMP ──
-  if (level === 'beginner') return 'RECOMP_DEB_3D_FB';
-  if (frequency >= 5) return isFemale ? 'RECOMP_INT_5D_HYB_F' : 'RECOMP_INT_5D_HYB_M';
-  return isFemale ? 'RECOMP_INT_4D_UL_F' : 'RECOMP_INT_4D_UL_M';
+): string {
+  // Le moteur ne connaît pas 'expert' — on le mappe sur 'advanced' (le
+  // doc spec utilise 3 niveaux : Débutant / Intermédiaire / Avancé).
+  const lvl = level === 'expert' ? 'advanced' : level;
+  return `${objective.toUpperCase()}_${lvl.toUpperCase()}_${location.toUpperCase()}_${sex === 'male' ? 'M' : 'F'}`;
 }
 
 /** Derive a sensible training_level from the legacy activity_level field. */
@@ -88,27 +67,29 @@ function deriveTrainingFrequency(a: ActivityLevel): TrainingFrequency {
   return 6;
 }
 
+/** Derive location from equipmentAccess (legacy users qui n'ont pas
+ *  trainingLocation set). minimal/home_equipped → 'home', full_gym → 'gym'. */
+function deriveLocation(equipment?: EquipmentAccess): TrainingLocation {
+  if (equipment === 'home_equipped' || equipment === 'minimal') return 'home';
+  return 'gym';
+}
+
 /**
  * Assign a program to a user. Pure function — no side effects.
  * Performs validation/adjustments first (beginner can't do 6j, minor can't cut, etc.)
- * then runs the mapping table, with fallback if the combination is unmapped.
+ * then runs the mapping, with fallback if the combination is unmapped.
  */
 export function assignProgram(input: AssignmentInput): AssignmentResult {
   const warnings: string[] = [];
 
   let objective = input.objective;
   let level: TrainingLevel = input.trainingLevel ?? deriveTrainingLevel(input.activityLevel ?? 'moderate');
-  let frequency: TrainingFrequency = input.trainingFrequency ?? deriveTrainingFrequency(input.activityLevel ?? 'moderate');
+  const frequency: TrainingFrequency = input.trainingFrequency ?? deriveTrainingFrequency(input.activityLevel ?? 'moderate');
+  const location: TrainingLocation = input.trainingLocation ?? deriveLocation(input.equipmentAccess);
   const sex = input.sex;
   const age = input.age;
 
-  // ── Validation rules (per spec §3.1) ──
-
-  // Beginner can't do 5-6j safely
-  if (level === 'beginner' && frequency >= 5) {
-    frequency = 4;
-    warnings.push("À ton niveau, on commence avec 4 séances/semaine pour bien récupérer.");
-  }
+  // ── Validation rules ──
 
   // Minors should not cut — switch to recomp
   if (objective === 'cut' && age < 16) {
@@ -116,49 +97,50 @@ export function assignProgram(input: AssignmentInput): AssignmentResult {
     warnings.push("À ton âge, on évite la sèche. On fait de la recomposition.");
   }
 
-  // Older users with very high frequency
+  // Force avancé maison → spec dit "barre + rack requis"
+  // On accepte quand même mais on warn que c'est un programme d'entretien.
+  if (objective === 'force' && level === 'advanced' && location === 'home') {
+    warnings.push(
+      "Powerlifting avancé en maison = variante d'entretien. Pour maximiser ton 1RM, il faut barre + rack + plaques.",
+    );
+  }
+
+  // Beginner avec haute fréquence → on descend à 4
+  if (level === 'beginner' && frequency >= 5) {
+    warnings.push("À ton niveau, on commence avec 3-4 séances/semaine pour bien récupérer.");
+  }
+
+  // Older users avec haute fréquence
   if (age > 55 && frequency >= 5) {
-    frequency = 4;
-    warnings.push("Pour optimiser ta récupération, on te recommande 4 séances max.");
+    warnings.push("Pour optimiser ta récupération à ton âge, vise 4 séances max.");
   }
 
-  // ── Special case: female intermediate bulk 4j → glute-focus program ──
-  if (
-    objective === 'bulk'
-    && level === 'intermediate'
-    && frequency === 4
-    && sex === 'female'
-    && input.glutePreference !== 'no_glute_focus'
-  ) {
-    return {
-      programId: 'BULK_INT_4D_UL_GLUTE',
-      reason: 'Programme dédié femme avec focus fessiers et chaîne postérieure.',
-      warnings,
-    };
-  }
+  // ── Mapping V4 : déterministe sur (objectif, level, lieu, sexe) ──
+  let programId = buildProgramId(objective, level, location, sex);
 
-  // ── Standard mapping ──
-  let programId = lookupProgram(objective, level, frequency, sex);
-
-  // ── Fallback: degrade level + cap frequency ──
-  if (!programId || !PROGRAMS[programId]) {
-    const fbLevel: TrainingLevel = level === 'expert' ? 'advanced' : level === 'advanced' ? 'intermediate' : level;
-    const fbFreq = Math.min(frequency, 4) as TrainingFrequency;
-    programId = lookupProgram(objective, fbLevel, fbFreq, sex);
-    if (programId && PROGRAMS[programId]) {
+  // ── Fallback : si l'ID n'existe pas (cas impossible normalement vu
+  // que tous les 60 sont générés), on dégrade le niveau et on retente.
+  if (!PROGRAMS[programId]) {
+    const fbLevel: TrainingLevel = level === 'expert'
+      ? 'advanced'
+      : level === 'advanced'
+        ? 'intermediate'
+        : level;
+    programId = buildProgramId(objective, fbLevel, location, sex);
+    if (PROGRAMS[programId]) {
       warnings.push("Programme adapté à ton profil par approximation.");
     }
   }
 
   // ── Ultimate fallback ──
-  if (!programId || !PROGRAMS[programId]) {
-    programId = 'MAINTAIN_3D_FB';
+  if (!PROGRAMS[programId]) {
+    programId = buildProgramId('maintain', 'beginner', 'gym', sex);
     warnings.push("Combinaison non couverte — on te met en mode maintien le temps de te trouver mieux.");
   }
 
   return {
     programId,
-    reason: `Assigné selon : ${objective} / ${level} / ${frequency}j${sex === 'female' ? ' (F)' : ''}`,
+    reason: `Assigné selon : ${objective} / ${level} / ${location} / ${sex === 'female' ? 'F' : 'M'}`,
     warnings,
   };
 }

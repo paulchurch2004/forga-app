@@ -1,5 +1,5 @@
 export type Sex = 'male' | 'female';
-export type Objective = 'bulk' | 'cut' | 'maintain' | 'recomp';
+export type Objective = 'bulk' | 'cut' | 'maintain' | 'recomp' | 'force';
 export type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'active' | 'very_active';
 export type Budget = 'eco' | 'premium' | 'both';
 export type Restriction = 'vegetarian' | 'vegan' | 'gluten_free' | 'lactose_free' | 'halal' | 'pork_free';
@@ -19,6 +19,10 @@ export type TrainingLevel = 'beginner' | 'intermediate' | 'advanced' | 'expert';
 export type TrainingFrequency = 3 | 4 | 5 | 6;
 export type EquipmentAccess = 'full_gym' | 'home_equipped' | 'minimal';
 export type GlutePreference = 'glute_focus' | 'quad_focus' | 'no_glute_focus';
+/** Lieu d'entraînement — pilote le choix entre programme salle (barres,
+ *  racks, machines) ou maison (haltères, élastiques, poids du corps).
+ *  Set par le TrainingSetupSheet à la 1re visite de la page training. */
+export type TrainingLocation = 'gym' | 'home';
 
 export interface UserProfile {
   id: string;
@@ -40,6 +44,10 @@ export interface UserProfile {
   trainingFrequency?: TrainingFrequency;
   equipmentAccess?: EquipmentAccess;
   glutePreference?: GlutePreference;
+  /** Lieu d'entraînement (Salle/Maison). Set via TrainingSetupSheet à
+   *  la 1re visite de la page training. Si null, le wizard s'affiche.
+   *  Permet de mapper sur la version Salle ou Maison du programme. */
+  trainingLocation?: TrainingLocation;
 
   /** What sections feed the FORGA Score. Defaults to 'both' when missing
    *  (backwards-compat for users created before this field existed). */

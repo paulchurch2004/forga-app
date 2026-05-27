@@ -59,6 +59,15 @@ export interface TrainingProgram {
   sexVariant?: 'male' | 'female' | 'unisex';
   /** Recommended level (used by recommendProgram + program selector UI). */
   level?: Level;
+  /** Lieu d'entraînement requis. 'gym' = barres + racks + machines.
+   *  'home' = haltères + élastiques + poids du corps. Pilote le choix
+   *  entre versions Salle et Maison du même split. */
+  location?: 'gym' | 'home';
+  /** Objectif primaire — utilisé par programAssignment pour filtrer.
+   *  Permet aussi de mutualiser les ProgramDays entre les 4 objectifs
+   *  hypertrophie (mêmes exos, seul le volume × multiplier d'objectif
+   *  s'applique côté moteur). */
+  objective?: 'bulk' | 'cut' | 'maintain' | 'recomp' | 'force';
 }
 
 // ── Generated Plan (user's active instance) ──

@@ -15,6 +15,11 @@ export const CALORIE_ADJUSTMENTS = {
   cut: -400,       // -400 kcal déficit
   maintain: 0,     // Maintenance
   recomp: -100,    // Léger déficit pour recomposition
+  // Force / powerlifter : léger surplus pour soutenir des séances très
+  // lourdes + récup nerveuse, mais pas autant que bulk (on ne cherche
+  // pas à maximiser l'hypertrophie). +200 kcal est le sweet spot
+  // documenté chez Helms & Aragon pour la perf en force.
+  force: 200,
 } as const;
 
 // Répartition macros ISSN (g/kg de poids corporel ou % des calories)
@@ -35,6 +40,13 @@ export const MACRO_RATIOS = {
   recomp: {
     proteinPerKg: 2.2,
     fatPercent: 0.25,
+  },
+  // Force : protéines élevées (récup neuro + tissulaire) + plus de
+  // glucides (carburant SNC + glycogène) → on baisse les lipides
+  // pour faire de la place aux carbs.
+  force: {
+    proteinPerKg: 2.0,
+    fatPercent: 0.22,
   },
 } as const;
 

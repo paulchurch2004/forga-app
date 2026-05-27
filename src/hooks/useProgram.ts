@@ -32,7 +32,9 @@ export function useProgram() {
   const hasActivePlan = !!activePlan;
 
   const recommendedProgramId: ProgramId = useMemo(() => {
-    if (!profile) return 'BULK_DEB_3D_FB';
+    // Fallback V4 si pas de profil — programme générique salle homme
+    // débutant en maintien (le moins agressif, sûr par défaut).
+    if (!profile) return 'MAINTAIN_BEGINNER_GYM_M';
     const sex = profile.sex ?? 'male';
     return recommendProgram(
       sex,

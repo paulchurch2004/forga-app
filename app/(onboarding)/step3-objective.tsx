@@ -89,6 +89,17 @@ const OBJECTIVES_DEFS: ObjectiveOptionDef[] = [
     imageFemale: 'https://images.unsplash.com/photo-1599058917765-a780eda07a3e?w=1200&q=80',
     derivedArchetype: 'explorer',
   },
+  {
+    // Force (powerlifter) — charges lourdes + reps basses + long rest.
+    // Surplus calorique modéré, cardio minimal pour éviter l'interférence
+    // avec les adaptations neuro. Programmes type 5/3/1, Texas Method.
+    value: 'force',
+    labelKey: 'objectiveForce',
+    descKey: 'objectiveForceDesc',
+    imageMale: 'https://images.unsplash.com/photo-1534367507873-d2d7e24c797f?w=1200&q=80',
+    imageFemale: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=1200&q=80',
+    derivedArchetype: 'warrior',
+  },
 ];
 
 export default function Step3Objective() {

@@ -439,7 +439,11 @@ export default function ProfileScreen() {
           colors={['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.75)']}
           style={styles.heroOverlay}
         >
-          <View style={[styles.headerTopRow, { top: insets.top }]}>
+          {/* `top` géré par le style — le ScrollView a déjà paddingTop:
+              insets.top, donc on n'ajoute PAS insets.top une 2e fois ici
+              (sinon le bouton se retrouvait à 2× insets.top du haut écran,
+              soit en plein milieu du hero, par-dessus le pseudo). */}
+          <View style={styles.headerTopRow}>
             <Pressable onPress={() => router.back()} hitSlop={16} style={styles.backRow}>
               <Text style={styles.backText}>{'\u2039'} {t('home')}</Text>
             </Pressable>
@@ -1025,10 +1029,12 @@ const useStyles = makeStyles((colors) => ({
   },
   /** Ligne supérieure du hero : bouton retour (gauche) + roue
    *  dentée réglages (droite). Position absolue pour ne pas pousser
-   *  le titre name + email plus bas. */
+   *  le titre name + email plus bas. Le hero est déjà positionné à
+   *  insets.top via le paddingTop du ScrollView — `top: spacing.sm`
+   *  donne juste assez de marge pour passer sous la Dynamic Island. */
   headerTopRow: {
     position: 'absolute',
-    top: spacing.md,
+    top: spacing.sm,
     left: spacing.xl,
     right: spacing.xl,
     flexDirection: 'row',

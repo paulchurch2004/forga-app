@@ -438,6 +438,223 @@ export const EXERCISES: Record<string, Exercise> = {
     gifUrl: 'https://fitnessprogramer.com/wp-content/uploads/2021/02/Seated-Calf-Raise.gif',
     videoUrl: yt('seated calf raise machine tutorial'),
   },
+
+  // ── Exos ajoutés pour le catalogue V4 (60 programmes du spec) ──
+  // Isolation jambes spécialisée
+  sissy_squat: {
+    id: 'sissy_squat', nameKey: 'exSissySquat', muscleGroup: 'legs', isCompound: false,
+    videoUrl: yt('sissy squat tutorial quads'),
+  },
+  spanish_squat: {
+    id: 'spanish_squat', nameKey: 'exSpanishSquat', muscleGroup: 'legs', isCompound: false,
+    videoUrl: yt('spanish squat band tutorial'),
+  },
+  nordic_curl: {
+    id: 'nordic_curl', nameKey: 'exNordicCurl', muscleGroup: 'legs', isCompound: false,
+    videoUrl: yt('nordic curl hamstring tutorial'),
+  },
+  walking_lunges: {
+    id: 'walking_lunges', nameKey: 'exWalkingLunges', muscleGroup: 'legs', isCompound: true,
+    videoUrl: yt('walking lunges tutorial form'),
+  },
+  // Pont fessier (différent de hip thrust : sans banc)
+  glute_bridge: {
+    id: 'glute_bridge', nameKey: 'exGluteBridge', muscleGroup: 'legs', isCompound: false,
+    videoUrl: yt('glute bridge tutorial form'),
+  },
+  single_leg_glute_bridge: {
+    id: 'single_leg_glute_bridge', nameKey: 'exSingleLegGluteBridge', muscleGroup: 'legs', isCompound: false,
+    videoUrl: yt('single leg glute bridge tutorial'),
+  },
+  // Goblet squat (maison) — déjà via front_squat haltères mais on l'expose
+  goblet_squat: {
+    id: 'goblet_squat', nameKey: 'exGobletSquat', muscleGroup: 'legs', isCompound: true,
+    videoUrl: yt('goblet squat tutorial dumbbell'),
+  },
+  // Hyperextension (chaîne postérieure)
+  hyperextension: {
+    id: 'hyperextension', nameKey: 'exHyperextension', muscleGroup: 'legs', isCompound: false,
+    videoUrl: yt('hyperextension back tutorial'),
+  },
+  // RDL haltères single leg (femme/maison)
+  single_leg_rdl: {
+    id: 'single_leg_rdl', nameKey: 'exSingleLegRDL', muscleGroup: 'legs', isCompound: true,
+    videoUrl: yt('single leg romanian deadlift tutorial'),
+  },
+
+  // Accessoires force (Powerlifting)
+  deficit_deadlift: {
+    id: 'deficit_deadlift', nameKey: 'exDeficitDeadlift', muscleGroup: 'back', isCompound: true,
+    videoUrl: yt('deficit deadlift tutorial form'),
+  },
+  block_pull: {
+    id: 'block_pull', nameKey: 'exBlockPull', muscleGroup: 'back', isCompound: true,
+    videoUrl: yt('block pull deadlift tutorial'),
+  },
+  board_press: {
+    id: 'board_press', nameKey: 'exBoardPress', muscleGroup: 'chest', isCompound: true,
+    videoUrl: yt('board press bench tutorial'),
+  },
+  larsen_press: {
+    id: 'larsen_press', nameKey: 'exLarsenPress', muscleGroup: 'chest', isCompound: true,
+    videoUrl: yt('larsen press tutorial bench'),
+  },
+  pause_bench_press: {
+    id: 'pause_bench_press', nameKey: 'exPauseBenchPress', muscleGroup: 'chest', isCompound: true,
+    videoUrl: yt('pause bench press tutorial'),
+  },
+
+  // Gainage spécifique
+  pallof_press: {
+    id: 'pallof_press', nameKey: 'exPallofPress', muscleGroup: 'core', isCompound: false,
+    videoUrl: yt('pallof press anti rotation tutorial'),
+  },
+  hollow_hold: {
+    id: 'hollow_hold', nameKey: 'exHollowHold', muscleGroup: 'core', isCompound: false, isTimed: true,
+    videoUrl: yt('hollow hold abs tutorial'),
+  },
+  dead_bug: {
+    id: 'dead_bug', nameKey: 'exDeadBug', muscleGroup: 'core', isCompound: false,
+    videoUrl: yt('dead bug core tutorial'),
+  },
+
+  // Dos avancé
+  chest_supported_row: {
+    id: 'chest_supported_row', nameKey: 'exChestSupportedRow', muscleGroup: 'back', isCompound: true,
+    videoUrl: yt('chest supported row tutorial'),
+  },
+  inverted_row: {
+    id: 'inverted_row', nameKey: 'exInvertedRow', muscleGroup: 'back', isCompound: true,
+    videoUrl: yt('inverted row tutorial bodyweight'),
+  },
+  trap_bar_deadlift: {
+    id: 'trap_bar_deadlift', nameKey: 'exTrapBarDeadlift', muscleGroup: 'back', isCompound: true,
+    videoUrl: yt('trap bar deadlift tutorial'),
+  },
+  seated_cable_row: {
+    id: 'seated_cable_row', nameKey: 'exSeatedCableRow', muscleGroup: 'back', isCompound: true,
+    videoUrl: yt('seated cable row tutorial'),
+  },
+  rear_delt_fly: {
+    id: 'rear_delt_fly', nameKey: 'exRearDeltFly', muscleGroup: 'shoulders', isCompound: false,
+    videoUrl: yt('rear delt fly tutorial'),
+  },
+
+  // Push variants maison
+  pike_pushup: {
+    id: 'pike_pushup', nameKey: 'exPikePushup', muscleGroup: 'shoulders', isCompound: true,
+    videoUrl: yt('pike pushup tutorial shoulders'),
+  },
+  handstand_pushup: {
+    id: 'handstand_pushup', nameKey: 'exHandstandPushup', muscleGroup: 'shoulders', isCompound: true,
+    videoUrl: yt('handstand pushup tutorial'),
+  },
+  archer_pushup: {
+    id: 'archer_pushup', nameKey: 'exArcherPushup', muscleGroup: 'chest', isCompound: true,
+    videoUrl: yt('archer pushup tutorial'),
+  },
+  decline_pushup: {
+    id: 'decline_pushup', nameKey: 'exDeclinePushup', muscleGroup: 'chest', isCompound: true,
+    videoUrl: yt('decline pushup tutorial'),
+  },
+  weighted_pushup: {
+    id: 'weighted_pushup', nameKey: 'exWeightedPushup', muscleGroup: 'chest', isCompound: true,
+    videoUrl: yt('weighted pushup tutorial'),
+  },
+  pushups: {
+    id: 'pushups', nameKey: 'exPushups', muscleGroup: 'chest', isCompound: true,
+    videoUrl: yt('pushups tutorial proper form'),
+  },
+
+  // Pull-up assistance
+  assisted_pullup_band: {
+    id: 'assisted_pullup_band', nameKey: 'exAssistedPullupBand', muscleGroup: 'back', isCompound: true,
+    videoUrl: yt('assisted pullup band tutorial'),
+  },
+
+  // Cable / pulley triceps
+  tricep_pushdown: {
+    id: 'tricep_pushdown', nameKey: 'exTricepPushdown', muscleGroup: 'arms', isCompound: false,
+    videoUrl: yt('tricep pushdown cable tutorial'),
+  },
+  overhead_tricep_extension: {
+    id: 'overhead_tricep_extension', nameKey: 'exOverheadTricepExtension', muscleGroup: 'arms', isCompound: false,
+    videoUrl: yt('overhead tricep extension tutorial'),
+  },
+
+  // Barbell curl
+  barbell_curl: {
+    id: 'barbell_curl', nameKey: 'exBarbellCurl', muscleGroup: 'arms', isCompound: false,
+    videoUrl: yt('barbell curl tutorial'),
+  },
+  preacher_curl: {
+    id: 'preacher_curl', nameKey: 'exPreacherCurl', muscleGroup: 'arms', isCompound: false,
+    videoUrl: yt('preacher curl tutorial'),
+  },
+
+  // Tirage / row variations
+  t_bar_row: {
+    id: 't_bar_row', nameKey: 'exTBarRow', muscleGroup: 'back', isCompound: true,
+    videoUrl: yt('t bar row tutorial form'),
+  },
+  one_arm_dumbbell_row: {
+    id: 'one_arm_dumbbell_row', nameKey: 'exOneArmDBRow', muscleGroup: 'back', isCompound: true,
+    videoUrl: yt('one arm dumbbell row tutorial'),
+  },
+
+  // Maison spécifique
+  band_pull_apart: {
+    id: 'band_pull_apart', nameKey: 'exBandPullApart', muscleGroup: 'shoulders', isCompound: false,
+    videoUrl: yt('band pull apart tutorial'),
+  },
+  band_kickback: {
+    id: 'band_kickback', nameKey: 'exBandKickback', muscleGroup: 'legs', isCompound: false,
+    videoUrl: yt('band kickback glute tutorial'),
+  },
+  clamshell: {
+    id: 'clamshell', nameKey: 'exClamshell', muscleGroup: 'legs', isCompound: false,
+    videoUrl: yt('clamshell hip tutorial'),
+  },
+  monster_walk: {
+    id: 'monster_walk', nameKey: 'exMonsterWalk', muscleGroup: 'legs', isCompound: false,
+    videoUrl: yt('monster walk band glute tutorial'),
+  },
+  hip_thrust_band: {
+    id: 'hip_thrust_band', nameKey: 'exHipThrustBand', muscleGroup: 'legs', isCompound: true,
+    videoUrl: yt('hip thrust band glute tutorial'),
+  },
+  bench_press_dumbbells: {
+    id: 'bench_press_dumbbells', nameKey: 'exDBBenchPress', muscleGroup: 'chest', isCompound: true,
+    videoUrl: yt('dumbbell bench press tutorial'),
+  },
+  incline_db_press: {
+    id: 'incline_db_press', nameKey: 'exInclineDBPress', muscleGroup: 'chest', isCompound: true,
+    videoUrl: yt('incline dumbbell press tutorial'),
+  },
+  rdl_dumbbells: {
+    id: 'rdl_dumbbells', nameKey: 'exRDLDumbbells', muscleGroup: 'legs', isCompound: true,
+    videoUrl: yt('dumbbell romanian deadlift tutorial'),
+  },
+  hip_thrust_dumbbell: {
+    id: 'hip_thrust_dumbbell', nameKey: 'exHipThrustDumbbell', muscleGroup: 'legs', isCompound: true,
+    videoUrl: yt('dumbbell hip thrust tutorial'),
+  },
+  db_overhead_press: {
+    id: 'db_overhead_press', nameKey: 'exDBOverheadPress', muscleGroup: 'shoulders', isCompound: true,
+    videoUrl: yt('dumbbell overhead press tutorial'),
+  },
+  db_curl: {
+    id: 'db_curl', nameKey: 'exDBCurl', muscleGroup: 'arms', isCompound: false,
+    videoUrl: yt('dumbbell curl tutorial'),
+  },
+  db_tricep_extension: {
+    id: 'db_tricep_extension', nameKey: 'exDBTricepExtension', muscleGroup: 'arms', isCompound: false,
+    videoUrl: yt('dumbbell tricep extension tutorial'),
+  },
+  db_lateral_raise: {
+    id: 'db_lateral_raise', nameKey: 'exDBLateralRaise', muscleGroup: 'shoulders', isCompound: false,
+    videoUrl: yt('dumbbell lateral raise tutorial'),
+  },
 };
 
 export function getExercisesByGroup(): Record<MuscleGroup, Exercise[]> {

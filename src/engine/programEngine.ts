@@ -81,52 +81,28 @@ export function recommendProgram(
     : (objective as Objective);
 
   const level = mapActivityToLevel(activityLevel);
-  const days = defaultDaysPerWeek(activityLevel);
-  const isFemale = sex === 'female';
+  // V4 (60 programmes) : on construit l'ID via la convention de nommage
+  // V4 `${OBJ}_${LEVEL}_${LOC}_${SEX}`. Le lieu n'est pas connu ici
+  // (`recommendProgram` est appelé hors du wizard), on default sur 'gym'
+  // qui est le cas le plus fréquent en France. L'user peut toujours
+  // changer via le wizard ou le picker.
+  const lvl = (level === 'expert' ? 'advanced' : level).toUpperCase();
+  const sexCode = sex === 'female' ? 'F' : 'M';
 
   // Ménopause : priorité absolue à la FORCE pour combattre la
-  // sarcopénie + l'ostéoporose post-baisse œstrogène. On envoie
-  // toujours sur un programme musculation structuré, jamais HIIT/cardio.
-  // Pour les utilisatrices novices, 4 séances upper/lower (charges modérées,
-  // mouvements composés). Pour les intermédiaires, PHUL qui mixe
-  // force pure (Power day) + hypertrophie (Hyper day) — la combinaison
-  // optimale pour densité osseuse + masse musculaire.
+  // sarcopénie + l'ostéoporose post-baisse œstrogène. On envoie sur
+  // un programme musculation structuré avec charges (BULK pour conserver
+  // le surplus calorique + densité osseuse).
   const isMenopausal = menopauseStatus === 'peri' || menopauseStatus === 'post';
   if (isFemale && isMenopausal) {
-    if (level === 'beginner') return 'BULK_DEB_4D_UL';
-    return 'BULK_INT_4D_PHUL_F';
+    const mlvl = (level === 'beginner' ? 'BEGINNER' : 'INTERMEDIATE');
+    return `BULK_${mlvl}_GYM_F`;
   }
 
-  // ─── BULK ──
-  if (obj === 'bulk') {
-    if (level === 'beginner') {
-      return days >= 4 ? 'BULK_DEB_4D_UL' : 'BULK_DEB_3D_FB';
-    }
-    if (level === 'advanced') return 'BULK_AVA_4D_531';
-    // intermediate
-    if (days >= 6) return isFemale ? 'BULK_INT_6D_PPL_F' : 'BULK_INT_6D_PPL_M';
-    if (days === 5) return isFemale ? 'BULK_INT_5D_UL_PPL_F' : 'BULK_INT_5D_UL_PPL_M';
-    return isFemale ? 'BULK_INT_4D_PHUL_F' : 'BULK_INT_4D_PHUL_M';
-  }
-
-  // ─── CUT ──
-  if (obj === 'cut') {
-    if (level === 'beginner') {
-      return days >= 4 ? 'CUT_DEB_4D_UL' : 'CUT_DEB_3D_FB';
-    }
-    if (days >= 5) return isFemale ? 'CUT_INT_5D_PPL_UL_F' : 'CUT_INT_5D_PPL_UL_M';
-    return isFemale ? 'CUT_INT_4D_UL_F' : 'CUT_INT_4D_UL_M';
-  }
-
-  // ─── MAINTAIN ──
-  if (obj === 'maintain') {
-    return days >= 4 ? 'MAINTAIN_4D_UL' : 'MAINTAIN_3D_FB';
-  }
-
-  // ─── RECOMP ──
-  if (level === 'beginner') return 'RECOMP_DEB_3D_FB';
-  if (days >= 5) return isFemale ? 'RECOMP_INT_5D_HYB_F' : 'RECOMP_INT_5D_HYB_M';
-  return isFemale ? 'RECOMP_INT_4D_UL_F' : 'RECOMP_INT_4D_UL_M';
+  // V4 : tous les objectifs (bulk/cut/maintain/recomp/force) suivent la
+  // même convention. days n'est plus utilisé — la fréquence est figée
+  // par le niveau (3j débutant, 4j inter, 6j avancé).
+  return `${obj.toUpperCase()}_${lvl}_GYM_${sexCode}`;
 }
 
 // ============================================================================
@@ -172,6 +148,12 @@ function getCardioRecommendation(objective: Objective): CardioRecommendation {
       return { sessionsPerWeek: 2, type: 'mixed', durationMinutes: 25, descriptionKey: 'cardioRecMaintain' };
     case 'recomp':
       return { sessionsPerWeek: 2, type: 'mixed', durationMinutes: 25, descriptionKey: 'cardioRecRecomp' };
+    case 'force':
+      // Powerlifter : cardio minimal pour minimiser l'interférence avec
+      // les adaptations de force (Schoenfeld/Wilson meta 2012). 1 session
+      // LISS courte pour la santé cardio + récup active. Pas de HIIT
+      // (épuise le SNC nécessaire aux lourdes).
+      return { sessionsPerWeek: 1, type: 'liss', durationMinutes: 20, descriptionKey: 'cardioRecForce' };
   }
 }
 

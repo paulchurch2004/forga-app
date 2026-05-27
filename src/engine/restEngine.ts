@@ -65,10 +65,19 @@ export function getRestConfig(
       objectiveModifier = -10;
       reasonKey = reasonKey + 'Recomp';
       break;
+    case 'force':
+      // Powerlifter : récupération neuro maximale entre les sets pour
+      // maintenir la qualité des charges lourdes. +45s par rapport à
+      // bulk (qui est déjà +15s).
+      objectiveModifier = 60;
+      reasonKey = reasonKey + 'Force';
+      break;
     // maintain: no modifier
   }
 
-  const restSeconds = Math.max(45, baseRest + objectiveModifier);
+  // Plafond du rest : 5 min pour les compounds force (squat / DL / bench
+  // à 90 %+ TM nécessitent 3-5 min selon Wendler / Helms / Israetel).
+  const restSeconds = Math.max(45, Math.min(300, baseRest + objectiveModifier));
 
   // Transition rest between exercises (slightly longer than set rest)
   const transitionSeconds = Math.min(restSeconds + 30, 180);

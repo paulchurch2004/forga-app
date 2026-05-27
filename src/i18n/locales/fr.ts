@@ -143,6 +143,7 @@ export const fr = {
   objectiveCut: 'Seche',
   objectiveMaintain: 'Maintien',
   objectiveRecomp: 'Recomposition',
+  objectiveForce: 'Force (powerlifter)',
 
   // Activity levels
   activitySedentary: 'Sedentaire',
@@ -497,6 +498,7 @@ export const fr = {
   objectiveCutDesc: 'Perdre la graisse tout en preservant le muscle. Deficit calorique mesure, proteines elevees. Pour redevenir sec.',
   objectiveMaintainDesc: 'Stabiliser ton poids et ton physique actuel. Calories de maintenance, equilibre macro. Pour consolider tes acquis.',
   objectiveRecompDesc: 'Perdre la graisse et gagner du muscle en meme temps. Strategie precise, exigeante mais payante. Pour transformer ta silhouette.',
+  objectiveForceDesc: 'Devenir vraiment fort. Charges lourdes (squat, bench, deadlift), reps basses (3-5), long repos. Surplus modere pour soutenir les seances sans gras. Pour les passionnes de force pure.',
   onboardingStep4Title: 'Ton objectif chiffre.',
   onboardingStep4Subtitle: 'Ou tu veux aller, et en combien de temps.',
   onboardingStep4SubtitleNoTarget: 'Tes macros seront calibrees sur ton poids actuel.',
@@ -1102,6 +1104,7 @@ export const fr = {
   cardioRecCut: '2-3 seances HIIT/LISS (20-30 min) pour maximiser le deficit calorique.',
   cardioRecMaintain: '2 seances cardio modere pour rester en forme.',
   cardioRecRecomp: '2 seances cardio modere pour soutenir la recomposition.',
+  cardioRecForce: '1 seance LISS courte (20 min) pour la sante. Pas de HIIT — il epuiserait ton systeme nerveux.',
   planExpired: 'Plan termine !',
   planExpiredSub: 'Bravo ! Relance un programme ou change.',
   renewPlan: 'RELANCER',

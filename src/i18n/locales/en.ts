@@ -145,6 +145,7 @@ export const en: Record<TranslationKey, string> = {
   objectiveCut: 'Cut',
   objectiveMaintain: 'Maintain',
   objectiveRecomp: 'Recomp',
+  objectiveForce: 'Strength (powerlifter)',
 
   // Activity levels
   activitySedentary: 'Sedentary',
@@ -499,6 +500,7 @@ export const en: Record<TranslationKey, string> = {
   objectiveCutDesc: 'Lose fat while preserving muscle. Measured caloric deficit, high protein. Get lean again.',
   objectiveMaintainDesc: 'Stabilize your weight and current physique. Maintenance calories, balanced macros. Lock in your gains.',
   objectiveRecompDesc: 'Lose fat and gain muscle at the same time. Precise strategy, demanding but rewarding. Reshape your silhouette.',
+  objectiveForceDesc: 'Get genuinely strong. Heavy loads (squat, bench, deadlift), low reps (3-5), long rest. Modest surplus to fuel sessions without gaining fat. For pure-strength enthusiasts.',
   onboardingStep4Title: 'Your target numbers.',
   onboardingStep4Subtitle: 'Where you want to go, and how long.',
   onboardingStep4SubtitleNoTarget: 'Your macros will be calibrated based on your current weight.',
@@ -1104,6 +1106,7 @@ export const en: Record<TranslationKey, string> = {
   cardioRecCut: '2-3 HIIT/LISS sessions (20-30 min) to maximize calorie deficit.',
   cardioRecMaintain: '2 moderate cardio sessions to stay fit.',
   cardioRecRecomp: '2 moderate cardio sessions to support recomposition.',
+  cardioRecForce: '1 short LISS session (20 min) for cardiovascular health. No HIIT — it would drain your nervous system.',
   planExpired: 'Plan completed!',
   planExpiredSub: 'Well done! Restart a program or change.',
   renewPlan: 'RESTART',

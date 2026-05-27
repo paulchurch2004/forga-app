@@ -523,30 +523,44 @@ export default function TrainingScreen() {
             </View>
           )}
 
-          {/* New user with no training profile \u2192 guided 3-question wizard.
+          {/* New user with no training profile \u2192 guided 5-step wizard
+              (objectif / niveau / dispo / lieu / calibration).
               Returning user OR after expired plan \u2192 direct program list. */}
           {!profile?.trainingLevel && !isPlanExpired ? (
             <TrainingSetupWizard
               objective={objective}
               sex={profile?.sex ?? 'male'}
               age={profile?.age ?? 25}
-              onConfirm={(programId, level, frequency, equipment) => {
+              bodyweightKg={profile?.currentWeight}
+              onConfirm={(programId, finalObjective, level, frequency, equipment, location, strengthTest) => {
                 triggerHaptic();
+                // Persist toutes les dimensions choisies dans le wizard.
+                // L'objective peut avoir \u00e9t\u00e9 modifi\u00e9 par l'user \u00e0 l'\u00e9tape 1
+                // (diff\u00e9rent de celui pos\u00e9 \u00e0 l'inscription).
                 updateProfile({
+                  objective: finalObjective,
                   trainingLevel: level,
                   trainingFrequency: frequency,
                   equipmentAccess: equipment,
+                  trainingLocation: location,
                 });
-                selectProgram(programId, objective);
+                // Si le test calibration a \u00e9t\u00e9 fait \u2192 sauvegarder dans
+                // le profil pour alimenter estimateOneRMForExercise.
+                if (strengthTest) {
+                  useUserStore.getState().setStrengthTest(strengthTest);
+                }
+                selectProgram(programId, finalObjective);
               }}
               onBrowseAll={() => {
                 triggerHaptic();
-                // User skips the wizard \u2014 record minimal defaults so the next
-                // visit goes straight to the full program list.
+                // User skips le wizard \u2014 d\u00e9fauts conservateurs : d\u00e9butant
+                // 3j salle. Au prochain visit, le wizard ne se relancera
+                // pas car trainingLevel est set.
                 updateProfile({
                   trainingLevel: 'beginner',
                   trainingFrequency: 3,
                   equipmentAccess: 'full_gym',
+                  trainingLocation: 'gym',
                 });
               }}
             />
