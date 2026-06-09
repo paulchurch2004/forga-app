@@ -44,3 +44,6 @@ yarn-error.*
 .vercel
 .claude/
 design-handoff/
+
+# Claude Code temp cache
+.tmp_claude/
