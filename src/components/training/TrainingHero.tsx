@@ -65,7 +65,7 @@ export function TrainingHero({
           <Text style={styles.programPillLabel} numberOfLines={1}>{programName}</Text>
           <ChevronDownIcon />
         </Pressable>
-        <Pressable onPress={onHistoryPress} style={({ pressed }) => [styles.iconPill, pressed && styles.pressed]}>
+        <Pressable onPress={onHistoryPress} hitSlop={8} style={({ pressed }) => [styles.iconPill, pressed && styles.pressed]}>
           <ClockIcon />
         </Pressable>
       </View>
@@ -144,9 +144,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   iconPill: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: 'rgba(0,0,0,0.4)',
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.12)',

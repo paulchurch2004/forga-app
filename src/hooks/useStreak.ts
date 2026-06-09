@@ -34,6 +34,10 @@ export function useStreak() {
     if (!profile) return;
     const previousStreak = profile.currentStreak;
     updateProfile({ currentStreak: 0 });
+    // Sync vers Supabase — sans ça, un user qui perd sa streak sur
+    // iPhone garde une "current_streak" non-zéro en DB → au prochain
+    // login sur un autre device, la streak ressuscite faussement.
+    if (profile.id) syncProfile({ currentStreak: 0 }, profile.id);
     if (previousStreak > 0) events.streakLost(previousStreak);
   }, [profile, updateProfile]);
 
@@ -168,6 +172,10 @@ export function useStreak() {
     if (!profile.isPremium) return false;
 
     updateProfile({ streakFreezeUsedThisWeek: true });
+    // Sync vers Supabase — sans ça, l'user pourrait utiliser le freeze
+    // depuis un autre device la même semaine (le flag local n'étant
+    // pas propagé), bypass le quota 1/semaine.
+    if (profile.id) syncProfile({ streakFreezeUsedThisWeek: true }, profile.id);
     events.streakFreezeUsed();
     return true;
   }, [profile, streakFreezeUsedThisWeek, updateProfile]);

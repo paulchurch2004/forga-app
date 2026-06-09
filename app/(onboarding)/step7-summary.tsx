@@ -7,7 +7,7 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
-  Modal,
+  StyleSheet,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -19,6 +19,7 @@ import type { MealSlot } from '../../src/types/meal';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUserStore } from '../../src/store/userStore';
+import { todayLocalIso } from '../../src/utils/date';
 import { useTrackOnboardingStep } from '../../src/hooks/useTrackOnboardingStep';
 import { useOnboardingBack } from '../../src/hooks/useOnboardingBack';
 import { useAuthStore } from '../../src/store/authStore';
@@ -31,7 +32,7 @@ import { calculateTDEE } from '../../src/engine/tdee';
 import { calculateMacros } from '../../src/engine/macros';
 import { determineMealCount } from '../../src/engine/mealPlanner';
 import { supabase, isDemoMode } from '../../src/services/supabase';
-import { generateReferralCode, lookupReferralCode, applyReferral, calculatePremiumUntil } from '../../src/services/referrals';
+import { generateReferralCode, lookupReferralCode, applyReferral, applyRefereeBonus, calculatePremiumUntil } from '../../src/services/referrals';
 import { events } from '../../src/services/analytics';
 import type { Objective, ActivityLevel } from '../../src/types/user';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -259,11 +260,15 @@ export default function Step7Summary() {
           throw error;
         }
 
-        // Apply referral reward to the referrer
+        // Apply referral reward to the referrer + bonus pour le filleul
         if (referredByCode) {
           const referrerId = await lookupReferralCode(referredByCode);
           if (referrerId) {
             await applyReferral(referrerId, userId, referredByCode);
+            // Bonus filleul : +30 jours de Pro en plus du trial 7j auto.
+            // Total = 37j gratuit pour qui s'inscrit via lien de
+            // parrainage (vs 7j sans). Renforce la viralité.
+            await applyRefereeBonus(userId);
             events.referralCodeUsed(referredByCode);
           }
         }
@@ -275,6 +280,26 @@ export default function Step7Summary() {
       // Update local stores
       setProfile(profileData);
       setOnboarded(true);
+
+      // Seed la 1re entrée de poids dans weightLog avec le poids saisi
+      // à l'onboarding. SANS ça, weightLog reste vide → useWeightPrompt
+      // déclenche le modal "pèse-toi" dès l'arrivée sur le Home, qui
+      // RE-DEMANDE le poids que l'user vient de donner. Pire : ce modal
+      // s'ouvre juste après le modal notifs → conflit "2 modals" iOS →
+      // UI figée. Seeder le log corrige les deux symptômes d'un coup +
+      // démarre l'historique de poids dès J1.
+      const seedWeight = onboardingData.currentWeight ?? 75;
+      const existingLog = useUserStore.getState().weightLog;
+      if (existingLog.length === 0 && seedWeight > 0) {
+        useUserStore.getState().addWeightEntry({
+          id: `w_seed_${Date.now()}`,
+          userId,
+          date: todayLocalIso(),
+          weight: seedWeight,
+          createdAt: new Date().toISOString(),
+        });
+      }
+
       events.onboardingComplete();
       events.trialStarted();
       // Onboarding complete — clear the resume marker.
@@ -288,7 +313,16 @@ export default function Step7Summary() {
         router.replace('/');
       }
     } catch (err: any) {
-      const message = err?.message ?? t('errorOccurred');
+      // Erreur réseau/Supabase : on rend le message actionnable. Le
+      // bouton se réactive via `finally` donc l'user peut retry, mais
+      // sans contexte il pense que c'est cassé définitivement. On
+      // détecte les patterns courants (network, 5xx) pour donner un
+      // hint clair "vérifie ta connexion, retape le bouton".
+      const rawMessage = err?.message ?? t('errorOccurred');
+      const isNetwork = /network|fetch|timeout|5\d\d/i.test(rawMessage);
+      const message = isNetwork
+        ? `${t('errorNetwork') ?? 'Problème de connexion'}. ${t('retryHint') ?? 'Vérifie ton réseau puis appuie à nouveau sur Commencer.'}`
+        : rawMessage;
       if (Platform.OS === 'web') {
         alert(message);
       } else {
@@ -299,11 +333,24 @@ export default function Step7Summary() {
     }
   }, [isLoading, user, onboardingData, computed, setProfile, setOnboarded, router]);
 
+  // Ferme l'overlay notif puis navigue. L'overlay étant un simple View
+  // absolu (et non un <Modal> natif), il se démonte instantanément avec
+  // l'écran — pas de risque d'overlay natif fantôme qui fige l'app.
+  const closeNotifThenGoHome = useCallback(() => {
+    setShowNotifPrompt(false);
+    router.replace('/');
+  }, [router]);
+
   const handleEnableNotifs = useCallback(async () => {
     try {
       const granted = await requestPermissions();
       if (granted) {
-        const slots: MealSlot[] = ['breakfast', 'morning_snack', 'lunch', 'afternoon_snack', 'dinner', 'bedtime'];
+        // Cap à 3 repas principaux par défaut (breakfast / lunch / dinner)
+        // pour ne pas saturer l'user en notifs. Les snacks et bedtime
+        // peuvent être activés à la main depuis Profil > Notifications
+        // si l'user le souhaite. Sans ce cap, on schedule 6 notifs/jour
+        // = désabonnement quasi certain dans les 72h.
+        const slots: MealSlot[] = ['breakfast', 'lunch', 'dinner'];
         for (const slot of slots) {
           await scheduleMealReminder(slot);
         }
@@ -313,14 +360,12 @@ export default function Step7Summary() {
     } catch {
       // Silent fail
     }
-    setShowNotifPrompt(false);
-    router.replace('/');
-  }, [router]);
+    closeNotifThenGoHome();
+  }, [closeNotifThenGoHome]);
 
   const handleSkipNotifs = useCallback(() => {
-    setShowNotifPrompt(false);
-    router.replace('/');
-  }, [router]);
+    closeNotifThenGoHome();
+  }, [closeNotifThenGoHome]);
 
   const objective = onboardingData.objective ?? 'maintain';
   const currentWeight = onboardingData.currentWeight ?? 75;
@@ -482,14 +527,14 @@ export default function Step7Summary() {
         </Pressable>
       </View>
 
-      {/* Notification opt-in modal — V2 glass with solid backdrop */}
-      <Modal
-        visible={showNotifPrompt}
-        transparent
-        animationType="fade"
-        onRequestClose={handleSkipNotifs}
-      >
-        <View style={styles.modalOverlay}>
+      {/* Notification opt-in — overlay ABSOLU (pas un <Modal> RN natif).
+          Pourquoi : un <Modal> transparent dont l'écran parent est
+          démonté pendant le dismiss (ici on navigue vers le Home juste
+          après) laisse sur iOS un overlay natif invisible qui intercepte
+          TOUS les touches → l'app paraît figée. Un overlay absolu se
+          démonte proprement avec l'écran, zéro modal natif = zéro freeze. */}
+      {showNotifPrompt && (
+        <View style={[styles.modalOverlay, StyleSheet.absoluteFill]} pointerEvents="auto">
           <View style={styles.modalCard}>
             <View style={styles.modalGlow} pointerEvents="none" />
             <Text style={styles.modalEyebrow}>RAPPELS QUOTIDIENS</Text>
@@ -510,7 +555,7 @@ export default function Step7Summary() {
             </Pressable>
           </View>
         </View>
-      </Modal>
+      )}
     </View>
   );
 }

@@ -5,6 +5,7 @@ import { todayLocalIso, localIso } from '../utils/date';
 import type { Badge, BadgeType } from '../types/user';
 import { BADGE_INFO } from '../types/user';
 import { Platform } from 'react-native';
+import { syncBadge } from '../services/userSync';
 
 function makeBadge(type: BadgeType): Badge {
   return { id: `${type}_${Date.now()}`, type, unlockedAt: new Date().toISOString() };
@@ -66,9 +67,16 @@ export function useTrainingStreak() {
     const total = totalWorkouts;
     const streak = currentStreak;
 
+    const userId = useUserStore.getState().profile?.id;
     const earn = (type: BadgeType) => {
       if (hasBadge(type)) return;
-      addBadge(makeBadge(type));
+      const badge = makeBadge(type);
+      addBadge(badge);
+      // Sync vers Supabase — sans ce push, les badges training (10/30/
+      // 100 séances, streaks 7j/30j) étaient perdus au logout/réinstall.
+      // L'équivalent côté `useStreak.ts` syncait déjà ses propres badges,
+      // celui-ci avait été oublié.
+      if (userId) syncBadge(badge, userId);
       unlocked.push(type);
     };
 

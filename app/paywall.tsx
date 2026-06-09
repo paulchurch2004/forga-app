@@ -21,6 +21,7 @@ import { useUserStore } from '../src/store/userStore';
 import { useAuthStore } from '../src/store/authStore';
 import { events } from '../src/services/analytics';
 import { VideoMontage } from '../src/components/paywall/VideoMontage';
+import { Testimonials } from '../src/components/paywall/Testimonials';
 
 const showAlert = (title: string, message: string) => {
   if (Platform.OS === 'web') {
@@ -56,12 +57,17 @@ interface FeatureRow {
   pro: string;
 }
 
+// ⚠️ Honnêteté App Store : on ne dit PAS "illimité" pour le Coach IA et
+// les scans, car ils ont un cap serveur (50 msg/jour, 50 scans/jour) pour
+// maîtriser les coûts LLM/vision. Apple peut rejeter un claim "illimité"
+// qui ne l'est pas vraiment. "50/jour" reste largement au-dessus de tout
+// usage normal → l'argument de vente tient sans mentir.
 const FEATURES: FeatureRow[] = [
-  { name: '800+ recettes',            free: '5 recettes',         pro: 'Illimité' },
+  { name: '800+ recettes',            free: '5 recettes',         pro: 'Les 800+' },
   { name: 'Recettes étape par étape', free: 'Liste seulement',    pro: 'Vidéo + pas' },
-  { name: 'Coach IA',                 free: '5 messages / jour',  pro: 'Illimité' },
+  { name: 'Coach IA',                 free: '5 messages / jour',  pro: '50 messages / jour' },
   { name: "Programmes d'entraînement", free: '1 programme',       pro: 'Tous les programmes' },
-  { name: 'Scan code-barre & photo',  free: '3 scans / jour',     pro: 'Illimité' },
+  { name: 'Scan code-barre & photo',  free: '3 scans / jour',     pro: '10 scans / jour' },
 ];
 
 export default function PaywallScreen() {
@@ -205,14 +211,14 @@ export default function PaywallScreen() {
             }}>PROGRAMME 90 JOURS</Text>
           </View>
           <Text style={{
-            fontFamily: fonts.display, fontSize: 38, lineHeight: 38, fontWeight: '500',
+            fontFamily: fonts.display, fontSize: 38, lineHeight: 44, fontWeight: '500',
             color: TH.text, letterSpacing: -1,
           }}>
             De{' '}
             <Text style={{ fontStyle: 'italic', color: TH.textMuted, fontWeight: '400' }}>qui tu es</Text>
           </Text>
           <Text style={{
-            fontFamily: fonts.display, fontSize: 38, lineHeight: 40, fontWeight: '500',
+            fontFamily: fonts.display, fontSize: 38, lineHeight: 44, fontWeight: '500',
             color: TH.text, letterSpacing: -1,
           }}>
             à <HeroGradientText>qui tu peux devenir.</HeroGradientText>
@@ -246,6 +252,11 @@ export default function PaywallScreen() {
             </Text>
           </View>
         </View>
+
+        {/* Testimonials — preuve sociale individuelle (avatars + citations
+            + résultats). À remplacer par vrais témoignages avant launch
+            (cf src/components/paywall/Testimonials.tsx). */}
+        <Testimonials />
 
         {/* Toggle Free / Pro */}
         <View style={{ paddingHorizontal: 20, paddingBottom: 12 }}>
@@ -282,8 +293,8 @@ export default function PaywallScreen() {
               <View
                 key={i}
                 style={{
-                  flexDirection: 'row', alignItems: 'center', gap: 10,
-                  paddingVertical: 9,
+                  flexDirection: 'row', alignItems: 'center', gap: 12,
+                  paddingVertical: 12,
                   borderBottomWidth: i < FEATURES.length - 1 ? 1 : 0,
                   borderBottomColor: TH.border,
                   opacity: isLocked ? 0.45 : 1,
@@ -327,9 +338,10 @@ export default function PaywallScreen() {
               onPress={() => setSelectedPlan('annual')}
               badge="−33%"
               label="Annuel"
+              strikePrice="14,99€"
               priceMain="9,99€"
               priceSuffix="/mois"
-              detail="119,88€/an"
+              detail="119,88€/an · 7j gratuits"
             />
             <PriceCard
               selected={selectedPlan === 'monthly'}
@@ -340,7 +352,22 @@ export default function PaywallScreen() {
               detail="Sans engagement"
             />
           </View>
+          {/* Ancrage de prix : recadre 9,99€/mois en coût hebdo dérisoire
+              pour dédramatiser ("c'est pas grand-chose"). */}
+          <Text style={{
+            textAlign: 'center', marginTop: 10,
+            fontFamily: fonts.body, fontSize: 11.5, color: TH.textMuted,
+          }}>
+            {selectedPlan === 'annual'
+              ? 'Soit ~2,30€/semaine — moins qu’un café.'
+              : 'Le prix de 2 cafés par semaine.'}
+          </Text>
         </View>
+
+        {/* Timeline d'essai — tue la peur n°1 de l'user ("je vais oublier
+            d'annuler et être débité sans le vouloir"). Montrer le déroulé
+            de l'essai augmente nettement la conversion. */}
+        <TrialTimeline />
 
         {/* CTA */}
         <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8 }}>
@@ -360,20 +387,32 @@ export default function PaywallScreen() {
               {loading ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={{
-                  fontFamily: fonts.body, fontSize: 14.5, fontWeight: '700',
-                  color: '#FFFFFF', letterSpacing: -0.2,
-                }}>
-                  Démarrer mes 7 jours gratuits  →
-                </Text>
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={{
+                    fontFamily: fonts.body, fontSize: 15, fontWeight: '800',
+                    color: '#FFFFFF', letterSpacing: -0.2,
+                  }}>
+                    Essayer 7 jours gratuitement
+                  </Text>
+                  <Text style={{
+                    fontFamily: fonts.body, fontSize: 11, fontWeight: '500',
+                    color: 'rgba(255,255,255,0.9)', marginTop: 2,
+                  }}>
+                    0€ aujourd'hui · puis {selectedPlan === 'annual' ? '119,88€/an' : '14,99€/mois'}
+                  </Text>
+                </View>
               )}
             </LinearGradient>
           </Pressable>
+          {/* Ligne de réassurance. "Sans CB" RETIRÉ car FAUX : Apple exige
+              un moyen de paiement (Apple ID) pour démarrer un essai avec
+              abonnement auto-renouvelable. On reste honnête : 0€ aujourd'hui,
+              rappel avant débit, annulation facile. */}
           <Text style={{
-            textAlign: 'center', marginTop: 9,
-            fontFamily: fonts.body, fontSize: 10.5, color: TH.textMuted,
+            textAlign: 'center', marginTop: 10,
+            fontFamily: fonts.body, fontSize: 10.5, color: TH.textMuted, lineHeight: 15,
           }}>
-            Sans CB · Annule en 1 tap ·{' '}
+            Annule quand tu veux dans les Réglages · Rappel avant le 1er débit{'\n'}
             <Text onPress={handleRestore} style={{ textDecorationLine: 'underline', color: TH.textMuted }}>
               {t('restorePurchase')}
             </Text>
@@ -385,6 +424,72 @@ export default function PaywallScreen() {
 }
 
 // ─── Subcomponents ──────────────────────────────────────────────
+
+/** Déroulé visuel de l'essai gratuit 7 jours. Réduit l'anxiété
+ *  "je vais être débité sans m'en rendre compte" → +conversion. */
+function TrialTimeline() {
+  const steps = [
+    {
+      day: "Aujourd'hui",
+      title: 'Accès Pro complet',
+      desc: 'Tout débloqué, 0€ débité.',
+      color: TH.primary,
+    },
+    {
+      day: 'Jour 5',
+      title: 'Petit rappel',
+      desc: 'On te prévient : 2 jours avant la fin.',
+      color: TH.primaryLight,
+    },
+    {
+      day: 'Jour 7',
+      title: 'Début de l\'abonnement',
+      desc: 'Sauf si tu as annulé avant (1 tap).',
+      color: TH.green,
+    },
+  ];
+  return (
+    <View style={{ paddingHorizontal: 20, paddingBottom: 14 }}>
+      <View style={{
+        backgroundColor: TH.surface, borderWidth: 1, borderColor: TH.border,
+        borderRadius: 14, padding: 16,
+      }}>
+        <Text style={{
+          fontFamily: fonts.data, fontSize: 9.5, color: TH.primary,
+          letterSpacing: 1.8, textTransform: 'uppercase', fontWeight: '600',
+          marginBottom: 14,
+        }}>
+          Comment marche ton essai
+        </Text>
+        {steps.map((s, i) => (
+          <View key={i} style={{ flexDirection: 'row', gap: 12 }}>
+            {/* Rail vertical + point */}
+            <View style={{ alignItems: 'center', width: 14 }}>
+              <View style={{
+                width: 12, height: 12, borderRadius: 6,
+                backgroundColor: s.color, marginTop: 2,
+              }} />
+              {i < steps.length - 1 && (
+                <View style={{ width: 2, flex: 1, backgroundColor: TH.border, marginVertical: 2 }} />
+              )}
+            </View>
+            <View style={{ flex: 1, paddingBottom: i < steps.length - 1 ? 14 : 0 }}>
+              <Text style={{ fontFamily: fonts.data, fontSize: 10, color: s.color, fontWeight: '700', letterSpacing: 0.4 }}>
+                {s.day.toUpperCase()}
+              </Text>
+              <Text style={{ fontFamily: fonts.body, fontSize: 13.5, color: TH.text, fontWeight: '700', marginTop: 1 }}>
+                {s.title}
+              </Text>
+              <Text style={{ fontFamily: fonts.body, fontSize: 12, color: TH.textMuted, marginTop: 1 }}>
+                {s.desc}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
 
 function HeroGradientText({ children }: { children: React.ReactNode }) {
   // Fake gradient text via tinted overlay — RN doesn't support text gradient natively without MaskedView.
@@ -433,7 +538,7 @@ function ToggleButton({
 }
 
 function PriceCard({
-  selected, onPress, badge, label, priceMain, priceSuffix, detail,
+  selected, onPress, badge, label, priceMain, priceSuffix, detail, strikePrice,
 }: {
   selected: boolean;
   onPress: () => void;
@@ -442,6 +547,10 @@ function PriceCard({
   priceMain: string;
   priceSuffix: string;
   detail: string;
+  /** Prix barré affiché à côté du prix principal (ex: "14,99€" sur le
+   *  plan annuel pour matérialiser l'économie vs mensuel). Si absent,
+   *  pas de prix barré rendu. */
+  strikePrice?: string;
 }) {
   return (
     <Pressable onPress={onPress} style={{
@@ -470,7 +579,16 @@ function PriceCard({
         </View>
       )}
       <Text style={{ fontFamily: fonts.body, fontSize: 10, color: TH.textMuted, marginBottom: 3 }}>{label}</Text>
-      <View style={{ flexDirection: 'row', alignItems: 'baseline' }}>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', columnGap: 6 }}>
+        {strikePrice && (
+          <Text style={{
+            fontFamily: fonts.display, fontSize: 14, fontWeight: '500',
+            color: TH.textMuted, letterSpacing: -0.2,
+            textDecorationLine: 'line-through',
+          }}>
+            {strikePrice}
+          </Text>
+        )}
         <Text style={{ fontFamily: fonts.display, fontSize: 22, fontWeight: '700', color: TH.text, letterSpacing: -0.4 }}>
           {priceMain}
         </Text>

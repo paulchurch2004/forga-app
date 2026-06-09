@@ -1,5 +1,6 @@
 // User Data Sync — Push/Pull all user data to/from Supabase
 import { supabase, isDemoMode } from './supabase';
+import { useAuthStore } from '../store/authStore';
 import { useUserStore } from '../store/userStore';
 import { useMealStore } from '../store/mealStore';
 import { useScoreStore } from '../store/scoreStore';
@@ -73,6 +74,36 @@ export function syncWeight(entry: WeightEntry, _userId: string) {
       date: entry.date,
       weight: entry.weight,
       created_at: entry.createdAt,
+    },
+  });
+}
+
+/** Sync a weekly check-in to Supabase.
+ *
+ *  Avant : `addCheckIn` ne pushait JAMAIS — l'user remplit son check-in
+ *  hebdo (énergie, sommeil, perf, faim, poids, ajustement calorique),
+ *  c'était perdu au logout/réinstall. Or les check-ins servent au
+ *  coach IA (contexte sur l'état hebdo), au calcul du score, et à la
+ *  visualisation tendance. Maintenant on push à l'upsert (clé naturelle
+ *  : user_id + week_start, gère les overwrite sans doublon).
+ */
+export function syncWeeklyCheckIn(checkIn: WeeklyCheckIn) {
+  if (isDemoMode) return;
+  enqueue({
+    table: 'weekly_check_ins',
+    operation: 'upsert',
+    data: {
+      id: checkIn.id,
+      user_id: checkIn.userId,
+      week_start: checkIn.weekStart,
+      weight: checkIn.weight,
+      energy: checkIn.energy,
+      hunger: checkIn.hunger,
+      performance: checkIn.performance,
+      sleep: checkIn.sleep,
+      calorie_adjustment: checkIn.calorieAdjustment,
+      adjustment_reason: checkIn.adjustmentReason ?? null,
+      created_at: checkIn.createdAt,
     },
   });
 }
@@ -260,6 +291,7 @@ export async function syncProfile(updates: Record<string, any>, userId: string) 
     currentStreak: 'current_streak',
     bestStreak: 'best_streak',
     streakFreezeUsedThisWeek: 'streak_freeze_used_this_week',
+    healthDisclaimerAcceptedAt: 'health_disclaimer_accepted_at',
     forgaScore: 'forga_score',
     isPremium: 'is_premium',
     premiumUntil: 'premium_until',
@@ -314,6 +346,18 @@ export async function syncProfile(updates: Record<string, any>, userId: string) 
 
   snakeUpdates.id = userId;
   snakeUpdates.updated_at = new Date().toISOString();
+
+  // Garde session : au démarrage de l'app, certains hooks (usePremium,
+  // useScore…) appellent syncProfile AVANT que supabase.auth ait
+  // restauré la session depuis AsyncStorage (restore async). Résultat :
+  // auth.uid() = null → RLS rejette avec "new row violates row-level
+  // security policy" → log bruyant. On vérifie d'abord qu'une session
+  // existe ; sinon on queue directement (drainé après SIGNED_IN).
+  const hasSession = !!useAuthStore.getState().session;
+  if (!hasSession) {
+    await enqueue({ table: 'users', operation: 'upsert', data: snakeUpdates });
+    return;
+  }
 
   try {
     const { error } = await supabase

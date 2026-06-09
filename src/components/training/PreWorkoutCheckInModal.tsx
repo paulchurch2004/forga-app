@@ -30,6 +30,7 @@ import { useUserStore } from '../../store/userStore';
 import { syncMetalEntry } from '../../services/userSync';
 import { todayLocalIso } from '../../utils/date';
 import type { TranslationKey } from '../../i18n/locales/fr';
+import type { TrainingLevel } from '../../types/user';
 
 export type MetalId = 'lead' | 'bronze' | 'iron' | 'steel' | 'gold';
 
@@ -50,20 +51,48 @@ interface Metal {
   id: MetalId;
   labelKey: TranslationKey;
   color: string;
-  /** Multiplicateur de charge appliqué à la séance.
-   *  Ex: 0.9 = -10% sur les charges proposées. */
-  loadMultiplier: number;
   /** Description courte de l'impact ressenti */
   impactKey: TranslationKey;
 }
 
 const METALS: Metal[] = [
-  { id: 'lead', labelKey: 'ritualMetalPlomb', color: '#6b6b7a', loadMultiplier: 0.85, impactKey: 'ritualImpactPlomb' },
-  { id: 'bronze', labelKey: 'ritualMetalBronze', color: '#cd7f32', loadMultiplier: 0.93, impactKey: 'ritualImpactBronze' },
-  { id: 'iron', labelKey: 'ritualMetalFer', color: '#8a9099', loadMultiplier: 1.0, impactKey: 'ritualImpactFer' },
-  { id: 'steel', labelKey: 'ritualMetalAcier', color: '#b4c0d0', loadMultiplier: 1.03, impactKey: 'ritualImpactAcier' },
-  { id: 'gold', labelKey: 'ritualMetalOr', color: '#ffc94d', loadMultiplier: 1.08, impactKey: 'ritualImpactOr' },
+  { id: 'lead', labelKey: 'ritualMetalPlomb', color: '#6b6b7a', impactKey: 'ritualImpactPlomb' },
+  { id: 'bronze', labelKey: 'ritualMetalBronze', color: '#cd7f32', impactKey: 'ritualImpactBronze' },
+  { id: 'iron', labelKey: 'ritualMetalFer', color: '#8a9099', impactKey: 'ritualImpactFer' },
+  { id: 'steel', labelKey: 'ritualMetalAcier', color: '#b4c0d0', impactKey: 'ritualImpactAcier' },
+  { id: 'gold', labelKey: 'ritualMetalOr', color: '#ffc94d', impactKey: 'ritualImpactOr' },
 ];
+
+/**
+ * Multiplicateur de charge PAR MÉTAL et PAR NIVEAU.
+ *
+ * Avant : amplitude fixe (-15% à +8%) pour tout le monde. C'était
+ * anti-pédagogique : un DÉBUTANT en "plomb" n'a pas besoin de -15%
+ * (ça casse sa progression et son moral — il a juste besoin de bouger
+ * avec une bonne technique), et un débutant "en or" à +8% augmente le
+ * risque de blessure car sa technique n'est pas encore solide.
+ *
+ * Un vrai coach module l'autorégulation selon l'expérience :
+ *  - Débutant   : bande ÉTROITE (la régularité prime sur l'autorégulation)
+ *  - Inter      : bande moyenne
+ *  - Avancé/Expert : bande LARGE (ils bénéficient d'une vraie gestion
+ *                    de charge selon la forme du jour)
+ *
+ * "iron" (état neutre) reste toujours à 1.0 quel que soit le niveau.
+ */
+const LEVEL_METAL_MULTIPLIERS: Record<TrainingLevel, Record<MetalId, number>> = {
+  beginner:     { lead: 0.95, bronze: 0.98, iron: 1.0, steel: 1.02, gold: 1.04 },
+  intermediate: { lead: 0.90, bronze: 0.95, iron: 1.0, steel: 1.03, gold: 1.06 },
+  advanced:     { lead: 0.85, bronze: 0.92, iron: 1.0, steel: 1.04, gold: 1.08 },
+  expert:       { lead: 0.82, bronze: 0.90, iron: 1.0, steel: 1.05, gold: 1.10 },
+};
+
+/** Résout le multiplicateur pour un métal, selon le niveau de l'user.
+ *  Fallback `intermediate` si le niveau n'est pas renseigné. */
+function metalLoadMultiplier(metalId: MetalId, level: TrainingLevel | undefined): number {
+  const table = LEVEL_METAL_MULTIPLIERS[level ?? 'intermediate'] ?? LEVEL_METAL_MULTIPLIERS.intermediate;
+  return table[metalId] ?? 1.0;
+}
 
 const triggerHaptic = (style: 'light' | 'medium' = 'light') => {
   if (Platform.OS === 'web') return;
@@ -119,18 +148,19 @@ export function PreWorkoutCheckInModal({ visible, onClose, onConfirm }: Props) {
     // que le store reconnaisse la clé — sinon frise visuelle cassée).
     setMetalForDate(today, metalFr);
     // Sync vers Supabase — sinon perdu à chaque réinstall/multi-device.
-    // C'est exactement ce que l'user a remonté ("ça s'ajoute jamais").
-    const userId = useUserStore.getState().profile?.id;
-    if (userId) {
-      syncMetalEntry(today, metalFr, userId);
+    const profile = useUserStore.getState().profile;
+    if (profile?.id) {
+      syncMetalEntry(today, metalFr, profile.id);
     }
-    onConfirm({ metalId: selected, loadMultiplier: metal.loadMultiplier });
+    // Multiplicateur adapté au niveau de l'user (cf LEVEL_METAL_MULTIPLIERS).
+    const loadMultiplier = metalLoadMultiplier(selected, profile?.trainingLevel);
+    onConfirm({ metalId: selected, loadMultiplier });
     setSelected(null);
   }, [selected, setMetalForDate, onConfirm]);
 
   const handleSkip = useCallback(() => {
     triggerHaptic('light');
-    // Skip = on assume "fer" (état neutre, pas d'ajustement)
+    // Skip = on assume "fer" (état neutre, pas d'ajustement) — toujours 1.0
     onConfirm({ metalId: 'iron', loadMultiplier: 1.0 });
     setSelected(null);
   }, [onConfirm]);

@@ -36,14 +36,44 @@ export function calculatePortions(
     };
   }
 
-  // Ratio d'ajustement basé sur les calories
-  const calorieRatio = targetMacros.calories / mealBaseMacros.calories;
-
-  // Ajustement supplémentaire pour prioriser les protéines
-  const proteinRatio = targetMacros.protein / mealBaseMacros.protein;
-
-  // On pondère : 60% ratio calorique + 40% ratio protéique
-  const adjustmentRatio = (calorieRatio * 0.6) + (proteinRatio * 0.4);
+  // Ratio d'ajustement optimal sur les 4 macros (pas juste cal+prot).
+  //
+  // Avant : (calorieRatio*0.6 + proteinRatio*0.4) → les GLUCIDES et les
+  // LIPIDES n'entraient pas dans le calcul. Conséquence : un repas
+  // scalé pour atteindre calories+protéines pouvait largement
+  // sous-doser les glucides → l'user n'atteignait jamais son quota
+  // de glucides (bug remonté sur le plan hebdo).
+  //
+  // Maintenant : on cherche le SEUL facteur d'échelle `r` qui minimise
+  // l'erreur relative pondérée sur les 4 macros simultanément
+  // (moindres carrés pondérés). Pour chaque macro i, on pose
+  // u_i = base_i / target_i, et on minimise Σ w_i·(r·u_i − 1)².
+  // Solution analytique : r* = Σ(w_i·u_i) / Σ(w_i·u_i²).
+  //
+  // C'est scale-invariant par macro (les calories qui sont des grands
+  // nombres ne dominent pas mécaniquement protéines/glucides).
+  const WEIGHTS: Array<{ base: number; target: number; w: number }> = [
+    { base: mealBaseMacros.calories, target: targetMacros.calories, w: 1.2 },
+    { base: mealBaseMacros.protein, target: targetMacros.protein, w: 1.0 },
+    { base: mealBaseMacros.carbs, target: targetMacros.carbs, w: 1.0 },
+    { base: mealBaseMacros.fat, target: targetMacros.fat, w: 0.6 },
+  ];
+  let num = 0;
+  let den = 0;
+  for (const { base, target, w } of WEIGHTS) {
+    if (target <= 0 || base <= 0) continue; // macro non contrainte → ignorée
+    const u = base / target;
+    num += w * u;
+    den += w * u * u;
+  }
+  // Fallback calorie-only si tout est dégénéré (ne devrait pas arriver)
+  const rawRatio = den > 0 ? num / den : targetMacros.calories / mealBaseMacros.calories;
+  // Clamp : on borne le facteur entre 0.4× et 2.5× la portion de base.
+  // Au-delà, les portions deviennent irréalistes (assiette minuscule ou
+  // énorme) — mieux vaut une légère imprécision macro qu'un repas
+  // ingérable. La sélection de repas (weeklyPlanner) limite déjà les
+  // cas extrêmes en amont.
+  const adjustmentRatio = Math.max(0.4, Math.min(2.5, rawRatio));
 
   const adjustedIngredients: AdjustedIngredient[] = ingredients.map((ing) => {
     const adjustedQuantity = ing.baseQuantityG * adjustmentRatio;

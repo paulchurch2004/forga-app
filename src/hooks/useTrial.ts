@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../services/supabase';
 
 interface TrialState {
@@ -7,8 +8,22 @@ interface TrialState {
   hoursRemaining: number;
   trialEndsAt: Date | null;
   trialState: 'active' | 'expired' | 'converted' | 'extended' | 'never_started';
+  /** Modal HARD à l'expiration (J0 ou plus tard) — bloque toutes les
+   *  features premium tant que l'user n'a pas converti ou choisi free. */
   showExpirationModal: boolean;
+  /** Modal SOFT à J-2 ou J-1 — réveil "il te reste X jours". Dismissable.
+   *  Affiché une seule fois par jour-de-warning (persisté en
+   *  AsyncStorage avec clé dérivée du trial_ends_at, donc reset si
+   *  l'user étend son trial). */
+  showWarningModal: boolean;
   loading: boolean;
+}
+
+/** Clé AsyncStorage pour suivre quels warnings ont déjà été affichés.
+ *  Format: `trial-warning:{trialEndIso}:{daysRemaining}` — change si le
+ *  trial est étendu (nouvelle endsAt) → warnings réaffichés au bon moment. */
+function warningKey(trialEndIso: string, daysRemaining: number): string {
+  return `forga-trial-warning:${trialEndIso}:d${daysRemaining}`;
 }
 
 interface TrialStats {
@@ -26,6 +41,7 @@ export function useTrial() {
     trialEndsAt: null,
     trialState: 'never_started',
     showExpirationModal: false,
+    showWarningModal: false,
     loading: true,
   });
 
@@ -54,6 +70,7 @@ export function useTrial() {
     let daysRemaining = 0;
     let hoursRemaining = 0;
     let showModal = false;
+    let showWarning = false;
 
     if (endsAt) {
       const diffMs = endsAt.getTime() - now.getTime();
@@ -64,6 +81,14 @@ export function useTrial() {
       if (diffMs <= 0 && isInTrial && !data.stripe_subscription_id) {
         showModal = true;
       }
+
+      // Warning soft à J-2 ou J-1 (uniquement si trial encore actif,
+      // pas converti, et warning pas encore vu pour ce jour-restant).
+      if (isInTrial && diffMs > 0 && daysRemaining <= 2 && !data.stripe_subscription_id) {
+        const key = warningKey(endsAt.toISOString(), daysRemaining);
+        const seen = await AsyncStorage.getItem(key).catch(() => null);
+        if (!seen) showWarning = true;
+      }
     }
 
     setState({
@@ -73,9 +98,25 @@ export function useTrial() {
       trialEndsAt: endsAt,
       trialState: data.trial_state,
       showExpirationModal: showModal,
+      showWarningModal: showWarning,
       loading: false,
     });
   }, []);
+
+  /** Marque le warning courant comme vu — appelé par le UI quand l'user
+   *  dismiss le modal (ou tape "Voir l'offre"). Évite de re-spammer
+   *  à chaque ouverture d'app le même jour. */
+  const dismissWarning = useCallback(async () => {
+    const endsAt = state.trialEndsAt;
+    if (!endsAt) return;
+    const key = warningKey(endsAt.toISOString(), state.daysRemaining);
+    try {
+      await AsyncStorage.setItem(key, new Date().toISOString());
+    } catch {
+      // Silent fail — au pire l'user revoit le modal, pas critique
+    }
+    setState((s) => ({ ...s, showWarningModal: false }));
+  }, [state.trialEndsAt, state.daysRemaining]);
 
   const fetchStats = useCallback(async (): Promise<TrialStats | null> => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -124,5 +165,6 @@ export function useTrial() {
     fetchStats,
     expireTrial,
     extendTrial,
+    dismissWarning,
   };
 }

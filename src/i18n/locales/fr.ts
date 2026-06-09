@@ -3,6 +3,7 @@ export const fr = {
   loading: 'Chargement...',
   save: 'Enregistrer',
   cancel: 'Annuler',
+  done: 'Terminé',
   close: 'Fermer',
   back: 'Retour',
   home: 'Accueil',
@@ -448,6 +449,18 @@ export const fr = {
   consentAnd: "et la",
   consentPrivacy: "Politique de confidentialité",
   consentRequired: "Tu dois accepter les CGU et la politique de confidentialité pour créer un compte.",
+
+  // ── Health Disclaimer (Apple Guideline 1.4.1 — Physical Harm) ──
+  // Affiché 1 fois après l'onboarding. L'user doit cocher une case
+  // explicite avant de pouvoir utiliser le coach IA / les plans.
+  healthDisclaimerTitle: "Avant de commencer",
+  healthDisclaimerSubtitle: "FORGA est un outil de coaching sportif et nutritionnel. Pas un service médical.",
+  healthDisclaimerPoint1: "Les conseils de FORGA (coach IA, plans nutrition, charges d'entraînement) sont basés sur des règles générales et tes données. Ils ne remplacent jamais l'avis d'un médecin, d'un diététicien ou d'un coach sportif diplômé.",
+  healthDisclaimerPoint2: "Si tu as une condition médicale (diabète, problème cardiaque, trouble alimentaire, grossesse, blessure), parles-en à un professionnel de santé AVANT de suivre les recommandations de l'app.",
+  healthDisclaimerPoint3: "Arrête immédiatement et consulte un médecin en cas de douleur inhabituelle, vertige, malaise ou tout symptôme préoccupant pendant un entraînement.",
+  healthDisclaimerCallout: "En cas d'urgence, appelle le 15 (SAMU) ou le 112.",
+  healthDisclaimerAcknowledge: "J'ai compris : FORGA est un outil d'aide à l'entraînement et à la nutrition, pas un avis médical.",
+  healthDisclaimerContinue: "Continuer",
   socialEmailInUse: "Cet email est déjà associé à un compte avec mot de passe. Connecte-toi par email d'abord, puis lie ton compte social depuis Profil.",
 
   // Cycling onboarding (step 5b)
@@ -1279,6 +1292,9 @@ export const fr = {
   weeklyPlanLabel: 'PLAN HEBDO',
   recipesLabel: 'RECETTES',
   historyLabel: 'HISTORIQUE',
+  exploreSection: 'EXPLORER',
+  weeklyPlanHint: 'Tes 7 prochains jours',
+  historyHint: 'Tes journées passées',
 
   // ── Report screen ──
   reportTitle: 'Bilan',
@@ -1558,22 +1574,22 @@ export const fr = {
   // ── Redesign : Live coach intervention ──
   liveCoachEyebrow: 'COACH · LIVE',
   liveCoachLater: 'Plus tard',
-  liveCoachFormTag: 'Observation',
-  liveCoachFormTitle: 'Ralentis la descente',
-  liveCoachFormBody: 'Tu descends en 0.8s. Cible 2-3s. Le temps sous tension fait le muscle — pas le nombre de reps.',
+  liveCoachFormTag: 'Conseil',
+  liveCoachFormTitle: 'Contrôle la descente',
+  liveCoachFormBody: 'Pense à ralentir la phase négative (2-3s). Le temps sous tension construit le muscle, pas la vitesse.',
   liveCoachFormAction: "OK, j'applique",
-  liveCoachRestTag: 'Recup',
-  liveCoachRestTitle: '+30s de repos',
-  liveCoachRestBody: 'Ton HR est encore a 142. Pour garder la force sur la serie suivante, laisse-le redescendre sous 120.',
+  liveCoachRestTag: 'Récup',
+  liveCoachRestTitle: 'Repose-toi bien',
+  liveCoachRestBody: 'Si tu sens que tu n\'as pas récupéré, prends 30s de plus. Une série lourde et propre vaut mieux qu\'une série bâclée.',
   liveCoachRestAction: "D'accord",
-  liveCoachPushTag: 'Opportunite',
-  liveCoachPushTitle: 'Tente +2kg',
-  liveCoachPushBody: 'Ta derniere serie a 80kg etait propre (RPE 7). Tu as la reserve pour tester 82kg sur la suivante.',
+  liveCoachPushTag: 'Opportunité',
+  liveCoachPushTitle: 'Tu peux pousser',
+  liveCoachPushBody: 'Ta série précédente avait l\'air solide — tu as tenu ta cible de reps. Si tu te sens bien, ajoute un peu de charge sur la suivante.',
   liveCoachPushAction: 'Je tente',
   liveCoachSwapTag: 'Ajustement',
-  liveCoachSwapTitle: "Je remplace l'exo 4",
-  liveCoachSwapBody: "Tu es a 85% du volume cible et tes epaules fatiguent. On zappe l'elevation laterale, on garde l'essentiel.",
-  liveCoachSwapAction: 'Valider',
+  liveCoachSwapTitle: 'Tu peux adapter',
+  liveCoachSwapBody: 'Si une articulation tire ou que ta technique se dégrade, n\'hésite pas à remplacer cet exercice. On garde l\'essentiel du volume.',
+  liveCoachSwapAction: 'Compris',
 
   // ── Redesign : Session Forgée ──
   sessionForgeeHeating: 'LE METAL CHAUFFE…',
@@ -1746,6 +1762,29 @@ export const fr = {
   mealActionAddAnother: 'Ajouter un autre repas',
   mealActionMultipleTitle: 'repas valides',
 
+  // ActionSheet "Logger un repas" — déclenché quand l'user tape un
+  // slot vide. 3 chemins : recette préfaite, scan code-barre, saisie
+  // manuelle. Le wording doit être clair : on ne mélange pas "scanner"
+  // (= code-barre OpenFoodFacts) avec "photo" (= reconnaissance plat).
+  logMealSheetTitle: 'Logger un repas',
+  logMealSheetTitleWithSlot: '{slot} — comment l\'ajouter ?',
+  logMealSheetSubtitle: 'Choisis la méthode qui te va le mieux.',
+  logMealActionRecipe: 'Suivre une recette',
+  logMealActionRecipeHint: 'Parmi nos recettes calibrées (macros déjà calculées)',
+  logMealActionScan: 'Scanner un produit',
+  logMealActionScanHint: 'Code-barre d\'un produit du supermarché',
+  logMealActionManual: 'Saisir manuellement',
+  logMealActionManualHint: 'Plat fait maison ou produit sans code-barre',
+  logMealActionCoach: 'Décrire au coach',
+  logMealActionCoachHint: 'Tu lui racontes ce que t\'as mangé, il calcule les macros',
+  logMealCoachPrefillBreakfast: 'Logue mon petit-dej : ',
+  logMealCoachPrefillMorningSnack: 'Logue ma collation du matin : ',
+  logMealCoachPrefillLunch: 'Logue mon déjeuner : ',
+  logMealCoachPrefillAfternoonSnack: 'Logue mon goûter : ',
+  logMealCoachPrefillDinner: 'Logue mon dîner : ',
+  logMealCoachPrefillBedtime: 'Logue ma collation du soir : ',
+  logMealCoachPrefillDefault: 'Logue ce que j\'ai mangé : ',
+
   // Coach quota notice (in-chat card when daily quota reached)
   coachQuotaTitle: 'Quota journalier atteint',
   coachQuotaUpgrade: 'Passer en PRO illimite',
@@ -1837,14 +1876,19 @@ export const fr = {
   calibrationCtaSub: '3 questions pour qu\'on te propose les bonnes charges sur chaque exo',
   calibrationCtaRedo: 'Refaire le test de calibration',
 
-  referralPromptTitle: '1 semaine Premium offerte',
-  referralPromptTagline: 'Pour chaque ami qui télécharge FORGA et crée un compte avec ton code, on te crédite +7 jours d\'abonnement Pro.',
+  referralPromptTitle: 'Invite des amis, débloque du Pro',
+  referralPromptTagline: 'Pour chaque ami qui rejoint FORGA avec ton code, tu gagnes 14 jours de Pro. Et plus tu en parraines, plus tu débloques de gros bonus.',
   referralPromptCount: '{count} filleul(s) déjà parrainé(s)',
+  referralPromptProgress: 'Encore {remaining} ami(s) → {reward} 🎁',
+  referralPromptAllTiersUnlocked: 'Tu as débloqué TOUS les paliers ({count} parrainages) — légende.',
   referralPromptYourCode: 'Ton code',
   referralPromptShareCta: 'Partager mon code',
   referralPromptLater: 'Plus tard',
+  referralReward_tier1Month: '+1 mois Pro',
+  referralReward_tier3Months: '+3 mois Pro',
+  referralReward_tier1Year: '+1 an Pro',
   referralShareTitle: 'FORGA — Coach nutrition & sport',
-  referralShareMessage: 'Je te file mon code FORGA pour ton coach perso (et toi tu me files 1 semaine d\'abo Pro 😉) : {code}\n\nTélécharge l\'app ici : https://forga.fr',
+  referralShareMessage: '🔥 Mon code FORGA : {code}\n\nUtilise-le à l\'inscription et reçois 1 MOIS de Pro gratuit en bonus (en plus du test 7 jours offert à tous). Coach IA, plans nutrition, suivi muscu — tout est là.\n\nLien direct (code pré-rempli) : https://forga.fr/r/{code}',
 
   tabOffers: 'Offres',
   offersTitle: 'Offres partenaires',

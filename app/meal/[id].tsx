@@ -18,6 +18,7 @@ import { useT } from '../../src/i18n';
 import { syncMeal, syncFavorite } from '../../src/services/userSync';
 import { CelebrationOverlay } from '../../src/components/ui/CelebrationOverlay';
 import { todayLocalIso } from '../../src/utils/date';
+import { returnToNutrition } from '../../src/utils/returnToNutrition';
 import { events } from '../../src/services/analytics';
 
 function generateId(): string {
@@ -140,6 +141,13 @@ export default function MealDetailScreen() {
       addValidatedMeal(validatedMeal);
       syncMeal(validatedMeal);
       events.mealValidated(meal.id, currentMealSlot);
+      // Funnel d'activation : fire `first_meal_logged` une seule fois
+      // (cf hasLoggedFirstMeal dans userStore).
+      const { hasLoggedFirstMeal, markFirstMealLogged } = useUserStore.getState();
+      if (!hasLoggedFirstMeal) {
+        events.firstMealLogged(currentMealSlot, 'recipe');
+        markFirstMealLogged();
+      }
 
       // Streak / score touch the *current* state only — skip both when the
       // user is editing a past day, otherwise they could spam-increment by
@@ -267,14 +275,31 @@ export default function MealDetailScreen() {
       }
     }
 
-    // Retour à l'écran précédent. Fallback /nutrition uniquement si on
-    // ne peut pas revenir (cas rare : deep link direct vers un repas).
-    if (router.canGoBack()) {
-      router.back();
+    // Navigation post-validation.
+    //
+    // Cas NORMAL (log d'un repas du jour) : on route directement vers
+    // /nutrition — l'écran où l'user voit les repas loggés de sa
+    // journée. Avant, on faisait router.back() qui ramenait à la
+    // BIBLIOTHÈQUE (l'écran précédent), donnant l'impression de devoir
+    // continuer à logger des repas. L'user veut au contraire revenir
+    // à sa vue d'ensemble nutrition après avoir validé.
+    //
+    // Cas RÉTROACTIF (log sur un jour passé depuis l'historique) : on
+    // revient en arrière normalement pour retomber sur l'historique du
+    // jour édité, pas sur la nutrition d'aujourd'hui.
+    const today = todayLocalIso();
+    const isRetroNav = !!dateParam && dateParam !== today;
+
+    if (isRetroNav) {
+      if (router.canGoBack()) router.back();
+      else router.replace('/meal-history');
     } else {
-      router.replace('/nutrition');
+      // Reset propre de la pile (Home → Nutrition) — voir returnToNutrition.
+      // Corrige le doublon de nutrition (latence) ET le swipe-back qui
+      // retombait sur la bibliothèque au lieu du Home.
+      returnToNutrition();
     }
-  }, []);
+  }, [dateParam]);
 
   return (
     <View style={{ flex: 1 }}>

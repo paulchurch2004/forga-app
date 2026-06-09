@@ -435,7 +435,10 @@ export function estimateOneRMForExercise(
  * reps prescrites du programme.
  */
 export function workingWeightForReps(oneRM: number, reps: number): number {
-  if (oneRM <= 0 || reps <= 0) return 0;
+  // Guard NaN/Infinity : si oneRM vient d'un calcul amont (ex: epley sur
+  // un poids/reps user-entered corrompus), il peut être NaN. Math.round(NaN)
+  // = NaN qui contamine ensuite tout l'UI (poids affiché "NaN kg").
+  if (!Number.isFinite(oneRM) || !Number.isFinite(reps) || oneRM <= 0 || reps <= 0) return 0;
   // On laisse une marge de sécurité 2-3 RIR : 1RM × (1 - (reps+2)/30)
   // 5 reps cible → on charge comme si on devait faire 7 reps (= 77% 1RM)
   // 10 reps cible → on charge comme si 12 reps (= 60% 1RM)

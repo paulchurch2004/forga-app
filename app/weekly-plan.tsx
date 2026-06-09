@@ -124,6 +124,14 @@ export default function WeeklyPlanScreen() {
     const newDays = generateWeeklyPlan({
       objective: profile.objective,
       dailyCalories: profile.dailyCalories,
+      // On passe les macros cibles pour que le planificateur choisisse
+      // des repas dont le profil atteint le quota (notamment glucides).
+      // Priorité aux valeurs de l'engine (recalculées) puis fallback
+      // sur le profil persisté.
+      dailyProtein: engine?.dailyMacros.protein ?? profile.dailyProtein,
+      dailyCarbs: engine?.dailyMacros.carbs ?? profile.dailyCarbs,
+      dailyFat: engine?.dailyMacros.fat ?? profile.dailyFat,
+      mealsPerDay: profile.mealsPerDay,
       budget: profile.budget,
       restrictions: profile.restrictions,
       likedMeals,
@@ -131,7 +139,7 @@ export default function WeeklyPlanScreen() {
     });
     const ws = getCurrentWeekStart();
     setWeeklyPlan(ws, newDays);
-  }, [profile, likedMeals, dislikedMeals, setWeeklyPlan]);
+  }, [profile, likedMeals, dislikedMeals, setWeeklyPlan, engine]);
 
   const selectedDay = days[selectedDayIdx] ?? null;
 
@@ -243,8 +251,14 @@ export default function WeeklyPlanScreen() {
           onBack={() => router.back()}
           transparent
           right={
-            <Pressable onPress={handleGenerate} hitSlop={12}>
-              <Text style={styles.regenerateText}>{days.length > 0 ? 'Refaire' : t('generatePlan')}</Text>
+            <Pressable
+              onPress={handleGenerate}
+              hitSlop={12}
+              style={({ pressed }) => [styles.regenerateBtn, pressed && { opacity: 0.6 }]}
+            >
+              <Text style={styles.regenerateText} numberOfLines={1}>
+                {days.length > 0 ? 'Refaire' : t('generatePlan')}
+              </Text>
             </Pressable>
           }
         />
@@ -499,10 +513,18 @@ const useStyles = makeStyles((colors) => ({
     fontWeight: '700',
     color: colors.text,
   },
+  regenerateBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: `${colors.primary}1A`,
+    borderWidth: 1,
+    borderColor: `${colors.primary}40`,
+  },
   regenerateText: {
     fontFamily: fonts.body,
     fontSize: fontSizes.sm,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.primary,
   },
 

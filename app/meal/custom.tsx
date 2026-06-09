@@ -8,6 +8,8 @@ import {
   Platform,
   ScrollView,
   Alert,
+  InputAccessoryView,
+  Keyboard,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius, MAX_CONTENT_WIDTH, shadows } from '../../src/theme';
@@ -17,10 +19,13 @@ import { useMealStore } from '../../src/store/mealStore';
 import { useAuthStore } from '../../src/store/authStore';
 import { MEAL_SLOT_LABELS, type MealSlot } from '../../src/types/meal';
 import { syncMeal } from '../../src/services/userSync';
+import { events } from '../../src/services/analytics';
+import { useUserStore } from '../../src/store/userStore';
 import { CelebrationOverlay } from '../../src/components/ui/CelebrationOverlay';
 import { ScreenTopBar } from '../../src/components/ui/ScreenTopBar';
 import { PrimaryGradientButton } from '../../src/components/ui/PrimaryGradientButton';
 import { todayLocalIso } from '../../src/utils/date';
+import { returnToNutrition } from '../../src/utils/returnToNutrition';
 
 const SLOTS: MealSlot[] = [
   'breakfast',
@@ -30,6 +35,13 @@ const SLOTS: MealSlot[] = [
   'dinner',
   'bedtime',
 ];
+
+// ID partagé par tous les inputs numériques pour rattacher la barre
+// "Terminé" au-dessus du clavier (iOS uniquement — le clavier numérique
+// n'a pas de touche de validation/fermeture par défaut, l'user était
+// bloqué). Sur Android la barre n'est pas rendue mais le clavier a son
+// propre bouton retour donc pas de souci.
+const KEYBOARD_ACCESSORY_ID = 'customMealKeyboardDone';
 
 export default function CustomMealScreen() {
   const { colors } = useTheme();
@@ -113,6 +125,13 @@ export default function CustomMealScreen() {
     };
     addValidatedMeal(meal);
     syncMeal(meal);
+    // Funnel d'activation : 1er meal loggé via le flow custom (saisie
+    // manuelle ou après scan code-barre).
+    const { hasLoggedFirstMeal, markFirstMealLogged } = useUserStore.getState();
+    if (!hasLoggedFirstMeal) {
+      events.firstMealLogged(selectedSlot, 'custom');
+      markFirstMealLogged();
+    }
 
     setShowCelebration(true);
   };
@@ -131,6 +150,7 @@ export default function CustomMealScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
       >
         <Text style={styles.title}>{t('addCustomMeal')}</Text>
         <Text style={styles.subtitle}>
@@ -175,6 +195,9 @@ export default function CustomMealScreen() {
           value={name}
           onChangeText={setName}
           autoCapitalize="sentences"
+          returnKeyType="done"
+          blurOnSubmit
+          onSubmitEditing={() => Keyboard.dismiss()}
         />
 
         {/* Macros */}
@@ -214,20 +237,51 @@ export default function CustomMealScreen() {
           {t('macrosHint')}
         </Text>
 
-        {/* Validate — redesign gradient CTA */}
+        {/* Validate — redesign gradient CTA. On dismiss le clavier
+            AVANT de valider : sinon sur iOS le 1er tap ne faisait que
+            fermer le clavier (le bouton restait sous le clavier), l'user
+            devait taper 2 fois. */}
         <View style={{ marginTop: spacing.xl }}>
           <PrimaryGradientButton
             label={isEditing ? t('saveCustomMealChanges') : t('validateMeal')}
-            onPress={handleValidate}
+            onPress={() => {
+              Keyboard.dismiss();
+              handleValidate();
+            }}
             size="lg"
           />
         </View>
       </ScrollView>
+
+      {/* Barre "Terminé" au-dessus du clavier numérique (iOS only).
+          Permet de fermer le clavier facilement — le clavier numérique
+          iOS n'a aucune touche de validation native. */}
+      {Platform.OS === 'ios' && (
+        <InputAccessoryView nativeID={KEYBOARD_ACCESSORY_ID}>
+          <View style={styles.keyboardAccessory}>
+            <Pressable onPress={() => Keyboard.dismiss()} hitSlop={8} style={styles.keyboardDoneBtn}>
+              <Text style={styles.keyboardDoneText}>{t('done')}</Text>
+            </Pressable>
+          </View>
+        </InputAccessoryView>
+      )}
+
       <CelebrationOverlay
         visible={showCelebration}
         onDone={() => {
           setShowCelebration(false);
-          router.back();
+          // Après log custom : direct sur Nutrition (cohérent avec le
+          // flow recette). Sauf log rétroactif (jour passé) → retour
+          // arrière vers l'historique.
+          const today = todayLocalIso();
+          const isRetroNav = !!params.date && params.date !== today;
+          if (isRetroNav) {
+            if (router.canGoBack()) router.back();
+            else router.replace('/meal-history');
+          } else {
+            // Reset propre de la pile (Home → Nutrition) — voir le helper.
+            returnToNutrition();
+          }
         }}
         message={randomMessage}
       />
@@ -262,6 +316,7 @@ function MacroInput({
           value={value}
           onChangeText={onChangeText}
           keyboardType="numeric"
+          inputAccessoryViewID={Platform.OS === 'ios' ? KEYBOARD_ACCESSORY_ID : undefined}
         />
         <Text style={styles.macroUnit}>{unit}</Text>
       </View>
@@ -276,6 +331,26 @@ const useStyles = makeStyles((colors) => ({
     maxWidth: MAX_CONTENT_WIDTH,
     alignSelf: 'center',
     width: '100%',
+  },
+  // Barre "Terminé" au-dessus du clavier (InputAccessoryView iOS).
+  keyboardAccessory: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    backgroundColor: colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 8,
+  },
+  keyboardDoneBtn: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+  },
+  keyboardDoneText: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.md,
+    fontWeight: '700',
+    color: colors.primary,
   },
   header: {
     paddingTop: 60,

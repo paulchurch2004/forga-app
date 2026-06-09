@@ -94,7 +94,7 @@ export function recommendProgram(
   // un programme musculation structuré avec charges (BULK pour conserver
   // le surplus calorique + densité osseuse).
   const isMenopausal = menopauseStatus === 'peri' || menopauseStatus === 'post';
-  if (isFemale && isMenopausal) {
+  if (sex === 'female' && isMenopausal) {
     const mlvl = (level === 'beginner' ? 'BEGINNER' : 'INTERMEDIATE');
     return `BULK_${mlvl}_GYM_F`;
   }

@@ -35,9 +35,14 @@ export async function sendCoachMessage(
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.access_token) return { kind: 'unauthenticated' };
 
+    // Limité à 6 mémoires + 8 messages d'historique : le free tier Groq
+    // plafonne à 12k tokens/min. Le system prompt + contexte mange déjà
+    // ~6-7k tokens, donc on garde l'historique court pour rester sous la
+    // limite. 6 mémoires (les + récentes) + 8 derniers messages suffisent
+    // pour la continuité conversationnelle.
     const trimmedMemories = [...memories]
       .sort((a, b) => b.date.localeCompare(a.date))
-      .slice(0, 15)
+      .slice(0, 6)
       .map((m) => ({ date: m.date, tag: m.tag, summary: m.summary }));
 
     // Timeout fail-fast à 20s. Sans ça, un Edge Function qui hang
@@ -59,7 +64,7 @@ export async function sendCoachMessage(
         body: JSON.stringify({
           message,
           context,
-          history: history.slice(-16),
+          history: history.slice(-8),
           memories: trimmedMemories,
         }),
         signal: controller.signal,
@@ -77,11 +82,26 @@ export async function sendCoachMessage(
       };
     }
 
-    if (res.status === 401) return { kind: 'unauthenticated' };
-    if (!res.ok) return { kind: 'error' };
+    if (res.status === 401) {
+      if (__DEV__) {
+        const body = await res.text().catch(() => '');
+        console.warn('[CoachAI] 401 Unauthorized:', body);
+      }
+      return { kind: 'unauthenticated' };
+    }
+    if (!res.ok) {
+      if (__DEV__) {
+        const body = await res.text().catch(() => '');
+        console.warn(`[CoachAI] HTTP ${res.status}:`, body);
+      }
+      return { kind: 'error' };
+    }
 
     const data = await res.json();
-    if (data.error || !data.reply) return { kind: 'error' };
+    if (data.error || !data.reply) {
+      if (__DEV__) console.warn('[CoachAI] Bad payload:', JSON.stringify(data).slice(0, 300));
+      return { kind: 'error' };
+    }
 
     return {
       kind: 'ok',
@@ -89,7 +109,8 @@ export async function sendCoachMessage(
       quota: data.quota ?? { used: 0, cap: 5, bonus: 0, remaining: 0 },
       cached: Boolean(data.cached),
     };
-  } catch {
+  } catch (e) {
+    if (__DEV__) console.warn('[CoachAI] fetch threw:', e instanceof Error ? e.message : String(e));
     return { kind: 'error' };
   }
 }

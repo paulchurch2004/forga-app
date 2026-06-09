@@ -942,6 +942,27 @@ async function executeSetReminder(a: Extract<CoachAction, { type: 'set_reminder'
   // app foreground.
   try {
     const Notifications = await import('expo-notifications');
+
+    // ⚠ BUG corrigé : on planifiait SANS demander la permission de
+    // notification. Si l'user avait tapé "Plus tard" à l'inscription,
+    // scheduleNotificationAsync ne déclenchait JAMAIS la notif (échec
+    // silencieux avalé par le catch) → "le coach ne m'a rien envoyé".
+    // On demande maintenant la permission au moment où l'user confirme
+    // un rappel. Si refusée, on remonte une alerte plutôt que d'échouer
+    // en douce.
+    const perm = await Notifications.getPermissionsAsync();
+    if (perm.status !== 'granted') {
+      const req = await Notifications.requestPermissionsAsync();
+      if (req.status !== 'granted') {
+        const { Alert } = await import('react-native');
+        Alert.alert(
+          'Notifications désactivées',
+          'Pour recevoir tes rappels, active les notifications dans Réglages > FORGA > Notifications.',
+        );
+        return;
+      }
+    }
+
     const [hh, mm] = a.atTimeLocal.split(':').map(Number);
     if (a.repeatDaily) {
       await Notifications.scheduleNotificationAsync({
@@ -1132,12 +1153,17 @@ export function describeAction(action: CoachAction): { tag: string; title: strin
       };
     }
     case 'set_reminder': {
+      // Formate "15:00" → "15h00" et préfixe "À" pour lever toute ambiguïté
+      // (l'utilisateur lisait "15:00" comme "15 minutes"). Le format
+      // français HHhMM est sans équivoque = une heure de la journée.
+      const [hh, mm] = action.atTimeLocal.split(':');
+      const prettyTime = `${parseInt(hh, 10)}h${mm}`;
       return {
         tag: action.repeatDaily ? 'Rappel quotidien' : 'Rappel ponctuel',
-        title: `${action.atTimeLocal} · ${action.message}`,
+        title: `🔔 À ${prettyTime} — ${action.message}`,
         subtitle: action.repeatDaily
-          ? 'Tu recevras cette notification tous les jours'
-          : 'Tu recevras cette notification au prochain horaire',
+          ? `Notification tous les jours à ${prettyTime}`
+          : `Notification au prochain ${prettyTime}`,
       };
     }
     case 'pause_program': {

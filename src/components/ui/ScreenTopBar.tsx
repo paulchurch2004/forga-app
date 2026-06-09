@@ -43,7 +43,11 @@ export function ScreenTopBar({
         {subtitle ? <Text style={styles.subtitle} numberOfLines={1}>{subtitle}</Text> : null}
       </View>
 
-      <View style={styles.iconBtn}>{right ?? null}</View>
+      {/* Slot droit : `minWidth:40` (symétrie avec le bouton retour pour
+          centrer le titre) mais `width:auto` pour qu'un bouton texte
+          large ("Refaire", "Enregistrer") ne soit pas coupé / inclickable
+          comme avant (il était enfermé dans une boîte 40×40). */}
+      <View style={styles.rightSlot}>{right ?? null}</View>
     </View>
   );
 }
@@ -83,6 +87,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  rightSlot: {
+    minWidth: 40,
+    height: 40,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+  },
   titleCol: {
     flex: 1,
     alignItems: 'center',
@@ -96,8 +106,11 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontFamily: fonts.body,
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.38)',
+    fontSize: 11.5,
+    // Remonté de 0.38 → 0.55 : à 38% le sous-titre était à la limite du
+    // lisible sur certains fonds. 55% reste discret mais nettement plus net.
+    color: 'rgba(255,255,255,0.55)',
     marginTop: 2,
+    lineHeight: 15,
   },
 });

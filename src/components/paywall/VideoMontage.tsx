@@ -178,13 +178,20 @@ export function VideoMontage({ clips, clipDurationMs = CLIP_DURATION_MS }: Video
       const futureUrl = playlist[futureIdx];
       slotIndexRef.current[recycling] = futureIdx;
       setTimeout(() => {
-        try {
-          if (recycling === 'A') playerA.replace(futureUrl);
-          else if (recycling === 'B') playerB.replace(futureUrl);
-          else playerC.replace(futureUrl);
-        } catch {
+        // replaceAsync (et non replace) : `replace` charge l'asset de
+        // façon SYNCHRONE sur le thread principal → freeze UI + des
+        // dizaines de warnings par seconde (on swap un clip toutes les
+        // 600ms × 3 players). `replaceAsync` charge off-thread, fluide
+        // et silencieux. On fire-and-forget avec catch (un clip 404 reste
+        // sur sa source précédente, visuellement OK).
+        const target =
+          recycling === 'A' ? playerA : recycling === 'B' ? playerB : playerC;
+        const maybePromise = (target as any).replaceAsync
+          ? (target as any).replaceAsync(futureUrl)
+          : Promise.resolve(target.replace(futureUrl));
+        Promise.resolve(maybePromise).catch(() => {
           /* a 404'd clip stays on its previous source — visually fine */
-        }
+        });
       }, CROSSFADE_MS + 80);
     }, clipDurationMs);
 

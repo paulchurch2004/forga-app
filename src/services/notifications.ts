@@ -1,9 +1,64 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { MealSlot } from '../types/meal';
 import { MEAL_SLOT_TIMES } from '../types/meal';
 import { getTranslation } from '../i18n';
 import { useSettingsStore } from '../store/settingsStore';
+
+/** Quiet hours : on n'envoie AUCUNE notif immédiate (badge,
+ *  réactivation, etc.) entre 21h et 9h. Ça évite de réveiller l'user
+ *  à 23h avec un "Bravo, nouveau badge !". Les notifs DAILY scheduled
+ *  (meal reminders) restent à leur heure car l'user a explicitement
+ *  consenti à ces créneaux. */
+function isQuietHour(): boolean {
+  const hour = new Date().getHours();
+  return hour < 9 || hour >= 21;
+}
+
+/** Cap journalier sur les notifs IMMÉDIATES (non scheduled).
+ *  Si l'user a déjà reçu N notifs aujourd'hui, on skip les nouvelles
+ *  pour éviter le spam. Les meal reminders scheduled ne comptent pas
+ *  (l'user les a "demandées" en activant les notifs).
+ *
+ *  Sans ce cap : un user peut recevoir 5 notifs en 10 minutes
+ *  (3 badges streak + 1 reactivation + 1 PR alert) → désinstall. */
+const DAILY_IMMEDIATE_NOTIF_CAP = 3;
+const IMMEDIATE_NOTIF_COUNT_KEY = 'forga-notif-count';
+
+async function getTodayImmediateCount(): Promise<number> {
+  try {
+    const raw = await AsyncStorage.getItem(IMMEDIATE_NOTIF_COUNT_KEY);
+    if (!raw) return 0;
+    const parsed = JSON.parse(raw) as { date: string; count: number };
+    const today = new Date().toISOString().slice(0, 10);
+    return parsed.date === today ? parsed.count : 0;
+  } catch {
+    return 0;
+  }
+}
+
+async function bumpImmediateCount(): Promise<void> {
+  try {
+    const today = new Date().toISOString().slice(0, 10);
+    const current = await getTodayImmediateCount();
+    await AsyncStorage.setItem(
+      IMMEDIATE_NOTIF_COUNT_KEY,
+      JSON.stringify({ date: today, count: current + 1 }),
+    );
+  } catch {
+    /* no-op */
+  }
+}
+
+/** True si on PEUT envoyer une notif immédiate maintenant :
+ *  - Pas en quiet hours
+ *  - Sous le cap journalier */
+async function canSendImmediateNotif(): Promise<boolean> {
+  if (isQuietHour()) return false;
+  const count = await getTodayImmediateCount();
+  return count < DAILY_IMMEDIATE_NOTIF_CAP;
+}
 
 // Configuration des notifications
 Notifications.setNotificationHandler({
@@ -146,6 +201,12 @@ export async function scheduleWeeklyCheckIn(): Promise<string> {
 
 // ─── Badge débloqué ───
 export async function sendBadgeNotification(badgeName: string): Promise<void> {
+  // Garde anti-spam : quiet hours + cap journalier. Sans ça, un user
+  // qui débloque 4 badges en une session reçoit 4 push notifs
+  // rapprochées → push perçu comme spam → désabonnement.
+  const allowed = await canSendImmediateNotif();
+  if (!allowed) return;
+  await bumpImmediateCount();
   await Notifications.scheduleNotificationAsync({
     content: {
       title: t('notifBadgeTitle'),
@@ -171,6 +232,12 @@ export async function scheduleReactivation(daysSinceLastActivity: number): Promi
   // one. (Triggered with `null`, fires immediately, so this is mostly a
   // belt-and-braces guard.)
   await cancelMatchingScheduled((data) => data?.type === 'reactivation');
+
+  // Garde anti-spam : quiet hours + cap journalier (mêmes raisons que
+  // sendBadgeNotification).
+  const allowed = await canSendImmediateNotif();
+  if (!allowed) return;
+  await bumpImmediateCount();
 
   await Notifications.scheduleNotificationAsync({
     content: {

@@ -71,4 +71,11 @@ export interface Workout {
   rpe?: number;
   /** Optional: count of new PRs detected during this session. */
   prCount?: number;
+  /** True si l'user a terminé sans cocher toutes les séries (séance
+   *  partielle). Le jour reste marqué 'completed' dans le programme
+   *  (cf produit : un jour fait à 60% reste un jour fait, on
+   *  n'aggrave pas l'effet de bord "rattrapage"), mais l'historique
+   *  et les bilans peuvent afficher "Séance partielle X/Y" pour
+   *  donner un signal honnête à l'user. */
+  isPartial?: boolean;
 }

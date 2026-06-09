@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "fr.forga.ios",
-      "buildNumber": "76",
+      "buildNumber": "77",
       "usesAppleSignIn": true,
       "associatedDomains": [
         "applinks:forga.fr",
@@ -85,6 +85,7 @@
       "orientation": "portrait"
     },
     "plugins": [
+      "./plugins/withPrivacyManifest",
       [
         "expo-build-properties",
         {

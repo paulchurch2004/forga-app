@@ -177,7 +177,11 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   fieldInput: {
-    flex: 1,
+    // Pas de flex:1 — sinon le champ s'étire sur toute la colonne et
+    // pousse le "kg" loin du nombre (collé aux reps). minWidth=44 garde
+    // une zone tappable confortable même quand le champ est vide
+    // (44px = standard Apple Human Interface Guidelines pour les targets).
+    minWidth: 44,
     fontFamily: fonts.data,
     fontSize: 16,
     fontWeight: '700',

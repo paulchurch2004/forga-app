@@ -218,10 +218,16 @@ export default function MealsScreen() {
       </View>
 
       {/* Slot quick-switcher — single-line label chips.
-          The chip matching the current hour gets a subtle "now" outline. */}
+          The chip matching the current hour gets a subtle "now" outline.
+          `style={styles.slotScroll}` impose une hauteur explicite +
+          flexGrow:0 pour éviter que RN compresse la barre en dessous
+          de la taille du contenu (bug "chips à moitié cachées" sur
+          certains devices iOS où la hauteur intrinsic du ScrollView
+          horizontal était mal calculée). */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={styles.slotScroll}
         contentContainerStyle={styles.slotChipsRow}
       >
         {SLOT_ORDER.map((s) => {
@@ -474,12 +480,22 @@ const useStyles = makeStyles((colors) => ({
     color: 'rgba(255,255,255,0.62)',
     marginTop: 8,
   },
+  /** Wrapper du ScrollView slot. Hauteur explicite = somme chip
+   *  minHeight (36) + paddings vertical (14+12) + 4px de respiration
+   *  = 66. `flexGrow: 0` empêche le ScrollView d'être étiré ou
+   *  compressé par le layout parent. */
+  slotScroll: {
+    height: 66,
+    flexGrow: 0,
+    flexShrink: 0,
+  },
   slotChipsRow: {
     paddingHorizontal: spacing.lg,
     gap: 8,
     flexDirection: 'row' as const,
     paddingTop: 14,
     paddingBottom: 12,
+    alignItems: 'center' as const,
   },
   /** Pill chip — single line of text, sized by content. minHeight et
    *  minWidth explicites pour éviter les rendus "barre vide" observés

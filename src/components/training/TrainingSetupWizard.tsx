@@ -13,7 +13,7 @@
 // Le parent persist dans le profil + appelle assignProgram.
 
 import React, { useState, useMemo } from 'react';
-import { View, Text, Pressable, StyleSheet, TextInput, ScrollView } from 'react-native';
+import { View, Text, Pressable, StyleSheet, TextInput, ScrollView, useWindowDimensions, Alert } from 'react-native';
 import Animated, { FadeIn, FadeInUp } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 import { fonts, fontSizes, spacing } from '../../theme';
@@ -80,6 +80,12 @@ const LOCATION_OPTIONS: { value: TrainingLocation; label: string; sub: string }[
 ];
 
 export function TrainingSetupWizard({ objective: initialObjective, sex, age, bodyweightKg, onConfirm, onBrowseAll }: Props) {
+  // ⚠ useWindowDimensions DOIT être appelé au top-level du composant,
+  // PAS dans le JSX d'une étape conditionnelle. Avant, il était inline
+  // dans le ScrollView de l'étape calibration → quand l'étape changeait,
+  // le nombre de hooks variait → crash "Rendered more hooks than during
+  // the previous render". On lit la hauteur ici une fois pour toutes.
+  const { height: windowHeight } = useWindowDimensions();
   const [step, setStep] = useState<Step>('intro');
   const [objective, setObjective] = useState<Objective>(initialObjective);
   const [levelChoice, setLevelChoice] = useState<'beginner' | 'experienced' | null>(null);
@@ -130,10 +136,19 @@ export function TrainingSetupWizard({ objective: initialObjective, sex, age, bod
   const recommendedProgram = result ? PROGRAMS[result.programId] : null;
 
   const handleRunCalibration = () => {
-    if (!bodyweightKg) {
-      // Sans poids on ne peut pas calibrer → skip silencieux
-      setCalibrationSkipped(true);
-      setStep('result');
+    if (!bodyweightKg || bodyweightKg <= 0) {
+      // Sans poids les charges ne peuvent pas être calculées
+      // (multipliers s'appliquent sur 0 → floor 20kg partout). On le
+      // dit explicitement à l'user au lieu d'un skip silencieux qui
+      // donne des charges sous-optimales sans qu'il sache pourquoi.
+      Alert.alert(
+        'Poids corporel requis',
+        'On a besoin de ton poids pour calibrer tes charges. Tu peux le renseigner dans Profil > Mensurations, puis revenir ici.',
+        [
+          { text: 'Passer quand même', style: 'cancel', onPress: () => { setCalibrationSkipped(true); setStep('result'); } },
+          { text: 'OK', style: 'default' },
+        ],
+      );
       return;
     }
     const hasKnownMax = !!(knownBench || knownSquat || knownDeadlift);
@@ -291,7 +306,14 @@ export function TrainingSetupWizard({ objective: initialObjective, sex, age, bod
             </Text>
           </View>
 
-          <ScrollView style={{ maxHeight: 400 }} showsVerticalScrollIndicator={false}>
+          {/* maxHeight responsive : 60% de la hauteur écran (vs 400px
+              hardcodé qui coupait les inputs sur iPhone SE/petits écrans).
+              Sur grand écran ça laisse de l'air ; sur petit ça donne
+              accès à tous les champs sans bloquer le bouton "Valider". */}
+          <ScrollView
+            style={{ maxHeight: windowHeight * 0.5 }}
+            showsVerticalScrollIndicator={false}
+          >
             <Text style={styles.sectionLabel}>Tu connais tes 1RM (poids max sur 1 répétition) ?</Text>
             <Text style={styles.questionHint}>
               Optionnel — laisse vide ce que tu ne connais pas.

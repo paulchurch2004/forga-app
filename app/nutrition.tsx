@@ -25,11 +25,14 @@ import { PrimaryMealAction } from '../src/components/home/PrimaryMealAction';
 import { HydrationSegmentsCard } from '../src/components/nutrition/HydrationSegmentsCard';
 import { NutritionCoachCard } from '../src/components/nutrition/NutritionCoachCard';
 import { MealSlotPhotoList, type MealSlotPhotoItem } from '../src/components/nutrition/MealSlotPhotoList';
+import { SportRecipeCarousel } from '../src/components/nutrition/SportRecipeCarousel';
 import { QuickLogFAB } from '../src/components/nutrition/QuickLogFAB';
+import { LogMealActionSheet } from '../src/components/nutrition/LogMealActionSheet';
 import { ValidatedMealOverlay } from '../src/components/nutrition/ValidatedMealOverlay';
 import { useWater } from '../src/hooks/useWater';
-import { MEAL_SLOT_LABELS, MEAL_SLOT_TIMES } from '../src/types/meal';
+import { MEAL_SLOT_LABELS, MEAL_SLOT_TIMES, getMealSlotLabel, type MealSlot } from '../src/types/meal';
 import { getMealById } from '../src/data/meals';
+import { getSportRecipeById } from '../src/data/meals/sport';
 import { StreakBadge } from '../src/components/ui/StreakBadge';
 import { getCoachMessage, type CoachInput } from '../src/engine/coachEngine';
 import { fonts, fontSizes, spacing, borderRadius, shadows, makeStyles } from '../src/theme';
@@ -48,10 +51,14 @@ import type { BadgeType } from '../src/types/user';
 
 const NUTRITION_HERO_IMAGE =
   'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=60';
-const SCAN_IMAGE =
-  'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=60';
-const PHOTO_IMAGE =
-  'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&q=60';
+// Big tiles "Plan hebdo" et "Historique" — remplacent les anciennes
+// tuiles SCAN/PHOTO (redondantes : déjà dans le FAB flottant + le
+// sheet "Logger un repas"). Et la tuile "Recettes" disparaît car
+// la bibliothèque a son onglet dédié dans le bottom tab bar.
+const WEEKLY_PLAN_IMAGE =
+  'https://images.unsplash.com/photo-1547592180-85f173990554?w=800&q=60';
+const HISTORY_IMAGE =
+  'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=60';
 
 export default function NutritionScreen() {
   const insets = useSafeAreaInsets();
@@ -61,9 +68,13 @@ export default function NutritionScreen() {
   const [toastBadge, setToastBadge] = useState<BadgeType | null>(null);
   const [undoSlot, setUndoSlot] = useState<string | null>(null);
   const [validatedOverlay, setValidatedOverlay] = useState<{ kcal: number; protein: number } | null>(null);
+  // Slot ciblé par l'action sheet "comment logger ce repas". null =
+  // sheet fermée. Le slot est mémorisé pour propager le bon créneau
+  // à la destination choisie (recette / scan / saisie manuelle).
+  const [logSheetSlot, setLogSheetSlot] = useState<string | null>(null);
   const { cardRef, share } = useShareCard();
   const styles = useStyles();
-  const { t } = useT();
+  const { t, locale } = useT();
   const { colors } = useTheme();
 
   const profile = useUserStore((s) => s.profile);
@@ -88,19 +99,20 @@ export default function NutritionScreen() {
     prevBadgeCount.current = badges.length;
   }, [badges]);
 
-  // Detect new meal added → show undo toast + haptic
+  // Detect new meal added → undo toast seulement.
+  //
+  // ⚠ On NE déclenche PLUS le ValidatedMealOverlay (cérémonie plein écran)
+  // ici. Cause d'un bug de "double célébration" + latence/superposition :
+  // les repas sont toujours ajoutés via un sous-écran (meal/[id] ou
+  // meal/custom) qui affiche DÉJÀ sa propre CelebrationOverlay. Quand on
+  // revient sur /nutrition, ce useEffect re-célébrait le même repas → 2
+  // overlays plein écran empilés → l'app ramait au retour. On garde juste
+  // le UndoToast (léger, utile pour annuler un mauvais tap).
   useEffect(() => {
     if (todayMeals.length > prevMealCountRef.current) {
       const newest = todayMeals[todayMeals.length - 1];
       if (newest) {
         setUndoSlot(newest.slot);
-        setValidatedOverlay({
-          kcal: Math.round(newest.actualMacros.calories),
-          protein: Math.round(newest.actualMacros.protein),
-        });
-        if (Platform.OS !== 'web') {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-        }
       }
     }
     prevMealCountRef.current = todayMeals.length;
@@ -226,7 +238,13 @@ export default function NutritionScreen() {
       const slotMeals = todayMeals.filter((m) => m.slot === slot);
 
       if (slotMeals.length === 0) {
-        router.push(`/(tabs)/meals?slot=${slot}`);
+        // Avant : push direct vers la bibliothèque. Maintenant on
+        // propose le choix entre recette / scan / saisie manuelle —
+        // 3 chemins distincts d'entrée pour matcher les habitudes
+        // user (recette = "je suis le plan", scan = "produit acheté",
+        // manuel = "fait maison ou autre"). Le sheet se ferme et
+        // route vers la bonne destination via les callbacks ci-dessous.
+        setLogSheetSlot(slot);
         return;
       }
 
@@ -314,9 +332,14 @@ export default function NutritionScreen() {
   const mealItems = useMemo<MealSlotPhotoItem[]>(() => {
     return slots.map((s) => {
       const slotMeals = todayMeals.filter((m) => m.slot === s.slot);
-      const firstRecipe = slotMeals[0] ? getMealById(slotMeals[0].mealId) : undefined;
-      const firstName = slotMeals[0]
-        ? slotMeals[0].customName ?? firstRecipe?.name ?? null
+      const first = slotMeals[0];
+      // Une recette SPORT loguée a un mealId absent du catalogue classique
+      // → on résout son image/nom via getSportRecipeById. Sinon catalogue
+      // normal.
+      const firstSport = first?.isSportRecipe ? getSportRecipeById(first.mealId) : undefined;
+      const firstRecipe = first && !firstSport ? getMealById(first.mealId) : undefined;
+      const firstName = first
+        ? first.customName ?? firstSport?.name ?? firstRecipe?.name ?? null
         : null;
       const label =
         slotMeals.length > 1 && firstName
@@ -331,9 +354,11 @@ export default function NutritionScreen() {
         time: MEAL_SLOT_TIMES[s.slot] ?? s.time,
         meal: label,
         kcal: totalKcal,
-        imageUri: firstRecipe?.photoUrl,
+        imageUri: firstSport?.photoUrl ?? firstRecipe?.photoUrl,
         done: s.isValidated,
         optional: s.slot === 'pre_bed' || s.slot === 'morning_snack',
+        // Badge "SPORT" distinctif quand le repas vient de la biblio sport.
+        isSport: !!firstSport,
         onPress: () => handleSlotPress(s.slot),
       };
     });
@@ -538,6 +563,13 @@ export default function NutritionScreen() {
           <MealSlotPhotoList items={mealItems} />
         </Animated.View>
 
+        {/* Section ISOLÉE : 72 recettes sport (high-protein, post-workout,
+            pré-workout, etc.). Carrousel horizontal → tap = page détail.
+            Pas mélangées avec les suggestions par slot ci-dessus (volonté
+            UX : effet "bibliothèque exclusive" pour les sportifs). */}
+        <SportRecipeCarousel />
+
+
         {/* Primary action — raccourci vers le coach IA pour logger un
             repas par texte plutôt que via le picker. UX plus rapide :
             l'user décrit "j'ai mangé un poulet riz", le coach le logge
@@ -553,69 +585,43 @@ export default function NutritionScreen() {
           />
         </Animated.View>
 
-        {/* Scan actions with images */}
-        <Animated.View >
-          <Text style={styles.sectionLabel}>{t('addMealSection')}</Text>
-          <View style={styles.scanActions}>
-            <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/barcode')}>
+        {/* Big tiles — Plan hebdomadaire + Historique.
+            Avant ici : SCAN / PHOTO (redondantes avec le FAB flottant
+            et le sheet "Logger un repas") + Recettes (redondante avec
+            le tab "Bibliothèque"). On garde uniquement les deux vues
+            que l'user ne peut atteindre qu'ici, en gros plan. */}
+        <Animated.View>
+          <Text style={styles.sectionLabel}>{t('exploreSection' as any) as string}</Text>
+          <View style={styles.bigTilesRow}>
+            <Pressable style={styles.bigTileBtn} onPress={() => router.push('/weekly-plan')}>
               <ImageBackground
-                source={{ uri: SCAN_IMAGE }}
-                style={styles.scanActionImage}
-                imageStyle={styles.scanActionImageInner}
+                source={{ uri: WEEKLY_PLAN_IMAGE }}
+                style={styles.bigTileImage}
+                imageStyle={styles.bigTileImageInner}
               >
                 <LinearGradient
-                  colors={['transparent', 'rgba(0,0,0,0.75)']}
-                  style={styles.scanActionOverlay}
+                  colors={['transparent', 'rgba(0,0,0,0.85)']}
+                  style={styles.bigTileOverlay}
                 >
-                  <Text style={styles.scanActionTitle}>SCAN</Text>
-                  <Text style={styles.scanActionSub}>{t('barcode')}</Text>
+                  <Text style={styles.bigTileTitle}>{t('weeklyPlanLabel')}</Text>
+                  <Text style={styles.bigTileSub}>{t('weeklyPlanHint' as any) as string}</Text>
                 </LinearGradient>
               </ImageBackground>
             </Pressable>
-            <Pressable style={styles.scanActionBtn} onPress={() => router.push('/scan/photo')}>
+            <Pressable style={styles.bigTileBtn} onPress={() => router.push('/meal-history')}>
               <ImageBackground
-                source={{ uri: PHOTO_IMAGE }}
-                style={styles.scanActionImage}
-                imageStyle={styles.scanActionImageInner}
+                source={{ uri: HISTORY_IMAGE }}
+                style={styles.bigTileImage}
+                imageStyle={styles.bigTileImageInner}
               >
                 <LinearGradient
-                  colors={['transparent', 'rgba(0,0,0,0.75)']}
-                  style={styles.scanActionOverlay}
+                  colors={['transparent', 'rgba(0,0,0,0.85)']}
+                  style={styles.bigTileOverlay}
                 >
-                  <Text style={styles.scanActionTitle}>PHOTO</Text>
-                  <Text style={styles.scanActionSub}>{t('identifyDish')}</Text>
+                  <Text style={styles.bigTileTitle}>{t('historyLabel')}</Text>
+                  <Text style={styles.bigTileSub}>{t('historyHint' as any) as string}</Text>
                 </LinearGradient>
               </ImageBackground>
-            </Pressable>
-          </View>
-        </Animated.View>
-
-        {/* Quick actions */}
-        <Animated.View >
-          <View style={styles.quickActions}>
-            <Pressable style={styles.quickActionBtn} onPress={() => router.push('/weekly-plan')}>
-              <LinearGradient
-                colors={[`${colors.primary}18`, `${colors.primary}08`]}
-                style={styles.quickActionGradient}
-              >
-                <Text style={styles.quickActionText}>{t('weeklyPlanLabel')}</Text>
-              </LinearGradient>
-            </Pressable>
-            <Pressable style={styles.quickActionBtn} onPress={() => router.push('/recipes')}>
-              <LinearGradient
-                colors={[`${colors.primary}18`, `${colors.primary}08`]}
-                style={styles.quickActionGradient}
-              >
-                <Text style={styles.quickActionText}>{t('recipesLabel')}</Text>
-              </LinearGradient>
-            </Pressable>
-            <Pressable style={styles.quickActionBtn} onPress={() => router.push('/meal-history')}>
-              <LinearGradient
-                colors={[`${colors.primary}18`, `${colors.primary}08`]}
-                style={styles.quickActionGradient}
-              >
-                <Text style={styles.quickActionText}>{t('historyLabel')}</Text>
-              </LinearGradient>
             </Pressable>
           </View>
         </Animated.View>
@@ -646,6 +652,50 @@ export default function NutritionScreen() {
         kcal={validatedOverlay?.kcal ?? 0}
         protein={validatedOverlay?.protein ?? 0}
         onDone={() => setValidatedOverlay(null)}
+      />
+
+      {/* Sheet "Comment logger ce repas ?" — 3 chemins : recette /
+          scan / saisie manuelle. Le slot ciblé est passé en query
+          param à chaque destination pour que le log atterrisse au
+          bon créneau. */}
+      <LogMealActionSheet
+        visible={logSheetSlot !== null}
+        slotLabel={logSheetSlot ? getMealSlotLabel(logSheetSlot as MealSlot, locale) : undefined}
+        onClose={() => setLogSheetSlot(null)}
+        onPickRecipe={() => {
+          const slot = logSheetSlot;
+          setLogSheetSlot(null);
+          if (slot) router.push(`/(tabs)/meals?slot=${slot}` as any);
+        }}
+        onScan={() => {
+          const slot = logSheetSlot;
+          setLogSheetSlot(null);
+          if (slot) router.push(`/scan/barcode?slot=${slot}` as any);
+        }}
+        onLogManual={() => {
+          const slot = logSheetSlot;
+          setLogSheetSlot(null);
+          if (slot) router.push(`/meal/custom?slot=${slot}` as any);
+        }}
+        onDescribeToCoach={() => {
+          const slot = logSheetSlot;
+          setLogSheetSlot(null);
+          // Mapping slot → clé i18n du prefill. Le wording du prefill
+          // est volontairement laissé OUVERT (se termine par ": ") :
+          // l'user complète librement, le coach parse à l'envoi.
+          const prefillKey = slot
+            ? ({
+                breakfast: 'logMealCoachPrefillBreakfast',
+                morning_snack: 'logMealCoachPrefillMorningSnack',
+                lunch: 'logMealCoachPrefillLunch',
+                afternoon_snack: 'logMealCoachPrefillAfternoonSnack',
+                dinner: 'logMealCoachPrefillDinner',
+                bedtime: 'logMealCoachPrefillBedtime',
+              } as const)[slot as MealSlot] ?? 'logMealCoachPrefillDefault'
+            : 'logMealCoachPrefillDefault';
+          const prefill = t(prefillKey as any) as string;
+          router.push(`/(tabs)/coach?prefill=${encodeURIComponent(prefill)}` as any);
+        }}
       />
     </View>
   );
@@ -769,12 +819,16 @@ const useStyles = makeStyles((colors) => ({
   },
 
   // Scan actions with images
-  scanActions: {
+  // Big tiles — Plan hebdo + Historique (remplacent SCAN/PHOTO et
+  // l'ancien Quick actions row). Hauteur 170 vs 100 avant : on a
+  // assumé que ces deux vues méritent d'être vraiment mises en avant,
+  // pas réduites à des chips de 100px qu'on rate au scroll.
+  bigTilesRow: {
     flexDirection: 'row',
     gap: spacing.sm,
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
-  scanActionBtn: {
+  bigTileBtn: {
     flex: 1,
     borderRadius: borderRadius.lg,
     overflow: 'hidden',
@@ -782,59 +836,33 @@ const useStyles = makeStyles((colors) => ({
     borderColor: colors.primary,
     ...shadows.card,
   },
-  scanActionImage: {
+  bigTileImage: {
     width: '100%',
-    height: 100,
+    height: 170,
   },
-  scanActionImageInner: {
+  bigTileImageInner: {
     borderRadius: borderRadius.lg - 1,
   },
-  scanActionOverlay: {
+  bigTileOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
     padding: spacing.md,
     borderRadius: borderRadius.lg - 1,
   },
-  scanActionTitle: {
+  bigTileTitle: {
     fontFamily: fonts.display,
     fontSize: fontSizes.lg,
     fontWeight: '800',
-    letterSpacing: 2,
+    letterSpacing: 1.4,
     color: colors.white,
+    textTransform: 'uppercase',
   },
-  scanActionSub: {
+  bigTileSub: {
     fontFamily: fonts.body,
     fontSize: fontSizes.xs,
-    fontWeight: '600',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: 'rgba(255,255,255,0.7)',
-  },
-
-  // Quick actions
-  quickActions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  quickActionBtn: {
-    flex: 1,
-    borderRadius: borderRadius.lg,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: `${colors.primary}30`,
-  },
-  quickActionGradient: {
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  quickActionText: {
-    fontFamily: fonts.display,
-    fontSize: fontSizes.sm,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-    color: colors.text,
-    textAlign: 'center',
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 2,
   },
 
   // Modals

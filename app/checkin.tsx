@@ -15,7 +15,7 @@ import { useUserStore } from '../src/store/userStore';
 import { calculateAdaptiveAdjustment } from '../src/engine/adaptiveEngine';
 import { calculateMacros } from '../src/engine/macros';
 import { supabase } from '../src/services/supabase';
-import { syncProfile } from '../src/services/userSync';
+import { syncProfile, syncWeeklyCheckIn } from '../src/services/userSync';
 import { events } from '../src/services/analytics';
 import type { AdaptiveInput } from '../src/types/engine';
 import { ScreenTopBar } from '../src/components/ui/ScreenTopBar';
@@ -94,6 +94,12 @@ export default function CheckInScreen() {
     };
 
     addCheckIn(checkIn);
+    // Sync vers Supabase. Avant ce fix, le check-in n'existait QUE
+    // dans AsyncStorage → perdu au logout/réinstall. Le check-in
+    // alimente le coach IA (contexte hebdo : "ta perf est en baisse",
+    // "tu dors mal depuis 2 semaines"…) — sans sync, le coach
+    // perdrait sa mémoire à chaque réinstall.
+    syncWeeklyCheckIn(checkIn);
     addWeightEntry({
       id: crypto.randomUUID?.() ?? `${Date.now()}-w`,
       userId: profile.id,

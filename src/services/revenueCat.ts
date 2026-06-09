@@ -4,6 +4,11 @@ import { Platform } from 'react-native';
 const isWeb = Platform.OS === 'web';
 
 let Purchases: any = null;
+// True seulement après un configure() réussi. Sans ça, appeler
+// getOfferings/purchasePackage throw "There is no singleton instance"
+// (cas dev sans clé RevenueCat dans le .env). On garde ce flag pour
+// court-circuiter proprement au lieu de spammer la console d'erreurs.
+let isConfigured = false;
 
 async function getPurchases() {
   if (isWeb || Purchases) return Purchases;
@@ -26,15 +31,16 @@ export async function initRevenueCat(userId?: string): Promise<void> {
 
   const apiKey = Platform.OS === 'ios' ? API_KEY_IOS : API_KEY_ANDROID;
   if (!apiKey) {
-    if (__DEV__) console.warn('[RevenueCat] No API key configured');
+    if (__DEV__) console.warn('[RevenueCat] No API key configured — paywall en mode démo');
     return;
   }
 
   sdk.configure({ apiKey, appUserID: userId });
+  isConfigured = true;
 }
 
 export async function getOfferings(): Promise<any[]> {
-  if (isWeb) return [];
+  if (isWeb || !isConfigured) return [];
   const sdk = await getPurchases();
   if (!sdk) return [];
 
@@ -51,7 +57,7 @@ export async function getOfferings(): Promise<any[]> {
 }
 
 export async function purchasePackage(pkg: any): Promise<any | null> {
-  if (isWeb) return null;
+  if (isWeb || !isConfigured) return null;
   const sdk = await getPurchases();
   if (!sdk) return null;
 
@@ -67,14 +73,14 @@ export async function purchasePackage(pkg: any): Promise<any | null> {
 }
 
 export async function restorePurchases(): Promise<any> {
-  if (isWeb) return null;
+  if (isWeb || !isConfigured) return null;
   const sdk = await getPurchases();
   if (!sdk) return null;
   return sdk.restorePurchases();
 }
 
 export async function getCustomerInfo(): Promise<any> {
-  if (isWeb) return null;
+  if (isWeb || !isConfigured) return null;
   const sdk = await getPurchases();
   if (!sdk) return null;
   return sdk.getCustomerInfo();

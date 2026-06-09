@@ -53,6 +53,8 @@ import { useTrainingStore } from '../src/store/trainingStore';
 import { useMealStore } from '../src/store/mealStore';
 import type { MealSlot } from '../src/types/meal';
 import { OfflineBanner } from '../src/components/ui/OfflineBanner';
+import { HealthDisclaimerModal } from '../src/components/onboarding/HealthDisclaimerModal';
+import { syncProfile } from '../src/services/userSync';
 import { processQueue } from '../src/services/syncQueue';
 import { initRevenueCat } from '../src/services/revenueCat';
 import { initAnalytics, identifyUser, resetUser, events } from '../src/services/analytics';
@@ -163,7 +165,11 @@ function RootLayoutInner() {
       const streak = profile?.currentStreak ?? 0;
 
       try {
-        const slots: MealSlot[] = ['breakfast', 'morning_snack', 'lunch', 'afternoon_snack', 'dinner', 'bedtime'];
+        // Cap à 3 repas principaux (breakfast/lunch/dinner) — cf
+        // step7-summary.tsx pour la justification. Le re-schedule au
+        // launch doit respecter la même règle pour ne pas re-créer des
+        // notifs snack supprimées par l'user via Profil > Notifications.
+        const slots: MealSlot[] = ['breakfast', 'lunch', 'dinner'];
         for (const slot of slots) {
           await scheduleMealReminder(slot);
         }
@@ -438,7 +444,37 @@ function RootLayoutInner() {
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeColors.background } }} />
       </BiometricLockGate>
       <ToastHost />
+      <HealthDisclaimerGate />
     </QueryClientProvider>
+  );
+}
+
+/** Affiche le modal "Disclaimer santé" une seule fois après l'onboarding,
+ *  avant que l'user puisse utiliser le coach IA ou les plans nutrition.
+ *  Apple Guideline 1.4.1 — bloquant pour la review. */
+function HealthDisclaimerGate() {
+  const profile = useUserStore((s) => s.profile);
+  const accepted = useUserStore((s) => s.healthDisclaimerAcceptedAt);
+  const acceptHealthDisclaimer = useUserStore((s) => s.acceptHealthDisclaimer);
+
+  // Affiché seulement si l'user a un profil (onboarding terminé) ET
+  // n'a pas encore accepté. On évite de l'afficher pendant les écrans
+  // d'auth (welcome/login) pour ne pas prompter avant que l'user
+  // s'engage.
+  if (!profile || accepted) return null;
+
+  return (
+    <HealthDisclaimerModal
+      visible
+      onAccept={() => {
+        acceptHealthDisclaimer();
+        // Sync vers Supabase pour que l'acceptation ne soit pas
+        // re-demandée sur un autre device.
+        if (profile.id) {
+          syncProfile({ healthDisclaimerAcceptedAt: new Date().toISOString() }, profile.id);
+        }
+      }}
+    />
   );
 }
 

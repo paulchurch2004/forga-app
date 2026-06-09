@@ -76,13 +76,47 @@ serve(async (req) => {
       );
     }
 
+    // Cap photo-scan PAR PALIER. Le scan utilise GPT-4o VISION qui est le
+    // plus cher de nos appels IA (~0.02-0.03€/image) → caps volontairement
+    // SERRÉS, bien plus bas que le coach texte.
+    //  - FREE    : 3/jour
+    //  - TRIAL   : 5/jour (essai 7j — borné contre l'abus "spam puis annule")
+    //  - PREMIUM : 10/jour (payant — un user normal scanne 2-4 repas/jour,
+    //              10 couvre largement ; au-delà = abus, et coût vision trop
+    //              élevé pour la marge sur un abonnement à ~12€/mois).
+    // ⚠ BUG corrigé : avant, p_daily_cap était hardcodé à 3 pour TOUT LE
+    // MONDE → un abonné premium avait les mêmes 3 scans qu'un gratuit.
+    const FOOD_CAP_FREE = 3;
+    const FOOD_CAP_TRIAL = 5;
+    const FOOD_CAP_PREMIUM = 10;
+
+    const { data: profileRow } = await supabase
+      .from('users')
+      .select('is_premium, premium_until, trial_state, stripe_subscription_id')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    const premiumActive =
+      Boolean(profileRow?.is_premium) &&
+      (!profileRow?.premium_until ||
+        new Date(profileRow.premium_until).getTime() > Date.now());
+    const isTrialing =
+      premiumActive &&
+      (profileRow?.trial_state === 'active' || profileRow?.trial_state === 'extended') &&
+      !profileRow?.stripe_subscription_id;
+    const foodCap = !premiumActive
+      ? FOOD_CAP_FREE
+      : isTrialing
+        ? FOOD_CAP_TRIAL
+        : FOOD_CAP_PREMIUM;
+
     // ✅ Quota check AVANT appel GPT-4o
     const { data: quotaCheck, error: quotaError } = await supabase.rpc(
       'check_and_increment_quota',
       {
         p_user_id: user.id,
         p_feature: 'food_scan',
-        p_daily_cap: 3,
+        p_daily_cap: foodCap,
       },
     );
 

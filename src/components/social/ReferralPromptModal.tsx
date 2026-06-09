@@ -25,6 +25,7 @@ import {
   Share,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../../context/ThemeContext';
@@ -32,6 +33,7 @@ import { useT } from '../../i18n';
 import { fonts, fontSizes, fontWeights } from '../../theme/fonts';
 import { spacing, borderRadius } from '../../theme/spacing';
 import { events } from '../../services/analytics';
+import { REFERRAL_TIERS, getNextTier } from '../../services/referrals';
 
 const triggerHaptic = (style: 'light' | 'medium' = 'light') => {
   if (Platform.OS === 'web') return;
@@ -82,6 +84,10 @@ export function ReferralPromptModal({ visible, referralCode, referralCount, onDi
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onDismiss}>
+      {/* SafeAreaView wrapping pour éviter que le card passe sous la
+          Dynamic Island / notch sur iPhone 14+. edges=['top'] suffit :
+          le card est déjà centré, juste besoin de garantir le top safe. */}
+      <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
       <Pressable style={styles.backdrop} onPress={onDismiss}>
         {/* Container : Pressable pour avaler les taps qui ne doivent
             pas remonter au backdrop (dismiss). */}
@@ -103,16 +109,74 @@ export function ReferralPromptModal({ visible, referralCode, referralCount, onDi
               {t('referralPromptTagline' as any)}
             </Text>
 
-            {referralCount > 0 && (
-              <Text style={styles.countLine}>
-                {t('referralPromptCount' as any, { count: referralCount })}
-              </Text>
-            )}
+            {/* Progression vers le prochain palier — montre à l'user
+                où il en est et ce qu'il gagne au prochain palier. C'est
+                le moteur de gamification : "1 ami de plus → +1 mois". */}
+            {(() => {
+              const nextTier = getNextTier(referralCount);
+              if (!nextTier) {
+                // Tous les paliers atteints
+                return (
+                  <Text style={styles.countLine}>
+                    {t('referralPromptAllTiersUnlocked' as any, { count: referralCount })}
+                  </Text>
+                );
+              }
+              const remaining = nextTier.atCount - referralCount;
+              // Le palier précédent (ou 0) pour calculer le % progression
+              const prevTier = REFERRAL_TIERS
+                .filter((tt) => tt.atCount <= referralCount)
+                .pop();
+              const prevCount = prevTier?.atCount ?? 0;
+              const progress = (referralCount - prevCount) / (nextTier.atCount - prevCount);
+              return (
+                <View style={styles.progressWrap}>
+                  <Text style={styles.progressText}>
+                    {t('referralPromptProgress' as any, {
+                      remaining,
+                      reward: t(`referralReward_${nextTier.labelKey}` as any) as string,
+                    })}
+                  </Text>
+                  <View style={styles.progressBar}>
+                    <View style={[styles.progressFill, { width: `${Math.max(6, progress * 100)}%` }]} />
+                  </View>
+                  <View style={styles.progressLabels}>
+                    <Text style={styles.progressLabelSmall}>{referralCount}</Text>
+                    <Text style={styles.progressLabelSmall}>{nextTier.atCount}</Text>
+                  </View>
+                </View>
+              );
+            })()}
+
+            {/* Liste compacte des paliers — donne envie d'aller loin */}
+            <View style={styles.tiersList}>
+              {REFERRAL_TIERS.map((tier) => {
+                const unlocked = referralCount >= tier.atCount;
+                return (
+                  <View
+                    key={tier.atCount}
+                    style={[styles.tierRow, unlocked && styles.tierRowUnlocked]}
+                  >
+                    <View style={styles.tierBadge}>
+                      <Text style={[styles.tierBadgeText, unlocked && styles.tierBadgeTextUnlocked]}>
+                        {tier.atCount}
+                      </Text>
+                    </View>
+                    <Text style={[styles.tierLabel, unlocked && styles.tierLabelUnlocked]}>
+                      {t(`referralReward_${tier.labelKey}` as any)}
+                    </Text>
+                    {unlocked && (
+                      <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
+                    )}
+                  </View>
+                );
+              })}
+            </View>
 
             {/* Code de parrainage en gros */}
             <View style={styles.codeBox}>
               <Text style={styles.codeLabel}>{t('referralPromptYourCode' as any)}</Text>
-              <Text style={styles.codeValue}>{referralCode}</Text>
+              <Text style={styles.codeValue} selectable>{referralCode.trim()}</Text>
             </View>
 
             {/* CTA principal : partager */}
@@ -136,6 +200,7 @@ export function ReferralPromptModal({ visible, referralCode, referralCount, onDi
           </View>
         </Pressable>
       </Pressable>
+      </SafeAreaView>
     </Modal>
   );
 }
@@ -197,6 +262,84 @@ const makeStyles = (colors: any) =>
       color: colors.textSecondary,
       textAlign: 'center',
       marginBottom: spacing.lg,
+    },
+    progressWrap: {
+      marginTop: spacing.lg,
+      marginBottom: spacing.md,
+    },
+    progressText: {
+      fontFamily: fonts.body,
+      fontSize: fontSizes.sm,
+      color: colors.text,
+      textAlign: 'center',
+      marginBottom: spacing.sm,
+      lineHeight: fontSizes.sm * 1.4,
+    },
+    progressBar: {
+      height: 8,
+      backgroundColor: colors.border,
+      borderRadius: 4,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: colors.primary,
+      borderRadius: 4,
+    },
+    progressLabels: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: 4,
+    },
+    progressLabelSmall: {
+      fontFamily: fonts.data,
+      fontSize: 10,
+      color: colors.textMuted,
+      fontWeight: '700' as any,
+    },
+    tiersList: {
+      gap: spacing.xs,
+      marginTop: spacing.md,
+      marginBottom: spacing.lg,
+    },
+    tierRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      paddingVertical: 6,
+      paddingHorizontal: spacing.sm,
+      borderRadius: borderRadius.sm,
+      backgroundColor: 'transparent',
+    },
+    tierRowUnlocked: {
+      backgroundColor: 'rgba(255,107,53,0.08)',
+    },
+    tierBadge: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    tierBadgeText: {
+      fontFamily: fonts.data,
+      fontSize: 11,
+      fontWeight: '700' as any,
+      color: colors.textMuted,
+    },
+    tierBadgeTextUnlocked: {
+      color: colors.primary,
+    },
+    tierLabel: {
+      flex: 1,
+      fontFamily: fonts.body,
+      fontSize: fontSizes.sm,
+      color: colors.textSecondary,
+    },
+    tierLabelUnlocked: {
+      color: colors.text,
+      fontWeight: '600' as any,
     },
     codeBox: {
       backgroundColor: colors.primarySoft,

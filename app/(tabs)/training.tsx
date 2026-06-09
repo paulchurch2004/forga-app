@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, ScrollView, Pressable, Platform, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -27,6 +27,8 @@ import { PreWorkoutCheckInModal, type PreWorkoutCheckInResult } from '../../src/
 import { HistorySheet, type HistoryItem } from '../../src/components/training/HistorySheet';
 import { ReplaceExerciseSheet, type SubstituteOption } from '../../src/components/training/ReplaceExerciseSheet';
 import { buildSubstitutesFor as buildSubstitutesForId } from '../../src/utils/exerciseSubstitutes';
+import { estimateSessionMinutes } from '../../src/utils/sessionDuration';
+import { CycleCompleteCard } from '../../src/components/training/CycleCompleteCard';
 import { TrainingSetupWizard } from '../../src/components/training/TrainingSetupWizard';
 import { StatsSheet } from '../../src/components/training/StatsSheet';
 import { SessionActionsSheet, type SessionAction } from '../../src/components/training/SessionActionsSheet';
@@ -80,11 +82,29 @@ export default function TrainingScreen() {
   const swapPlannedDays = useProgramStore((s) => s.swapPlannedDays);
   const replaceExerciseInDay = useProgramStore((s) => s.replaceExerciseInDay);
   const getProgramDayForDate = useProgramStore((s) => s.getProgramDayForDate);
+  const lastWipedProgramId = useProgramStore((s) => s.lastWipedProgramId);
+  const clearLastWipedProgram = useProgramStore((s) => s.clearLastWipedProgram);
+
+  // Notification user du wipe migration : si un ancien plan a été
+  // automatiquement nettoyé (programId disparu d'une mise à jour),
+  // on prévient pour éviter qu'il croie que l'app a perdu ses données.
+  useEffect(() => {
+    if (lastWipedProgramId && !hasActivePlan) {
+      Alert.alert(
+        'Programme mis à jour',
+        `Ton ancien programme n'est plus disponible dans cette version. Choisis-en un nouveau adapté à ton profil — tes séances passées restent dans ton historique.`,
+        [{ text: 'Compris', onPress: clearLastWipedProgram }],
+      );
+    }
+  }, [lastWipedProgramId, hasActivePlan, clearLastWipedProgram]);
   const duplicateWorkoutToDate = useTrainingStore((s) => s.duplicateWorkoutToDate);
 
   // ─── Week navigator + calendar state ─────────────────────────
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+  // Fin de cycle : true quand l'user a tapé "choisir un autre programme"
+  // sur la CycleCompleteCard → on révèle le sélecteur complet à la place.
+  const [showFullSelector, setShowFullSelector] = useState(false);
   const [activeSheet, setActiveSheet] = useState<
     null | 'program' | 'history' | 'replace' | 'stats' | 'actions' | 'preview'
   >(null);
@@ -191,11 +211,57 @@ export default function TrainingScreen() {
         )
     );
   }, [recentWorkouts]);
-  const weeklyVolumeTargetKg = activeProgram ? activeProgram.daysPerWeek * 4500 : 0;
 
   // ─── Selected day card data (driven by the SELECTED day, not today) ─
   const selectedCell = selectedDayIndex !== null ? calendarCells[selectedDayIndex] ?? null : null;
   const allWorkouts = useTrainingStore((s) => s.workouts);
+
+  // Cible de volume hebdo = basée sur l'HISTORIQUE RÉEL de l'user, pas
+  // une constante arbitraire (avant : daysPerWeek × 4500, qui ne tenait
+  // compte ni du niveau, ni de la force réelle de l'user — un squatteur
+  // à 130kg et un débutant à 40kg avaient la même cible).
+  //
+  // Logique "coach" :
+  //  - Si l'user a un historique sur les 4 dernières semaines → on prend
+  //    sa moyenne hebdo et on applique une surcharge progressive +5%
+  //    ("tu as fait 18t la semaine dernière, vise ~19t").
+  //  - Sinon (nouvel user) → fallback basé sur le NIVEAU × daysPerWeek,
+  //    qui scale au moins avec l'expérience au lieu d'un chiffre fixe.
+  const weeklyVolumeTargetKg = useMemo(() => {
+    if (!activeProgram) return 0;
+
+    // Somme du volume sur les 28 derniers jours
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 28);
+    let total = 0;
+    let hasData = false;
+    for (const [iso, list] of Object.entries(allWorkouts)) {
+      if (new Date(iso) < cutoff) continue;
+      for (const w of list ?? []) {
+        for (const ex of w.exercises) {
+          for (const set of ex.sets) {
+            total += (set.weight ?? 0) * (set.reps ?? 0);
+          }
+        }
+        hasData = true;
+      }
+    }
+
+    if (hasData && total > 0) {
+      const avgWeekly = total / 4;
+      return Math.round(avgWeekly * 1.05); // surcharge progressive +5%
+    }
+
+    // Fallback nouvel user : baseline par niveau (kg/séance) × fréquence
+    const perSessionByLevel: Record<string, number> = {
+      beginner: 3000,
+      intermediate: 4500,
+      advanced: 6000,
+      expert: 7000,
+    };
+    const base = perSessionByLevel[profile?.trainingLevel ?? 'intermediate'] ?? 4500;
+    return activeProgram.daysPerWeek * base;
+  }, [activeProgram, allWorkouts, profile?.trainingLevel]);
 
   // ProgramDay for the selected date — applies overrides from replaceExerciseInDay.
   // activePlan is in deps so swaps re-trigger this when overrides change.
@@ -236,7 +302,7 @@ export default function TrainingScreen() {
 
     const typeLabel = selectedProgramDay ? t(selectedProgramDay.nameKey as any) : '';
     const durationMin = selectedProgramDay
-      ? selectedProgramDay.exercises.length * 12
+      ? estimateSessionMinutes(selectedProgramDay)
       : selectedDayWorkout?.durationMinutes ?? 0;
 
     let title = selectedProgramDay
@@ -305,10 +371,14 @@ export default function TrainingScreen() {
     const date = new Date();
     const dateLabel = date.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
     const programName = activeProgram ? t(activeProgram.nameKey as any) : t('selectProgram' as any);
-    const totalWeeks = 8;
+    // Durée réelle du plan (et non 8 hardcodé). generatePlan produit
+    // 28 jours = 4 semaines ; afficher "/ 8" trompait l'user qui croyait
+    // avoir 8 semaines puis voyait le programme finir à la semaine 4.
+    // On dérive depuis le plan pour rester juste même si la durée change.
+    const totalWeeks = activePlan ? Math.max(1, Math.ceil(activePlan.days.length / 7)) : 4;
     const weekLabel = hasActivePlan ? `Semaine ${currentWeek} / ${totalWeeks}` : '';
     const subtitle = todayProgramDay
-      ? `${t(todayProgramDay.nameKey as any)} · ${todayProgramDay.exercises.length * 12} min prévues`
+      ? `${t(todayProgramDay.nameKey as any)} · ${estimateSessionMinutes(todayProgramDay)} min prévues`
       : todayPlan?.status === 'rest'
       ? 'Jour de repos'
       : 'Pas de séance';
@@ -516,17 +586,25 @@ export default function TrainingScreen() {
       {!hasActivePlan || isPlanExpired ? (
         /* ── Mode A: Program Selection ── */
         <Animated.View entering={FadeInDown.duration(400)}>
-          {isPlanExpired && (
-            <View style={styles.expiredBanner}>
-              <Text style={styles.expiredTitle}>{t('planExpired')}</Text>
-              <Text style={styles.expiredSub}>{t('planExpiredSub')}</Text>
-            </View>
+          {/* Fin de cycle : bilan valorisant + reco niveau suivant (1 tap).
+              Remplace l'ancien bandeau brut "Programme terminé". */}
+          {isPlanExpired && !showFullSelector && (
+            <CycleCompleteCard
+              onStartNext={(programId) => {
+                triggerHaptic();
+                selectProgram(programId, objective, profile?.sex);
+              }}
+              onChooseOther={() => setShowFullSelector(true)}
+            />
           )}
 
           {/* New user with no training profile \u2192 guided 5-step wizard
               (objectif / niveau / dispo / lieu / calibration).
-              Returning user OR after expired plan \u2192 direct program list. */}
-          {!profile?.trainingLevel && !isPlanExpired ? (
+              Returning user OR after expired plan \u2192 direct program list.
+              En fin de cycle, on N'AFFICHE le s\u00e9lecteur QUE si l'user a
+              tap\u00e9 "choisir un autre" (sinon la CycleCompleteCard suffit). */}
+          {(!isPlanExpired || showFullSelector) && (
+          !profile?.trainingLevel && !isPlanExpired ? (
             <TrainingSetupWizard
               objective={objective}
               sex={profile?.sex ?? 'male'}
@@ -570,7 +648,7 @@ export default function TrainingScreen() {
               objective={objective}
               onSelect={selectProgram}
             />
-          )}
+          ))}
 
           {/* Manual workout always accessible */}
           <Pressable

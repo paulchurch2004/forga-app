@@ -225,6 +225,43 @@ export const events = {
   trialExpired: () => trackEvent('trial_expired'),
   trialExtended: () => trackEvent('trial_extended'),
   trialConverted: () => trackEvent('trial_converted'),
+  /** Retention trial — fired by the trial watcher when l'user revient
+   *  à J+3 ou J+6 d'utilisation. Permet de mesurer la rétention pré-conversion. */
+  trialDayActive: (dayNumber: 1 | 2 | 3 | 4 | 5 | 6 | 7) =>
+    trackEvent('trial_day_active', { day: dayNumber }),
+  /** Warning J-2/J-1 affiché */
+  trialWarningShown: (daysRemaining: number) =>
+    trackEvent('trial_warning_shown', { daysRemaining }),
+
+  // ─── Activation funnel ───
+  /** Premier meal jamais loggé par cet user. Signal d'activation
+   *  primaire pour la nutrition. À fire UNE seule fois (le caller
+   *  garde un flag local pour ne pas re-trigger). */
+  firstMealLogged: (slot: string, source: 'recipe' | 'custom' | 'scan' | 'coach') =>
+    trackEvent('first_meal_logged', { slot, source }),
+  /** Premier workout jamais loggé. Signal d'activation training. */
+  firstWorkoutLogged: (type: string, durationMin: number) =>
+    trackEvent('first_workout_logged', { type, durationMin }),
+  /** Premier message envoyé au coach IA. Signal engagement coach. */
+  firstCoachMessageSent: () =>
+    trackEvent('first_coach_message_sent'),
+
+  // ─── Paywall instrumenté ───
+  /** Raison de dismiss du paywall — précieux pour itérer le pricing. */
+  paywallDismissedDetailed: (reason: 'price_too_high' | 'not_ready' | 'features_unclear' | 'closed_x' | 'unknown') =>
+    trackEvent('paywall_dismissed_detailed', { reason }),
+
+  // ─── Health disclaimer (Apple G1.4.1 compliance signal) ───
+  healthDisclaimerShown: () => trackEvent('health_disclaimer_shown'),
+  healthDisclaimerAccepted: () => trackEvent('health_disclaimer_accepted'),
+
+  // ─── Account lifecycle ───
+  accountDeleted: (reason?: string) =>
+    trackEvent('account_deleted', { reason: reason ?? 'not_provided' }),
+
+  // ─── Feature usage (granulaire pour optimiser le paywall) ───
+  featureGateHit: (feature: 'live_swap' | 'photo_meal' | 'unlimited_coach' | 'advanced_stats') =>
+    trackEvent('feature_gate_hit', { feature }),
 
   // Referral
   referralCodeShared: (method: 'copy' | 'share') =>

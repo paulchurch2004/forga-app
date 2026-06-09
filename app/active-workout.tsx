@@ -10,6 +10,7 @@ import {
   Image,
   Modal,
   Vibration,
+  AppState,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -24,6 +25,7 @@ import { hasTutorial } from '../src/data/exerciseTips';
 import { ExerciseTutorialModal } from '../src/components/training/ExerciseTutorialModal';
 import { useTrainingStore } from '../src/store/trainingStore';
 import { syncWorkout, syncOneRepMax } from '../src/services/userSync';
+import { events } from '../src/services/analytics';
 import { pushWorkoutToHealth } from '../src/hooks/useAppleHealth';
 import { useAuthStore } from '../src/store/authStore';
 import { useProgramStore } from '../src/store/programStore';
@@ -104,11 +106,13 @@ const FORM_CUES: Record<string, string[]> = {
   ],
 };
 
-const triggerHaptic = (style: 'light' | 'medium' | 'success' = 'light') => {
+const triggerHaptic = (style: 'light' | 'medium' | 'success' | 'warning' = 'light') => {
   if (Platform.OS === 'web') return;
   import('expo-haptics').then((H) => {
     if (style === 'success') {
       H.notificationAsync(H.NotificationFeedbackType.Success);
+    } else if (style === 'warning') {
+      H.notificationAsync(H.NotificationFeedbackType.Warning);
     } else {
       const s = style === 'medium'
         ? H.ImpactFeedbackStyle.Medium
@@ -194,6 +198,11 @@ export default function ActiveWorkoutScreen() {
   // Timer
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Timestamp en ms quand l'app est passée en background. Sert à rattraper
+  // le temps écoulé pendant que JS dormait (sur iOS, setInterval s'arrête
+  // en background — sans ce rattrapage, une séance de 1h05 réelle serait
+  // enregistrée comme 35 min si l'user a switch d'app 30 min).
+  const backgroundedAtRef = useRef<number | null>(null);
 
   useEffect(() => {
     timerRef.current = setInterval(() => {
@@ -202,6 +211,24 @@ export default function ActiveWorkoutScreen() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
+  }, []);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'background' || state === 'inactive') {
+        backgroundedAtRef.current = Date.now();
+      } else if (state === 'active' && backgroundedAtRef.current) {
+        const gapSec = Math.floor((Date.now() - backgroundedAtRef.current) / 1000);
+        backgroundedAtRef.current = null;
+        // Clamp à 4h max : si l'user a fermé l'app et revient le
+        // lendemain, on ne veut pas un timer absurde. La purge < 24h
+        // dans le restore couvre déjà le cas extrême.
+        if (gapSec > 0 && gapSec < 4 * 60 * 60) {
+          setElapsedSeconds((s) => s + gapSec);
+        }
+      }
+    });
+    return () => sub.remove();
   }, []);
 
   const formatTime = (secs: number) => {
@@ -217,6 +244,10 @@ export default function ActiveWorkoutScreen() {
   const [restReasonKey, setRestReasonKey] = useState('');
   const [isTransitionRest, setIsTransitionRest] = useState(false);
   const [prAlert, setPrAlert] = useState<string | null>(null);
+  // Mini-banner "Reps manquantes" affiché 1.8s quand l'user tape Valider
+  // sans avoir entré de reps (sinon le set se valide silencieusement et
+  // l'user ne comprend pas pourquoi rien ne se passe).
+  const [validationHint, setValidationHint] = useState<string | null>(null);
   const [showWorkoutGuide, setShowWorkoutGuide] = useState(false);
   const [showFinisherCardio, setShowFinisherCardio] = useState(false);
   const [showSessionForgee, setShowSessionForgee] = useState(false);
@@ -549,20 +580,39 @@ export default function ActiveWorkoutScreen() {
           elapsedSeconds: number;
           savedAt: number;
         };
-        const ageMs = Date.now() - (parsed.savedAt ?? 0);
-        if (ageMs > 24 * 60 * 60 * 1000) {
-          // Trop vieux — purge et ignore
+        // Validation shape stricte : AsyncStorage peut être corrompu
+        // (kill app mid-write, OS storage cleanup, downgrade de version
+        // qui change le schéma). Un parse "réussi" sur du JSON invalide
+        // pour notre app provoque des crashs runtime plus tard quand on
+        // accède à ex.sets[i].completed sur un null.
+        if (!parsed || typeof parsed !== 'object') {
           AsyncStorage.removeItem(persistKey).catch(() => {});
           return;
         }
-        if (Array.isArray(parsed.exercises) && parsed.exercises.length > 0) {
-          setExercises(parsed.exercises);
+        const ageMs = Date.now() - (parsed.savedAt ?? 0);
+        if (!Number.isFinite(parsed.savedAt) || ageMs > 24 * 60 * 60 * 1000 || ageMs < 0) {
+          AsyncStorage.removeItem(persistKey).catch(() => {});
+          return;
         }
-        if (typeof parsed.elapsedSeconds === 'number' && parsed.elapsedSeconds > 0) {
+        const isValidExercise = (ex: any): ex is ActiveExercise =>
+          ex &&
+          typeof ex === 'object' &&
+          ex.programExercise &&
+          Array.isArray(ex.sets) &&
+          ex.sets.every((s: any) => s && typeof s === 'object');
+        if (Array.isArray(parsed.exercises) && parsed.exercises.length > 0 && parsed.exercises.every(isValidExercise)) {
+          setExercises(parsed.exercises);
+        } else if (Array.isArray(parsed.exercises) && parsed.exercises.length > 0) {
+          // Shape ne match pas — purge pour éviter crash récurrent
+          AsyncStorage.removeItem(persistKey).catch(() => {});
+          return;
+        }
+        if (typeof parsed.elapsedSeconds === 'number' && Number.isFinite(parsed.elapsedSeconds) && parsed.elapsedSeconds > 0) {
           setElapsedSeconds(parsed.elapsedSeconds);
         }
       } catch {
-        // Parse échoué → ignore, on garde l'init
+        // Parse échoué → purge et ignore
+        AsyncStorage.removeItem(persistKey).catch(() => {});
       }
     });
   }, [persistKey]);
@@ -605,7 +655,16 @@ export default function ActiveWorkoutScreen() {
         // Block completing a set with 0 or empty reps
         if (!wasCompleted) {
           const reps = parseInt(set.actualReps || '0', 10);
-          if (reps <= 0) return prev; // Don't complete
+          if (reps <= 0) {
+            // Avant : on retournait sans feedback → user tap "Valider"
+            // sans rien se passer, perplexe. On vibre + on affiche un
+            // mini-banner pour expliquer pourquoi le set n'a pas été
+            // validé.
+            triggerHaptic('warning');
+            setValidationHint('Entre tes reps pour valider la série');
+            setTimeout(() => setValidationHint(null), 1800);
+            return prev;
+          }
         }
 
         ex.sets[setIdx] = { ...set, completed: !wasCompleted };
@@ -744,6 +803,12 @@ export default function ActiveWorkoutScreen() {
       markDayCompleted(date, workoutId);
       AsyncStorage.removeItem(persistKey).catch(() => {});
       triggerHaptic('success');
+      // Funnel d'activation : 1er workout cardio loggé.
+      const { hasLoggedFirstWorkout, markFirstWorkoutLogged } = useUserStore.getState();
+      if (!hasLoggedFirstWorkout) {
+        events.firstWorkoutLogged(workout.type, workout.durationMinutes);
+        markFirstWorkoutLogged();
+      }
       router.back();
       return;
     }
@@ -769,6 +834,14 @@ export default function ActiveWorkoutScreen() {
 
   const doFinish = useCallback(
     (workoutId: string, date: string) => {
+      // Recalcule la note du check-in pré-séance ici (et pas dans
+      // handleFinish) car doFinish est un callback séparé qui n'a pas
+      // accès aux variables locales de handleFinish. Sans ça → crash
+      // "checkInNote doesn't exist".
+      const checkInNote = params.metalId
+        ? `État: ${params.metalId}${loadMultiplier !== 1 ? ` (charges ${Math.round((loadMultiplier - 1) * 100) > 0 ? '+' : ''}${Math.round((loadMultiplier - 1) * 100)}%)` : ''}`
+        : undefined;
+
       const workoutExercises: WorkoutExercise[] = exercises
         .filter((ex) => ex.sets.some((s) => s.completed))
         .map((ex) => ({
@@ -784,6 +857,14 @@ export default function ActiveWorkoutScreen() {
             })),
         }));
 
+      // Partial = au moins un set non coché (ou un exo entièrement vide).
+      // Sert à afficher "Séance partielle X/Y" dans l'historique et au
+      // coach IA pour suggérer du rattrapage. Le jour reste 'completed'
+      // côté programme (un jour fait à 60% reste un jour fait).
+      const totalSets = exercises.reduce((acc, ex) => acc + ex.sets.length, 0);
+      const completedSets = exercises.reduce((acc, ex) => acc + ex.sets.filter((s) => s.completed).length, 0);
+      const isPartialSession = totalSets > 0 && completedSets < totalSets;
+
       const workout: Workout = {
         id: workoutId,
         date,
@@ -793,6 +874,7 @@ export default function ActiveWorkoutScreen() {
         intensity: 'intense',
         exercises: workoutExercises,
         note: checkInNote,
+        isPartial: isPartialSession || undefined,
       };
 
       addWorkout(workout);
@@ -801,6 +883,12 @@ export default function ActiveWorkoutScreen() {
       markDayCompleted(date, workoutId);
       AsyncStorage.removeItem(persistKey).catch(() => {});
       triggerHaptic('success');
+      // Funnel d'activation : 1er workout muscu loggé.
+      const { hasLoggedFirstWorkout: hadFirst, markFirstWorkoutLogged: markFirst } = useUserStore.getState();
+      if (!hadFirst) {
+        events.firstWorkoutLogged(workout.type, workout.durationMinutes);
+        markFirst();
+      }
 
       // Compute Session Forgée stats from the workout
       const totalVol = workoutExercises.reduce(
@@ -839,7 +927,7 @@ export default function ActiveWorkoutScreen() {
       // Ceremony first; finisher cardio comes after the user closes the modal
       setShowSessionForgee(true);
     },
-    [exercises, elapsedSeconds, addWorkout, markDayCompleted, router, t, userId, profile?.name, currentTrainingStreak, totalWorkouts, checkWorkoutBadges]
+    [exercises, elapsedSeconds, addWorkout, markDayCompleted, router, t, userId, profile?.name, currentTrainingStreak, totalWorkouts, checkWorkoutBadges, params.metalId, loadMultiplier, persistKey]
   );
 
   // Finisher cardio timer
@@ -1024,6 +1112,13 @@ export default function ActiveWorkoutScreen() {
         <Animated.View style={styles.prBanner}>
           <Text style={styles.prEmoji}>{'\uD83C\uDFC6'}</Text>
           <Text style={styles.prText}>NOUVEAU RECORD !</Text>
+        </Animated.View>
+      )}
+
+      {/* Hint validation (reps manquantes) \u2014 r\u00E9utilise le slot du PR banner */}
+      {validationHint && !prAlert && (
+        <Animated.View style={[styles.prBanner, { backgroundColor: 'rgba(255,107,53,0.95)' }]}>
+          <Text style={styles.prText}>{validationHint}</Text>
         </Animated.View>
       )}
 

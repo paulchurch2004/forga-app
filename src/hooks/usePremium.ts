@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { useUserStore } from '../store/userStore';
 import { checkPremiumStatus } from '../services/revenueCat';
 import { events } from '../services/analytics';
+import { syncProfile } from '../services/userSync';
 
 export function usePremium() {
   const profile = useUserStore((s) => s.profile);
@@ -23,6 +24,25 @@ export function usePremium() {
   const isTrialActive = isPremium && daysLeft !== null && daysLeft > 0;
   const isTrialExpired = daysLeft !== null && daysLeft <= 0 && !profile?.stripeSubscriptionId;
 
+  // Date d'expiration formatée pour affichage. Avant : on n'avait que
+  // `daysLeft` (ex: "3 jours"), ambigu car l'user ne sait pas si ça
+  // signifie 3*24h depuis maintenant ou jusqu'à une date X à minuit.
+  // Maintenant on expose les deux pour que l'UI puisse afficher
+  // "Expire le 15 juin (3 jours)".
+  const expiresAtFormatted = (() => {
+    if (!profile?.premiumUntil) return null;
+    try {
+      const until = new Date(profile.premiumUntil);
+      if (Number.isNaN(until.getTime())) return null;
+      return until.toLocaleDateString(undefined, {
+        day: 'numeric',
+        month: 'long',
+      });
+    } catch {
+      return null;
+    }
+  })();
+
   const refreshPremiumStatus = useCallback(async () => {
     setIsChecking(true);
     try {
@@ -34,6 +54,11 @@ export function usePremium() {
           // Don't expire if user has an active Stripe subscription
           if (!profile.stripeSubscriptionId) {
             updateProfile({ isPremium: false });
+            // Sync vers Supabase — sans ça, l'expiration de trial
+            // n'était propagée qu'en local : sur un autre device,
+            // l'user restait "premium" alors que son trial venait
+            // de finir → revenue leak.
+            if (profile.id) syncProfile({ isPremium: false }, profile.id);
             events.trialExpired();
           }
         }
@@ -48,6 +73,10 @@ export function usePremium() {
           const wasTrialActive = profile?.isPremium && profile?.premiumUntil &&
             new Date(profile.premiumUntil).getTime() < Date.now() + 24 * 60 * 60 * 1000;
           updateProfile({ isPremium: true });
+          // Sync — un upgrade RevenueCat (App Store / Play) doit être
+          // visible côté DB pour le coach IA (contexte premium → débloque
+          // certains conseils) et pour la rétention multi-device.
+          if (profile?.id) syncProfile({ isPremium: true }, profile.id);
           if (wasTrialActive && !profile?.stripeSubscriptionId) {
             events.trialConverted();
           }
@@ -83,6 +112,7 @@ export function usePremium() {
     isTrialActive,
     isTrialExpired,
     daysLeft,
+    expiresAtFormatted,
     refreshPremiumStatus,
     requirePremium,
   };

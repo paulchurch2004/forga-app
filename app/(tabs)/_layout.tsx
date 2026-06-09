@@ -11,6 +11,7 @@ import { CustomTabBar } from '../../src/components/layout/CustomTabBar';
 import { useT } from '../../src/i18n';
 import type { ThemeColors } from '../../src/theme';
 import { TrialExpirationModal } from '../../src/components/TrialExpirationModal';
+import { TrialWarningModal } from '../../src/components/TrialWarningModal';
 import { useTrial } from '../../src/hooks/useTrial';
 import { scheduleTrialNotifications } from '../../src/services/trialNotifications';
 
@@ -59,7 +60,15 @@ export default function TabLayout() {
   const { isDesktop } = useResponsive();
   const { colors } = useTheme();
   const { t } = useT();
-  const { showExpirationModal, refresh, trialEndsAt, isInTrial } = useTrial();
+  const {
+    showExpirationModal,
+    showWarningModal,
+    daysRemaining,
+    dismissWarning,
+    refresh,
+    trialEndsAt,
+    isInTrial,
+  } = useTrial();
 
   // Schedule J-2 / J-1 / J0 notifications once trial endpoint is known
   const scheduledForRef = useRef<string | null>(null);
@@ -152,6 +161,11 @@ export default function TabLayout() {
         <Sidebar />
         <View style={desktopStyles.content}>{tabs}</View>
         <TrialExpirationModal visible={showExpirationModal} onClose={refresh} />
+        <TrialWarningModal
+          visible={showWarningModal}
+          daysRemaining={daysRemaining}
+          onClose={dismissWarning}
+        />
       </View>
     );
   }

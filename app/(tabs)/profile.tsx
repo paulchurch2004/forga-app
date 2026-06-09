@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
+import { resolveLocalUri } from '../../src/utils/persistImage';
 import { getScoreColor, getScoreLabel } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useT } from '../../src/i18n';
@@ -138,6 +139,57 @@ export default function ProfileScreen() {
    * v1 — l'URI locale persiste via Zustand persist, ce qui suffit
    * jusqu'à ce que l'user change d'appareil. À muscler en v1.1.
    */
+  /** Handler partagé entre "Prendre une photo" et "Choisir dans la bibliothèque".
+   *  Flow en 3 temps :
+   *  1) Persistance LOCALE immédiate → l'user voit sa photo tout de
+   *     suite, sans attendre l'upload réseau.
+   *  2) Upload Supabase Storage en background → la photo devient
+   *     cross-device et survit aux rebuilds/réinstalls (le local seul
+   *     ne suffisait pas : le container iOS change parfois entre 2
+   *     sessions et invalide les paths).
+   *  3) Quand l'upload OK, on remplace l'URI locale par l'URL publique
+   *     dans le profile + sync Supabase (déjà fait via updateProfile
+   *     + syncProfile).
+   *
+   *  Si l'upload échoue (offline, bucket non configuré), on garde
+   *  l'URI locale en fallback — l'user voit la photo sur ce device au
+   *  moins jusqu'au prochain rebuild.
+   */
+  const persistAndUpload = useCallback(
+    async (localPickerUri: string) => {
+      const { persistImage } = await import('../../src/utils/persistImage');
+      const persistedLocal = await persistImage(localPickerUri, 'avatars');
+      // Affichage immédiat avec l'URI locale
+      updateProfile({ avatarUri: persistedLocal });
+
+      // Upload cloud en background (non bloquant pour l'UI)
+      const userId = profile?.id;
+      if (!userId) {
+        Alert.alert('Debug', 'Pas de userId — l\'upload Supabase a été skippé. Es-tu en mode démo ?');
+        return;
+      }
+      const { uploadAvatar } = await import('../../src/services/avatarStorage');
+      const result = await uploadAvatar(localPickerUri, userId);
+      if (result.ok) {
+        // Remplace par l'URL cloud (stable, cross-device)
+        updateProfile({ avatarUri: result.url });
+        const { syncProfile } = await import('../../src/services/userSync');
+        const { error: syncError } = await supabase
+          .from('users')
+          .update({ avatar_uri: result.url })
+          .eq('id', userId);
+        if (syncError) {
+          Alert.alert('⚠️ Photo uploadée mais NON sauvegardée en DB', `Cause : ${syncError.message}\n\nL'URL de la photo : ${result.url.slice(0, 60)}...`);
+        } else {
+          Alert.alert('✅ Photo sauvegardée', `Tout OK !\n\n${result.url.slice(0, 60)}...`);
+        }
+      } else {
+        Alert.alert('⚠️ Upload échoué', `Raison précise :\n\n${result.reason}\n\nUserId : ${userId.slice(0, 8)}...`);
+      }
+    },
+    [updateProfile, profile?.id],
+  );
+
   const handleChangeAvatar = useCallback(async () => {
     // Action sheet natif : caméra ou bibliothèque
     Alert.alert(
@@ -156,13 +208,7 @@ export default function ProfileScreen() {
               quality: 0.8,
             });
             if (!result.canceled && result.assets[0]) {
-              // BUG FIX : ImagePicker pose les fichiers dans tmp/ sur
-              // iOS — purgé par l'OS au fil du temps ET non préservé
-              // entre les rebuilds TestFlight. On copie vers
-              // Documents/forga/avatars/ qui survit aux updates.
-              const { persistImage } = await import('../../src/utils/persistImage');
-              const persistedUri = await persistImage(result.assets[0].uri, 'avatars');
-              updateProfile({ avatarUri: persistedUri });
+              await persistAndUpload(result.assets[0].uri);
             }
           },
         },
@@ -178,9 +224,7 @@ export default function ProfileScreen() {
               quality: 0.8,
             });
             if (!result.canceled && result.assets[0]) {
-              const { persistImage } = await import('../../src/utils/persistImage');
-              const persistedUri = await persistImage(result.assets[0].uri, 'avatars');
-              updateProfile({ avatarUri: persistedUri });
+              await persistAndUpload(result.assets[0].uri);
             }
           },
         },
@@ -308,6 +352,17 @@ export default function ProfileScreen() {
       useTrainingStore.getState().reset();
       const { useShoppingListStore } = await import('../../src/store/shoppingListStore');
       useShoppingListStore.getState().reset();
+      // ⚠ BUG corrigé : ces 3 stores n'étaient PAS reset → après
+      // suppression + recréation de compte, l'ancien PROGRAMME
+      // d'entraînement (programStore.activePlan) persistait, et l'écran
+      // training refusait de reconfigurer (il croyait avoir déjà un
+      // plan). Idem frise métaux + plan repas hebdo.
+      const { useProgramStore } = await import('../../src/store/programStore');
+      useProgramStore.getState().reset();
+      const { useMetalHistoryStore } = await import('../../src/store/metalHistoryStore');
+      useMetalHistoryStore.getState().reset();
+      const { useWeeklyPlanStore } = await import('../../src/store/weeklyPlanStore');
+      useWeeklyPlanStore.getState().reset();
       // Reset prompts user-scoped + clear sync queue (cf signOut).
       useSettingsStore.setState({
         firstActiveDate: null,
@@ -427,12 +482,27 @@ export default function ProfileScreen() {
     { value: 'en', label: t('languageEn') },
   ];
 
+  // Le ScrollView prend TOUTE la largeur de l'écran (pas de maxWidth
+  // au niveau contentContainer). Avant : maxWidth=500 sur le content
+  // → le hero était centré et avait des bandes vides à gauche/droite
+  // sur iPhone Pro Max + iPad → l'app avait l'air d'un site web mal
+  // responsive. Maintenant le hero est full-width comme attendu.
+  // Les sections internes qui ont besoin d'être contraintes en
+  // largeur (cards stats, blocs centrés) le font via leur propre
+  // maxWidth — pas via le wrapper global.
+  // ScrollView SANS paddingTop : on veut que le hero soit edge-to-edge
+  // (sous la Dynamic Island / Notch / Status Bar) comme Instagram, Twitter,
+  // etc. Le hero a sa propre hauteur incluant `insets.top` pour que les
+  // éléments UI internes (back button, name, email) ne soient pas
+  // cachés par l'encoche. Sans ce pattern, sur iPhone Pro Max le hero
+  // s'arrête sous la caméra → bande noire visible en haut = aspect
+  // "site web" au lieu de "app native".
   return (
-    <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={[styles.content, { paddingTop: insets.top, maxWidth: contentMaxWidth }]}>
-      {/* Hero Header */}
+    <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={styles.content}>
+      {/* Hero Header — full-bleed, passe SOUS la Dynamic Island */}
       <ImageBackground
         source={{ uri: PROFILE_HEADER_IMAGE }}
-        style={styles.heroImage}
+        style={[styles.heroImage, { height: styles.heroImage.height + insets.top }]}
         imageStyle={styles.heroImageInner}
       >
         <LinearGradient
@@ -443,13 +513,15 @@ export default function ProfileScreen() {
               insets.top, donc on n'ajoute PAS insets.top une 2e fois ici
               (sinon le bouton se retrouvait à 2× insets.top du haut écran,
               soit en plein milieu du hero, par-dessus le pseudo). */}
-          <View style={styles.headerTopRow}>
+          {/* Position absolute pour ne pas pousser name+email plus bas.
+              `top` calcul\u00e9 dynamiquement = insets.top (sous Dynamic
+              Island / encoche) + petite marge respiratoire. Sans
+              insets.top, le back button serait masqu\u00e9 par l'encoche
+              sur iPhone Pro Max maintenant que le hero est edge-to-edge. */}
+          <View style={[styles.headerTopRow, { top: insets.top + 4 }]}>
             <Pressable onPress={() => router.back()} hitSlop={16} style={styles.backRow}>
               <Text style={styles.backText}>{'\u2039'} {t('home')}</Text>
             </Pressable>
-            {/* L'ic\u00f4ne engrenage a \u00e9t\u00e9 retir\u00e9e \u2014 la section R\u00e9glages
-                est d\u00e9j\u00e0 accessible juste en dessous (Appearance, Langue,
-                Notifications, etc.). Doublon inutile dans le header. */}
           </View>
           <Text style={styles.name}>{profile.name}</Text>
           <Text style={styles.email}>{profile.email}</Text>
@@ -472,7 +544,7 @@ export default function ProfileScreen() {
           streak={currentStreak}
           formScore={score.total}
           weight={weightLog[weightLog.length - 1]?.weight ?? profile.currentWeight ?? 0}
-          avatarUri={profile.avatarUri}
+          avatarUri={resolveLocalUri(profile.avatarUri)}
           onAvatarPress={handleChangeAvatar}
         />
       </View>
@@ -721,16 +793,11 @@ export default function ProfileScreen() {
         )}
       </View>
 
-      {/* Appearance — opens sheet. La roue dentée du header pousse
-          maintenant vers /settings, donc plus besoin d'onLayout ici. */}
+      {/* Apparence : RETIRÉE en v1 — FORGA est dark-only (cf ThemeContext).
+          La rangée "Apparence" + son sheet ne servent plus tant que le
+          mode clair n'est pas re-supporté (v1.1). On garde le code du
+          sheet plus bas (mort) pour le réactiver facilement plus tard. */}
       <View style={styles.section}>
-        <Pressable style={styles.actionRow} onPress={() => setSheet('theme')}>
-          <Text style={styles.actionText}>{t('appearance')}</Text>
-          <Text style={styles.actionValue}>
-            {THEME_OPTIONS.find((o) => o.value === themeMode)?.label ?? ''} {'›'}
-          </Text>
-        </Pressable>
-
         {/* Language — opens sheet */}
         <Pressable style={styles.actionRow} onPress={() => setSheet('language')}>
           <Text style={styles.actionText}>{t('language')}</Text>

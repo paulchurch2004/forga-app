@@ -406,6 +406,26 @@ export default function RegisterScreen() {
                     onFocus={() => setReferralFocused(true)}
                     onBlur={() => setReferralFocused(false)}
                   />
+                  {/* Validation visuelle : avant ce fix, un code mal tapé
+                      était silencieusement drop au moment du submit (l'user
+                      ne savait pas que son code n'avait pas été pris en
+                      compte). On affiche un état clair dès que l'user a
+                      tapé qqch — vert si valide, rouge si malformé. */}
+                  {referralCode.trim().length > 0 && (
+                    <Text
+                      style={{
+                        marginTop: 6,
+                        fontSize: 12,
+                        color: isValidReferralCode(referralCode.trim().toUpperCase())
+                          ? '#00D4AA'
+                          : '#FF6B6B',
+                      }}
+                    >
+                      {isValidReferralCode(referralCode.trim().toUpperCase())
+                        ? '✓ Code valide'
+                        : '✗ Format invalide (ex: FORGA-A3K9)'}
+                    </Text>
+                  )}
                 </View>
               )}
             </Animated.View>

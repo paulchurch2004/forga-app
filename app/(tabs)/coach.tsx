@@ -27,6 +27,7 @@ import Svg, { Path } from 'react-native-svg';
 import { SkeletonScreen } from '../../src/components/ui/Skeleton';
 import { useSettingsStore } from '../../src/store/settingsStore';
 import { useUserStore } from '../../src/store/userStore';
+import { resolveLocalUri } from '../../src/utils/persistImage';
 import { useScoreStore } from '../../src/store/scoreStore';
 import { useMealStore } from '../../src/store/mealStore';
 import { useEngine } from '../../src/hooks/useEngine';
@@ -50,7 +51,8 @@ import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/t
 import { useTheme } from '../../src/context/ThemeContext';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useT } from '../../src/i18n';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
 import { CoachModeToggle, type CoachMode } from '../../src/components/coach/CoachModeToggle';
 import { PresenceView, type PresenceFocus, type PresenceObservation } from '../../src/components/coach/PresenceView';
 import { useCoachObservations } from '../../src/hooks/useCoachObservations';
@@ -287,17 +289,27 @@ interface BubbleProps {
   /** URI de l'avatar user à afficher à droite des bulles user. Provient
    *  soit du profil custom (avatarUri), soit d'un fallback genré. */
   userAvatarUri?: string;
+  /** URI de l'avatar du coach (matche le sexe de l'user, calculé en
+   *  amont via getCoachAvatarUri). Sans ça on tomberait sur l'ancien
+   *  fallback hardcodé pour tous les users. */
+  coachAvatarUri: string;
 }
 
-/** Avatar du coach FORGA — portrait fitness pro, sert d'identité visuelle
- *  dans le chat. Une seule URI partagée pour tous les messages (pas
- *  d'avatar custom par "thématique" du coach, on garde une identité
- *  cohérente). Pourrait passer à un asset local en v1.1 pour gagner en
- *  perf/résilience offline. */
-const COACH_AVATAR_URI =
+/** Avatars du coach FORGA — portraits fitness pros qui matchent le sexe
+ *  de l'user (proximité psychologique : un user a tendance à mieux
+ *  recevoir les feedbacks d'un coach du même sexe, surtout sur la
+ *  partie corps/perf). Fallback masculin si sex inconnu.
+ *  v1.1 : passer à des assets locaux pour la perf/résilience offline. */
+const COACH_AVATAR_MALE =
   'https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=200&q=80&auto=format&fit=crop&crop=faces';
+const COACH_AVATAR_FEMALE =
+  'https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=200&q=80&auto=format&fit=crop&crop=faces';
 
-function MessageBubble({ message, isLastInCluster, isFirstInCluster, userAvatarUri }: BubbleProps) {
+function getCoachAvatarUri(sex: 'male' | 'female' | undefined | null): string {
+  return sex === 'female' ? COACH_AVATAR_FEMALE : COACH_AVATAR_MALE;
+}
+
+function MessageBubble({ message, isLastInCluster, isFirstInCluster, userAvatarUri, coachAvatarUri }: BubbleProps) {
   const styles = useStyles();
   const { t } = useT();
 
@@ -365,6 +377,7 @@ function MessageBubble({ message, isLastInCluster, isFirstInCluster, userAvatarU
   // submitted vers Supabase via submitCoachFeedback. Pas de UI rollback —
   // une fois voté, l'user voit son vote (peut le retoucher).
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
+  const [copied, setCopied] = useState(false);
   const handleFeedback = (rating: 'up' | 'down') => {
     setFeedback(rating);
     void submitCoachFeedback({
@@ -396,7 +409,7 @@ function MessageBubble({ message, isLastInCluster, isFirstInCluster, userAvatarU
       {message.isCoach && message.kind !== 'quota_notice' && (
         showCoachAvatar ? (
           <Image
-            source={{ uri: COACH_AVATAR_URI }}
+            source={{ uri: coachAvatarUri }}
             style={styles.coachAvatar}
             contentFit="cover"
             cachePolicy="memory-disk"
@@ -411,7 +424,13 @@ function MessageBubble({ message, isLastInCluster, isFirstInCluster, userAvatarU
         }}
         style={bubbleStyle}
       >
-        <Text style={message.isCoach ? styles.coachText : styles.userText}>
+        {/* selectable : permet la sélection partielle + copier via le menu
+            natif iOS. La copie "tout le message" passe par le bouton ⧉
+            dédié sous la bulle (fiable, pas de conflit de geste). */}
+        <Text
+          selectable
+          style={message.isCoach ? styles.coachText : styles.userText}
+        >
           {typedText}
           {isTyping && message.isCoach && <Text style={styles.cursor}>▋</Text>}
         </Text>
@@ -458,6 +477,27 @@ function MessageBubble({ message, isLastInCluster, isFirstInCluster, userAvatarU
               👎
             </Text>
           </Pressable>
+          {/* Bouton Copier — fiable (à la différence de l'appui-long qui
+              entre en conflit avec la sélection iOS native). Copie tout
+              le message + feedback haptique + bascule l'icône en ✓ 1,5s. */}
+          <Pressable
+            onPress={async () => {
+              await Clipboard.setStringAsync(message.text).catch(() => {});
+              setCopied(true);
+              if (Platform.OS !== 'web') {
+                import('expo-haptics')
+                  .then((H) => H.notificationAsync(H.NotificationFeedbackType.Success))
+                  .catch(() => {});
+              }
+              setTimeout(() => setCopied(false), 1500);
+            }}
+            hitSlop={6}
+            style={styles.feedbackBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Copier le message"
+          >
+            <Text style={styles.feedbackIcon}>{copied ? '✓' : '⧉'}</Text>
+          </Pressable>
         </View>
       )}
     </Animated.View>
@@ -480,12 +520,21 @@ export default function CoachScreen() {
   // Avatar user pour les bulles : photo custom de l'user si dispo, sinon
   // un portrait Unsplash neutre selon le sexe déclaré. Permet d'incarner
   // visuellement le sender côté UI (avant : bulles orange anonymes).
+  // resolveLocalUri convertit le chemin relatif stocké (forga/avatars/X.jpg)
+  // en URI absolue utilisable par <Image> — nécessaire car le container
+  // iOS de l'app change parfois entre 2 sessions et l'URI absolue
+  // stockée devient invalide → avatar perdu.
   const userAvatarUri = useMemo(() => {
-    if (profile?.avatarUri) return profile.avatarUri;
+    const resolved = resolveLocalUri(profile?.avatarUri);
+    if (resolved) return resolved;
     return profile?.sex === 'female'
       ? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80&auto=format&fit=crop&crop=faces'
       : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80&auto=format&fit=crop&crop=faces';
   }, [profile?.avatarUri, profile?.sex]);
+
+  // Avatar du coach : matche le sexe de l'user. Calculé une fois et
+  // passé à chaque bulle pour éviter un getCoachAvatarUri() par render.
+  const coachAvatarUri = useMemo(() => getCoachAvatarUri(profile?.sex), [profile?.sex]);
 
   const { currentScore } = useScoreStore();
   const { isPremium } = usePremium();
@@ -517,7 +566,30 @@ export default function CoachScreen() {
   const [quickReplies, setQuickReplies] = useState<QuickReply[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [freeText, setFreeText] = useState('');
+
+  // Prefill du champ via deep link (ex: depuis le sheet "Décrire au
+  // coach" sur la page nutrition). On consomme le param UNE SEULE
+  // FOIS au mount pour éviter qu'un changement d'écran ne re-injecte
+  // la même valeur ad infinitum.
+  const navParams = useLocalSearchParams<{ prefill?: string }>();
+  const prefillConsumedRef = useRef(false);
+  useEffect(() => {
+    if (prefillConsumedRef.current) return;
+    const incoming = typeof navParams.prefill === 'string' ? navParams.prefill : '';
+    if (!incoming) return;
+    prefillConsumedRef.current = true;
+    setFreeText(incoming);
+    // On nettoie le param de la nav pour éviter qu'un retour sur cet
+    // écran ré-applique le prefill.
+    try { router.setParams({ prefill: undefined } as any); } catch { /* noop */ }
+  }, [navParams.prefill]);
   const messageIdRef = useRef(0);
+  // Génère un id de message GARANTI unique, même après un remount du
+  // composant (le ref repart à 0 mais les messages persistés gardent
+  // leurs anciens ids → collision "two children with same key").
+  // On combine timestamp + compteur + random pour éviter tout doublon.
+  const genMsgId = () =>
+    `m_${Date.now().toString(36)}_${(++messageIdRef.current).toString(36)}_${Math.random().toString(36).slice(2, 6)}`;
   const isAtBottomRef = useRef(true);
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
@@ -744,7 +816,7 @@ export default function CoachScreen() {
       delay += msgDelay;
 
       setTimeout(() => {
-        const id = String(++messageIdRef.current);
+        const id = genMsgId();
         setMessages((prev) => [...prev, { id, text, isCoach: true, timestamp: Date.now() }]);
 
         // Scroll to bottom
@@ -798,6 +870,15 @@ export default function CoachScreen() {
     // Track user message in history
     chatHistoryRef.current.push({ role: 'user', content: userText });
 
+    // Funnel d'activation : 1er message envoyé au coach IA. Signal fort
+    // d'engagement — on l'instrumente pour pouvoir mesurer le ratio
+    // "active utilise le coach" parmi les sign-ups.
+    const { hasSentFirstCoachMessage, markFirstCoachMessageSent } = useUserStore.getState();
+    if (!hasSentFirstCoachMessage) {
+      events.firstCoachMessageSent();
+      markFirstCoachMessageSent();
+    }
+
     // Fresh context au moment de l'envoi : `coachContext` est memoized
     // et son `hour` reste figé à l'ouverture du chat. Si l'user reste
     // 2h sur l'écran, on enverrait "11h" même à 13h → conseils décalés
@@ -813,7 +894,7 @@ export default function CoachScreen() {
     if (result.kind === 'quota_exceeded') {
       setIsTyping(false);
       events.quotaExceeded('coach_message');
-      const id = String(++messageIdRef.current);
+      const id = genMsgId();
       setMessages((prev) => [
         ...prev,
         {
@@ -849,7 +930,7 @@ export default function CoachScreen() {
       }
       // History keeps the cleaned text (no point sending action JSON back to the LLM)
       chatHistoryRef.current.push({ role: 'assistant', content: text });
-      const id = String(++messageIdRef.current);
+      const id = genMsgId();
       // Fallback si le LLM a oublié de mettre du texte avant l'action :
       // on AFFICHE un message neutre plutôt que le JSON brut "[[ACTION:..."
       // qui serait incompréhensible pour l'user.
@@ -875,11 +956,39 @@ export default function CoachScreen() {
       // sinon le TTS lit le JSON en bulle bizarre sur Web.
       speak(displayText, locale === 'en' ? 'en-US' : 'fr-FR');
     } else {
-      // Fallback to template responses (error / unauthenticated)
+      // Échec de l'appel IA. AVANT : on affichait un template de coaching
+      // générique (getCoachResponse) qui faisait croire que le coach avait
+      // "répondu" alors qu'il avait juste ignoré la question → effet "coach
+      // débile". MAINTENANT : message HONNÊTE qui dit qu'il y a eu un souci
+      // et invite à réessayer. Sur les messages très longs (cause #1 des
+      // échecs : dépassement de la limite de tokens Groq), on suggère de
+      // découper.
       events.coachMessageFailed(result.kind === 'unauthenticated' ? 'auth' : 'server');
       events.coachFallbackUsed();
-      const response = getCoachResponse(fallbackType, coachContext);
-      addCoachMessages(response.messages, response.quickReplies);
+
+      const isLong = userText.length > 400;
+      let errMsg: string;
+      if (result.kind === 'unauthenticated') {
+        errMsg = locale === 'en'
+          ? "I lost your session — reopen the app to reconnect, then try again."
+          : "J'ai perdu ta session — rouvre l'app pour te reconnecter, puis réessaie.";
+      } else if (isLong) {
+        errMsg = locale === 'en'
+          ? "That message was a bit much for me in one go 😅. Try splitting it into 2-3 shorter questions and I'll nail each one."
+          : "Ton message était un peu costaud d'un coup 😅. Découpe-le en 2-3 questions plus courtes et je te réponds à fond sur chacune.";
+      } else {
+        errMsg = locale === 'en'
+          ? "Hmm, I had a glitch answering that. Give it another shot?"
+          : "Mince, j'ai eu un petit bug pour répondre. Tu peux réessayer ?";
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        { id: genMsgId(), text: errMsg, isCoach: true, timestamp: Date.now() },
+      ]);
+      setIsTyping(false);
+      setQuickReplies((DEFAULT_QUICK_REPLIES[locale] ?? DEFAULT_QUICK_REPLIES.fr));
+      setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
     }
   }, [coachContext, locale, addCoachMessages]);
 
@@ -889,7 +998,7 @@ export default function CoachScreen() {
 
     const userText = (QUESTION_LABELS[locale] ?? QUESTION_LABELS.fr)[type];
     const userMsg: ChatMessage = {
-      id: String(++messageIdRef.current),
+      id: genMsgId(),
       text: userText,
       isCoach: false,
       timestamp: Date.now(),
@@ -918,7 +1027,7 @@ export default function CoachScreen() {
       const transcript = event.results?.[0]?.[0]?.transcript?.trim();
       if (transcript && coachContext && !isTyping) {
         const userMsg: ChatMessage = {
-          id: String(++messageIdRef.current),
+          id: genMsgId(),
           text: transcript,
           isCoach: false,
           timestamp: Date.now(),
@@ -944,7 +1053,7 @@ export default function CoachScreen() {
     impactLight();
 
     const userMsg: ChatMessage = {
-      id: String(++messageIdRef.current),
+      id: genMsgId(),
       text,
       isCoach: false,
       timestamp: Date.now(),
@@ -1079,16 +1188,21 @@ export default function CoachScreen() {
             const showTimeSeparator =
               !prev || msg.timestamp - prev.timestamp > TIME_GAP_MS;
             return (
-              <View key={msg.id}>
+              // Key composite id + index : les anciens messages persistés
+              // (avant le fix genMsgId) peuvent partager le même id "1",
+              // "2"… L'index garantit l'unicité. La liste est append-only
+              // donc l'index est stable (pas de réordonnancement).
+              <View key={`${msg.id}-${i}`}>
                 {showTimeSeparator && <TimeSeparator timestamp={msg.timestamp} locale={locale} />}
                 <MessageBubble
                   message={msg}
                   isLastInCluster={isLastInCluster}
                   isFirstInCluster={isFirstInCluster}
                   userAvatarUri={userAvatarUri}
+                  coachAvatarUri={coachAvatarUri}
                 />
                 {msg.actions?.map((a, ai) => (
-                  <ActionProposalCard key={`${msg.id}-action-${ai}`} action={a} />
+                  <ActionProposalCard key={`${msg.id}-${i}-action-${ai}`} action={a} />
                 ))}
               </View>
             );

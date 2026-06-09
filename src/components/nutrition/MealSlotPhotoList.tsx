@@ -19,6 +19,8 @@ export interface MealSlotPhotoItem {
   imageUri?: string;
   done: boolean;
   optional?: boolean;
+  /** True si le repas provient de la bibliothèque SPORT → badge distinctif. */
+  isSport?: boolean;
   onPress?: () => void;
 }
 
@@ -84,9 +86,18 @@ function MealRow({ item }: { item: MealSlotPhotoItem }) {
             </View>
           )}
         </View>
-        <Text style={styles.mealName} numberOfLines={1}>
-          {item.meal ?? t('mealSlotEmpty')}
-        </Text>
+        <View style={styles.nameRow}>
+          <Text style={styles.mealName} numberOfLines={1}>
+            {item.meal ?? t('mealSlotEmpty')}
+          </Text>
+          {/* Badge SPORT — distingue les repas issus de la biblio sport
+              des recettes classiques. */}
+          {item.isSport && item.meal && (
+            <View style={styles.sportBadge}>
+              <Text style={styles.sportBadgeText}>SPORT</Text>
+            </View>
+          )}
+        </View>
         {item.kcal !== undefined && item.meal ? (
           <Text style={styles.kcal}>{item.kcal} kcal</Text>
         ) : (
@@ -183,12 +194,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
   mealName: {
+    flexShrink: 1,
     fontFamily: fonts.display,
     fontSize: 15,
     fontWeight: '600',
     color: '#FFFFFF',
-    marginTop: 4,
+  },
+  sportBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,107,53,0.85)',
+  },
+  sportBadgeText: {
+    fontFamily: fonts.body,
+    fontSize: 8.5,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.8,
   },
   kcal: {
     fontFamily: fonts.data,

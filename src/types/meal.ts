@@ -126,6 +126,11 @@ export interface DailyMeal {
     fat: number;
   };
   validatedAt: string;
+  /** True si ce log provient de la BIBLIOTHÈQUE SPORT (les 72 recettes
+   *  premium), pas du catalogue de plats classique. Permet d'afficher
+   *  un badge distinctif dans la journée pour que l'user reconnaisse
+   *  d'où vient le repas. */
+  isSportRecipe?: boolean;
 }
 
 export type MealSlotStatus = 'done' | 'current' | 'upcoming';

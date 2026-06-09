@@ -16,6 +16,19 @@ interface UserState {
   measurements: BodyMeasurement[];
   progressPhotos: ProgressPhoto[];
   strengthTest: StrengthTestResult | null;
+  /** Date ISO d'acceptation du disclaimer santé (Apple Guideline 1.4.1).
+   *  null = pas encore accepté → on affiche le modal après l'onboarding,
+   *  avant le 1er accès au coach IA / aux plans. Sync vers Supabase pour
+   *  ne pas re-prompter sur un autre device. */
+  healthDisclaimerAcceptedAt: string | null;
+  /** Flags d'activation — fire les events `first_*` une seule fois.
+   *  Une fois true, l'event ne se re-déclenche plus. Local-only (pas
+   *  besoin de sync : si l'user change de device, on considère qu'il
+   *  fait sa "première fois" sur ce device, c'est OK pour la métrique
+   *  d'activation par device). */
+  hasLoggedFirstMeal: boolean;
+  hasLoggedFirstWorkout: boolean;
+  hasSentFirstCoachMessage: boolean;
 
   setProfile: (profile: UserProfile | null) => void;
   updateProfile: (updates: Partial<UserProfile>) => void;
@@ -33,6 +46,10 @@ interface UserState {
   addProgressPhoto: (photo: ProgressPhoto) => void;
   removeProgressPhoto: (id: string) => void;
   setStrengthTest: (result: StrengthTestResult | null) => void;
+  acceptHealthDisclaimer: () => void;
+  markFirstMealLogged: () => void;
+  markFirstWorkoutLogged: () => void;
+  markFirstCoachMessageSent: () => void;
   reset: () => void;
 }
 
@@ -50,9 +67,17 @@ export const useUserStore = create<UserState>()(
       measurements: [],
       progressPhotos: [],
       strengthTest: null,
+      healthDisclaimerAcceptedAt: null,
+      hasLoggedFirstMeal: false,
+      hasLoggedFirstWorkout: false,
+      hasSentFirstCoachMessage: false,
 
       setProfile: (profile) => set({ profile }),
       setStrengthTest: (result) => set({ strengthTest: result }),
+      acceptHealthDisclaimer: () => set({ healthDisclaimerAcceptedAt: new Date().toISOString() }),
+      markFirstMealLogged: () => set({ hasLoggedFirstMeal: true }),
+      markFirstWorkoutLogged: () => set({ hasLoggedFirstWorkout: true }),
+      markFirstCoachMessageSent: () => set({ hasSentFirstCoachMessage: true }),
       updateProfile: (updates) =>
         set((state) => ({
           profile: state.profile ? { ...state.profile, ...updates } : null,
@@ -89,6 +114,10 @@ export const useUserStore = create<UserState>()(
           measurements: [],
           progressPhotos: [],
           strengthTest: null,
+          healthDisclaimerAcceptedAt: null,
+          hasLoggedFirstMeal: false,
+          hasLoggedFirstWorkout: false,
+          hasSentFirstCoachMessage: false,
         }),
     }),
     {
@@ -122,6 +151,10 @@ export const useUserStore = create<UserState>()(
         measurements: state.measurements,
         progressPhotos: state.progressPhotos,
         strengthTest: state.strengthTest,
+        healthDisclaimerAcceptedAt: state.healthDisclaimerAcceptedAt,
+        hasLoggedFirstMeal: state.hasLoggedFirstMeal,
+        hasLoggedFirstWorkout: state.hasLoggedFirstWorkout,
+        hasSentFirstCoachMessage: state.hasSentFirstCoachMessage,
       }),
     }
   )

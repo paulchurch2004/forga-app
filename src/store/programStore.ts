@@ -29,6 +29,12 @@ function syncProgramLazy() {
 interface ProgramState {
   activePlan: GeneratedPlan | null;
   completedDays: Record<string, string>; // date → workoutId
+  /** ProgramId du dernier plan wipé par la migration `onRehydrateStorage`.
+   *  Permet à la page Training d'afficher un message clair à l'user
+   *  ("Ton ancien programme X n'est plus disponible, choisis-en un
+   *  nouveau") plutôt qu'un wipe silencieux. Reset à null après la
+   *  première lecture (cf clearLastWipedProgram). */
+  lastWipedProgramId: string | null;
 
   selectProgram: (programId: ProgramId, objective: Objective, sex?: Sex) => void;
   markDayCompleted: (date: string, workoutId: string) => void;
@@ -46,6 +52,8 @@ interface ProgramState {
   replaceExerciseInDay: (date: string, originalExerciseId: string, newExerciseId: string) => void;
   /** Resolve the ProgramDay for a date, applying any user overrides. */
   getProgramDayForDate: (date: string) => ProgramDay | null;
+  /** Reset `lastWipedProgramId` à null après que l'UI ait notifié l'user. */
+  clearLastWipedProgram: () => void;
   reset: () => void;
 }
 
@@ -54,6 +62,9 @@ export const useProgramStore = create<ProgramState>()(
     (set, get) => ({
       activePlan: null,
       completedDays: {},
+      lastWipedProgramId: null,
+
+      clearLastWipedProgram: () => set({ lastWipedProgramId: null }),
 
       selectProgram: (programId, objective, sex) => {
         // sex-aware plan generation (v2). Falls back to male for legacy callers.
@@ -207,15 +218,33 @@ export const useProgramStore = create<ProgramState>()(
         set({ activePlan: { ...activePlan, days: updatedDays } });
       },
 
-      replaceExerciseInDay: (date, originalExerciseId, newExerciseId) => {
+      replaceExerciseInDay: (date, displayedExerciseId, newExerciseId) => {
         const { activePlan } = get();
         if (!activePlan) return;
 
         const dayOverrides = { ...(activePlan.exerciseOverrides?.[date] ?? {}) };
-        if (originalExerciseId === newExerciseId) {
-          delete dayOverrides[originalExerciseId];
+
+        // ⚠ BUG corrigé : les overrides sont indexés sur l'ID ORIGINAL du
+        // programme (la clé), pas sur ce qui est affiché. Au 2e
+        // remplacement (A→B puis B→C), `displayedExerciseId` vaut B, mais
+        // la clé à mettre à jour est A (l'original). Sans résoudre la clé
+        // originale, on créait override[B]=C qui n'était JAMAIS consulté
+        // (getProgramDayForDate itère les exos originaux) → "on ne peut
+        // plus changer". On retrouve donc la clé d'origine.
+        let originalKey = displayedExerciseId;
+        for (const [orig, mapped] of Object.entries(dayOverrides)) {
+          if (mapped === displayedExerciseId) {
+            originalKey = orig;
+            break;
+          }
+        }
+
+        // Si le nouvel exo == l'original → on retire l'override (retour à
+        // l'exo de base). Sinon on (re)mappe original → nouveau.
+        if (originalKey === newExerciseId) {
+          delete dayOverrides[originalKey];
         } else {
-          dayOverrides[originalExerciseId] = newExerciseId;
+          dayOverrides[originalKey] = newExerciseId;
         }
 
         const nextOverrides = { ...(activePlan.exerciseOverrides ?? {}) };
@@ -266,6 +295,7 @@ export const useProgramStore = create<ProgramState>()(
       partialize: (state) => ({
         activePlan: state.activePlan, // includes exerciseOverrides
         completedDays: state.completedDays,
+        lastWipedProgramId: state.lastWipedProgramId,
       }),
       onRehydrateStorage: () => (state) => {
         // Detect stale plans created against the old (pre-v3) program library.
@@ -285,6 +315,10 @@ export const useProgramStore = create<ProgramState>()(
               { programId: state.activePlan.programId, dayId: trainingDay.programDayId },
             );
           }
+          // Mémorise le programId wipé pour que la page Training puisse
+          // afficher un message ("Ton ancien programme X n'est plus
+          // disponible") au lieu d'un écran vide non-expliqué.
+          state.lastWipedProgramId = state.activePlan.programId;
           state.activePlan = null;
           state.completedDays = {};
         }

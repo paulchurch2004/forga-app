@@ -31,11 +31,13 @@ import { usePremium } from '../../src/hooks/usePremium';
 import { CoachingTooltip } from '../../src/components/coach/CoachingTooltip';
 import { MiniStatsGrid } from '../../src/components/home/MiniStatsGrid';
 import { StepsCard } from '../../src/components/home/StepsCard';
+import { SportRecipeOfTheDay } from '../../src/components/home/SportRecipeOfTheDay';
 import { useSteps } from '../../src/hooks/useSteps';
 import { useMealStore } from '../../src/store/mealStore';
 import { useScoreStore } from '../../src/store/scoreStore';
 import { useTrainingStore } from '../../src/store/trainingStore';
 import { todayLocalIso } from '../../src/utils/date';
+import { estimateSessionMinutes } from '../../src/utils/sessionDuration';
 import { useEngine } from '../../src/hooks/useEngine';
 import { useWater } from '../../src/hooks/useWater';
 import { useProgram } from '../../src/hooks/useProgram';
@@ -226,7 +228,7 @@ export default function HomeScreen() {
           {hasActivePlan && todayProgramDay ? (
             <BigTileCard
               eyebrow={t('tileSeanceEyebrow')}
-              title={`${t(todayProgramDay.nameKey as any)} · ${todayProgramDay.exercises.length * 12} ${t('tileSeanceMin')}`}
+              title={`${t(todayProgramDay.nameKey as any)} · ${estimateSessionMinutes(todayProgramDay)} ${t('tileSeanceMin')}`}
               subtitle={todayProgramDay.muscleGroups.map((g) => t(`muscle_${g}` as any)).join(' & ')}
               imageUri={
                 profile?.sex === 'female'
@@ -271,6 +273,12 @@ export default function HomeScreen() {
             delta={Math.round(weeklyChange ?? 0)}
             breakdown={formBreakdown}
           />
+
+          {/* Recette sport du jour — change tous les jours.
+              Tap → page détail /sport-recipe/[id]. */}
+          <View style={{ marginTop: 16 }}>
+            <SportRecipeOfTheDay />
+          </View>
 
           {/* Compteur de pas — affiché uniquement si l'user a opt-in
               dans Settings ET que HealthKit a accordé la permission.

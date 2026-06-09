@@ -9,7 +9,7 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
 import { useTheme } from '../../src/context/ThemeContext';
@@ -24,6 +24,12 @@ export default function BarcodeScanScreen() {
   const { contentMaxWidth } = useResponsive();
   const { colors } = useTheme();
   const { t } = useT();
+  // Slot ciblé si l'user arrive depuis le sheet "Logger un repas"
+  // (déclenché en tapant un slot vide sur la page nutrition). On le
+  // propage à `/meal/custom` pour que le log s'enregistre au bon
+  // créneau au lieu du défaut basé sur l'heure.
+  const params = useLocalSearchParams<{ slot?: string }>();
+  const slot = typeof params.slot === 'string' ? params.slot : undefined;
   const [status, setStatus] = useState<'scanning' | 'loading' | 'found' | 'not_found'>('scanning');
   const [product, setProduct] = useState<OpenFoodFactsProduct | null>(null);
   const [quantity, setQuantity] = useState('100');
@@ -56,14 +62,15 @@ export default function BarcodeScanScreen() {
 
   const handleValidate = () => {
     if (!product || !macros) return;
-    const params = new URLSearchParams({
+    const urlParams = new URLSearchParams({
       name: product.name,
       calories: String(macros.calories),
       protein: String(macros.protein),
       carbs: String(macros.carbs),
       fat: String(macros.fat),
     });
-    router.replace(`/meal/custom?${params.toString()}`);
+    if (slot) urlParams.set('slot', slot);
+    router.replace(`/meal/custom?${urlParams.toString()}`);
   };
 
   const handleRetry = () => {

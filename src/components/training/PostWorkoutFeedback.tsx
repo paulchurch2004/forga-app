@@ -93,10 +93,14 @@ export function PostWorkoutFeedback({
               )}
             </Animated.View>
 
-            {/* RPE */}
+            {/* Difficulté ressentie (RPE) — on explique en clair, le sigle
+                "RPE" seul ne parle à personne. Sert au coach à ajuster les
+                charges des prochaines séances. */}
             <Animated.View entering={FadeInUp.delay(240).duration(280)} style={styles.section}>
-              <Text style={styles.sectionLabel}>Effort perçu (RPE)</Text>
-              <Text style={styles.sectionHint}>1 = très facile · 10 = effort max</Text>
+              <Text style={styles.sectionLabel}>À quel point c'était dur ?</Text>
+              <Text style={styles.sectionHint}>
+                1 = très facile, j'avais beaucoup de réserve · 10 = effort maximal, impossible d'en faire plus. Ça m'aide à ajuster tes charges.
+              </Text>
               <View style={styles.rpeRow}>
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                   <Pressable
