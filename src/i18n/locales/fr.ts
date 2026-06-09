@@ -1516,12 +1516,12 @@ export const fr = {
   compareFeature1Free: '5 recettes seulement',
   compareFeature2: 'Recettes etape par etape',
   compareFeature2Free: "Liste d'ingredients",
-  compareFeature3: 'Coach IA illimite',
-  compareFeature3Free: '3 messages / jour',
+  compareFeature3: 'Coach IA 50 / jour',
+  compareFeature3Free: '5 messages / jour',
   compareFeature4: "Plans d'entrainement avances",
   compareFeature4Free: '1 programme basique',
-  compareFeature5: 'Scan code-barre illimite',
-  compareFeature5Free: '5 scans / jour',
+  compareFeature5: 'Scan 10 / jour',
+  compareFeature5Free: '3 scans / jour',
   compareFeature6: 'Analyses & graphiques',
   compareFeature6Free: 'Historique 7j',
   compareFeature7: 'Export de donnees',
@@ -1787,7 +1787,7 @@ export const fr = {
 
   // Coach quota notice (in-chat card when daily quota reached)
   coachQuotaTitle: 'Quota journalier atteint',
-  coachQuotaUpgrade: 'Passer en PRO illimite',
+  coachQuotaUpgrade: 'Passer en PRO',
 
   // Home — score breakdown labels
   consistencyLabel: 'Constance',

@@ -17,7 +17,7 @@ interface QA {
 const QA_FR: QA[] = [
   {
     q: "Combien de temps dure l'essai gratuit ?",
-    a: "À ton inscription tu reçois 7 jours offerts en mode FORGA Pro, sans carte bancaire. Tu accèdes à tout : coach IA illimité, scans illimités, programmes complets. À la fin du trial tu peux choisir de continuer en gratuit (avec quotas journaliers) ou souscrire à FORGA Pro.",
+    a: "À ton inscription tu reçois 7 jours offerts en mode FORGA Pro, sans carte bancaire. Tu accèdes à tout : coach IA, scans repas et programmes complets. À la fin du trial tu peux choisir de continuer en gratuit (avec quotas journaliers) ou souscrire à FORGA Pro (50 messages coach et 10 scans par jour).",
   },
   {
     q: 'Quelles sont les limites en version gratuite ?',
@@ -68,7 +68,7 @@ const QA_FR: QA[] = [
 const QA_EN: QA[] = [
   {
     q: 'How long does the free trial last?',
-    a: 'When you sign up you get 7 free days of FORGA Pro, no credit card needed. Full access: unlimited AI coach, unlimited scans, all programs. After the trial you can stay free (with daily quotas) or subscribe to FORGA Pro.',
+    a: 'When you sign up you get 7 free days of FORGA Pro, no credit card needed. Full access: AI coach, food scans and all programs. After the trial you can stay free (with daily quotas) or subscribe to FORGA Pro (50 coach messages and 10 scans per day).',
   },
   {
     q: 'What are the limits on the free version?',

@@ -1516,12 +1516,12 @@ export const en: Record<TranslationKey, string> = {
   compareFeature1Free: '5 recipes only',
   compareFeature2: 'Step-by-step recipes',
   compareFeature2Free: 'Ingredients list',
-  compareFeature3: 'Unlimited AI coach',
-  compareFeature3Free: '3 messages / day',
+  compareFeature3: 'AI coach 50 / day',
+  compareFeature3Free: '5 messages / day',
   compareFeature4: 'Advanced training plans',
   compareFeature4Free: '1 basic program',
-  compareFeature5: 'Unlimited barcode scan',
-  compareFeature5Free: '5 scans / day',
+  compareFeature5: 'Barcode scan 10 / day',
+  compareFeature5Free: '3 scans / day',
   compareFeature6: 'Analytics & charts',
   compareFeature6Free: '7-day history',
   compareFeature7: 'Data export',
@@ -1780,7 +1780,7 @@ export const en: Record<TranslationKey, string> = {
 
   // Coach quota notice (in-chat card when daily quota reached)
   coachQuotaTitle: 'Daily quota reached',
-  coachQuotaUpgrade: 'Upgrade to PRO unlimited',
+  coachQuotaUpgrade: 'Upgrade to PRO',
 
   // Home — score breakdown labels
   consistencyLabel: 'Consistency',

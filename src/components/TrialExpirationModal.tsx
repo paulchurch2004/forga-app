@@ -31,8 +31,7 @@ export function TrialExpirationModal({ visible, onClose }: Props) {
   };
 
   const handleExtend = async () => {
-    // TODO: déclencher le flow Stripe/RevenueCat pour CB sans charge immédiate
-    // Pour l'instant : appel extend_trial directement (à raffiner avec CB)
+    // Extension gratuite de 7 jours (server-side, aucun paiement / aucune CB).
     const result = await extendTrial();
     if (result?.success) {
       onClose();
@@ -76,13 +75,13 @@ export function TrialExpirationModal({ visible, onClose }: Props) {
           )}
 
           <Pressable style={styles.primaryBtn} onPress={handleGoPro}>
-            <Text style={styles.primaryBtnText}>Continuer PRO — 14,99 €/mois</Text>
-            <Text style={styles.primaryBtnSubtext}>★ Garde tout illimité</Text>
+            <Text style={styles.primaryBtnText}>Continuer FORGA Pro</Text>
+            <Text style={styles.primaryBtnSubtext}>★ Garde ton accès complet</Text>
           </Pressable>
 
           <Pressable style={styles.secondaryBtn} onPress={handleExtend}>
             <Text style={styles.secondaryBtnText}>Essayer 7 jours de plus</Text>
-            <Text style={styles.secondaryBtnSubtext}>Avec CB · annulable à tout moment</Text>
+            <Text style={styles.secondaryBtnSubtext}>Gratuit · sans carte bancaire</Text>
           </Pressable>
 
           <Pressable style={styles.tertiaryBtn} onPress={handleGoFree}>

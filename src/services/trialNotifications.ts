@@ -18,7 +18,7 @@ export async function scheduleTrialNotifications(trialEndsAt: Date) {
     await Notifications.scheduleNotificationAsync({
       content: {
         title: '🔥 Plus que 2 jours de PRO',
-        body: 'Profite-en à fond — coach illimité, scans, programmes...',
+        body: 'Profite-en à fond — coach IA, scans repas, programmes complets...',
         data: { type: 'trial_reminder', day: 'J-2' },
       },
       trigger: {

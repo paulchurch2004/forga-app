@@ -21,7 +21,7 @@ import { useUserStore } from '../src/store/userStore';
 import { useAuthStore } from '../src/store/authStore';
 import { events } from '../src/services/analytics';
 import { VideoMontage } from '../src/components/paywall/VideoMontage';
-import { Testimonials } from '../src/components/paywall/Testimonials';
+import { FeatureHighlights } from '../src/components/paywall/FeatureHighlights';
 
 const showAlert = (title: string, message: string) => {
   if (Platform.OS === 'web') {
@@ -58,12 +58,12 @@ interface FeatureRow {
 }
 
 // ⚠️ Honnêteté App Store : on ne dit PAS "illimité" pour le Coach IA et
-// les scans, car ils ont un cap serveur (50 msg/jour, 50 scans/jour) pour
+// les scans, car ils ont un cap serveur (50 msg/jour, 10 scans/jour) pour
 // maîtriser les coûts LLM/vision. Apple peut rejeter un claim "illimité"
 // qui ne l'est pas vraiment. "50/jour" reste largement au-dessus de tout
 // usage normal → l'argument de vente tient sans mentir.
 const FEATURES: FeatureRow[] = [
-  { name: '800+ recettes',            free: '5 recettes',         pro: 'Les 800+' },
+  { name: '500+ recettes',            free: '5 recettes',         pro: 'Les 500+' },
   { name: 'Recettes étape par étape', free: 'Liste seulement',    pro: 'Vidéo + pas' },
   { name: 'Coach IA',                 free: '5 messages / jour',  pro: '50 messages / jour' },
   { name: "Programmes d'entraînement", free: '1 programme',       pro: 'Tous les programmes' },
@@ -165,6 +165,28 @@ export default function PaywallScreen() {
     }
   };
 
+  // Prix affichés : tirés de l'offering RevenueCat (localisés par devise /
+  // région), avec fallback EUR si l'offering n'est pas chargé (web, mode
+  // démo, offline). Évite d'afficher un prix EUR figé à un user hors zone €.
+  const annualPkg = packages.find((p: any) => p.packageType === 'ANNUAL');
+  const monthlyPkg = packages.find((p: any) => p.packageType === 'MONTHLY');
+  const annualTotalStr = annualPkg?.product?.priceString ?? '119,88€';
+  const annualPerMonthStr = annualPkg?.product?.pricePerMonthString ?? '9,99€';
+  const monthlyStr = monthlyPkg?.product?.priceString ?? '14,99€';
+  const currencyCode = annualPkg?.product?.currencyCode ?? monthlyPkg?.product?.currencyCode ?? 'EUR';
+  const isEur = currencyCode === 'EUR';
+  // Remise réelle annuel vs mensuel, calculée (pas figée à −33% : varie
+  // selon les prix réels configurés par palier dans App Store Connect).
+  const annualPerMonthNum = annualPkg?.product?.pricePerMonth;
+  const monthlyNum = monthlyPkg?.product?.price;
+  const discountPct = annualPerMonthNum && monthlyNum && monthlyNum > 0
+    ? Math.round((1 - annualPerMonthNum / monthlyNum) * 100)
+    : 33;
+  const annualBadge = discountPct > 0 ? `−${discountPct}%` : undefined;
+  // Sur natif, tant que l'offering n'est pas chargé, on n'autorise pas le
+  // tap (évite un CTA "mort" qui tombe sur subscriptionUnavailable).
+  const nativeNoPackage = Platform.OS !== 'web' && packages.length === 0;
+
   return (
     <View style={{ flex: 1, backgroundColor: TH.bg }}>
       {/* Ambient glows */}
@@ -230,7 +252,8 @@ export default function PaywallScreen() {
           <VideoPlaceholder />
         </View>
 
-        {/* Social proof */}
+        {/* Proposition de valeur — factuelle, non chiffrée (pas de
+            compteur d'utilisateurs inventé, conforme Apple 2.3.1). */}
         <View style={{ paddingHorizontal: 20, paddingBottom: 14 }}>
           <View style={{
             flexDirection: 'row', alignItems: 'center', gap: 10,
@@ -238,7 +261,7 @@ export default function PaywallScreen() {
             backgroundColor: TH.surface, borderWidth: 1, borderColor: TH.border, borderRadius: 12,
           }}>
             <View style={{ flexDirection: 'row' }}>
-              {[TH.green, TH.green, TH.green].map((c, i) => (
+              {[TH.primary, TH.green, TH.text].map((c, i) => (
                 <View key={i} style={{
                   width: 22, height: 22, borderRadius: 11, backgroundColor: c,
                   borderWidth: 2, borderColor: TH.bg,
@@ -247,16 +270,15 @@ export default function PaywallScreen() {
               ))}
             </View>
             <Text style={{ flex: 1, fontFamily: fonts.body, fontSize: 11.5, color: TH.text, lineHeight: 16 }}>
-              <Text style={{ fontWeight: '700', color: TH.primary }}>12 847 personnes</Text>
-              <Text> ont commencé leur transformation cette semaine.</Text>
+              <Text style={{ fontWeight: '700', color: TH.primary }}>3 coachs en 1</Text>
+              <Text> — nutrition, training et IA, synchronisés sur ton objectif.</Text>
             </Text>
           </View>
         </View>
 
-        {/* Testimonials — preuve sociale individuelle (avatars + citations
-            + résultats). À remplacer par vrais témoignages avant launch
-            (cf src/components/paywall/Testimonials.tsx). */}
-        <Testimonials />
+        {/* Bloc de valeur — bénéfices produit factuels et non attribués
+            (pas de faux témoignages, conforme Apple 2.3.1). */}
+        <FeatureHighlights />
 
         {/* Toggle Free / Pro */}
         <View style={{ paddingHorizontal: 20, paddingBottom: 12 }}>
@@ -336,32 +358,34 @@ export default function PaywallScreen() {
             <PriceCard
               selected={selectedPlan === 'annual'}
               onPress={() => setSelectedPlan('annual')}
-              badge="−33%"
+              badge={annualBadge}
               label="Annuel"
-              strikePrice="14,99€"
-              priceMain="9,99€"
+              strikePrice={monthlyStr}
+              priceMain={annualPerMonthStr}
               priceSuffix="/mois"
-              detail="119,88€/an · 7j gratuits"
+              detail={`${annualTotalStr}/an · 7j gratuits`}
             />
             <PriceCard
               selected={selectedPlan === 'monthly'}
               onPress={() => setSelectedPlan('monthly')}
               label="Mensuel"
-              priceMain="14,99€"
+              priceMain={monthlyStr}
               priceSuffix="/mois"
               detail="Sans engagement"
             />
           </View>
           {/* Ancrage de prix : recadre 9,99€/mois en coût hebdo dérisoire
               pour dédramatiser ("c'est pas grand-chose"). */}
-          <Text style={{
-            textAlign: 'center', marginTop: 10,
-            fontFamily: fonts.body, fontSize: 11.5, color: TH.textMuted,
-          }}>
-            {selectedPlan === 'annual'
-              ? 'Soit ~2,30€/semaine — moins qu’un café.'
-              : 'Le prix de 2 cafés par semaine.'}
-          </Text>
+          {isEur && (
+            <Text style={{
+              textAlign: 'center', marginTop: 10,
+              fontFamily: fonts.body, fontSize: 11.5, color: TH.textMuted,
+            }}>
+              {selectedPlan === 'annual'
+                ? 'Soit ~2,30€/semaine — moins qu’un café.'
+                : 'Le prix de 2 cafés par semaine.'}
+            </Text>
+          )}
         </View>
 
         {/* Timeline d'essai — tue la peur n°1 de l'user ("je vais oublier
@@ -371,8 +395,9 @@ export default function PaywallScreen() {
 
         {/* CTA */}
         <View style={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8 }}>
-          <Pressable onPress={handlePurchase} disabled={loading} style={({ pressed }) => [
+          <Pressable onPress={handlePurchase} disabled={loading || nativeNoPackage} style={({ pressed }) => [
             { borderRadius: 12, overflow: 'hidden' },
+            nativeNoPackage && { opacity: 0.5 },
             pressed && { opacity: 0.92 },
           ]}>
             <LinearGradient
@@ -398,7 +423,7 @@ export default function PaywallScreen() {
                     fontFamily: fonts.body, fontSize: 11, fontWeight: '500',
                     color: 'rgba(255,255,255,0.9)', marginTop: 2,
                   }}>
-                    0€ aujourd'hui · puis {selectedPlan === 'annual' ? '119,88€/an' : '14,99€/mois'}
+                    Sans frais aujourd'hui · puis {selectedPlan === 'annual' ? `${annualTotalStr}/an` : `${monthlyStr}/mois`}
                   </Text>
                 </View>
               )}
@@ -415,6 +440,14 @@ export default function PaywallScreen() {
             Annule quand tu veux dans les Réglages · Rappel avant le 1er débit{'\n'}
             <Text onPress={handleRestore} style={{ textDecorationLine: 'underline', color: TH.textMuted }}>
               {t('restorePurchase')}
+            </Text>
+            {'\n'}
+            <Text onPress={() => router.push('/terms')} style={{ textDecorationLine: 'underline', color: TH.textMuted }}>
+              Conditions d'utilisation
+            </Text>
+            {'  ·  '}
+            <Text onPress={() => router.push('/privacy')} style={{ textDecorationLine: 'underline', color: TH.textMuted }}>
+              Politique de confidentialité
             </Text>
           </Text>
         </View>

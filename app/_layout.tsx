@@ -222,7 +222,7 @@ function RootLayoutInner() {
       setSession(session);
       if (session) {
         identifyUser(session.user.id);
-        setSentryUser({ id: session.user.id, email: session.user.email });
+        setSentryUser({ id: session.user.id });
         initRevenueCat(session.user.id);
         // Bump last_active_at au démarrage — l'user vient juste d'ouvrir
         // l'app, il est actif. Évite la suppression auto à 180j si
@@ -244,7 +244,13 @@ function RootLayoutInner() {
       setSession(session);
       if (session && event === 'SIGNED_IN') {
         identifyUser(session.user.id);
-        setSentryUser({ id: session.user.id, email: session.user.email });
+        setSentryUser({ id: session.user.id });
+        // Configure RevenueCat pour ce user. Indispensable ici : au cold
+        // start sans session, le bloc getSession() ne l'appelle pas, donc
+        // un nouvel inscrit / une connexion en cours de session n'aurait
+        // jamais RevenueCat configuré → paywall sans offres, achat & restore
+        // KO. initRevenueCat est idempotent (logIn si déjà configuré).
+        initRevenueCat(session.user.id);
         setLoading(true);
         // Avant de PULL les données du nouveau user, on tente de drainer
         // la queue. Pourquoi : si l'user précédent avait des actions en

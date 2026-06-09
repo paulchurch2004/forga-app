@@ -22,10 +22,9 @@
         "applinks:www.forga.fr"
       ],
       "infoPlist": {
-        "NSCameraUsageDescription": "FORGA utilise la camera pour les photos de progression et scanner les aliments.",
-        "NSPhotoLibraryUsageDescription": "FORGA accede a tes photos pour les photos de progression et identifier les aliments.",
-        "NSUserNotificationsUsageDescription": "FORGA envoie des rappels de repas et de progression.",
-        "NSFaceIDUsageDescription": "FORGA utilise Face ID pour deverrouiller ton compte rapidement et de maniere securisee.",
+        "NSCameraUsageDescription": "FORGA utilise la caméra pour les photos de progression et scanner les aliments.",
+        "NSPhotoLibraryUsageDescription": "FORGA accède à tes photos pour les photos de progression et identifier les aliments.",
+        "NSFaceIDUsageDescription": "FORGA utilise Face ID pour déverrouiller ton compte rapidement et de manière sécurisée.",
         "UIBackgroundModes": [
           "remote-notification"
         ],
@@ -107,13 +106,13 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "FORGA utilise la camera pour scanner les codes-barres et identifier les aliments."
+          "cameraPermission": "FORGA utilise la caméra pour scanner les codes-barres et identifier les aliments."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "FORGA accede a tes photos pour identifier les aliments via l'IA."
+          "photosPermission": "FORGA accède à tes photos pour identifier les aliments via l'IA."
         }
       ],
       "expo-localization",
@@ -131,17 +130,16 @@
       [
         "expo-tracking-transparency",
         {
-          "userTrackingPermission": "FORGA utilise des donnees anonymes pour ameliorer ton experience et te proposer du contenu adapte a tes objectifs."
+          "userTrackingPermission": "FORGA mesure l'utilisation de l'app (écrans consultés, fonctionnalités utilisées) pour améliorer ton expérience et tes recommandations."
         }
       ],
       [
         "@kingstinct/react-native-healthkit",
         {
-          "NSHealthShareUsageDescription": "FORGA lit ton poids, tes pas et tes calories depuis Apple Sante pour synchroniser ta progression et personnaliser tes recommandations.",
-          "NSHealthUpdateUsageDescription": "FORGA enregistre tes seances dans Apple Sante pour que tu retrouves ton historique d'entrainement au meme endroit que tes autres donnees de sante."
+          "NSHealthShareUsageDescription": "FORGA lit ton poids, tes pas et tes calories depuis Apple Santé pour synchroniser ta progression et personnaliser tes recommandations.",
+          "NSHealthUpdateUsageDescription": "FORGA enregistre tes séances dans Apple Santé pour que tu retrouves ton historique d'entraînement au même endroit que tes autres données de santé."
         }
-      ],
-      "expo-build-properties"
+      ]
     ],
     "extra": {
       "eas": {

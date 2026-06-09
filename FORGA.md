@@ -86,6 +86,21 @@ Les clés LLM (Anthropic/OpenAI/Groq) sont dans les **secrets Supabase Edge Func
 ### Coach IA — validé par stress test
 Sécurité médicale 🟢 (refuse médoc/régimes dangereux/stéroïdes), anti-hallucination 🟢, personnalisation 🟢, identité 🟢. **Seul point ouvert** : un message TRÈS long peut faire échouer l'appel (rate-limit Groq free tier) → fallback honnête affiché ("découpe ton message"). À surveiller en prod ; envisager Groq tier payant si fréquent.
 
+### Audit pré-launch conformité Apple (9 juin) — correctifs appliqués
+Audit multi-agent (8 dimensions) → 10 bloquants. Tous les bloquants **code** corrigés :
+- **Faux testimonials** (Thomas L./Sarah M./Karim B.) → composant `Testimonials.tsx` supprimé, remplacé par `FeatureHighlights.tsx` (bénéfices factuels non attribués). Compteur inventé « 12 847 personnes » → « 3 coachs en 1 ». (G2.3.1)
+- **Claims « illimité » mensongers** (coach réel 50/j, scan 10/j) → corrigés partout : faq, downgrade-confirmation, PremiumUpgradeCard, TrialExpirationModal, trialNotifications, coach.tsx (message quota), i18n fr/en. Caps réels : Coach Free 5 / Essai 15 / Pro 50 ; Scan Free 3 / Essai 5 / Pro 10.
+- **RevenueCat jamais (ré)initialisé au login/inscription en session** (`_layout.tsx`) → `initRevenueCat` ajouté au handler `SIGNED_IN` (rendu idempotent : `logIn` si déjà configuré). Sans ça : paywall sans offres, achat & restore KO pour tout nouvel inscrit (= le reviewer).
+- **Pas de liens Terms/Privacy sur le paywall** (G3.1.2) → ajoutés sous le CTA.
+- **Prix EUR codés en dur** → tirés de RevenueCat (`priceString`/`pricePerMonthString`/`pricePerMonth`), localisés par devise, badge remise calculé, fallback EUR si offering absent (web/démo). CTA désactivé tant qu'aucune offre chargée. Idem nettoyage prix en dur dans TrialExpirationModal + downgrade-confirmation.
+- **« 800+ recettes »** (faux, ~582 réelles) → « 500+ » (cohérent avec le listing 510 et FeatureHighlights).
+- **Faux flow « 7j de plus avec CB »** (TrialExpirationModal + downgrade) → reformulé honnête : extension gratuite, sans CB.
+- Nettoyage : `expo-build-properties` dédupliqué + clé Info.plist `NSUserNotificationsUsageDescription` (invalide) retirée + string ATT reformulée (plus « données anonymes ») + accents restaurés dans les permissions iOS ; clé orpheline retirée de `PrivacyInfo.xcprivacy` (plist relinté OK) ; Sentry ne reçoit plus l'email (id seul).
+
+**Validé** : typecheck OK, `app.json` JSON valide, `plutil -lint` OK. Confirmé CONFORME par l'audit : suppression de compte (5.1.1v), Restaurer les achats (3.1.1), disclaimer santé (1.4.1), Sign in with Apple (4.8), accès freemium sans payer, ATT gaté, aucun secret fuité.
+
+**Non-bloquants laissés pour v1.1** (cf rapport audit) : backdoor dev premium (long-press version dans Réglages — à gater `__DEV__` si gênant), StepsCard route vers Profil au lieu de Réglages>Santé, garde div/0 dans `portionCalculator`, clés i18n mortes, Rules-of-Hooks bénin dans `MessageBubble` (coach).
+
 ---
 
 ## 5. CE QU'IL RESTE POUR LE LAUNCH 🚀
@@ -109,9 +124,14 @@ eas submit --platform ios
 - [ ] **Lier le build** à la version 1.0
 - [ ] **Grace period 16j** (cf `docs/REVENUECAT_GRACE_PERIOD.md`)
 
-### C. AVANT le build — 2 points à régler
-1. **Remplacer les faux testimonials** du paywall (`src/components/paywall/Testimonials.tsx`) par de vrais (risque Apple G2.3.1). Ou les softer.
-2. (Optionnel) Décider du **RPE→progression** : actuellement le RPE post-séance est collecté mais n'ajuste pas les charges. Recommandation : **v1.1** (le modèle actuel métal+reps est solide).
+### C. AVANT le build — vérifications manuelles (dashboards)
+Les correctifs **code** sont faits (cf §4, audit 9 juin). Restent des vérifs **hors code** :
+1. **RevenueCat dashboard** : l'offering est bien marqué **« current »** ; les 2 packages sont typés **ANNUAL / MONTHLY** ; produits `com.forga.premium.annual/monthly` rattachés à l'entitlement exactement nommé **`premium`**. (Le code sélectionne par `packageType` et lit `entitlements.active['premium']` — si mal configuré : paywall vide / restore qui ne débloque jamais.)
+2. **Prix App Store Connect** : configurer les prix par palier (€ inclus) — le paywall affiche désormais le prix **réel** de la store via RevenueCat, donc ASC = source de vérité.
+3. **Supabase** : confirmer que la RPC **`delete_my_account`** (migration 016) est déployée (sinon suppression de compte KO → rejet Apple).
+4. **EAS** : `EXPO_PUBLIC_SUPABASE_URL` / `_ANON_KEY` / `_REVENUECAT_IOS` présents au build prod (sinon app en mode démo silencieux).
+5. **Sign in with Apple** : capability activée dans le provisioning / App ID (le code est prêt).
+6. (Optionnel) **RPE→progression** : RPE collecté mais n'ajuste pas les charges → **v1.1** (modèle métal+reps solide).
 
 ---
 

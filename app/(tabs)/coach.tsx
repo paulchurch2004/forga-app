@@ -899,7 +899,7 @@ export default function CoachScreen() {
         ...prev,
         {
           id,
-          text: result.message ?? 'Tu as atteint ta limite de messages aujourd\'hui. Passe à FORGA Pro pour des échanges illimités avec ton coach.',
+          text: result.message ?? 'Tu as atteint ta limite de messages aujourd\'hui. Passe à FORGA Pro pour jusqu\'à 50 messages par jour avec ton coach.',
           isCoach: true,
           timestamp: Date.now(),
           kind: 'quota_notice',

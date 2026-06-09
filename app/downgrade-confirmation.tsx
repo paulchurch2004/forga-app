@@ -4,8 +4,8 @@ import { router } from 'expo-router';
 import { useTrial } from '../src/hooks/useTrial';
 
 const FEATURES_LOST = [
-  { icon: '💬', label: 'Coach IA', from: 'Illimité', to: '5 / jour' },
-  { icon: '📸', label: 'Scans repas', from: 'Illimité', to: '3 / jour' },
+  { icon: '💬', label: 'Coach IA', from: '50 / jour', to: '5 / jour' },
+  { icon: '📸', label: 'Scans repas', from: '10 / jour', to: '3 / jour' },
   { icon: '🏋️', label: 'Programmes', from: '40+ plans', to: '1 seul' },
   { icon: '🍳', label: 'Recettes', from: '510 premium', to: '5 free' },
   { icon: '🎬', label: 'Vidéos étape par étape', from: 'Toutes', to: 'Bloquées' },
@@ -50,13 +50,13 @@ export default function DowngradeConfirmation() {
           <Text style={styles.lastChanceEmoji}>👋</Text>
           <Text style={styles.lastChanceTitle}>Une dernière chose...</Text>
           <Text style={styles.lastChanceBody}>
-            Tu peux essayer <Text style={{ fontWeight: '700' }}>1 semaine de plus offerte</Text> avec ta CB.
-            Aucun débit pendant 7 jours, annulable en 1 clic depuis l'App Store.
+            Tu peux essayer <Text style={{ fontWeight: '700' }}>1 semaine de plus, offerte</Text>.
+            Aucune carte bancaire, rien à annuler — ton essai s'arrête tout seul à la fin.
           </Text>
 
           <Pressable style={styles.acceptBtn} onPress={handleLastChanceAccept}>
             <Text style={styles.acceptBtnText}>J'essaie 7 jours de plus</Text>
-            <Text style={styles.acceptBtnSubtext}>Gratuit · annulable à tout moment</Text>
+            <Text style={styles.acceptBtnSubtext}>Gratuit · sans carte bancaire</Text>
           </Pressable>
 
           <Pressable style={styles.declineBtn} onPress={handleLastChanceDecline}>
@@ -70,7 +70,7 @@ export default function DowngradeConfirmation() {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.title}>Tu vas perdre ton accès illimité</Text>
+        <Text style={styles.title}>Tu vas perdre ton accès FORGA Pro</Text>
 
         <Animated.View style={{ opacity }}>
           {FEATURES_LOST.map((f, i) => (
@@ -89,7 +89,7 @@ export default function DowngradeConfirmation() {
         </Animated.View>
 
         <Pressable style={styles.keepBtn} onPress={() => router.push('/paywall')}>
-          <Text style={styles.keepBtnText}>Garder PRO — 14,99 €/mois</Text>
+          <Text style={styles.keepBtnText}>Garder FORGA Pro</Text>
         </Pressable>
 
         <Pressable style={styles.confirmBtn} onPress={handleConfirmFree}>

@@ -35,6 +35,20 @@ export async function initRevenueCat(userId?: string): Promise<void> {
     return;
   }
 
+  // Déjà configuré (ex: l'user se déconnecte puis se reconnecte dans la
+  // même session app) → on bascule l'utilisateur RevenueCat au lieu de
+  // reconfigurer le SDK (configure() deux fois logue un warning).
+  if (isConfigured) {
+    if (userId) {
+      try {
+        await sdk.logIn(userId);
+      } catch (error) {
+        if (__DEV__) console.warn('[RevenueCat] logIn error:', error);
+      }
+    }
+    return;
+  }
+
   sdk.configure({ apiKey, appUserID: userId });
   isConfigured = true;
 }

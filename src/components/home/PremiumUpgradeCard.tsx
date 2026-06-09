@@ -28,7 +28,7 @@ export function PremiumUpgradeCard({ onPress, headline }: PremiumUpgradeCardProp
         <View style={{ flex: 1 }}>
           <Text style={styles.eyebrow}>FORGA PRO</Text>
           <Text style={styles.headline}>
-            {headline ?? 'Débloque ton coach IA illimité'}
+            {headline ?? 'Débloque tout FORGA Pro'}
           </Text>
           <Text style={styles.subtitle}>
             Coach + scan repas + programmes complets · 7 jours d'essai gratuit
