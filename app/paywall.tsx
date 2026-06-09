@@ -113,12 +113,23 @@ export default function PaywallScreen() {
       if (customerInfo) {
         updateProfile({ isPremium: true });
         events.purchaseCompleted(selectedPlan);
-        router.back();
+        // La feuille d'achat StoreKit est un modal NATIF iOS. Si on pop le
+        // paywall tout de suite, la navigation se joue pendant que iOS
+        // termine de fermer la feuille → un overlay natif résiduel reste
+        // au-dessus et capture les touches = app "figée". On laisse la
+        // fermeture native se terminer avant de quitter l'écran (et on
+        // garde le spinner pendant ce court délai pour éviter un re-tap).
+        setTimeout(() => {
+          if (router.canGoBack()) router.back();
+          else router.replace('/(tabs)/home');
+        }, 500);
+        return;
       }
-    } catch (error: any) {
-      showAlert(t('error'), error.message ?? t('errorOccurred'));
-    } finally {
+      // Achat annulé (customerInfo null) → on réactive le bouton.
       setLoading(false);
+    } catch (error: any) {
+      setLoading(false);
+      showAlert(t('error'), error.message ?? t('errorOccurred'));
     }
   };
 
@@ -154,7 +165,12 @@ export default function PaywallScreen() {
       if (info?.entitlements?.active?.['premium']) {
         updateProfile({ isPremium: true });
         showAlert(t('restore'), t('restoreSuccess'));
-        router.back();
+        // Idem achat : laisser un éventuel flux natif (Apple ID) se fermer
+        // avant de quitter l'écran, sinon overlay résiduel → app figée.
+        setTimeout(() => {
+          if (router.canGoBack()) router.back();
+          else router.replace('/(tabs)/home');
+        }, 500);
       } else {
         showAlert(t('error'), t('noActiveSubscription'));
       }
