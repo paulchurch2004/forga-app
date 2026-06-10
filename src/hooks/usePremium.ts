@@ -44,43 +44,51 @@ export function usePremium() {
   })();
 
   const refreshPremiumStatus = useCallback(async () => {
+    if (!profile) return;
     setIsChecking(true);
     try {
-      // Check premiumUntil expiry (works on all platforms for trial/referral)
-      if (profile?.premiumUntil) {
-        const now = new Date();
-        const until = new Date(profile.premiumUntil);
-        if (until <= now && profile.isPremium) {
-          // Don't expire if user has an active Stripe subscription
-          if (!profile.stripeSubscriptionId) {
-            updateProfile({ isPremium: false });
-            // Sync vers Supabase — sans ça, l'expiration de trial
-            // n'était propagée qu'en local : sur un autre device,
-            // l'user restait "premium" alors que son trial venait
-            // de finir → revenue leak.
-            if (profile.id) syncProfile({ isPremium: false }, profile.id);
-            events.trialExpired();
-          }
-        }
+      // 1. Abonnement store actif (RevenueCat App Store / Play) ? C'est la
+      //    source de vérité PRIORITAIRE : un abonné ne doit jamais être
+      //    expiré par la logique de trial ci-dessous (sinon ping-pong
+      //    isPremium true↔false → boucle de rendu).
+      let storePremium = false;
+      if (Platform.OS !== 'web') {
+        storePremium = await checkPremiumStatus();
       }
 
-      // On native, also check RevenueCat for store subscriptions.
-      // If we find an active subscription while the trial is about to
-      // expire (or already expired), that's a conversion — fire the event.
-      if (Platform.OS !== 'web') {
-        const premium = await checkPremiumStatus();
-        if (premium) {
-          const wasTrialActive = profile?.isPremium && profile?.premiumUntil &&
+      if (storePremium) {
+        // ⚠️ On ne met à jour le profil QUE si la valeur change réellement.
+        // Sans ce garde, updateProfile crée un nouvel objet `profile` à
+        // chaque rendu → ce hook (dépendant de `profile`) se redéclenche
+        // en boucle infinie ("Maximum update depth exceeded") → app FIGÉE
+        // juste après l'achat. C'était la cause du freeze post-paiement.
+        if (!profile.isPremium) {
+          const wasTrialActive = !!profile.premiumUntil &&
             new Date(profile.premiumUntil).getTime() < Date.now() + 24 * 60 * 60 * 1000;
           updateProfile({ isPremium: true });
-          // Sync — un upgrade RevenueCat (App Store / Play) doit être
-          // visible côté DB pour le coach IA (contexte premium → débloque
-          // certains conseils) et pour la rétention multi-device.
-          if (profile?.id) syncProfile({ isPremium: true }, profile.id);
-          if (wasTrialActive && !profile?.stripeSubscriptionId) {
+          // Sync — un upgrade RevenueCat doit être visible côté DB pour le
+          // coach IA (contexte premium) et la rétention multi-device.
+          if (profile.id) syncProfile({ isPremium: true }, profile.id);
+          if (wasTrialActive && !profile.stripeSubscriptionId) {
             events.trialConverted();
           }
         }
+        return;
+      }
+
+      // 2. Pas d'abonnement store → expirer le trial/référral si la date
+      //    est passée (et seulement si on est encore premium : no-op sinon,
+      //    donc pas de boucle). Garde le sync Supabase pour la cohérence
+      //    multi-device (sinon l'user reste "premium" sur un autre device).
+      if (
+        profile.isPremium &&
+        profile.premiumUntil &&
+        !profile.stripeSubscriptionId &&
+        new Date(profile.premiumUntil) <= new Date()
+      ) {
+        updateProfile({ isPremium: false });
+        if (profile.id) syncProfile({ isPremium: false }, profile.id);
+        events.trialExpired();
       }
     } catch {
       // Keep current status on error
