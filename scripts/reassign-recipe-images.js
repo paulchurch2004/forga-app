@@ -66,16 +66,31 @@ async function fetchCandidates(query, attempt = 0) {
   return cands;
 }
 
+// Types de plats "faux-amis" : s'ils apparaissent dans le alt mais PAS dans la
+// requête, c'est probablement le mauvais plat (ex: 'cupcake'/'burger' pour un
+// fromage blanc → matche 'cheese'/'berries' par accident).
+const FALSE_FRIENDS = ['burger','cheeseburger','hamburger','cupcake','muffin','cookie','brownie','donut','doughnut','pizza','lasagna','lasagne','milkshake','ice cream','candy','croissant','pastry','cheesecake','sandwich'];
+
+function matchCount(qTokens, alt) {
+  const a = alt.toLowerCase();
+  return qTokens.filter((t) => a.includes(t)).length;
+}
+
 function pickBest(cands, qTokens) {
-  let best = null, bestScore = -1;
+  const primary = qTokens[0];
+  let best = null, bestScore = -1e9;
   for (const c of cands) {
     if (usedUrls.has(c.url)) continue;
-    const a = c.alt.toLowerCase();
-    const score = qTokens.filter((t) => a.includes(t)).length;
-    if (score > bestScore) { bestScore = score; best = c; }
+    const a = (c.alt || '').toLowerCase();
+    // Mot principal du plat pondéré x3, autres x1.
+    let s = 0;
+    for (const t of qTokens) if (a.includes(t)) s += t === primary ? 3 : 1;
+    // Pénalité forte si un type de plat parasite apparaît (et n'est pas voulu).
+    for (const w of FALSE_FRIENDS) { if (a.includes(w) && !qTokens.includes(w)) { s -= 5; break; } }
+    if (s > bestScore) { bestScore = s; best = c; }
   }
   if (!best) best = cands.find((c) => !usedUrls.has(c.url)) || cands[0] || null;
-  return best ? { ...best, score: best.alt ? qTokens.filter((t) => best.alt.toLowerCase().includes(t)).length : 0 } : null;
+  return best ? { ...best, score: best.alt ? matchCount(qTokens, best.alt) : 0 } : null;
 }
 
 function findIds(src) { return [...src.matchAll(/id:\s*'([^']+)'/g)].map((m) => m[1]); }
