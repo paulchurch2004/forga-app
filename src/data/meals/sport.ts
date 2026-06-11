@@ -123,7 +123,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 œuf+blancs → 2 c. à s. chia + 6 c. à s. eau, whey → protéine végétale, yaourt → soja · 🌾 avoine SG certifiée · 🥛 whey isolate + yaourt SL.',
     macros: { calories: 330, protein: 24, carbs: 38, fat: 8 },
-    photoUrl: 'https://images.pexels.com/photos/6947056/pexels-photo-6947056.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/7144905/pexels-photo-7144905.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'vegetarian', 'post-workout'],
   },
   {
@@ -150,7 +150,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 yaourt soja + protéine végétale · 🌾 granola SG · 🥛 yaourt sans lactose + whey isolate.',
     macros: { calories: 345, protein: 19, carbs: 40, fat: 15 },
-    photoUrl: 'https://images.pexels.com/photos/12955709/pexels-photo-12955709.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/7937002/pexels-photo-7937002.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'pre-workout'],
   },
   {
@@ -178,7 +178,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 yaourt soja + protéine végétale + lait avoine · 🌾 avoine SG · 🥛 lait + yaourt végétal + whey isolate.',
     macros: { calories: 390, protein: 30, carbs: 45, fat: 9 },
-    photoUrl: 'https://images.pexels.com/photos/8108200/pexels-photo-8108200.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/7752366/pexels-photo-7752366.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'vegetarian', 'post-workout'],
   },
   {
@@ -205,7 +205,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 lait végétal + protéine végétale · 🌾 avoine SG · 🥛 lait végétal + whey isolate.',
     macros: { calories: 410, protein: 28, carbs: 48, fat: 13 },
-    photoUrl: 'https://images.pexels.com/photos/7167847/pexels-photo-7167847.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/6659876/pexels-photo-6659876.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'vegetarian', 'bulk'],
   },
   {
@@ -261,7 +261,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 déjà végé · 🌿 œufs → tofu soyeux émietté + feta végétale · 🌾 déjà SG (pain SG à part) · 🥛 feta végétale.',
     macros: { calories: 310, protein: 19, carbs: 14, fat: 18 },
-    photoUrl: 'https://images.pexels.com/photos/8366623/pexels-photo-8366623.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/691077/pexels-photo-691077.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'gluten-free', 'cut'],
   },
   {
@@ -286,7 +286,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 déjà végé · 🌿 cottage cheese → tofu soyeux mixé citron + édulcorant · 🌾 déjà SG · 🥛 yaourt soja épais.',
     macros: { calories: 390, protein: 33, carbs: 19, fat: 22 },
-    photoUrl: 'https://images.pexels.com/photos/32065589/pexels-photo-32065589.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/11845550/pexels-photo-11845550.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'vegetarian', 'gluten-free'],
   },
   {
@@ -314,7 +314,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 œuf → chia, skyr → yaourt soja, whey → protéine végétale · 🌾 avoine SG · 🥛 skyr SL + whey isolate.',
     macros: { calories: 380, protein: 30, carbs: 40, fat: 10 },
-    photoUrl: 'https://images.pexels.com/photos/47812/bananas-dessert-ice-cream-fruit-47812.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/6794152/pexels-photo-6794152.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'vegetarian', 'post-workout'],
   },
   {
@@ -340,7 +340,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 déjà végé · 🌿 œufs → tofu brouillé curcuma + levure maltée · 🌾 pain SG · 🥛 déjà SL (sans beurre).',
     macros: { calories: 400, protein: 26, carbs: 26, fat: 20 },
-    photoUrl: 'https://images.pexels.com/photos/29893443/pexels-photo-29893443.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/12961904/pexels-photo-12961904.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'vegetarian'],
   },
   {
@@ -368,7 +368,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 œufs → chia, yaourt → soja, whey → protéine végétale · 🌾 avoine SG · 🥛 yaourt végétal + whey isolate.',
     macros: { calories: 360, protein: 28, carbs: 40, fat: 9 },
-    photoUrl: 'https://images.pexels.com/photos/34964952/pexels-photo-34964952.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/11714570/pexels-photo-11714570.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'vegetarian'],
   },
   {
@@ -509,7 +509,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 déjà vegan · 🌾 déjà SG · 🥛 déjà SL · boost : + 30 g protéine végétale neutre.',
     macros: { calories: 80, protein: 2, carbs: 9, fat: 4 },
-    photoUrl: 'https://images.pexels.com/photos/3525752/pexels-photo-3525752.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/11700718/pexels-photo-11700718.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegan', 'vegetarian', 'gluten-free', 'pre-workout'],
   },
   {
@@ -533,7 +533,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 yaourt soja épais · 🌾 granola SG · 🥛 yaourt végétal.',
     macros: { calories: 210, protein: 18, carbs: 22, fat: 4 },
-    photoUrl: 'https://images.pexels.com/photos/4946624/pexels-photo-4946624.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/1068809/pexels-photo-1068809.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'cut', 'pre-workout'],
   },
   {
@@ -580,7 +580,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 doubler le houmous, retirer les œufs · 🌿 tofu fumé + houmous · 🌾 déjà SG · 🥛 déjà SL.',
     macros: { calories: 200, protein: 16, carbs: 10, fat: 11 },
-    photoUrl: 'https://images.pexels.com/photos/6544260/pexels-photo-6544260.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/6823322/pexels-photo-6823322.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'gluten-free', 'cut'],
   },
   {
@@ -604,7 +604,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 fromage frais + œuf dur émietté · 🌿 houmous + tofu fumé · 🌾 pain SG · 🥛 fromage frais SL ou végétal.',
     macros: { calories: 230, protein: 20, carbs: 22, fat: 6 },
-    photoUrl: 'https://images.pexels.com/photos/4963498/pexels-photo-4963498.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/5836443/pexels-photo-5836443.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'cut'],
   },
   {
@@ -626,7 +626,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 déjà vegan · 🌾 déjà SG · 🥛 déjà SL · boost : + carré de chocolat noir 90 %.',
     macros: { calories: 190, protein: 5, carbs: 22, fat: 10 },
-    photoUrl: 'https://images.pexels.com/photos/32066570/pexels-photo-32066570.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/6836093/pexels-photo-6836093.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegan', 'vegetarian', 'gluten-free', 'pre-workout'],
   },
   {
@@ -648,7 +648,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 tofu soyeux + ananas · 🌾 déjà SG · 🥛 yaourt soja épais.',
     macros: { calories: 180, protein: 18, carbs: 14, fat: 6 },
-    photoUrl: 'https://images.pexels.com/photos/396132/pexels-photo-396132.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/35017894/pexels-photo-35017894.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'gluten-free', 'cut'],
   },
   {
@@ -672,7 +672,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 pois chiches écrasés épicés · 🌿 tofu + houmous · 🌾 tortilla maïs/sarrasin · 🥛 fromage végétal.',
     macros: { calories: 250, protein: 19, carbs: 20, fat: 11 },
-    photoUrl: 'https://images.pexels.com/photos/1143754/pexels-photo-1143754.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/4352101/pexels-photo-4352101.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport'],
   },
   {
@@ -699,7 +699,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: "🌿 protéine végétale + sirop d'érable · 🌾 avoine SG · 🥛 protéine végétale.",
     macros: { calories: 170, protein: 10, carbs: 20, fat: 6 },
-    photoUrl: 'https://images.pexels.com/photos/13111782/pexels-photo-13111782.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/17163139/pexels-photo-17163139.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'pre-workout'],
   },
   {
@@ -779,7 +779,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 déjà vegan · 🌾 déjà SG · 🥛 déjà SL · boost 30 g P : + 100 g poulet grillé ou tofu fumé.',
     macros: { calories: 550, protein: 20, carbs: 65, fat: 22 },
-    photoUrl: 'https://images.pexels.com/photos/5639367/pexels-photo-5639367.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/8696479/pexels-photo-8696479.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegan', 'vegetarian', 'gluten-free', 'bulk'],
   },
   {
@@ -831,7 +831,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 déjà végé · 🌿 feta → tofu fumé / feta végétale · 🌾 déjà SG · 🥛 feta végétale · boost : + poulet ou pois chiches rôtis.',
     macros: { calories: 420, protein: 14, carbs: 45, fat: 19 },
-    photoUrl: 'https://images.pexels.com/photos/5175508/pexels-photo-5175508.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/5639358/pexels-photo-5639358.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'gluten-free'],
   },
   {
@@ -858,7 +858,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 poulet → pois chiches écrasés · 🌿 tofu + fromages végétaux · 🌾 tortilla maïs/sarrasin · 🥛 fromage végétal ou houmous.',
     macros: { calories: 228, protein: 30, carbs: 15, fat: 7 },
-    photoUrl: 'https://images.pexels.com/photos/5112582/pexels-photo-5112582.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/2015191/pexels-photo-2015191.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'cut', 'post-workout'],
   },
   {
@@ -957,7 +957,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 déjà végé · 🌿 cottage cheese → tofu soyeux mixé / houmous · 🌾 déjà SG · 🥛 cottage cheese SL.',
     macros: { calories: 400, protein: 33, carbs: 25, fat: 18 },
-    photoUrl: 'https://images.pexels.com/photos/14678843/pexels-photo-14678843.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/14090828/pexels-photo-14090828.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'vegetarian', 'gluten-free'],
   },
   {
@@ -983,7 +983,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 crevettes → 150 g tofu / edamame · 🌿 tofu · 🌾 soba 100 % sarrasin + tamari · 🥛 déjà SL.',
     macros: { calories: 420, protein: 28, carbs: 50, fat: 10 },
-    photoUrl: 'https://images.pexels.com/photos/6718709/pexels-photo-6718709.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/19264271/pexels-photo-19264271.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'post-workout'],
   },
   {
@@ -1008,7 +1008,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 déjà végé · 🌿 chèvre → tofu fumé · 🌾 déjà SG · 🥛 chèvre végétal.',
     macros: { calories: 410, protein: 22, carbs: 38, fat: 18 },
-    photoUrl: 'https://images.pexels.com/photos/10165790/pexels-photo-10165790.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/7994668/pexels-photo-7994668.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'gluten-free'],
   },
   {
@@ -1034,7 +1034,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 bœuf → tofu / champignons · 🌿 tofu + œuf retiré · 🌾 tamari + gochujang SG · 🥛 déjà SL.',
     macros: { calories: 500, protein: 35, carbs: 50, fat: 15 },
-    photoUrl: 'https://images.pexels.com/photos/5774004/pexels-photo-5774004.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/5774005/pexels-photo-5774005.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'post-workout', 'bulk'],
   },
   {
@@ -1202,7 +1202,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: "🌿 protéine végétale + miel → sirop d'érable · 🌾 avoine SG · 🥛 protéine végétale.",
     macros: { calories: 100, protein: 11, carbs: 14, fat: 5 },
-    photoUrl: 'https://images.pexels.com/photos/5847238/pexels-photo-5847238.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/16153973/pexels-photo-16153973.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'vegetarian', 'post-workout'],
   },
   {
@@ -1278,7 +1278,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 protéine végétale + yaourt soja · 🌾 déjà SG · 🥛 yaourt + lait végétal + whey isolate.',
     macros: { calories: 210, protein: 22, carbs: 24, fat: 3 },
-    photoUrl: 'https://images.pexels.com/photos/11410545/pexels-photo-11410545.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/11410548/pexels-photo-11410548.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'gluten-free', 'cut', 'post-workout'],
   },
   {
@@ -1302,7 +1302,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 lait végétal + protéine végétale · 🌾 déjà SG · 🥛 lait végétal + protéine végétale.',
     macros: { calories: 250, protein: 18, carbs: 38, fat: 4 },
-    photoUrl: 'https://images.pexels.com/photos/36909858/pexels-photo-36909858.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/2372522/pexels-photo-2372522.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'gluten-free'],
   },
   {
@@ -1405,7 +1405,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 déjà vegan · 🌾 déjà SG · 🥛 déjà SL · boost : + œuf dur.',
     macros: { calories: 376, protein: 16, carbs: 59, fat: 6 },
-    photoUrl: 'https://images.pexels.com/photos/6544374/pexels-photo-6544374.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/15655219/pexels-photo-15655219.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegan', 'vegetarian', 'gluten-free', 'bulk'],
   },
   {
@@ -1453,7 +1453,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 poulet → tofu/halloumi · 🌿 tofu · 🌾 déjà SG · 🥛 déjà SL.',
     macros: { calories: 420, protein: 38, carbs: 28, fat: 16 },
-    photoUrl: 'https://images.pexels.com/photos/6210947/pexels-photo-6210947.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/5718015/pexels-photo-5718015.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'gluten-free', 'post-workout'],
   },
   {
@@ -1478,7 +1478,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 déjà végé · 🌿 "omelette" socca (farine de pois chiche) + légumes · 🌾 déjà SG · 🥛 fromage frais SL/végétal.',
     macros: { calories: 320, protein: 26, carbs: 8, fat: 21 },
-    photoUrl: 'https://images.pexels.com/photos/5840304/pexels-photo-5840304.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/19653600/pexels-photo-19653600.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'vegetarian', 'gluten-free', 'cut'],
   },
   {
@@ -1504,7 +1504,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 steak haricots rouges-flocons · 🌿 galette pois chiches · 🌾 pain SG · 🥛 sauce yaourt SL.',
     macros: { calories: 450, protein: 36, carbs: 35, fat: 17 },
-    photoUrl: 'https://images.pexels.com/photos/9121487/pexels-photo-9121487.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/14133026/pexels-photo-14133026.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'post-workout'],
   },
   {
@@ -1529,7 +1529,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 poulet → tofu/pois chiches · 🌿 tofu · 🌾 vérifier pâte de curry SG · 🥛 déjà SL.',
     macros: { calories: 440, protein: 34, carbs: 25, fat: 22 },
-    photoUrl: 'https://images.pexels.com/photos/31653129/pexels-photo-31653129.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/10296231/pexels-photo-10296231.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'post-workout'],
   },
   {
@@ -1553,7 +1553,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 poisson → tofu ferme · 🌿 tofu · 🌾 déjà SG · 🥛 déjà SL.',
     macros: { calories: 310, protein: 33, carbs: 12, fat: 12 },
-    photoUrl: 'https://images.pexels.com/photos/4050985/pexels-photo-4050985.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/12932683/pexels-photo-12932683.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'gluten-free', 'cut'],
   },
   {
@@ -1579,7 +1579,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 déjà vegan · 🌾 déjà SG · 🥛 déjà SL · boost : + bœuf maigre (chili con carne).',
     macros: { calories: 430, protein: 20, carbs: 60, fat: 11 },
-    photoUrl: 'https://images.pexels.com/photos/32667184/pexels-photo-32667184.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/13758305/pexels-photo-13758305.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegan', 'vegetarian', 'gluten-free', 'bulk'],
   },
   {
@@ -1629,7 +1629,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 steak végétal lentilles · 🌿 galette pois chiches · 🌾 déjà SG · 🥛 purée sans beurre (eau de cuisson ou lait végétal).',
     macros: { calories: 440, protein: 38, carbs: 32, fat: 15 },
-    photoUrl: 'https://images.pexels.com/photos/31064139/pexels-photo-31064139.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/37794985/pexels-photo-37794985.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'gluten-free', 'post-workout'],
   },
   {
@@ -1677,7 +1677,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 jambon → champignons · 🌿 garniture légumes + fromage végétal · 🌾 déjà SG (sarrasin pur) · 🥛 fromage végétal.',
     macros: { calories: 360, protein: 24, carbs: 30, fat: 15 },
-    photoUrl: 'https://images.pexels.com/photos/9615726/pexels-photo-9615726.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/5640016/pexels-photo-5640016.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'gluten-free'],
   },
   {
@@ -1701,7 +1701,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 crevettes → tofu/halloumi · 🌿 tofu/pois chiches · 🌾 déjà SG · 🥛 déjà SL.',
     macros: { calories: 300, protein: 30, carbs: 12, fat: 14 },
-    photoUrl: 'https://images.pexels.com/photos/10802305/pexels-photo-10802305.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/5597691/pexels-photo-5597691.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'high-protein', 'gluten-free', 'cut'],
   },
 
@@ -1749,7 +1749,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 yaourt soja · 🌾 déjà SG · 🥛 yaourt soja.',
     macros: { calories: 200, protein: 20, carbs: 14, fat: 6 },
-    photoUrl: 'https://images.pexels.com/photos/33755314/pexels-photo-33755314.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/9026809/pexels-photo-9026809.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'gluten-free', 'recovery', 'cut'],
   },
   {
@@ -1771,7 +1771,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 tofu soyeux assaisonné · 🌾 déjà SG · 🥛 cottage cheese SL ou tofu soyeux.',
     macros: { calories: 170, protein: 20, carbs: 6, fat: 6 },
-    photoUrl: 'https://images.pexels.com/photos/27612521/pexels-photo-27612521.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/38031596/pexels-photo-38031596.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'gluten-free', 'recovery', 'cut'],
   },
   {
@@ -1816,7 +1816,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 yaourt soja · 🌾 déjà SG · 🥛 skyr SL.',
     macros: { calories: 190, protein: 18, carbs: 16, fat: 5 },
-    photoUrl: 'https://images.pexels.com/photos/29253253/pexels-photo-29253253.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/9579405/pexels-photo-9579405.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'gluten-free', 'recovery', 'cut'],
   },
   {
@@ -1839,7 +1839,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 déjà végé · 🌿 œufs → tofu soyeux + avocat · 🌾 déjà SG · 🥛 déjà SL.',
     macros: { calories: 230, protein: 14, carbs: 4, fat: 18 },
-    photoUrl: 'https://images.pexels.com/photos/566566/pexels-photo-566566.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/8091166/pexels-photo-8091166.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'gluten-free', 'cut'],
   },
   {
@@ -1861,7 +1861,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: "🌿 yaourt soja + sirop d'érable · 🌾 déjà SG · 🥛 yaourt soja.",
     macros: { calories: 230, protein: 17, carbs: 16, fat: 9 },
-    photoUrl: 'https://images.pexels.com/photos/4491390/pexels-photo-4491390.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/8964242/pexels-photo-8964242.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'gluten-free', 'recovery'],
   },
   {
@@ -1907,7 +1907,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌱 fromage blanc + œuf dur · 🌿 houmous + tofu fumé · 🌾 pain SG · 🥛 fromage blanc SL ou houmous.',
     macros: { calories: 240, protein: 24, carbs: 22, fat: 5 },
-    photoUrl: 'https://images.pexels.com/photos/5588983/pexels-photo-5588983.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/5150302/pexels-photo-5150302.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'cut'],
   },
   {
@@ -1929,7 +1929,7 @@ export const SPORT_RECIPES: SportRecipe[] = [
     ],
     alternatives: '🌿 yaourt soja + lin · 🌾 déjà SG · 🥛 yaourt soja épais.',
     macros: { calories: 200, protein: 18, carbs: 14, fat: 7 },
-    photoUrl: 'https://images.pexels.com/photos/27850092/pexels-photo-27850092.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
+    photoUrl: 'https://images.pexels.com/photos/7368081/pexels-photo-7368081.jpeg?auto=compress&cs=tinysrgb&h=650&w=940',
     tags: ['sport', 'vegetarian', 'gluten-free', 'recovery', 'cut'],
   },
 ];
