@@ -1,0 +1,2912 @@
+{
+  "breakfast_001": {
+    "url": "https://images.pexels.com/photos/6050721/pexels-photo-6050721.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious breakfast bowl with bananas, chia seeds, peanuts, raisins, and peanut butter.",
+    "query": "banana oatmeal porridge bowl"
+  },
+  "breakfast_002": {
+    "url": "https://images.pexels.com/photos/4394139/pexels-photo-4394139.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Crispy toasted ham and cheese sandwich served on a white plate, perfect breakfast.",
+    "query": "ham and cheese toast"
+  },
+  "breakfast_003": {
+    "url": "https://images.pexels.com/photos/5639284/pexels-photo-5639284.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious gourmet omelette with melted cheese and green onions in a skillet, garnished with fresh lettuce.",
+    "query": "spinach omelette"
+  },
+  "breakfast_004": {
+    "url": "https://images.pexels.com/photos/4397288/pexels-photo-4397288.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious chia pudding topped with blueberries and almond flakes in a jar.",
+    "query": "blueberry overnight oats jar"
+  },
+  "breakfast_005": {
+    "url": "https://images.pexels.com/photos/6823299/pexels-photo-6823299.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Flat lay of a nutritious breakfast featuring banana toast, chia seeds, and nuts on a marble surface.",
+    "query": "peanut butter banana toast"
+  },
+  "breakfast_006": {
+    "url": "https://images.pexels.com/photos/15048297/pexels-photo-15048297.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Enjoy a healthy breakfast with cottage cheese topped with fresh berries, perfect for a nutritious start.",
+    "query": "cottage cheese with red berries bowl"
+  },
+  "breakfast_007": {
+    "url": "https://images.pexels.com/photos/13020203/pexels-photo-13020203.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A breakfast plate with scrambled eggs, toast, salad, and coffee on a marble surface.",
+    "query": "scrambled eggs on toast"
+  },
+  "breakfast_008": {
+    "url": "https://images.pexels.com/photos/3035261/pexels-photo-3035261.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious smoothie bowl topped with granola and chocolates in a white bowl.",
+    "query": "acai bowl"
+  },
+  "breakfast_009": {
+    "url": "https://images.pexels.com/photos/6947243/pexels-photo-6947243.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious breakfast scene featuring a stack of pancakes, milk, and nuts on a minimalist setting.",
+    "query": "stack of protein pancakes"
+  },
+  "breakfast_010": {
+    "url": "https://images.pexels.com/photos/6896523/pexels-photo-6896523.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious open-faced sandwich with smoked salmon, avocado, and cream cheese on whole grain bread.",
+    "query": "avocado smoked salmon toast"
+  },
+  "breakfast_011": {
+    "url": "https://images.pexels.com/photos/6823328/pexels-photo-6823328.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious yogurt bowl topped with fresh kiwi, cashews, and mixed berries, perfect for a healthy breakfast.",
+    "query": "skyr yogurt bowl with granola"
+  },
+  "breakfast_012": {
+    "url": "https://images.pexels.com/photos/15640157/pexels-photo-15640157.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious English breakfast featuring bacon, poached eggs, mushrooms, and tomatoes on a plate.",
+    "query": "full english breakfast plate"
+  },
+  "breakfast_013": {
+    "url": "https://images.pexels.com/photos/37228248/pexels-photo-37228248.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor a crispy Croque Monsieur paired with sunny-side-up eggs and coffee.",
+    "query": "grilled ham cheese sandwich croque monsieur"
+  },
+  "breakfast_014": {
+    "url": "https://images.pexels.com/photos/29177374/pexels-photo-29177374.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Traditional shakshouka with eggs and flatbread, garnished with parsley. Perfect for a hearty meal.",
+    "query": "shakshuka eggs in tomato sauce"
+  },
+  "breakfast_015": {
+    "url": "https://images.pexels.com/photos/730922/pancakes-food-eat-breakfast-730922.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of delicious homemade pancakes stacked high on a plate, perfect for breakfast.",
+    "query": "moroccan msemen square pancake plate"
+  },
+  "breakfast_016": {
+    "url": "https://images.pexels.com/photos/23708404/pexels-photo-23708404.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant Turkish breakfast scene with diverse dishes and tea in a cozy İstanbul café.",
+    "query": "menemen turkish scrambled eggs"
+  },
+  "breakfast_017": {
+    "url": "https://images.pexels.com/photos/1334129/pexels-photo-1334129.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Healthy acai bowl with granola, mint leaves, and berries served on rustic wood.",
+    "query": "acai smoothie bowl"
+  },
+  "breakfast_018": {
+    "url": "https://images.pexels.com/photos/5150202/pexels-photo-5150202.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious chia pudding parfaits with mango and strawberry layers on a wooden table.",
+    "query": "chia seed pudding with fruit"
+  },
+  "breakfast_019": {
+    "url": "https://images.pexels.com/photos/7144976/pexels-photo-7144976.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious homemade pancakes covered with honey with sliced bananas placed on wooden chopping board on table in light place",
+    "query": "vegan banana pancakes"
+  },
+  "breakfast_020": {
+    "url": "https://images.pexels.com/photos/7936680/pexels-photo-7936680.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious avocado toast topped with fresh eggs and tomatoes, perfect for a healthy breakfast or lunch.",
+    "query": "avocado tomato toast"
+  },
+  "breakfast_021": {
+    "url": "https://images.pexels.com/photos/28278526/pexels-photo-28278526.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious breakfast setup with coffee, granola, and juice for a nutritious start.",
+    "query": "homemade granola bowl with milk"
+  },
+  "breakfast_022": {
+    "url": "https://images.pexels.com/photos/70078/pexels-photo-70078.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant egg and vegetable dish garnished with guacamole and surrounded by fresh peppers.",
+    "query": "scrambled eggs with vegetables"
+  },
+  "breakfast_023": {
+    "url": "https://images.pexels.com/photos/15128149/pexels-photo-15128149.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Mouthwatering stack of pancakes topped with fresh berries and drizzled with syrup, perfect for breakfast.",
+    "query": "blueberry pancakes stack syrup"
+  },
+  "breakfast_024": {
+    "url": "https://images.pexels.com/photos/566564/pexels-photo-566564.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of fresh blueberries and strawberries on yogurt with granola.",
+    "query": "yogurt bowl with fruit and granola"
+  },
+  "breakfast_025": {
+    "url": "https://images.pexels.com/photos/6758325/pexels-photo-6758325.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of delicious crêpes with honey dipper, sliced lemon, and almonds.",
+    "query": "crepes with honey"
+  },
+  "breakfast_026": {
+    "url": "https://images.pexels.com/photos/10810365/pexels-photo-10810365.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious homemade breakfast bowl with pears and buckwheat in Czechia.",
+    "query": "buckwheat porridge with fruit"
+  },
+  "breakfast_027": {
+    "url": "https://images.pexels.com/photos/16556114/pexels-photo-16556114.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor this classic Eggs Benedict brunch with potatoes and a fresh salad.",
+    "query": "eggs benedict"
+  },
+  "breakfast_028": {
+    "url": "https://images.pexels.com/photos/28525197/pexels-photo-28525197.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A creamy vanilla milkshake in a glass on a wooden table, perfect for refreshment.",
+    "query": "banana milkshake smoothie in glass"
+  },
+  "breakfast_029": {
+    "url": "https://images.pexels.com/photos/8465241/pexels-photo-8465241.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious açaí bowl topped with granola and cashew nuts, perfect for a healthy dessert.",
+    "query": "acai bowl with granola"
+  },
+  "breakfast_030": {
+    "url": "https://images.pexels.com/photos/27850091/pexels-photo-27850091.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious overnight oats topped with fresh berries, perfect for a nutritious breakfast.",
+    "query": "overnight oats with almond milk"
+  },
+  "breakfast_031": {
+    "url": "https://images.pexels.com/photos/7167855/pexels-photo-7167855.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious sliced banana and almond toast on rustic wooden board with milk glass, perfect for breakfast.",
+    "query": "peanut butter banana toast bread"
+  },
+  "breakfast_032": {
+    "url": "https://images.pexels.com/photos/17612822/pexels-photo-17612822.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant mango smoothie served in a glass, perfect for a healthy refreshment.",
+    "query": "tropical fruit smoothie glass"
+  },
+  "breakfast_033": {
+    "url": "https://images.pexels.com/photos/8480748/pexels-photo-8480748.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Hands preparing a hearty full English breakfast with eggs, beans, sausage, and toast.",
+    "query": "full english breakfast eggs bacon"
+  },
+  "breakfast_034": {
+    "url": "https://images.pexels.com/photos/5848079/pexels-photo-5848079.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious breakfast burrito with eggs and cheese held by hands.",
+    "query": "breakfast wrap with egg"
+  },
+  "breakfast_035": {
+    "url": "https://images.pexels.com/photos/3805550/pexels-photo-3805550.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Colorful bowl featuring fresh pineapple, strawberries, and wholesome quinoa topped with coffee beans.",
+    "query": "sweet quinoa breakfast bowl"
+  },
+  "breakfast_036": {
+    "url": "https://images.pexels.com/photos/27850086/pexels-photo-27850086.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious chocolate almond overnight oats with a topping of dark chocolate chips and nuts, perfect for a healthy breakfast.",
+    "query": "overnight oats in a jar"
+  },
+  "breakfast_037": {
+    "url": "https://images.pexels.com/photos/6529824/pexels-photo-6529824.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Mouthwatering waffle sandwich with bacon, egg, and cheese wrapped in paper.",
+    "query": "protein waffles"
+  },
+  "breakfast_038": {
+    "url": "https://images.pexels.com/photos/14415378/pexels-photo-14415378.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious breakfast featuring an omelette, toast, and roasted potatoes on a white plate.",
+    "query": "scrambled eggs whole wheat toast"
+  },
+  "breakfast_039": {
+    "url": "https://images.pexels.com/photos/19802110/pexels-photo-19802110.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delightful plate of French toast with fresh fruits and honey, perfect for breakfast or brunch.",
+    "query": "french toast honey plate"
+  },
+  "breakfast_040": {
+    "url": "https://images.pexels.com/photos/18649823/pexels-photo-18649823.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Flat lay of a French breakfast featuring croissants, camembert cheese, honey, and fresh fruits for a perfect start.",
+    "query": "croissant cottage cheese honey"
+  },
+  "breakfast_041": {
+    "url": "https://images.pexels.com/photos/21753111/pexels-photo-21753111.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Appetizing tartine with fresh berries and cream cheese served on a plate.",
+    "query": "toasted brioche jam yogurt"
+  },
+  "breakfast_042": {
+    "url": "https://images.pexels.com/photos/6659679/pexels-photo-6659679.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A close-up of peanut butter and banana toast, perfect for healthy breakfast ideas.",
+    "query": "peanut butter banana toast"
+  },
+  "breakfast_043": {
+    "url": "https://images.pexels.com/photos/12745317/pexels-photo-12745317.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor a rustic galette topped with collard greens and diced ham. Perfect for a hearty meal.",
+    "query": "buckwheat galette egg ham"
+  },
+  "breakfast_044": {
+    "url": "https://images.pexels.com/photos/12961894/pexels-photo-12961894.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Indulge in a delicious plate of salmon eggs benedict with hollandaise sauce, served with orange juice.",
+    "query": "eggs benedict smoked salmon"
+  },
+  "breakfast_045": {
+    "url": "https://images.pexels.com/photos/9102652/pexels-photo-9102652.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious fruit and granola bowl held by gloved hands, perfect for a healthy brunch.",
+    "query": "acai berry granola bowl"
+  },
+  "breakfast_046": {
+    "url": "https://images.pexels.com/photos/31584178/pexels-photo-31584178.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Gourmet avocado and salmon toast topped with cheese and black seeds, perfect for brunch.",
+    "query": "avocado smoked salmon toast"
+  },
+  "breakfast_047": {
+    "url": "https://images.pexels.com/photos/15366691/pexels-photo-15366691.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious brunch dish featuring avocado, poached egg, and toast in a clean, minimalist setting.",
+    "query": "brunch breakfast bowl eggs salmon"
+  },
+  "breakfast_048": {
+    "url": "https://images.pexels.com/photos/32835478/pexels-photo-32835478.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Warm and comforting homemade rice porridge with scallions in a ceramic bowl, perfect for breakfast.",
+    "query": "chicken rice congee porridge"
+  },
+  "breakfast_049": {
+    "url": "https://images.pexels.com/photos/17692189/pexels-photo-17692189.png?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A scrumptious onigiri wrapped in nori, beautifully plated with a pickle on a dining table.",
+    "query": "tuna onigiri rice ball"
+  },
+  "breakfast_050": {
+    "url": "https://images.pexels.com/photos/16222106/pexels-photo-16222106.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious gourmet sandwich skewers with assorted meats, cheese, and fresh vegetables on a plate.",
+    "query": "japanese egg sandwich"
+  },
+  "breakfast_051": {
+    "url": "https://images.pexels.com/photos/35211811/pexels-photo-35211811.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a traditional Asian bento box meal with rice and side dishes on a bamboo mat.",
+    "query": "miso soup rice egg"
+  },
+  "breakfast_052": {
+    "url": "https://images.pexels.com/photos/15060360/pexels-photo-15060360.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of hands holding bowls of fried rice topped with fried eggs, perfect for meal inspiration.",
+    "query": "egg fried rice bowl"
+  },
+  "breakfast_053": {
+    "url": "https://images.pexels.com/photos/7660464/pexels-photo-7660464.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A person holding a rice bowl with cherry tomatoes, edamame, and more, using chopsticks.",
+    "query": "rice bowl edamame egg"
+  },
+  "breakfast_054": {
+    "url": "https://images.pexels.com/photos/29385750/pexels-photo-29385750.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A pan of shakshuka with eggs, served with bread on a patterned tablecloth.",
+    "query": "shakshuka eggs tomato sauce"
+  },
+  "breakfast_055": {
+    "url": "https://images.pexels.com/photos/5191847/pexels-photo-5191847.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty Mediterranean fava bean salad with fresh lemons, tomatoes, and herbs, perfect for a healthy meal.",
+    "query": "ful medames fava beans egg"
+  },
+  "breakfast_056": {
+    "url": "https://images.pexels.com/photos/37290079/pexels-photo-37290079.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A baker placing traditional flatbreads in a stone oven with precision and care.",
+    "query": "labneh zaatar flatbread"
+  },
+  "breakfast_057": {
+    "url": "https://images.pexels.com/photos/32592723/pexels-photo-32592723.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Freshly baked Middle Eastern manakish topped with zaatar and herbs on paper.",
+    "query": "zaatar manakish flatbread"
+  },
+  "breakfast_058": {
+    "url": "https://images.pexels.com/photos/17023410/pexels-photo-17023410.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Amlou jars and almonds on a wooden tray, showcasing Moroccan flavors.",
+    "query": "moroccan msemen honey"
+  },
+  "breakfast_059": {
+    "url": "https://images.pexels.com/photos/6889716/pexels-photo-6889716.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A close-up of freshly baked triangular pies on a table, emphasizing the savory filling.",
+    "query": "spinach feta fatayer pastry"
+  },
+  "breakfast_060": {
+    "url": "https://images.pexels.com/photos/7111466/pexels-photo-7111466.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of apple porridge with millet, perfect for breakfast inspiration.",
+    "query": "millet porridge bowl"
+  },
+  "breakfast_061": {
+    "url": "https://images.pexels.com/photos/34943603/pexels-photo-34943603.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A plate of freshly fried Akara, a West African delicacy, served indoors",
+    "query": "akara bean fritters fried egg"
+  },
+  "breakfast_062": {
+    "url": "https://images.pexels.com/photos/7393351/pexels-photo-7393351.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A hearty breakfast featuring fried eggs, scrambled eggs, and fresh orange juice.",
+    "query": "fried plantain scrambled eggs"
+  },
+  "breakfast_063": {
+    "url": "https://images.pexels.com/photos/725993/pexels-photo-725993.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious Greek cheese pie drizzled with honey, garnished with sesame seeds on a plate.",
+    "query": "fried dough greek yogurt honey"
+  },
+  "breakfast_064": {
+    "url": "https://images.pexels.com/photos/12261174/pexels-photo-12261174.png?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a traditional Salvadoran breakfast featuring eggs and orange juice, vibrant and inviting.",
+    "query": "huevos rancheros tortilla beans"
+  },
+  "breakfast_065": {
+    "url": "https://images.pexels.com/photos/32924384/pexels-photo-32924384.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of traditional Venezuelan arepa with fresh condiments and drinks on a wooden table.",
+    "query": "arepa egg avocado"
+  },
+  "breakfast_066": {
+    "url": "https://images.pexels.com/photos/11094180/pexels-photo-11094180.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A flavorful tapioca wrap filled with ingredients displayed on a wooden board.",
+    "query": "brazilian tapioca crepe banana"
+  },
+  "breakfast_067": {
+    "url": "https://images.pexels.com/photos/376463/pexels-photo-376463.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious Mexican chilaquiles topped with a sunny-side-up egg and fresh herbs.",
+    "query": "chicken chilaquiles tortilla"
+  },
+  "breakfast_068": {
+    "url": "https://images.pexels.com/photos/12174224/pexels-photo-12174224.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant breakfast bowl filled with fresh fruits, oats, and granola for a healthy meal.",
+    "query": "acai smoothie bowl granola"
+  },
+  "breakfast_069": {
+    "url": "https://images.pexels.com/photos/5150558/pexels-photo-5150558.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious chia pudding parfaits topped with vibrant, fresh fruits and yogurt.",
+    "query": "coconut mango oatmeal porridge"
+  },
+  "breakfast_070": {
+    "url": "https://images.pexels.com/photos/6327121/pexels-photo-6327121.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Healthy vegan avocado toast with tomatoes and mushrooms on a marble background.",
+    "query": "hummus avocado toast tomato"
+  },
+  "breakfast_071": {
+    "url": "https://images.pexels.com/photos/25781769/pexels-photo-25781769.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Indulge in a tasty stack of pancakes topped with fresh fruit and syrup, perfect for breakfast.",
+    "query": "vegan banana pancakes maple syrup"
+  },
+  "breakfast_072": {
+    "url": "https://images.pexels.com/photos/16725424/pexels-photo-16725424.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Granola bowl topped with fresh strawberries and pomegranate seeds on a wooden cutting board.",
+    "query": "granola bowl oat milk berries"
+  },
+  "breakfast_073": {
+    "url": "https://images.pexels.com/photos/5150210/pexels-photo-5150210.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Colorful fruit and yogurt parfaits in glasses with oats, perfect for a healthy breakfast.",
+    "query": "chia pudding mango pineapple"
+  },
+  "breakfast_074": {
+    "url": "https://images.pexels.com/photos/11931273/pexels-photo-11931273.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious vegetarian salad with tofu, vegetables, and a savory dressing served in a bowl.",
+    "query": "tofu scramble vegetables"
+  },
+  "breakfast_075": {
+    "url": "https://images.pexels.com/photos/6811159/pexels-photo-6811159.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty crepes garnished with goldenberries and powdered sugar on a wooden board.",
+    "query": "vegan buckwheat crepes banana"
+  },
+  "breakfast_076": {
+    "url": "https://images.pexels.com/photos/6823329/pexels-photo-6823329.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of yogurt bowls topped with fresh fruits and nuts on a textured background.",
+    "query": "quinoa breakfast bowl fruit"
+  },
+  "breakfast_077": {
+    "url": "https://images.pexels.com/photos/24196191/pexels-photo-24196191.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty breakfast with omelette and toast on a chic table setting with a refreshing drink.",
+    "query": "sweet potato omelette spinach"
+  },
+  "breakfast_078": {
+    "url": "https://images.pexels.com/photos/13222802/pexels-photo-13222802.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious and colorful smoothie bowl with berries, almonds, and granola, perfect for a healthy breakfast.",
+    "query": "protein smoothie bowl berries"
+  },
+  "breakfast_079": {
+    "url": "https://images.pexels.com/photos/20488815/pexels-photo-20488815.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a fork lifting a traditional Turkish dessert with a backdrop of table setting, capturing the essence of Turkish cuisine.",
+    "query": "rice pudding cinnamon honey"
+  },
+  "breakfast_080": {
+    "url": "https://images.pexels.com/photos/38024953/pexels-photo-38024953.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A tasty breakfast featuring eggs, toast, sausage, potatoes, and iced coffee on a sunny day.",
+    "query": "sweet potato fritters fried egg"
+  },
+  "breakfast_081": {
+    "url": "https://images.pexels.com/photos/6659691/pexels-photo-6659691.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of sliced bananas on a wooden board with peanut butter in a bowl.",
+    "query": "protein oatmeal banana peanut butter"
+  },
+  "breakfast_082": {
+    "url": "https://images.pexels.com/photos/5847191/pexels-photo-5847191.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of homemade muffins in a glass dish on a wooden table.",
+    "query": "egg muffins vegetable cups"
+  },
+  "breakfast_083": {
+    "url": "https://images.pexels.com/photos/23384626/pexels-photo-23384626.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious homemade peanut butter in a glass jar with peanuts and a spoon nearby.",
+    "query": "overnight oats peanut butter jar"
+  },
+  "breakfast_084": {
+    "url": "https://images.pexels.com/photos/4397303/pexels-photo-4397303.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious breakfast bowl with cottage cheese, granola, and strawberries served with black coffee.",
+    "query": "cottage cheese strawberry granola bowl"
+  },
+  "breakfast_085": {
+    "url": "https://images.pexels.com/photos/8995199/pexels-photo-8995199.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A plate of golden brown French toast, fresh blackberries, raspberries, blueberries, and a jar of syrup, perfect breakfast.",
+    "query": "protein french toast berries"
+  },
+  "morning_snack_001": {
+    "url": "https://images.pexels.com/photos/775030/pexels-photo-775030.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A refreshing pink smoothie made with bananas, raspberries, and tropical fruits in a glass jar.",
+    "query": "banana protein shake glass"
+  },
+  "morning_snack_002": {
+    "url": "https://images.pexels.com/photos/5589042/pexels-photo-5589042.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Gourmet fig and cheese toast topped with honey, showcasing a delicious breakfast or snack option.",
+    "query": "cottage cheese honey toast"
+  },
+  "morning_snack_003": {
+    "url": "https://images.pexels.com/photos/25947301/pexels-photo-25947301.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a nutritious granola bowl with strawberries and almonds on a marble surface.",
+    "query": "greek yogurt almonds bowl"
+  },
+  "morning_snack_004": {
+    "url": "https://images.pexels.com/photos/6659867/pexels-photo-6659867.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a banana being sliced on a wooden board, ideal for healthy snack visuals.",
+    "query": "rice cakes peanut butter banana"
+  },
+  "morning_snack_005": {
+    "url": "https://images.pexels.com/photos/5605632/pexels-photo-5605632.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Plate of cheese, boiled eggs, bread, walnuts, and blueberries for a hearty breakfast.",
+    "query": "boiled eggs bread plate"
+  },
+  "morning_snack_006": {
+    "url": "https://images.pexels.com/photos/37939300/pexels-photo-37939300.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A rustic still life with bread, apples, a ceramic pot, and a cup on a wooden table.",
+    "query": "apple slices cottage cheese"
+  },
+  "morning_snack_007": {
+    "url": "https://images.pexels.com/photos/2424034/pexels-photo-2424034.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious homemade purple smoothie in a glass topped with a vibrant physalis fruit.",
+    "query": "berry protein smoothie glass"
+  },
+  "morning_snack_008": {
+    "url": "https://images.pexels.com/photos/28354485/pexels-photo-28354485.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious and healthy bowl of energy balls made with nuts and dates, perfect for a nutritious snack.",
+    "query": "date energy balls"
+  },
+  "morning_snack_009": {
+    "url": "https://images.pexels.com/photos/10003791/pexels-photo-10003791.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "High-angle view of nutritious energy balls and granola on a spoon, perfect for a healthy snack.",
+    "query": "date almond energy balls"
+  },
+  "morning_snack_010": {
+    "url": "https://images.pexels.com/photos/18923707/pexels-photo-18923707.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Warm breakfast scene with bread, banana slices, coffee, and candles on a checkered tablecloth.",
+    "query": "peanut butter banana smoothie"
+  },
+  "morning_snack_011": {
+    "url": "https://images.pexels.com/photos/11350074/pexels-photo-11350074.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a variety of nuts and dried fruits in a jar against a blue background.",
+    "query": "trail mix nuts dried fruit"
+  },
+  "morning_snack_012": {
+    "url": "https://images.pexels.com/photos/36361406/pexels-photo-36361406.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a stack of homemade granola bars on a dark plate against a moody background.",
+    "query": "homemade oat energy bars"
+  },
+  "morning_snack_013": {
+    "url": "https://images.pexels.com/photos/28286189/pexels-photo-28286189.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Refreshing green smoothies with spinach, blueberries, and chia seeds for a nutritious boost.",
+    "query": "green spinach banana smoothie"
+  },
+  "morning_snack_014": {
+    "url": "https://images.pexels.com/photos/7167845/pexels-photo-7167845.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious whole grain toast topped with bananas, almonds, and chia seeds on a wooden board.",
+    "query": "almond butter banana toast"
+  },
+  "morning_snack_015": {
+    "url": "https://images.pexels.com/photos/7144368/pexels-photo-7144368.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Appetizing sweet pancakes with honey and pieces of fresh banana on gray background",
+    "query": "banana protein pancakes"
+  },
+  "morning_snack_016": {
+    "url": "https://images.pexels.com/photos/7935283/pexels-photo-7935283.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of homemade blueberry muffins cooling on a wire rack with fresh blueberries in a bowl.",
+    "query": "blueberry protein muffins"
+  },
+  "morning_snack_017": {
+    "url": "https://images.pexels.com/photos/6823321/pexels-photo-6823321.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a healthy breakfast bowl with yogurt, fruits, and seeds on a pink background.",
+    "query": "greek yogurt fruit seeds bowl"
+  },
+  "morning_snack_018": {
+    "url": "https://images.pexels.com/photos/3525754/pexels-photo-3525754.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of chocolate coconut balls on crinkled parchment, highlighting texture.",
+    "query": "coconut chocolate energy balls"
+  },
+  "morning_snack_019": {
+    "url": "https://images.pexels.com/photos/6612694/pexels-photo-6612694.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious chocolate cake slice topped with peanuts, ideal for dessert lovers.",
+    "query": "rice cake peanut butter"
+  },
+  "morning_snack_020": {
+    "url": "https://images.pexels.com/photos/20782931/pexels-photo-20782931.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A rustic outdoor table setup featuring a bowl of apples, snacks, and a natural centerpiece amidst a forest backdrop.",
+    "query": "apple sauce almonds bowl"
+  },
+  "morning_snack_021": {
+    "url": "https://images.pexels.com/photos/31490093/pexels-photo-31490093.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty mango and vanilla smoothies in mason jars with striped straws on wooden table.",
+    "query": "mango coconut smoothie glass"
+  },
+  "morning_snack_022": {
+    "url": "https://images.pexels.com/photos/23384624/pexels-photo-23384624.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A glass jar of homemade peanut butter on a wooden table with peanuts and a spoon.",
+    "query": "chocolate peanut butter protein shake"
+  },
+  "morning_snack_023": {
+    "url": "https://images.pexels.com/photos/37283271/pexels-photo-37283271.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A refreshing green smoothie made with fresh spinach and cucumber on a wooden board.",
+    "query": "green spinach smoothie glass"
+  },
+  "morning_snack_024": {
+    "url": "https://images.pexels.com/photos/12363203/pexels-photo-12363203.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Healthy fresh kale leaves in a stainless steel bowl, perfect for salads and healthy meals.",
+    "query": "kale banana green smoothie"
+  },
+  "morning_snack_025": {
+    "url": "https://images.pexels.com/photos/1438080/pexels-photo-1438080.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious banana and berry smoothie topped with chia seeds, accompanied by fresh fruits and a magazine.",
+    "query": "vanilla banana protein shake"
+  },
+  "morning_snack_026": {
+    "url": "https://images.pexels.com/photos/28117065/pexels-photo-28117065.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant strawberry smoothies garnished with pineapple leaves, perfect for summer refreshment.",
+    "query": "strawberry smoothie glass"
+  },
+  "morning_snack_027": {
+    "url": "https://images.pexels.com/photos/14509267/pexels-photo-14509267.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Two glasses of creamy mango lassi garnished with diced mango and cinnamon sticks.",
+    "query": "mango lassi glass"
+  },
+  "morning_snack_028": {
+    "url": "https://images.pexels.com/photos/8215110/pexels-photo-8215110.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant display of assorted fruit juices and fresh fruits with a lush garden backdrop.",
+    "query": "tropical fruit smoothie glass"
+  },
+  "morning_snack_029": {
+    "url": "https://images.pexels.com/photos/7936964/pexels-photo-7936964.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Healthy avocado toast topped with poached egg and dill on a gray plate.",
+    "query": "avocado toast"
+  },
+  "morning_snack_030": {
+    "url": "https://images.pexels.com/photos/11789787/pexels-photo-11789787.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of flavorful Italian bruschetta topped with fresh tomatoes and herbs.",
+    "query": "tomato bruschetta toast"
+  },
+  "morning_snack_031": {
+    "url": "https://images.pexels.com/photos/12955763/pexels-photo-12955763.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious Middle Eastern breakfast featuring sunny-side-up eggs, tea, and various dishes.",
+    "query": "labneh zaatar toast"
+  },
+  "morning_snack_032": {
+    "url": "https://images.pexels.com/photos/6659698/pexels-photo-6659698.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Slice of toast with peanut butter and banana slices, perfect for a healthy snack.",
+    "query": "peanut butter banana toast"
+  },
+  "morning_snack_033": {
+    "url": "https://images.pexels.com/photos/34227788/pexels-photo-34227788.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a chocolate peanut butter dessert slice on a green napkin.",
+    "query": "rice cakes peanut butter honey"
+  },
+  "morning_snack_034": {
+    "url": "https://images.pexels.com/photos/5836438/pexels-photo-5836438.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A close-up of toast with ricotta cheese and pineapple topping on a decorative plate.",
+    "query": "ricotta honey toast"
+  },
+  "morning_snack_035": {
+    "url": "https://images.pexels.com/photos/13887557/pexels-photo-13887557.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious healthy breakfast bowl with fresh fruits and yogurt for a nutritious start.",
+    "query": "apple slices peanut butter"
+  },
+  "morning_snack_036": {
+    "url": "https://images.pexels.com/photos/7167858/pexels-photo-7167858.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of banana almond toast served with milk. Perfect for healthy breakfast or snack.",
+    "query": "banana almonds snack"
+  },
+  "morning_snack_037": {
+    "url": "https://images.pexels.com/photos/15048298/pexels-photo-15048298.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious frozen berries atop creamy cottage cheese, perfect for a refreshing breakfast.",
+    "query": "cottage cheese red berries bowl"
+  },
+  "morning_snack_038": {
+    "url": "https://images.pexels.com/photos/32692730/pexels-photo-32692730.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A flat lay of luxurious Arabic chocolate sweets with nuts, perfect for festive occasions.",
+    "query": "dates stuffed almonds"
+  },
+  "morning_snack_039": {
+    "url": "https://images.pexels.com/photos/9670689/pexels-photo-9670689.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of rolled ham slices and apple slices with mint leaf garnish on a cutting board.",
+    "query": "apple slices ham snack"
+  },
+  "morning_snack_040": {
+    "url": "https://images.pexels.com/photos/14996603/pexels-photo-14996603.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A gourmet dessert featuring orange slices, walnuts, and pomegranate seeds on a white plate.",
+    "query": "orange walnuts snack"
+  },
+  "morning_snack_041": {
+    "url": "https://images.pexels.com/photos/27850069/pexels-photo-27850069.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Homemade chocolate energy bites in a wooden bowl, perfect for healthy snacking.",
+    "query": "chocolate date energy balls"
+  },
+  "morning_snack_042": {
+    "url": "https://images.pexels.com/photos/31024449/pexels-photo-31024449.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Freshly baked homemade granola with oats and nuts on a tray, next to a honey jar.",
+    "query": "oat honey granola bars"
+  },
+  "morning_snack_043": {
+    "url": "https://images.pexels.com/photos/10003794/pexels-photo-10003794.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of homemade nutty energy bites, perfect for a healthy breakfast or snack.",
+    "query": "peanut butter oat bites"
+  },
+  "morning_snack_044": {
+    "url": "https://images.pexels.com/photos/3026811/pexels-photo-3026811.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A close-up of coconut bliss balls on a linen cloth, showcasing their texture and sweet appeal.",
+    "query": "coconut energy balls"
+  },
+  "morning_snack_045": {
+    "url": "https://images.pexels.com/photos/4006347/pexels-photo-4006347.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "From above closeup of breakfast with tasty natural yogurt decorated with crumbled biscuit and whole ripe raspberries with caramel syrup in glass bowl with spoon on soft plaid in morning",
+    "query": "granola greek yogurt bowl"
+  },
+  "morning_snack_046": {
+    "url": "https://images.pexels.com/photos/19063542/pexels-photo-19063542.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A tempting array of chocolate-covered date bites topped with walnuts on a wooden tray.",
+    "query": "date walnut chocolate bites"
+  },
+  "morning_snack_047": {
+    "url": "https://images.pexels.com/photos/19969209/pexels-photo-19969209.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of Japanese Onigiri rice balls packaged for sale in a retail store, showcasing traditional snack packaging.",
+    "query": "tuna onigiri rice ball"
+  },
+  "morning_snack_048": {
+    "url": "https://images.pexels.com/photos/6004728/pexels-photo-6004728.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up image of crispy banana chips and sweet honey roasted peanuts on a ceramic plate.",
+    "query": "fried plantain peanut butter"
+  },
+  "morning_snack_049": {
+    "url": "https://images.pexels.com/photos/5191834/pexels-photo-5191834.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of labneh topped with olive oil and herbs, garnished with mint and olives.",
+    "query": "labneh zaatar cucumber dip"
+  },
+  "morning_snack_050": {
+    "url": "https://images.pexels.com/photos/29935499/pexels-photo-29935499.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Aerial view of fresh edamame sprinkled with salt in a bowl, placed on a stylish wooden table in a modern setting.",
+    "query": "edamame bowl salt"
+  },
+  "morning_snack_051": {
+    "url": "https://images.pexels.com/photos/34644302/pexels-photo-34644302.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Fresh vegetable sticks with creamy hummus dip, garnished with parsley.",
+    "query": "hummus vegetable sticks"
+  },
+  "morning_snack_052": {
+    "url": "https://images.pexels.com/photos/12431190/pexels-photo-12431190.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A bowl of creamy hummus garnished with pomegranate seeds and pita chips on a stylish plate.",
+    "query": "pita chips hummus"
+  },
+  "morning_snack_053": {
+    "url": "https://images.pexels.com/photos/4397296/pexels-photo-4397296.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Healthy chia pudding with blueberries and coconut on a rustic wooden table. Perfect for breakfast.",
+    "query": "coconut chia pudding"
+  },
+  "morning_snack_054": {
+    "url": "https://images.pexels.com/photos/1194369/pexels-photo-1194369.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a green smoothie and fresh strawberries on a white saucer.",
+    "query": "green vegan protein smoothie"
+  },
+  "morning_snack_055": {
+    "url": "https://images.pexels.com/photos/37978583/pexels-photo-37978583.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant bowl filled with mixed nuts and dried fruits on a patterned table.",
+    "query": "edamame dried fruit mix"
+  },
+  "morning_snack_056": {
+    "url": "https://images.pexels.com/photos/14407470/pexels-photo-14407470.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A cozy breakfast setup featuring cereal, honey, and yogurt on a rustic wooden table.",
+    "query": "granola oat milk bowl"
+  },
+  "morning_snack_057": {
+    "url": "https://images.pexels.com/photos/11182249/pexels-photo-11182249.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious yogurt parfaits with fresh fruits and granola on a modern platter.",
+    "query": "greek yogurt cinnamon honey"
+  },
+  "morning_snack_058": {
+    "url": "https://images.pexels.com/photos/34227783/pexels-photo-34227783.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant vegetables and dips creating a healthy snack setting.",
+    "query": "vegetable sticks hummus dip"
+  },
+  "morning_snack_059": {
+    "url": "https://images.pexels.com/photos/20929210/pexels-photo-20929210.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious fresh salad with zucchini ribbons, radish, blueberries, and feta cheese, perfect for a healthy meal.",
+    "query": "cottage cheese cucumber bowl"
+  },
+  "morning_snack_060": {
+    "url": "https://images.pexels.com/photos/5945660/pexels-photo-5945660.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "From above of delicious homemade yogurt in white ceramic mug decorated with assorted berries and served on pink table with wooden spoon",
+    "query": "skyr red berries bowl"
+  },
+  "lunch_001": {
+    "url": "https://images.pexels.com/photos/19938618/pexels-photo-19938618.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant plate of grilled chicken, rice, fresh vegetables, and sauces. Perfect for food lovers.",
+    "query": "grilled chicken rice broccoli plate"
+  },
+  "lunch_002": {
+    "url": "https://images.pexels.com/photos/14930646/pexels-photo-14930646.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A close-up of a flavorful spaghetti bolognese topped with Parmesan cheese on a dark plate.",
+    "query": "spaghetti bolognese plate"
+  },
+  "lunch_003": {
+    "url": "https://images.pexels.com/photos/2015191/pexels-photo-2015191.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious grilled chicken with peppers and onion wrapped in soft flatbread on a sizzling plate.",
+    "query": "chicken vegetable wrap"
+  },
+  "lunch_004": {
+    "url": "https://images.pexels.com/photos/34668500/pexels-photo-34668500.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Mouthwatering chicken fried rice with fresh vegetables on rustic wooden table.",
+    "query": "chicken vegetable fried rice"
+  },
+  "lunch_005": {
+    "url": "https://images.pexels.com/photos/19051901/pexels-photo-19051901.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant bowl of tuna salad with corn and quail eggs for a healthy meal.",
+    "query": "tuna pasta salad"
+  },
+  "lunch_006": {
+    "url": "https://images.pexels.com/photos/28286241/pexels-photo-28286241.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Flavorful vegan lentil curry served with rice, garnished with fresh herbs.",
+    "query": "chicken red lentil curry rice"
+  },
+  "lunch_007": {
+    "url": "https://images.pexels.com/photos/9219090/pexels-photo-9219090.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious stuffed sweet potato with green beans and mushrooms topped with creamy sauce.",
+    "query": "turkey breast sweet potato plate"
+  },
+  "lunch_008": {
+    "url": "https://images.pexels.com/photos/11161467/pexels-photo-11161467.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Colorful breakfast platter featuring omelette, salad, fresh veggies, and assorted bread.",
+    "query": "ham cheese omelette salad"
+  },
+  "lunch_009": {
+    "url": "https://images.pexels.com/photos/36984667/pexels-photo-36984667.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Colorful Moroccan vegetable tagine with carrots and zucchini.",
+    "query": "chicken couscous vegetables"
+  },
+  "lunch_010": {
+    "url": "https://images.pexels.com/photos/28321266/pexels-photo-28321266.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious grilled chicken breast served with vibrant vegetables and mashed potatoes.",
+    "query": "grilled chicken mashed potatoes"
+  },
+  "lunch_011": {
+    "url": "https://images.pexels.com/photos/14382405/pexels-photo-14382405.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Mouthwatering close-up of a cheeseburger with lettuce, tomato, and fries.",
+    "query": "beef patty whole wheat pasta"
+  },
+  "lunch_012": {
+    "url": "https://images.pexels.com/photos/4663250/pexels-photo-4663250.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor this gourmet salmon served with quinoa, spinach, and a rich sauce on a white plate.",
+    "query": "grilled salmon quinoa plate"
+  },
+  "lunch_013": {
+    "url": "https://images.pexels.com/photos/12916873/pexels-photo-12916873.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a savory beef and vegetables dish with rice in a paper bowl.",
+    "query": "mexican beef rice bowl"
+  },
+  "lunch_014": {
+    "url": "https://images.pexels.com/photos/5713767/pexels-photo-5713767.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious grilled fish fillet served with fresh mixed greens and sauce on a plate.",
+    "query": "roasted cod grilled vegetables"
+  },
+  "lunch_015": {
+    "url": "https://images.pexels.com/photos/8481855/pexels-photo-8481855.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a mouthwatering poke bowl with salmon, avocado, and sesame seeds.",
+    "query": "salmon poke bowl rice"
+  },
+  "lunch_016": {
+    "url": "https://images.pexels.com/photos/10508207/pexels-photo-10508207.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant Indian curries in bowls on a dark rustic table, ideal for food enthusiasts.",
+    "query": "chicken tikka masala rice"
+  },
+  "lunch_017": {
+    "url": "https://images.pexels.com/photos/11089568/pexels-photo-11089568.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Sizzling grilled steak with chimichurri, served with roasted potatoes and fresh tomatoes on a slate board.",
+    "query": "beef steak roasted potatoes"
+  },
+  "lunch_018": {
+    "url": "https://images.pexels.com/photos/34683317/pexels-photo-34683317.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Appetizing shrimp fried rice with cucumbers in a bowl on wooden table.",
+    "query": "garlic shrimp fried rice bowl"
+  },
+  "lunch_019": {
+    "url": "https://images.pexels.com/photos/1618952/pexels-photo-1618952.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A close-up of a hearty stew featuring grilled meat, vegetables, and couscous on a pink background.",
+    "query": "chicken vegetable couscous"
+  },
+  "lunch_020": {
+    "url": "https://images.pexels.com/photos/30068444/pexels-photo-30068444.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious Moroccan lamb tagine with almonds, prunes, and quail eggs in a clay pot.",
+    "query": "chicken prune tagine"
+  },
+  "lunch_021": {
+    "url": "https://images.pexels.com/photos/10837796/pexels-photo-10837796.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty chicken wrap with crispy side and fresh salad arranged on a dark background.",
+    "query": "chicken kebab pita"
+  },
+  "lunch_022": {
+    "url": "https://images.pexels.com/photos/35287413/pexels-photo-35287413.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Appetizing bowl of Indian biryani garnished with coriander on a vibrant yellow background.",
+    "query": "spiced chicken pilaf rice"
+  },
+  "lunch_023": {
+    "url": "https://images.pexels.com/photos/5863621/pexels-photo-5863621.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of meatballs in tomato sauce served with rice, garnished with fresh herbs.",
+    "query": "beef meatballs tomato sauce rice"
+  },
+  "lunch_024": {
+    "url": "https://images.pexels.com/photos/5779364/pexels-photo-5779364.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a freshly grilled shawarma wrap halved to reveal its appetizing ingredients.",
+    "query": "chicken shawarma pita"
+  },
+  "lunch_025": {
+    "url": "https://images.pexels.com/photos/19177208/pexels-photo-19177208.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a cheesy baked moussaka served on a plate, perfect for food photography.",
+    "query": "eggplant beef gratin moussaka"
+  },
+  "lunch_026": {
+    "url": "https://images.pexels.com/photos/6978180/pexels-photo-6978180.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Healthy buddha bowl featuring fresh vegetables, grains, and fruit in vibrant colors.",
+    "query": "lentil roasted vegetable buddha bowl"
+  },
+  "lunch_027": {
+    "url": "https://images.pexels.com/photos/9213999/pexels-photo-9213999.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor a rich and flavorful Indian curry served with rice on a vibrant blue plate.",
+    "query": "chickpea coconut curry rice"
+  },
+  "lunch_028": {
+    "url": "https://images.pexels.com/photos/5848703/pexels-photo-5848703.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delectable plate of Mexican tacos served with fresh guacamole and tortilla chips.",
+    "query": "black bean tacos avocado"
+  },
+  "lunch_029": {
+    "url": "https://images.pexels.com/photos/7660443/pexels-photo-7660443.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of hands holding healthy vegetable salad bowls with chopsticks, featuring fresh ingredients.",
+    "query": "tofu edamame poke bowl"
+  },
+  "lunch_030": {
+    "url": "https://images.pexels.com/photos/6544376/pexels-photo-6544376.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious vegan rice bowl featuring lentil curry, topped with pistachios, cilantro, and sesame seeds.",
+    "query": "red lentil dahl rice"
+  },
+  "lunch_031": {
+    "url": "https://images.pexels.com/photos/8743942/pexels-photo-8743942.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious assorted fast food items including burgers, wraps, and fries on a wooden tray.",
+    "query": "falafel wrap hummus"
+  },
+  "lunch_032": {
+    "url": "https://images.pexels.com/photos/28286173/pexels-photo-28286173.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of vegan black bean and corn chili with rice and spices on a wooden table.",
+    "query": "vegetarian chili rice"
+  },
+  "lunch_033": {
+    "url": "https://images.pexels.com/photos/31779539/pexels-photo-31779539.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor the rich and creamy mushroom risotto topped with fresh Parmesan cheese.",
+    "query": "mushroom parmesan risotto"
+  },
+  "lunch_034": {
+    "url": "https://images.pexels.com/photos/109836/pexels-photo-109836.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A tempting display of homemade quiches topped with fresh ingredients on a wooden tray.",
+    "query": "vegetable cheese quiche"
+  },
+  "lunch_035": {
+    "url": "https://images.pexels.com/photos/9218779/pexels-photo-9218779.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant quinoa salad topped with grilled vegetables on a blue plate.",
+    "query": "grilled halloumi quinoa salad"
+  },
+  "lunch_036": {
+    "url": "https://images.pexels.com/photos/32039641/pexels-photo-32039641.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious baked vegetable casserole topped with cheese in a white dish on a wooden board.",
+    "query": "vegetable cheese gratin"
+  },
+  "lunch_037": {
+    "url": "https://images.pexels.com/photos/1437268/pexels-photo-1437268.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious and vibrant omelette topped with fresh tomatoes, olives, and cheese on a plate.",
+    "query": "vegetable cheese omelette"
+  },
+  "lunch_038": {
+    "url": "https://images.pexels.com/photos/10156758/pexels-photo-10156758.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A beautifully plated salmon dish with rice, broccoli, and vegetables on a ceramic plate.",
+    "query": "grilled salmon rice broccoli"
+  },
+  "lunch_039": {
+    "url": "https://images.pexels.com/photos/9218608/pexels-photo-9218608.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious curry served on rice with fresh herbs, perfect for dinner.",
+    "query": "chicken coconut curry rice"
+  },
+  "lunch_040": {
+    "url": "https://images.pexels.com/photos/7837694/pexels-photo-7837694.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious veggie patties served with mashed potatoes and fresh salad. Perfect for a wholesome meal.",
+    "query": "beef patty sweet potato mash"
+  },
+  "lunch_041": {
+    "url": "https://images.pexels.com/photos/6632289/pexels-photo-6632289.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a nutritious salad with tuna, soft-boiled eggs, and fresh vegetables.",
+    "query": "nicoise salad tuna eggs"
+  },
+  "lunch_042": {
+    "url": "https://images.pexels.com/photos/11665404/pexels-photo-11665404.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a bento box with teriyaki chicken, sushi, and vegetables, perfect for food lovers.",
+    "query": "teriyaki chicken rice vegetables"
+  },
+  "lunch_043": {
+    "url": "https://images.pexels.com/photos/15913459/pexels-photo-15913459.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a colorful poke bowl featuring salmon, tuna, avocado, and tobiko for a fresh culinary experience.",
+    "query": "salmon avocado poke bowl"
+  },
+  "lunch_044": {
+    "url": "https://images.pexels.com/photos/6646353/pexels-photo-6646353.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a flavorful shrimp noodle bowl with fresh vegetables, perfect for Asian cuisine lovers.",
+    "query": "shrimp vegetable rice noodle wok"
+  },
+  "lunch_045": {
+    "url": "https://images.pexels.com/photos/35063429/pexels-photo-35063429.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious stir-fried noodles with vegetables served on a white plate over rustic wooden table.",
+    "query": "chicken pad thai noodles"
+  },
+  "lunch_046": {
+    "url": "https://images.pexels.com/photos/10696501/pexels-photo-10696501.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Colorful Mexican burrito bowl featuring guacamole, black beans, and shredded cheese.",
+    "query": "beef burrito bowl guacamole"
+  },
+  "lunch_047": {
+    "url": "https://images.pexels.com/photos/5773961/pexels-photo-5773961.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious Korean Bibimbap dish featuring a fried egg, fresh vegetables, and savory beef, perfect for lunch or dinner.",
+    "query": "korean beef bibimbap bowl"
+  },
+  "lunch_048": {
+    "url": "https://images.pexels.com/photos/6426068/pexels-photo-6426068.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a steaming bowl of Vietnamese pho with noodles and herbs.",
+    "query": "chicken pho noodle soup"
+  },
+  "lunch_049": {
+    "url": "https://images.pexels.com/photos/30136632/pexels-photo-30136632.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Fresh Vietnamese beef noodle salad with herbs and peppers in a bowl. Perfect for healthy eating enthusiasts.",
+    "query": "vietnamese beef bo bun noodle salad"
+  },
+  "lunch_050": {
+    "url": "https://images.pexels.com/photos/3981486/pexels-photo-3981486.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor this mouth-watering beef and vegetable stew featuring tender meat and vibrant root vegetables.",
+    "query": "beef bourguignon stew bowl"
+  },
+  "lunch_051": {
+    "url": "https://images.pexels.com/photos/16845749/pexels-photo-16845749.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious roasted chicken with sauce, vegetables, and potatoes served on a plate. Perfect for a gourmet meal.",
+    "query": "grilled chicken potato gratin plate"
+  },
+  "lunch_052": {
+    "url": "https://images.pexels.com/photos/7469292/pexels-photo-7469292.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A family sharing a meal at home, highlighting connection and togetherness.",
+    "query": "turkey blanquette cream rice"
+  },
+  "lunch_053": {
+    "url": "https://images.pexels.com/photos/34318142/pexels-photo-34318142.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Sliced homemade quiche with a golden crust, perfect for a savory treat.",
+    "query": "quiche lorraine slice"
+  },
+  "lunch_054": {
+    "url": "https://images.pexels.com/photos/1391301/pexels-photo-1391301.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Enjoy a delightful meal with croque monsieur, fries, and salad at a Parisian bistro.",
+    "query": "croque monsieur sandwich"
+  },
+  "lunch_055": {
+    "url": "https://images.pexels.com/photos/33042510/pexels-photo-33042510.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious golden baked cheese and potato casserole in a decorative baking dish.",
+    "query": "shepherds pie potato gratin"
+  },
+  "lunch_056": {
+    "url": "https://images.pexels.com/photos/36895293/pexels-photo-36895293.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant tuna and egg salad served in a white bowl, garnished with vegetables on a marble surface.",
+    "query": "nicoise salad tuna egg"
+  },
+  "lunch_057": {
+    "url": "https://images.pexels.com/photos/1352264/pexels-photo-1352264.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a savory steak with fries, cherry tomatoes, and sauce on a black plate.",
+    "query": "steak sweet potato fries plate"
+  },
+  "lunch_058": {
+    "url": "https://images.pexels.com/photos/17803243/pexels-photo-17803243.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious pistachio crusted salmon on mashed potatoes served with fresh vegetables and lemon wedge.",
+    "query": "herb crusted baked salmon spinach"
+  },
+  "lunch_059": {
+    "url": "https://images.pexels.com/photos/10692481/pexels-photo-10692481.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of fresh sushi rolls with tuna and avocado on a white ceramic plate.",
+    "query": "seared sesame tuna rice avocado"
+  },
+  "lunch_060": {
+    "url": "https://images.pexels.com/photos/28618639/pexels-photo-28618639.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A flavorful Caesar salad topped with grilled chicken and hard-boiled eggs.",
+    "query": "sliced duck breast salad"
+  },
+  "lunch_061": {
+    "url": "https://images.pexels.com/photos/9058939/pexels-photo-9058939.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delectable shrimp risotto garnished with herbs, perfect for a gourmet meal.",
+    "query": "shrimp risotto parmesan"
+  },
+  "lunch_062": {
+    "url": "https://images.pexels.com/photos/4869359/pexels-photo-4869359.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a vibrant green salad with walnuts and cheese for a healthy meal.",
+    "query": "warm goat cheese salad walnuts"
+  },
+  "lunch_063": {
+    "url": "https://images.pexels.com/photos/17988095/pexels-photo-17988095.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of salmon tartare with guacamole on a decorative glass plate.",
+    "query": "salmon avocado tartare"
+  },
+  "lunch_064": {
+    "url": "https://images.pexels.com/photos/34723307/pexels-photo-34723307.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of shrimp pad thai with lime and peanuts on a white plate, perfect for food lovers.",
+    "query": "shrimp pad thai noodles"
+  },
+  "lunch_065": {
+    "url": "https://images.pexels.com/photos/5773963/pexels-photo-5773963.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious Korean bibimbap with vibrant vegetables and egg served in a bowl.",
+    "query": "korean beef bibimbap bowl"
+  },
+  "lunch_066": {
+    "url": "https://images.pexels.com/photos/23658622/pexels-photo-23658622.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a delicious ramen bowl with egg and seaweed, perfect for food enthusiasts.",
+    "query": "chicken miso ramen bowl"
+  },
+  "lunch_067": {
+    "url": "https://images.pexels.com/photos/9005633/pexels-photo-9005633.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a colorful chirashi bowl featuring fresh seafood and garnishes.",
+    "query": "salmon chirashi rice bowl"
+  },
+  "lunch_068": {
+    "url": "https://images.pexels.com/photos/15913471/pexels-photo-15913471.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Colorful poke bowl with tuna, avocado, red caviar, and sesame seeds in a wooden bowl.",
+    "query": "tuna poke bowl rice avocado"
+  },
+  "lunch_069": {
+    "url": "https://images.pexels.com/photos/5531299/pexels-photo-5531299.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious Thai curry with basil and green peppers served alongside rice, perfect for a tasty lunch.",
+    "query": "thai green chicken curry rice"
+  },
+  "lunch_070": {
+    "url": "https://images.pexels.com/photos/2591594/pexels-photo-2591594.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a delicious noodle soup with fresh herbs, perfect for a hearty meal.",
+    "query": "vietnamese bo bun beef noodles"
+  },
+  "lunch_071": {
+    "url": "https://images.pexels.com/photos/17748171/pexels-photo-17748171.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious Banh Mi sandwiches on a wooden board, wrapped in paper, featuring fresh ingredients.",
+    "query": "chicken banh mi sandwich"
+  },
+  "lunch_072": {
+    "url": "https://images.pexels.com/photos/17248079/pexels-photo-17248079.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of skewered meats on rice with soy sauce and sesame seeds.",
+    "query": "chicken yakitori rice bowl"
+  },
+  "lunch_073": {
+    "url": "https://images.pexels.com/photos/30708204/pexels-photo-30708204.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty Kung Pao chicken dish served on a white plate with garnish, showcasing vibrant colors and textures.",
+    "query": "kung pao tofu peanuts rice"
+  },
+  "lunch_074": {
+    "url": "https://images.pexels.com/photos/6718705/pexels-photo-6718705.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Appetizing stir-fried beef with noodles and fresh vegetables in a white plate.",
+    "query": "beef teriyaki udon noodles broccoli"
+  },
+  "lunch_075": {
+    "url": "https://images.pexels.com/photos/37048512/pexels-photo-37048512.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty Asian fried rice dish with fried egg, fried chicken, and fresh vegetables on a plate.",
+    "query": "chicken nasi goreng fried rice"
+  },
+  "lunch_076": {
+    "url": "https://images.pexels.com/photos/16022887/pexels-photo-16022887.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a chicken wrap with fresh vegetables on a plate.",
+    "query": "chicken shawarma wrap"
+  },
+  "lunch_077": {
+    "url": "https://images.pexels.com/photos/34314421/pexels-photo-34314421.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty meatballs garnished with parsley in a vibrant tomato sauce, perfect for any meal.",
+    "query": "kefta meatballs couscous tomato"
+  },
+  "lunch_078": {
+    "url": "https://images.pexels.com/photos/1618929/pexels-photo-1618929.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a traditional Moroccan vegetable couscous served on an ornate plate.",
+    "query": "royal couscous chicken merguez vegetables"
+  },
+  "lunch_079": {
+    "url": "https://images.pexels.com/photos/2287524/pexels-photo-2287524.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Traditional Moroccan tagine with lemons and olives, served outdoors, showcasing vibrant colors and delicious aromas.",
+    "query": "moroccan chicken lemon tagine"
+  },
+  "lunch_080": {
+    "url": "https://images.pexels.com/photos/6275189/pexels-photo-6275189.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up shot of crispy falafel balls served with creamy tahini sauce in an inviting setting.",
+    "query": "falafel rice bowl tahini"
+  },
+  "lunch_081": {
+    "url": "https://images.pexels.com/photos/691077/pexels-photo-691077.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of homemade shakshuka with eggs and herbs in a frying pan.",
+    "query": "shakshuka eggs tomato skillet"
+  },
+  "lunch_082": {
+    "url": "https://images.pexels.com/photos/5950480/pexels-photo-5950480.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant and healthy grilled halloumi salad with fresh vegetables on a white plate, perfect for a nutritious meal.",
+    "query": "fattoush salad grilled halloumi"
+  },
+  "lunch_083": {
+    "url": "https://images.pexels.com/photos/32562202/pexels-photo-32562202.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious Turkish lahmacun served with fresh salad and a glass of ayran on a checkered tablecloth.",
+    "query": "turkish lahmacun flatbread"
+  },
+  "lunch_084": {
+    "url": "https://images.pexels.com/photos/5191826/pexels-photo-5191826.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A top view of a mouthwatering Mediterranean appetizer platter with assorted dishes.",
+    "query": "kibbeh bulgur meatballs bowl"
+  },
+  "lunch_085": {
+    "url": "https://images.pexels.com/photos/7340956/pexels-photo-7340956.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of traditional Indian biryani with meat, rice, and garnishes, showcasing rich flavors and textures.",
+    "query": "lamb rice mansaf almonds"
+  },
+  "lunch_086": {
+    "url": "https://images.pexels.com/photos/36707246/pexels-photo-36707246.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a vibrant fish held in a hand, showcasing aquatic life in Senegal, outdoors.",
+    "query": "senegalese fish rice thieboudienne"
+  },
+  "lunch_087": {
+    "url": "https://images.pexels.com/photos/6260921/pexels-photo-6260921.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of chicken biryani with chili on a decorative plate from Chattogram.",
+    "query": "chicken yassa onion rice"
+  },
+  "lunch_088": {
+    "url": "https://images.pexels.com/photos/19781592/pexels-photo-19781592.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of traditional Brazilian dishes with rice, beans, beef, and fresh salad served in black bowls.",
+    "query": "west african beef peanut stew rice"
+  },
+  "lunch_089": {
+    "url": "https://images.pexels.com/photos/5041489/pexels-photo-5041489.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Appetizing seafood platter featuring prawns, fish, tostones, and rice with lime garnish.",
+    "query": "fried plantain grilled fish"
+  },
+  "lunch_090": {
+    "url": "https://images.pexels.com/photos/13915043/pexels-photo-13915043.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of flavorful Nigerian jollof rice with grilled chicken skewers and roasted fish.",
+    "query": "jollof rice chicken"
+  },
+  "lunch_091": {
+    "url": "https://images.pexels.com/photos/34822475/pexels-photo-34822475.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious Mexican beef stew with potatoes and herbs, perfect for a comforting meal.",
+    "query": "ndole spinach peanut stew plantain"
+  },
+  "lunch_092": {
+    "url": "https://images.pexels.com/photos/6872197/pexels-photo-6872197.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Traditional preparation of fresh fish grilling over an open flame, showcasing street food techniques.",
+    "query": "attieke cassava grilled fish"
+  },
+  "lunch_093": {
+    "url": "https://images.pexels.com/photos/37099829/pexels-photo-37099829.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant display of traditional African dishes featuring banana, cassava, yams, and spicy stewed fish in Burundi.",
+    "query": "fufu yam chicken stew"
+  },
+  "lunch_094": {
+    "url": "https://images.pexels.com/photos/5337516/pexels-photo-5337516.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious sushirrito filled with fresh vegetables and rice, perfect for a fusion meal experience.",
+    "query": "chicken burrito bowl rice beans"
+  },
+  "lunch_095": {
+    "url": "https://images.pexels.com/photos/3264572/pexels-photo-3264572.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of beef tacos with cilantro and lime on a plate, showcasing Mexican cuisine.",
+    "query": "beef tacos corn tortilla"
+  },
+  "lunch_096": {
+    "url": "https://images.pexels.com/photos/28525144/pexels-photo-28525144.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Appetizing Mexican ceviche with shrimp and avocado, garnished with onion and served with chips.",
+    "query": "shrimp ceviche lime avocado"
+  },
+  "lunch_097": {
+    "url": "https://images.pexels.com/photos/34195321/pexels-photo-34195321.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Traditional Brazilian feijoada served with rice, greens, and orange slices, perfect for a hearty meal.",
+    "query": "brazilian feijoada black beans rice"
+  },
+  "lunch_098": {
+    "url": "https://images.pexels.com/photos/18688535/pexels-photo-18688535.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of Mexican Enchiladas Suizas garnished with red onion and cheese in a skillet.",
+    "query": "chicken enchiladas cheese baked"
+  },
+  "lunch_099": {
+    "url": "https://images.pexels.com/photos/30112336/pexels-photo-30112336.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Deliciously plated steak with chimichurri sauce on a black plate, perfect for gourmet dining enthusiasts.",
+    "query": "chimichurri steak sweet potato bowl"
+  },
+  "lunch_100": {
+    "url": "https://images.pexels.com/photos/21822134/pexels-photo-21822134.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a delicious chicken and rice meal with vegetables on a plate.",
+    "query": "arroz con pollo chicken rice peas"
+  },
+  "lunch_101": {
+    "url": "https://images.pexels.com/photos/15913488/pexels-photo-15913488.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious poke bowl featuring fresh salmon, avocado, mango, and sesame seeds.",
+    "query": "salmon mango poke bowl"
+  },
+  "lunch_102": {
+    "url": "https://images.pexels.com/photos/17597408/pexels-photo-17597408.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a colorful vegan buddha bowl featuring avocado, chickpeas, sweet potato, spinach, lemon, and quinoa.",
+    "query": "quinoa buddha bowl chickpeas avocado"
+  },
+  "lunch_103": {
+    "url": "https://images.pexels.com/photos/28674708/pexels-photo-28674708.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty Indian dal with basmati rice garnished with fresh herbs, perfect for a flavorful meal.",
+    "query": "coconut red lentil curry rice"
+  },
+  "lunch_104": {
+    "url": "https://images.pexels.com/photos/29269763/pexels-photo-29269763.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant plate of rice, beans, and fresh vegetables for a healthy vegetarian meal.",
+    "query": "vegetarian chili beans rice"
+  },
+  "lunch_105": {
+    "url": "https://images.pexels.com/photos/12561885/pexels-photo-12561885.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of Pad Thai with tofu, bean sprouts, and lime on a plate garnished with a flower, set on a wooden table.",
+    "query": "tofu pad thai noodles peanuts"
+  },
+  "lunch_106": {
+    "url": "https://images.pexels.com/photos/37996935/pexels-photo-37996935.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A colorful vegan poke bowl with fresh veggies, avocado, and spices on a textured blue background.",
+    "query": "edamame avocado poke bowl"
+  },
+  "lunch_107": {
+    "url": "https://images.pexels.com/photos/5175621/pexels-photo-5175621.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty falafel wrap with spicy red dip, served with fries and fresh salad.",
+    "query": "falafel wrap tahini vegetables"
+  },
+  "lunch_108": {
+    "url": "https://images.pexels.com/photos/6065181/pexels-photo-6065181.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of vegetarian bowls with avocado, corn, beans, and cheese for a delicious meal.",
+    "query": "mexican bean rice bowl avocado"
+  },
+  "lunch_109": {
+    "url": "https://images.pexels.com/photos/29148133/pexels-photo-29148133.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Exquisite Indian thali with naan bread, paneer curry, and aromatic rice served on a wooden table.",
+    "query": "red lentil dhal naan bread"
+  },
+  "lunch_110": {
+    "url": "https://images.pexels.com/photos/10695967/pexels-photo-10695967.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor this flavorful mixed vegetable dish served with rice in a stylish bowl.",
+    "query": "tempeh stir fry broccoli rice"
+  },
+  "lunch_111": {
+    "url": "https://images.pexels.com/photos/8864543/pexels-photo-8864543.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious steak topped with sauce served with creamy mushroom risotto. Italian cuisine on a white plate.",
+    "query": "mushroom risotto creamy"
+  },
+  "lunch_112": {
+    "url": "https://images.pexels.com/photos/35681236/pexels-photo-35681236.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant Asian noodle dish with fresh vegetables and sushi in flat lay.",
+    "query": "thai tofu noodle salad peanuts"
+  },
+  "lunch_113": {
+    "url": "https://images.pexels.com/photos/1610997/pexels-photo-1610997.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "An outdoor barbecue grill with vegetables and mushrooms cooking over charcoal.",
+    "query": "lentil veggie burger"
+  },
+  "lunch_114": {
+    "url": "https://images.pexels.com/photos/15801901/pexels-photo-15801901.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant avocado toast with cherry tomatoes and creamy omelette on a dark plate.",
+    "query": "vegetable omelette goat cheese"
+  },
+  "lunch_115": {
+    "url": "https://images.pexels.com/photos/2765875/pexels-photo-2765875.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a cheesy lasagna topped with cucumber slices, showcasing rich Italian flavors.",
+    "query": "zucchini ricotta gratin bake"
+  },
+  "lunch_116": {
+    "url": "https://images.pexels.com/photos/27662751/pexels-photo-27662751.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious spiral pasta with roasted cherry tomatoes and pesto sauce on a rustic black plate.",
+    "query": "pesto pasta grilled halloumi cherry tomatoes"
+  },
+  "lunch_117": {
+    "url": "https://images.pexels.com/photos/6978186/pexels-photo-6978186.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant Buddha bowl filled with quinoa, fresh fruits, and vegetables. Perfect for a healthy meal plan.",
+    "query": "halloumi buddha bowl quinoa sweet potato"
+  },
+  "lunch_118": {
+    "url": "https://images.pexels.com/photos/10821319/pexels-photo-10821319.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Freshly baked savory galette with cheese and herbs served on a wooden table for a delightful meal.",
+    "query": "buckwheat galette goat cheese egg"
+  },
+  "lunch_119": {
+    "url": "https://images.pexels.com/photos/4078163/pexels-photo-4078163.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savory baked lasagna in a glass tray on a burlap tablecloth, ready to serve.",
+    "query": "spinach ricotta lasagna"
+  },
+  "lunch_120": {
+    "url": "https://images.pexels.com/photos/8286764/pexels-photo-8286764.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a colorful salmon poke bowl featuring avocado, red peppers, and black rice.",
+    "query": "salmon poke bowl rice avocado"
+  },
+  "lunch_121": {
+    "url": "https://images.pexels.com/photos/15058970/pexels-photo-15058970.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor this gourmet risotto with expertly grilled chicken, perfect for fine dining.",
+    "query": "chicken mushroom risotto"
+  },
+  "lunch_122": {
+    "url": "https://images.pexels.com/photos/25315523/pexels-photo-25315523.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant salad featuring grilled chicken, quinoa, and fresh vegetables on a black plate.",
+    "query": "mediterranean quinoa feta salad"
+  },
+  "lunch_123": {
+    "url": "https://images.pexels.com/photos/15059057/pexels-photo-15059057.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of spicy prawn curry with vibrant green herbed rice, garnished beautifully.",
+    "query": "shrimp coconut curry rice"
+  },
+  "lunch_124": {
+    "url": "https://images.pexels.com/photos/29042373/pexels-photo-29042373.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious gourmet burger with fresh ingredients and sweet potato fries on a rustic table setting.",
+    "query": "beef patty sweet potato fries green beans"
+  },
+  "lunch_125": {
+    "url": "https://images.pexels.com/photos/24738520/pexels-photo-24738520.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious Asian style chicken stir-fry with rice in a ceramic bowl.",
+    "query": "chicken vegetable stir fry rice"
+  },
+  "afternoon_snack_001": {
+    "url": "https://images.pexels.com/photos/4378601/pexels-photo-4378601.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Focus on a man holding a plastic protein shake tumbler outdoors with a blurred background.",
+    "query": "whey protein banana shake"
+  },
+  "afternoon_snack_002": {
+    "url": "https://images.pexels.com/photos/1346181/pexels-photo-1346181.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious fruit and peanut butter toast with strawberries and bananas, perfect for a nutritious breakfast.",
+    "query": "peanut butter honey toast"
+  },
+  "afternoon_snack_003": {
+    "url": "https://images.pexels.com/photos/19573135/pexels-photo-19573135.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a nutritious breakfast with blueberries, nuts, and honey on a white background.",
+    "query": "greek yogurt oats honey bowl"
+  },
+  "afternoon_snack_004": {
+    "url": "https://images.pexels.com/photos/16698347/pexels-photo-16698347.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious open-faced sandwich with ham, cream cheese, and fresh toppings on rustic bread.",
+    "query": "rice cakes ham cream cheese"
+  },
+  "afternoon_snack_005": {
+    "url": "https://images.pexels.com/photos/10173806/pexels-photo-10173806.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A lovely plate of homemade pancakes with banana slices and raspberry jam, perfect for breakfast.",
+    "query": "cottage cheese banana bowl"
+  },
+  "afternoon_snack_006": {
+    "url": "https://images.pexels.com/photos/32066626/pexels-photo-32066626.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious rustic tart with walnuts, raisins, and fresh green apples on a wooden board.",
+    "query": "apple slices almonds snack"
+  },
+  "afternoon_snack_007": {
+    "url": "https://images.pexels.com/photos/674557/pexels-photo-674557.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A healthy smoothie bowl featuring avocado, black beans, and granola served in a ceramic bowl.",
+    "query": "protein smoothie bowl granola"
+  },
+  "afternoon_snack_008": {
+    "url": "https://images.pexels.com/photos/12664800/pexels-photo-12664800.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a smoked salmon sandwich with cream cheese and veggies, perfect for healthy breakfasts or snacks.",
+    "query": "smoked salmon cottage cheese toast"
+  },
+  "afternoon_snack_009": {
+    "url": "https://images.pexels.com/photos/34644336/pexels-photo-34644336.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant assortment of tortilla wraps filled with fresh vegetables and greens.",
+    "query": "turkey cheese wrap"
+  },
+  "afternoon_snack_010": {
+    "url": "https://images.pexels.com/photos/34227782/pexels-photo-34227782.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant vegetable platter with hummus and bread, ideal for healthy eating.",
+    "query": "hummus carrot cucumber sticks"
+  },
+  "afternoon_snack_011": {
+    "url": "https://images.pexels.com/photos/15913462/pexels-photo-15913462.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant close-up of salmon poke bowl with corn, edamame, and carrots.",
+    "query": "salted edamame bowl"
+  },
+  "afternoon_snack_012": {
+    "url": "https://images.pexels.com/photos/6659687/pexels-photo-6659687.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Hands prepare peanut butter banana toast on artistic ceramic plate for healthy breakfast.",
+    "query": "peanut butter banana toast"
+  },
+  "afternoon_snack_013": {
+    "url": "https://images.pexels.com/photos/27850074/pexels-photo-27850074.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A bowl of homemade vegan chocolate energy bites made with natural ingredients for a guilt-free snack.",
+    "query": "date cocoa energy balls"
+  },
+  "afternoon_snack_014": {
+    "url": "https://images.pexels.com/photos/5662208/pexels-photo-5662208.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top-down view of pancakes with honey and nuts on a wooden board, perfect for breakfast.",
+    "query": "protein pancakes honey"
+  },
+  "afternoon_snack_015": {
+    "url": "https://images.pexels.com/photos/6851930/pexels-photo-6851930.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "From above of appetizing cottage cheese with berry jam served in glass bowl with spoon on white table",
+    "query": "cottage cheese muesli bowl"
+  },
+  "afternoon_snack_016": {
+    "url": "https://images.pexels.com/photos/1179135/pexels-photo-1179135.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious bowl of yogurt topped with fresh strawberries and cherries.",
+    "query": "skyr yogurt red berries bowl"
+  },
+  "afternoon_snack_017": {
+    "url": "https://images.pexels.com/photos/3763637/pexels-photo-3763637.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant sushi roll held with chopsticks against a dark background, showcasing appetizing textures.",
+    "query": "avocado tuna rice cakes"
+  },
+  "afternoon_snack_018": {
+    "url": "https://images.pexels.com/photos/14930534/pexels-photo-14930534.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant smoothies in glasses with fresh fruit garnishes, promoting a healthy lifestyle.",
+    "query": "tropical mango pineapple smoothie"
+  },
+  "afternoon_snack_019": {
+    "url": "https://images.pexels.com/photos/352803/pexels-photo-352803.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A close-up of an artisanal chocolate bar with dried fruits and nuts in a decorative box.",
+    "query": "homemade dried fruit nut bars"
+  },
+  "afternoon_snack_020": {
+    "url": "https://images.pexels.com/photos/30297047/pexels-photo-30297047.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Plate with cucumber-topped toast and tea for a nutritious breakfast.",
+    "query": "hummus cucumber toast"
+  },
+  "afternoon_snack_021": {
+    "url": "https://images.pexels.com/photos/14930480/pexels-photo-14930480.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious mango and strawberry smoothie served in a glass with fresh fruit beside it.",
+    "query": "tropical mango pineapple smoothie glass"
+  },
+  "afternoon_snack_022": {
+    "url": "https://images.pexels.com/photos/18142621/pexels-photo-18142621.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Creamy chocolate milkshake in a tall glass with chocolate drizzle on a neutral background.",
+    "query": "chocolate protein milkshake glass"
+  },
+  "afternoon_snack_023": {
+    "url": "https://images.pexels.com/photos/8922007/pexels-photo-8922007.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A close-up of a snack plate featuring peanut butter, bananas, dates, nuts, and grapes.",
+    "query": "peanut butter banana protein shake"
+  },
+  "afternoon_snack_024": {
+    "url": "https://images.pexels.com/photos/103566/pexels-photo-103566.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious strawberry smoothie in a glass with fresh strawberries and a striped straw on a light background.",
+    "query": "strawberry milkshake glass"
+  },
+  "afternoon_snack_025": {
+    "url": "https://images.pexels.com/photos/5150218/pexels-photo-5150218.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Two chia seed parfaits with yogurt, pomegranate, and oats on a wooden table.",
+    "query": "vanilla oat protein shake"
+  },
+  "afternoon_snack_026": {
+    "url": "https://images.pexels.com/photos/17200460/pexels-photo-17200460.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Refreshing mango lassi adorned with fresh mint and cherry, perfect summer drink.",
+    "query": "mango lassi glass"
+  },
+  "afternoon_snack_027": {
+    "url": "https://images.pexels.com/photos/7937002/pexels-photo-7937002.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A healthy berry smoothie bowl topped with fresh fruits, seeds, and coconut shavings on a wooden board.",
+    "query": "mixed berry protein smoothie"
+  },
+  "afternoon_snack_028": {
+    "url": "https://images.pexels.com/photos/6463655/pexels-photo-6463655.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Three indulgent milkshakes in glass jars with sprinkles and chocolate against a bold red backdrop.",
+    "query": "homemade mass gainer shake"
+  },
+  "afternoon_snack_029": {
+    "url": "https://images.pexels.com/photos/7167857/pexels-photo-7167857.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious banana, almond toast drizzled with honey, presented on a rustic wooden board.",
+    "query": "almond butter honey toast"
+  },
+  "afternoon_snack_030": {
+    "url": "https://images.pexels.com/photos/1291712/pexels-photo-1291712.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious layered chocolate cake with fresh berries and peanut butter cream on a plate.",
+    "query": "rice cakes peanut butter chocolate"
+  },
+  "afternoon_snack_031": {
+    "url": "https://images.pexels.com/photos/9783485/pexels-photo-9783485.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Mouthwatering honey toast topped with fresh strawberries, whipped cream, and almond slices.",
+    "query": "ricotta strawberry toast"
+  },
+  "afternoon_snack_032": {
+    "url": "https://images.pexels.com/photos/8829460/pexels-photo-8829460.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A person holding a piece of toast topped with banana slices and cinnamon, perfect for a healthy snack.",
+    "query": "banana cinnamon toast"
+  },
+  "afternoon_snack_033": {
+    "url": "https://images.pexels.com/photos/6123026/pexels-photo-6123026.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of avocado and fried egg on a rice cake, perfect for a healthy breakfast.",
+    "query": "avocado rice cakes seeds"
+  },
+  "afternoon_snack_034": {
+    "url": "https://images.pexels.com/photos/19029774/pexels-photo-19029774.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious fig and goat cheese toasts on a black plate with honey sauce.",
+    "query": "honey walnut toast"
+  },
+  "afternoon_snack_035": {
+    "url": "https://images.pexels.com/photos/36837402/pexels-photo-36837402.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A mouth-watering chocolate mug cake topped with whipped cream and nuts, served with two caramel lollipops.",
+    "query": "chocolate protein mug cake"
+  },
+  "afternoon_snack_036": {
+    "url": "https://images.pexels.com/photos/14263512/pexels-photo-14263512.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Stack of banana pancakes topped with honey and walnuts, served on a white plate.",
+    "query": "banana egg pancakes honey"
+  },
+  "afternoon_snack_037": {
+    "url": "https://images.pexels.com/photos/18972781/pexels-photo-18972781.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Warm breakfast scene with sliced bread, bananas, and coffee, evoking a cozy morning vibe.",
+    "query": "banana bread mug cake"
+  },
+  "afternoon_snack_038": {
+    "url": "https://images.pexels.com/photos/11261347/pexels-photo-11261347.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A mouthwatering display of crepes topped with a rich mushroom sauce and herbs served on a pink plate.",
+    "query": "protein crepe plate"
+  },
+  "afternoon_snack_039": {
+    "url": "https://images.pexels.com/photos/2835751/pexels-photo-2835751.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious breakfast bowl featuring yogurt, granola, strawberry, and red currants, perfect for a healthy start.",
+    "query": "chocolate yogurt granola bowl"
+  },
+  "afternoon_snack_040": {
+    "url": "https://images.pexels.com/photos/3810779/pexels-photo-3810779.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Enjoy delicious raspberry topped desserts in glass cups, perfect for sweet cravings.",
+    "query": "chocolate protein mousse"
+  },
+  "afternoon_snack_041": {
+    "url": "https://images.pexels.com/photos/33430554/pexels-photo-33430554.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of spicy tandoori chicken rolls with sauce and spices, perfect for food enthusiasts.",
+    "query": "chicken wrap roll"
+  },
+  "afternoon_snack_042": {
+    "url": "https://images.pexels.com/photos/5836619/pexels-photo-5836619.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant Mediterranean breakfast featuring boiled eggs, grilled halloumi, and fresh vegetables on a beautifully patterned plate.",
+    "query": "boiled eggs hummus plate"
+  },
+  "afternoon_snack_043": {
+    "url": "https://images.pexels.com/photos/27905900/pexels-photo-27905900.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious sandwich with lettuce, cheese, and fries on a colorful table setting.",
+    "query": "tuna toast open sandwich"
+  },
+  "afternoon_snack_044": {
+    "url": "https://images.pexels.com/photos/28936956/pexels-photo-28936956.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty penne pasta in a rich tomato sauce, topped with parmesan cheese.",
+    "query": "cottage cheese cherry tomatoes bowl"
+  },
+  "afternoon_snack_045": {
+    "url": "https://images.pexels.com/photos/20843709/pexels-photo-20843709.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Explore this vibrant chicken noodle bowl with fresh vegetables, perfect for a healthy meal.",
+    "query": "edamame soy sauce bowl"
+  },
+  "afternoon_snack_046": {
+    "url": "https://images.pexels.com/photos/11444679/pexels-photo-11444679.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Chef preparing a meal with grilled chicken, herbs, and spices on a wooden cutting board.",
+    "query": "diced grilled chicken mustard"
+  },
+  "afternoon_snack_047": {
+    "url": "https://images.pexels.com/photos/15606257/pexels-photo-15606257.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up view of mochi being prepared in a kitchen, showcasing traditional techniques.",
+    "query": "japanese mochi rice balls"
+  },
+  "afternoon_snack_048": {
+    "url": "https://images.pexels.com/photos/37297540/pexels-photo-37297540.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Deliciously golden fried plantains on a black griddle, showcasing traditional Latin American cuisine.",
+    "query": "fried plantain slices"
+  },
+  "afternoon_snack_049": {
+    "url": "https://images.pexels.com/photos/16790629/pexels-photo-16790629.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Gozleme dough stuffed with feta and spinach, a traditional Turkish dish, in Malatya.",
+    "query": "feta spinach stuffed pita"
+  },
+  "afternoon_snack_050": {
+    "url": "https://images.pexels.com/photos/3708747/pexels-photo-3708747.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A display of packaged Japanese onigiri rice balls on a store shelf, showcasing variety and convenience.",
+    "query": "salmon onigiri rice ball"
+  },
+  "afternoon_snack_051": {
+    "url": "https://images.pexels.com/photos/17749740/pexels-photo-17749740.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A flavorful hummus dish garnished with herbs and served with pita bread on a restaurant table.",
+    "query": "pita bread hummus dip"
+  },
+  "afternoon_snack_052": {
+    "url": "https://images.pexels.com/photos/31610388/pexels-photo-31610388.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty falafel balls served on a plate with fresh greens, ideal for dining and food enthusiasts.",
+    "query": "falafel chickpea balls"
+  },
+  "afternoon_snack_053": {
+    "url": "https://images.pexels.com/photos/7655878/pexels-photo-7655878.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious oatmeal bowl topped with blueberries, bananas, and walnuts.",
+    "query": "vegan banana protein smoothie"
+  },
+  "afternoon_snack_054": {
+    "url": "https://images.pexels.com/photos/29851955/pexels-photo-29851955.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant selection of homemade protein energy balls perfect for a healthy snack.",
+    "query": "date cashew energy balls coconut"
+  },
+  "afternoon_snack_055": {
+    "url": "https://images.pexels.com/photos/12955793/pexels-photo-12955793.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of assorted nuts and dried fruits creating a colorful, nutritious mix.",
+    "query": "trail mix nuts dried fruit"
+  },
+  "afternoon_snack_056": {
+    "url": "https://images.pexels.com/photos/14387798/pexels-photo-14387798.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of homemade granola bars on a wooden cutting board, emphasizing healthy snacking.",
+    "query": "date oat peanut butter bars"
+  },
+  "afternoon_snack_057": {
+    "url": "https://images.pexels.com/photos/4378523/pexels-photo-4378523.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Adult man holding a protein shake outdoors during the day.",
+    "query": "banana protein shaker"
+  },
+  "afternoon_snack_058": {
+    "url": "https://images.pexels.com/photos/12118812/pexels-photo-12118812.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of assorted fruits, nuts, and peanut butter on skewers, showcasing a vibrant, healthy snack.",
+    "query": "dates stuffed peanut butter"
+  },
+  "afternoon_snack_059": {
+    "url": "https://images.pexels.com/photos/4035107/pexels-photo-4035107.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Glass cup of coffee surrounded by sweets and playing cards composing with dried flowers and Cheshire cat on small round sticker",
+    "query": "chocolate milk glass"
+  },
+  "afternoon_snack_060": {
+    "url": "https://images.pexels.com/photos/33088376/pexels-photo-33088376.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Creamy rice porridge topped with fresh berries and cherry sauce, perfect for breakfast or dessert.",
+    "query": "creamy rice pudding bowl"
+  },
+  "dinner_001": {
+    "url": "https://images.pexels.com/photos/36982101/pexels-photo-36982101.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Hearty meal with grilled chicken, rice, and vegetables served on a white plate.",
+    "query": "chicken rice vegetables plate"
+  },
+  "dinner_002": {
+    "url": "https://images.pexels.com/photos/28286605/pexels-photo-28286605.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty spaghetti topped with grilled chicken and herbs, perfect for a homemade Italian meal.",
+    "query": "chicken pasta cheese gratin"
+  },
+  "dinner_003": {
+    "url": "https://images.pexels.com/photos/23716005/pexels-photo-23716005.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a bowl with stir-fried vegetables and sesame seeds, perfect for healthy eating visuals.",
+    "query": "teriyaki turkey rice broccoli"
+  },
+  "dinner_004": {
+    "url": "https://images.pexels.com/photos/1543613/pexels-photo-1543613.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of an American breakfast platter with beans, toast, and omelette.",
+    "query": "mushroom cheese omelette"
+  },
+  "dinner_005": {
+    "url": "https://images.pexels.com/photos/546945/pexels-photo-546945.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of spaghetti carbonara topped with grated Parmesan cheese on a plate, perfect for Italian cuisine lovers.",
+    "query": "spaghetti carbonara plate"
+  },
+  "dinner_006": {
+    "url": "https://images.pexels.com/photos/9027516/pexels-photo-9027516.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of creamy lentil soup garnished with greens and tomatoes in a white bowl.",
+    "query": "red lentil curry soup bowl"
+  },
+  "dinner_007": {
+    "url": "https://images.pexels.com/photos/15911841/pexels-photo-15911841.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant chicken salad topped with fresh tomatoes and grated cheese, perfect for a healthy meal.",
+    "query": "grilled chicken salad plate"
+  },
+  "dinner_008": {
+    "url": "https://images.pexels.com/photos/5112594/pexels-photo-5112594.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty variety of sandwiches and bagels presented on wooden boards, highlighting gourmet ingredients.",
+    "query": "turkey avocado wrap"
+  },
+  "dinner_009": {
+    "url": "https://images.pexels.com/photos/5514820/pexels-photo-5514820.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of bowl with carrot meat and fresh corn placed on rough brick surface",
+    "query": "tuna corn rice bowl"
+  },
+  "dinner_010": {
+    "url": "https://images.pexels.com/photos/31987728/pexels-photo-31987728.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Elegant stuffed chicken breast with mixed vegetables and puree, artfully plated for a gourmet experience.",
+    "query": "stuffed sweet potato chicken"
+  },
+  "dinner_011": {
+    "url": "https://images.pexels.com/photos/3763836/pexels-photo-3763836.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a vibrant sushi platter showcasing a mix of textures and flavors, garnished with sesame seeds and sauce.",
+    "query": "teriyaki salmon rice broccoli"
+  },
+  "dinner_012": {
+    "url": "https://images.pexels.com/photos/19606038/pexels-photo-19606038.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Gourmet beef in rich sauce with roasted vegetables and potatoes.",
+    "query": "steak roasted sweet potato"
+  },
+  "dinner_013": {
+    "url": "https://images.pexels.com/photos/30225350/pexels-photo-30225350.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delectable quinoa salad with succulent grilled chicken served in stylish ceramic bowls on a wooden table.",
+    "query": "chicken mozzarella quinoa bowl"
+  },
+  "dinner_014": {
+    "url": "https://images.pexels.com/photos/4518881/pexels-photo-4518881.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Appetizing shrimp pasta with cherry tomatoes on a white plate, perfect for Italian cuisine enthusiasts.",
+    "query": "garlic shrimp whole wheat pasta"
+  },
+  "dinner_015": {
+    "url": "https://images.pexels.com/photos/7479001/pexels-photo-7479001.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious beef cheeseburger with french fries served on a round wooden board.",
+    "query": "homemade beef burger fries"
+  },
+  "dinner_016": {
+    "url": "https://images.pexels.com/photos/936661/pexels-photo-936661.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a baked egg dish with vegetables and herbs in aluminum foil, perfect for a healthy meal.",
+    "query": "baked cod vegetables foil"
+  },
+  "dinner_017": {
+    "url": "https://images.pexels.com/photos/998244/pexels-photo-998244.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A savory Moroccan tagine garnished with fresh herbs, served in a traditional dish.",
+    "query": "lamb vegetable tagine"
+  },
+  "dinner_018": {
+    "url": "https://images.pexels.com/photos/5704254/pexels-photo-5704254.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of grilled chicken on an outdoor barbecue, emitting smoke and flavor.",
+    "query": "roasted chicken thighs sweet potato"
+  },
+  "dinner_019": {
+    "url": "https://images.pexels.com/photos/37206690/pexels-photo-37206690.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious Turkish meatballs baked in a clay dish with tomatoes and peppers, perfect for authentic cuisine enthusiasts.",
+    "query": "beef kofta meatballs couscous"
+  },
+  "dinner_020": {
+    "url": "https://images.pexels.com/photos/36287930/pexels-photo-36287930.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious spread of traditional Turkish cuisine featuring various dishes, drinks, and desserts on a marble table.",
+    "query": "chicken skewers pilaf rice"
+  },
+  "dinner_021": {
+    "url": "https://images.pexels.com/photos/5713756/pexels-photo-5713756.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Flavorful grilled beef stew with peppers and herbs served in a rustic bowl.",
+    "query": "eggplant ground beef gratin"
+  },
+  "dinner_022": {
+    "url": "https://images.pexels.com/photos/5638536/pexels-photo-5638536.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Rich orange soup garnished with fresh herbs and lemon slice in an elegant bowl setting.",
+    "query": "moroccan harira soup bowl"
+  },
+  "dinner_023": {
+    "url": "https://images.pexels.com/photos/674574/pexels-photo-674574.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious plate of creamy vegetable curry served with rice and a wooden spoon, perfect for a tasty meal.",
+    "query": "coconut vegetable curry rice"
+  },
+  "dinner_024": {
+    "url": "https://images.pexels.com/photos/37550971/pexels-photo-37550971.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A top view of various Mediterranean dishes on white plates on a marble table.",
+    "query": "lentil patty sweet potato mash"
+  },
+  "dinner_025": {
+    "url": "https://images.pexels.com/photos/36040965/pexels-photo-36040965.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a vibrant, fresh ratatouille with tomatoes, eggplants, and spices.",
+    "query": "ratatouille creamy polenta"
+  },
+  "dinner_026": {
+    "url": "https://images.pexels.com/photos/6646360/pexels-photo-6646360.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious spread of Asian dishes including tofu, noodles, and vegetables shared at a family dinner table.",
+    "query": "vegan tofu pad thai"
+  },
+  "dinner_027": {
+    "url": "https://images.pexels.com/photos/9700895/pexels-photo-9700895.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of steaming rice with chili beans on a plate, showcasing savory food.",
+    "query": "vegetarian bean chili rice"
+  },
+  "dinner_028": {
+    "url": "https://images.pexels.com/photos/31637792/pexels-photo-31637792.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of savory spaghetti Bolognese garnished with fresh herbs on a decorative plate.",
+    "query": "lentil bolognese pasta"
+  },
+  "dinner_029": {
+    "url": "https://images.pexels.com/photos/17308546/pexels-photo-17308546.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious teriyaki beef with rice garnished with sesame seeds and green onions.",
+    "query": "teriyaki tempeh rice bowl"
+  },
+  "dinner_030": {
+    "url": "https://images.pexels.com/photos/11190138/pexels-photo-11190138.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of creamy mushroom risotto topped with basil on a black plate, perfect for foodies.",
+    "query": "mushroom risotto plate"
+  },
+  "dinner_031": {
+    "url": "https://images.pexels.com/photos/5953575/pexels-photo-5953575.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a chef preparing a delicious vegetable pizza in a restaurant kitchen.",
+    "query": "homemade grilled vegetable pizza"
+  },
+  "dinner_032": {
+    "url": "https://images.pexels.com/photos/34985106/pexels-photo-34985106.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A rich and creamy potato gratin freshly baked, golden and crispy in a ceramic dish.",
+    "query": "vegetable potato gratin"
+  },
+  "dinner_033": {
+    "url": "https://images.pexels.com/photos/12310569/pexels-photo-12310569.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a cheesy omelette with ketchup, perfect for food photography enthusiasts.",
+    "query": "vegetable cheese omelette"
+  },
+  "dinner_034": {
+    "url": "https://images.pexels.com/photos/12331836/pexels-photo-12331836.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of lasagna with tomato sauce and basil leaves on a plate.",
+    "query": "spinach ricotta lasagna"
+  },
+  "dinner_035": {
+    "url": "https://images.pexels.com/photos/11129150/pexels-photo-11129150.png?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant flame-grilled salmon served on vegetable fried rice, set against a striking black background.",
+    "query": "baked salmon rice vegetables"
+  },
+  "dinner_036": {
+    "url": "https://images.pexels.com/photos/21821573/pexels-photo-21821573.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A top view of a chicken and rice dish with red pepper, perfect for food photography.",
+    "query": "basque chicken peppers rice"
+  },
+  "dinner_037": {
+    "url": "https://images.pexels.com/photos/5175612/pexels-photo-5175612.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A beautifully plated gourmet meal featuring fried chicken, mashed potatoes, and vegetables.",
+    "query": "pan fried cod mashed potato green beans"
+  },
+  "dinner_038": {
+    "url": "https://images.pexels.com/photos/8250276/pexels-photo-8250276.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of delicious grilled shrimps and seafood on a hot barbecue grill, perfect for summer dining.",
+    "query": "grilled shrimp skewers quinoa"
+  },
+  "dinner_039": {
+    "url": "https://images.pexels.com/photos/24243345/pexels-photo-24243345.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of flavorful stir-fried noodles with fresh vegetables and chicken.",
+    "query": "chicken vegetable noodle wok"
+  },
+  "dinner_040": {
+    "url": "https://images.pexels.com/photos/3763814/pexels-photo-3763814.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant assorted sushi platter with various toppings, perfect for food enthusiasts.",
+    "query": "teriyaki salmon rice broccoli"
+  },
+  "dinner_041": {
+    "url": "https://images.pexels.com/photos/28559554/pexels-photo-28559554.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Deliciously plated sliced duck breast with garnish in a stylish bistro presentation.",
+    "query": "sliced duck breast lentils"
+  },
+  "dinner_042": {
+    "url": "https://images.pexels.com/photos/20446401/pexels-photo-20446401.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Traditional tikka masala with naan bread, rice, and spices on a dark background.",
+    "query": "chicken tikka masala rice"
+  },
+  "dinner_043": {
+    "url": "https://images.pexels.com/photos/14357937/pexels-photo-14357937.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Authentic Vietnamese pho shop in Ca Mau with traditional dishes and inviting outdoor seating.",
+    "query": "vietnamese bo bun noodle salad"
+  },
+  "dinner_044": {
+    "url": "https://images.pexels.com/photos/32371267/pexels-photo-32371267.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Sliced grilled chicken served with red and green peppers, perfect for fajitas.",
+    "query": "chicken fajitas peppers"
+  },
+  "dinner_045": {
+    "url": "https://images.pexels.com/photos/6646072/pexels-photo-6646072.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious bowl of traditional Vietnamese pho garnished with fresh herbs and spicy sauce.",
+    "query": "beef pho noodle soup"
+  },
+  "dinner_046": {
+    "url": "https://images.pexels.com/photos/36916123/pexels-photo-36916123.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant plate of Moroccan couscous featuring tender lamb, vegetables, and chickpeas.",
+    "query": "moroccan couscous chicken merguez vegetables"
+  },
+  "dinner_047": {
+    "url": "https://images.pexels.com/photos/4768966/pexels-photo-4768966.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant stir-fried beef with broccoli, tomatoes, and peppers in blue pots.",
+    "query": "pot au feu beef vegetable stew"
+  },
+  "dinner_048": {
+    "url": "https://images.pexels.com/photos/13422453/pexels-photo-13422453.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Juicy seasoned chicken and fresh vegetables grilling in aluminum trays for a delicious meal.",
+    "query": "chicken zucchini gratin bake"
+  },
+  "dinner_049": {
+    "url": "https://images.pexels.com/photos/9139120/pexels-photo-9139120.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of gourmet French onion soup with melted cheese in a ceramic bowl, served with a spoon.",
+    "query": "french onion soup cheese toast"
+  },
+  "dinner_050": {
+    "url": "https://images.pexels.com/photos/31233885/pexels-photo-31233885.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious grilled chicken salad with fresh vegetables on a decorative plate.",
+    "query": "grilled chicken ratatouille plate"
+  },
+  "dinner_051": {
+    "url": "https://images.pexels.com/photos/8963464/pexels-photo-8963464.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Colorful vegetable and ham rolls garnished with cherry tomatoes and lettuce, perfect for a healthy meal.",
+    "query": "ham wrapped endive gratin"
+  },
+  "dinner_052": {
+    "url": "https://images.pexels.com/photos/36040894/pexels-photo-36040894.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious close-up of grilled mashed potato topping with golden brown crust and spices.",
+    "query": "cod brandade potato bake"
+  },
+  "dinner_053": {
+    "url": "https://images.pexels.com/photos/25460020/pexels-photo-25460020.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A top view of assorted dishes and ingredients on a gray stone surface.",
+    "query": "duck shepherds pie potato"
+  },
+  "dinner_054": {
+    "url": "https://images.pexels.com/photos/2116090/pexels-photo-2116090.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant Vietnamese noodle bowl with chicken, fresh vegetables, and spicy dressing.",
+    "query": "grilled chicken green beans vinaigrette"
+  },
+  "dinner_055": {
+    "url": "https://images.pexels.com/photos/7627415/pexels-photo-7627415.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty appetizing salmon fillet and green spinach decorated with arugula on plate with sauce on table in restaurant",
+    "query": "salmon fillet spinach butter sauce"
+  },
+  "dinner_056": {
+    "url": "https://images.pexels.com/photos/13772595/pexels-photo-13772595.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious grilled fish served with asparagus and colorful sauce. Perfect for gourmet dining in Cape Town.",
+    "query": "grilled sea bass asparagus plate"
+  },
+  "dinner_057": {
+    "url": "https://images.pexels.com/photos/31064160/pexels-photo-31064160.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious veal scaloppini with mushroom sauce and pasta, garnished with fresh herbs.",
+    "query": "veal chop creamy mushrooms"
+  },
+  "dinner_058": {
+    "url": "https://images.pexels.com/photos/14871788/pexels-photo-14871788.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Appetizing roast duck served with vegetables, skewered elegantly on a white backdrop.",
+    "query": "honey glazed duck breast sweet potato"
+  },
+  "dinner_059": {
+    "url": "https://images.pexels.com/photos/28959315/pexels-photo-28959315.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top-down view of Mexican dish with sauces on a rustic blue table.",
+    "query": "tuna avocado tartare"
+  },
+  "dinner_060": {
+    "url": "https://images.pexels.com/photos/36481289/pexels-photo-36481289.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant salmon sashimi bowl garnished with wasabi, scallions, and seaweed, served with soy sauce.",
+    "query": "salmon sushi rice bowl"
+  },
+  "dinner_061": {
+    "url": "https://images.pexels.com/photos/37101626/pexels-photo-37101626.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor the rich flavor of Indian peanut curry garnished with cilantro and bread on the side.",
+    "query": "massaman chicken curry peanuts"
+  },
+  "dinner_062": {
+    "url": "https://images.pexels.com/photos/3903586/pexels-photo-3903586.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a bowl of Vietnamese pho with fresh herbs and chopsticks on a wooden table.",
+    "query": "beef pho noodle soup"
+  },
+  "dinner_063": {
+    "url": "https://images.pexels.com/photos/37283917/pexels-photo-37283917.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a savory ramen bowl with sliced eggs, vegetables, and tofu, showcasing traditional Japanese cuisine.",
+    "query": "miso ramen chicken egg"
+  },
+  "dinner_064": {
+    "url": "https://images.pexels.com/photos/12973148/pexels-photo-12973148.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious Korean bibimbap in a hot stone bowl with fresh ingredients like vegetables and egg yolk.",
+    "query": "salmon bibimbap rice bowl"
+  },
+  "dinner_065": {
+    "url": "https://images.pexels.com/photos/10692540/pexels-photo-10692540.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of stir-fried udon noodles with vegetables on a white plate against a dark background.",
+    "query": "shrimp udon noodle stir fry"
+  },
+  "dinner_066": {
+    "url": "https://images.pexels.com/photos/11783315/pexels-photo-11783315.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious bowl of Vietnamese pho soup with tofu, herbs, and greens, perfect for food lovers.",
+    "query": "tofu miso soup noodles"
+  },
+  "dinner_067": {
+    "url": "https://images.pexels.com/photos/16569753/pexels-photo-16569753.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A savory unagi donburi bowl featuring grilled eel, rice, and a poached egg with sauce.",
+    "query": "teriyaki chicken rice donburi bowl"
+  },
+  "dinner_068": {
+    "url": "https://images.pexels.com/photos/28907751/pexels-photo-28907751.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A flavorful Asian noodle bowl with fresh herbs, citrus, and a savory broth.",
+    "query": "shrimp laksa coconut noodle soup"
+  },
+  "dinner_069": {
+    "url": "https://images.pexels.com/photos/35063430/pexels-photo-35063430.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor the authentic taste of Thai Pad See Ew with chicken and vegetables, beautifully presented on a rustic wooden table.",
+    "query": "pad see ew chicken noodles"
+  },
+  "dinner_070": {
+    "url": "https://images.pexels.com/photos/16569555/pexels-photo-16569555.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A flavorful beef rice bowl topped with a poached egg and green onions on a white background.",
+    "query": "gyudon beef rice bowl egg"
+  },
+  "dinner_071": {
+    "url": "https://images.pexels.com/photos/35049889/pexels-photo-35049889.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Authentic Thai Tom Kha Gai soup with chicken, coconut milk, and vegetables.",
+    "query": "tom kha gai coconut chicken soup"
+  },
+  "dinner_072": {
+    "url": "https://images.pexels.com/photos/15913640/pexels-photo-15913640.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty chicken wrap filled with creamy sauce on a wooden cutting board.",
+    "query": "homemade chicken kebab wrap"
+  },
+  "dinner_073": {
+    "url": "https://images.pexels.com/photos/37080238/pexels-photo-37080238.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Deliciously grilled kofta kebabs on skewers over hot charcoal, showcasing perfect barbecue cooking.",
+    "query": "adana kofta grilled bulgur"
+  },
+  "dinner_074": {
+    "url": "https://images.pexels.com/photos/36904794/pexels-photo-36904794.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant vegan couscous salad with broccoli and tofu served in a modern indoor cafe setting.",
+    "query": "chicken vegetable couscous"
+  },
+  "dinner_075": {
+    "url": "https://images.pexels.com/photos/30068445/pexels-photo-30068445.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of Moroccan lamb tagine with prunes, almonds, and boiled eggs in a clay pot.",
+    "query": "lamb prune tagine"
+  },
+  "dinner_076": {
+    "url": "https://images.pexels.com/photos/5864346/pexels-photo-5864346.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of baked moussaka served on a blue plate with vegetables.",
+    "query": "lebanese eggplant beef moussaka"
+  },
+  "dinner_077": {
+    "url": "https://images.pexels.com/photos/29269831/pexels-photo-29269831.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A nutritious bowl with quinoa, chickpeas, and fresh vegetables, perfect for a healthy meal.",
+    "query": "chicken chickpea fatteh yogurt"
+  },
+  "dinner_078": {
+    "url": "https://images.pexels.com/photos/28893432/pexels-photo-28893432.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor a cheeseburger steak topped with sauce, served with fries, and a fresh tomato garnish. Perfect for food lovers.",
+    "query": "beef meatballs tomato sauce potato"
+  },
+  "dinner_079": {
+    "url": "https://images.pexels.com/photos/6844877/pexels-photo-6844877.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a gourmet lamb dish with couscous and microgreens, exquisitely plated.",
+    "query": "roast lamb couscous"
+  },
+  "dinner_080": {
+    "url": "https://images.pexels.com/photos/5192412/pexels-photo-5192412.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a meal featuring grilled fish with green sauce and mashed potatoes on a white plate.",
+    "query": "chermoula white fish potato"
+  },
+  "dinner_081": {
+    "url": "https://images.pexels.com/photos/7469389/pexels-photo-7469389.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A couple sharing a traditional meal indoors, enjoying dishes like soup and maqluba in Istanbul.",
+    "query": "maqluba chicken rice eggplant"
+  },
+  "dinner_082": {
+    "url": "https://images.pexels.com/photos/37324427/pexels-photo-37324427.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Crispy fried chicken with plantains and fries in a cardboard takeout box, ideal for food photography.",
+    "query": "poulet dg chicken plantain"
+  },
+  "dinner_083": {
+    "url": "https://images.pexels.com/photos/5041493/pexels-photo-5041493.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A colorful and appetizing fish and rice dish with fresh vegetables, perfect for lunch.",
+    "query": "grilled fish white rice"
+  },
+  "dinner_084": {
+    "url": "https://images.pexels.com/photos/37100202/pexels-photo-37100202.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Flavorful African-style chicken stew with beans, carrots, and potatoes, perfect for culinary inspiration.",
+    "query": "kedjenou chicken vegetable stew"
+  },
+  "dinner_085": {
+    "url": "https://images.pexels.com/photos/20532517/pexels-photo-20532517.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant plate of fried plantains with a savory tomato-based sauce and fresh salad.",
+    "query": "braised fish fried plantain sauce"
+  },
+  "dinner_086": {
+    "url": "https://images.pexels.com/photos/11015917/pexels-photo-11015917.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor the taste of shrimp and rice bowls paired with fresh spinach soup, perfect for seafood lovers.",
+    "query": "jollof rice shrimp"
+  },
+  "dinner_087": {
+    "url": "https://images.pexels.com/photos/17716913/pexels-photo-17716913.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious and nutritious dish featuring okra and creamy fish risotto, elegantly presented.",
+    "query": "okra fish stew rice"
+  },
+  "dinner_088": {
+    "url": "https://images.pexels.com/photos/28992209/pexels-photo-28992209.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious plate of Brazilian cuisine featuring pork chop, rice, beans, and fresh salad.",
+    "query": "attieke tuna cassava plate"
+  },
+  "dinner_089": {
+    "url": "https://images.pexels.com/photos/24902949/pexels-photo-24902949.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a tasty homemade shakshuka with egg in a blue pot, perfect for breakfast or dinner.",
+    "query": "doro wat chicken egg stew"
+  },
+  "dinner_090": {
+    "url": "https://images.pexels.com/photos/2092507/pexels-photo-2092507.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of delicious Mexican tacos with beans and rice, vibrant and tasty meal.",
+    "query": "taco bowl ground beef rice beans"
+  },
+  "dinner_091": {
+    "url": "https://images.pexels.com/photos/6399993/pexels-photo-6399993.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A top view of a Mexican quesadilla served with guacamole, salsa, and sour cream on a plate.",
+    "query": "chicken cheese quesadilla"
+  },
+  "dinner_092": {
+    "url": "https://images.pexels.com/photos/32252190/pexels-photo-32252190.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Colorful Brazilian Moqueca with sides on wooden table. Perfect for culinary and cultural themes.",
+    "query": "brazilian fish moqueca coconut stew"
+  },
+  "dinner_093": {
+    "url": "https://images.pexels.com/photos/20896462/pexels-photo-20896462.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor the authentic taste of Brazilian churrasco with refreshing beers in a cozy São Paulo restaurant.",
+    "query": "grilled picanha steak sweet potato"
+  },
+  "dinner_094": {
+    "url": "https://images.pexels.com/photos/11414300/pexels-photo-11414300.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious roasted chicken served with fries and dips, perfect for a hearty meal.",
+    "query": "peruvian roast chicken potato"
+  },
+  "dinner_095": {
+    "url": "https://images.pexels.com/photos/34429590/pexels-photo-34429590.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious minced meat stew with potatoes and green peas, garnished with fresh herbs in a white bowl.",
+    "query": "ground beef potato corn bowl"
+  },
+  "dinner_096": {
+    "url": "https://images.pexels.com/photos/16123121/pexels-photo-16123121.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a vibrant vegan Buddha bowl with quinoa, avocado, and fresh salsa in hand.",
+    "query": "quinoa avocado black bean bowl"
+  },
+  "dinner_097": {
+    "url": "https://images.pexels.com/photos/11820118/pexels-photo-11820118.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant close-up of a cut pumpkin on mixed seeds, emphasizing textures and colors.",
+    "query": "butternut squash lentil curry"
+  },
+  "dinner_098": {
+    "url": "https://images.pexels.com/photos/5531480/pexels-photo-5531480.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a vibrant Asian ramen bowl with tofu, corn, and fresh vegetables, served indoors.",
+    "query": "vegan miso ramen tofu"
+  },
+  "dinner_099": {
+    "url": "https://images.pexels.com/photos/5737571/pexels-photo-5737571.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Hands cooking taco meat in a pan on a gas stove with tongs.",
+    "query": "soy mince vegan tacos"
+  },
+  "dinner_100": {
+    "url": "https://images.pexels.com/photos/8696479/pexels-photo-8696479.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant vegan meal with fresh ingredients like broccoli, chickpeas, quinoa, served alongside a burrito and refreshing drinks.",
+    "query": "buddha bowl quinoa avocado sweet potato"
+  },
+  "dinner_101": {
+    "url": "https://images.pexels.com/photos/34723306/pexels-photo-34723306.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant plate of Pad Thai with shrimp, peanuts, and lime on a wooden table.",
+    "query": "vegan tofu pad thai peanuts"
+  },
+  "dinner_102": {
+    "url": "https://images.pexels.com/photos/21625301/pexels-photo-21625301.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious couscous meal being garnished with a light sauce, captured in natural daylight.",
+    "query": "vegetable chickpea couscous"
+  },
+  "dinner_103": {
+    "url": "https://images.pexels.com/photos/29850843/pexels-photo-29850843.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious homemade lentil soup in a terra cotta bowl, perfect for a comforting meal.",
+    "query": "red lentil coconut soup"
+  },
+  "dinner_104": {
+    "url": "https://images.pexels.com/photos/19105514/pexels-photo-19105514.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of vibrant stir-fried vegetables including mushrooms, carrots, and zucchini in a wok.",
+    "query": "tempeh vegetable stir fry"
+  },
+  "dinner_105": {
+    "url": "https://images.pexels.com/photos/5677631/pexels-photo-5677631.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Hands holding fresh green chili peppers with assorted vegetables on wooden surface.",
+    "query": "vegan bean chili corn"
+  },
+  "dinner_106": {
+    "url": "https://images.pexels.com/photos/6316531/pexels-photo-6316531.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A close-up overhead shot of fresh organic butternut squash in wooden crates.",
+    "query": "butternut squash risotto"
+  },
+  "dinner_107": {
+    "url": "https://images.pexels.com/photos/1707917/pexels-photo-1707917.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious baked eggplant parmesan dish with cheese and tomato sauce in a red tray.",
+    "query": "eggplant mozzarella parmesan bake"
+  },
+  "dinner_108": {
+    "url": "https://images.pexels.com/photos/13119151/pexels-photo-13119151.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious Greek frittata with tomatoes and feta on a vibrant red plate.",
+    "query": "vegetable feta frittata"
+  },
+  "dinner_109": {
+    "url": "https://images.pexels.com/photos/15082312/pexels-photo-15082312.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious plate of shrimp risotto garnished with herbs and flowers, perfect for gourmet dining.",
+    "query": "spinach goat cheese risotto"
+  },
+  "dinner_110": {
+    "url": "https://images.pexels.com/photos/5419294/pexels-photo-5419294.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Appetizing close-up of a cheese and vegetable quiche, perfect for brunch or dinner.",
+    "query": "zucchini feta quiche slice"
+  },
+  "dinner_111": {
+    "url": "https://images.pexels.com/photos/10309490/pexels-photo-10309490.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious bowl of creamy risotto topped with pesto sauce, ideal for food photography.",
+    "query": "minestrone soup pesto"
+  },
+  "dinner_112": {
+    "url": "https://images.pexels.com/photos/18416961/pexels-photo-18416961.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious croque madame sandwich topped with a perfectly fried egg and garnished with fresh chives.",
+    "query": "buckwheat galette egg ham cheese"
+  },
+  "dinner_113": {
+    "url": "https://images.pexels.com/photos/34227769/pexels-photo-34227769.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious and nutritious grilled chicken bowl with quinoa and fresh vegetables for a balanced meal.",
+    "query": "grilled chicken quinoa vegetables plate"
+  },
+  "dinner_114": {
+    "url": "https://images.pexels.com/photos/10692490/pexels-photo-10692490.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of fresh salmon sushi rolls served on a ceramic plate against a black background.",
+    "query": "teriyaki salmon rice plate"
+  },
+  "dinner_115": {
+    "url": "https://images.pexels.com/photos/28668517/pexels-photo-28668517.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious Chinese beef and broccoli with fried rice and egg roll on a decorative plate.",
+    "query": "beef broccoli stir fry rice"
+  },
+  "dinner_116": {
+    "url": "https://images.pexels.com/photos/19725433/pexels-photo-19725433.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of aguachile with avocado, onions on a black plate against blue background.",
+    "query": "sea bass ceviche avocado"
+  },
+  "dinner_117": {
+    "url": "https://images.pexels.com/photos/9609836/pexels-photo-9609836.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of spicy tandoori chicken drumsticks served with green chutney, showcasing vibrant Indian cuisine.",
+    "query": "tandoori chicken basmati rice"
+  },
+  "dinner_118": {
+    "url": "https://images.pexels.com/photos/6126706/pexels-photo-6126706.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious steamed chicken with rice, featuring ginger and herbs, captured on an outdoor balcony.",
+    "query": "steamed cod ginger rice"
+  },
+  "dinner_119": {
+    "url": "https://images.pexels.com/photos/5192433/pexels-photo-5192433.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious grilled chicken salad with fresh vegetables and sprinkled seeds.",
+    "query": "warm chicken avocado salad"
+  },
+  "dinner_120": {
+    "url": "https://images.pexels.com/photos/9465599/pexels-photo-9465599.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a grilled steak with tater tots, sauce, and a fresh salad on a vibrant plate.",
+    "query": "beef steak sweet potato fries asparagus"
+  },
+  "bedtime_001": {
+    "url": "https://images.pexels.com/photos/4198168/pexels-photo-4198168.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of fresh salad with cottage cheese chopped onion oil and knife fresh greenery on white table with crack",
+    "query": "plain cottage cheese bowl"
+  },
+  "bedtime_002": {
+    "url": "https://images.pexels.com/photos/4491391/pexels-photo-4491391.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a breakfast bowl filled with yogurt, blueberries, chia seeds, and nuts.",
+    "query": "skyr yogurt walnuts bowl"
+  },
+  "bedtime_003": {
+    "url": "https://images.pexels.com/photos/27400765/pexels-photo-27400765.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a fresh, vibrant salad with strawberries, blueberries, and edible flowers on a rustic wooden table.",
+    "query": "cottage cheese honey bowl"
+  },
+  "bedtime_004": {
+    "url": "https://images.pexels.com/photos/15794018/pexels-photo-15794018.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A selection of mouth-watering desserts including chocolate pudding and yogurt with nuts artfully arranged.",
+    "query": "greek yogurt dark chocolate"
+  },
+  "bedtime_005": {
+    "url": "https://images.pexels.com/photos/4378330/pexels-photo-4378330.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Adult man savoring a protein shake in a peaceful outdoor setting during the day.",
+    "query": "casein protein shake"
+  },
+  "bedtime_006": {
+    "url": "https://images.pexels.com/photos/8611766/pexels-photo-8611766.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of creamy peanut butter in a glass jar surrounded by peanuts. Tasty and homemade.",
+    "query": "cottage cheese peanut butter"
+  },
+  "bedtime_007": {
+    "url": "https://images.pexels.com/photos/36999141/pexels-photo-36999141.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A white plate of hard-boiled eggs, some sliced, against a dark background.",
+    "query": "hard boiled eggs plate"
+  },
+  "bedtime_008": {
+    "url": "https://images.pexels.com/photos/3026810/pexels-photo-3026810.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Luscious chocolate mousse topped with fresh pomegranate seeds, perfect for dessert lovers.",
+    "query": "chocolate protein mousse"
+  },
+  "bedtime_009": {
+    "url": "https://images.pexels.com/photos/163952/pexels-photo-163952.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A steaming cappuccino with cinnamon, captured in a cozy indoor cafe setting.",
+    "query": "warm cinnamon milk cup"
+  },
+  "bedtime_010": {
+    "url": "https://images.pexels.com/photos/4692161/pexels-photo-4692161.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A mouth-watering close-up of syrniki with fresh raspberries and almonds on a textured fabric.",
+    "query": "cottage cheese almonds bowl"
+  },
+  "bedtime_011": {
+    "url": "https://images.pexels.com/photos/1346295/pexels-photo-1346295.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A fresh and delicious chia pudding bowl topped with bananas, almonds, and mint leaves.",
+    "query": "chia pudding banana"
+  },
+  "bedtime_012": {
+    "url": "https://images.pexels.com/photos/1334128/pexels-photo-1334128.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A nutritious breakfast bowl held by a woman, featuring granola, seeds, and mint leaves for a healthy start.",
+    "query": "coconut yogurt seeds bowl"
+  },
+  "bedtime_013": {
+    "url": "https://images.pexels.com/photos/18705171/pexels-photo-18705171.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A motivational mug sits on vibrant turmeric powder, promoting relaxation and wellness.",
+    "query": "turmeric golden milk"
+  },
+  "bedtime_014": {
+    "url": "https://images.pexels.com/photos/5605634/pexels-photo-5605634.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A stylish breakfast plate featuring cheese, walnuts, olives, and bread on a green background.",
+    "query": "cottage cheese walnuts bowl"
+  },
+  "bedtime_015": {
+    "url": "https://images.pexels.com/photos/26770753/pexels-photo-26770753.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vanilla yogurt container with a glass on a modern indoor table setting.",
+    "query": "vanilla skyr yogurt bowl"
+  },
+  "bedtime_016": {
+    "url": "https://images.pexels.com/photos/4940755/pexels-photo-4940755.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of delicious chocolate cream decorated with almond flakes served in bowl and placed on wooden table in cafe",
+    "query": "chocolate protein mousse cocoa"
+  },
+  "bedtime_017": {
+    "url": "https://images.pexels.com/photos/5605624/pexels-photo-5605624.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Overhead view of a rustic breakfast with cheese, boiled egg, and blueberries.",
+    "query": "cottage cheese walnuts honey"
+  },
+  "bedtime_018": {
+    "url": "https://images.pexels.com/photos/4958153/pexels-photo-4958153.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Transparent glass with spilled whole crispy almonds near dairy beverage on white background",
+    "query": "almond milk protein shake"
+  },
+  "bedtime_019": {
+    "url": "https://images.pexels.com/photos/5150214/pexels-photo-5150214.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Assorted healthy fruit parfaits with toppings, beautifully displayed, ideal for food photography.",
+    "query": "tropical chia pudding mango"
+  },
+  "bedtime_020": {
+    "url": "https://images.pexels.com/photos/5605631/pexels-photo-5605631.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious assortment of breakfast items including cheese, soft boiled egg, and walnuts on a stylish plate.",
+    "query": "cottage cheese honey walnuts bowl"
+  },
+  "bedtime_021": {
+    "url": "https://images.pexels.com/photos/4198141/pexels-photo-4198141.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of bowl with healthy salad with cottage cheese green onion and brunch of thyme placed on table in kitchen",
+    "query": "cottage cheese cinnamon bowl"
+  },
+  "bedtime_022": {
+    "url": "https://images.pexels.com/photos/7780029/pexels-photo-7780029.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a delicious fried cheese dish topped with honey and walnuts served with crisp bread.",
+    "query": "cottage cheese honey walnuts"
+  },
+  "bedtime_023": {
+    "url": "https://images.pexels.com/photos/29150522/pexels-photo-29150522.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious breakfast bowl featuring raspberries, granola, chia seeds, and peanut butter for a nutritious start.",
+    "query": "chocolate peanut butter yogurt bowl"
+  },
+  "bedtime_024": {
+    "url": "https://images.pexels.com/photos/32065590/pexels-photo-32065590.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A sunlit plate of strawberries and cottage cheese perfect for breakfast.",
+    "query": "cottage cheese red berries bowl"
+  },
+  "bedtime_025": {
+    "url": "https://images.pexels.com/photos/7368031/pexels-photo-7368031.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A close-up of cottage cheese in an open glass jar with scattered raisins on a cloth surface.",
+    "query": "cottage cheese granola bowl"
+  },
+  "bedtime_026": {
+    "url": "https://images.pexels.com/photos/36780435/pexels-photo-36780435.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant bowl of banana, fig, peach, and cheese in decorative dish under sunlight shadows.",
+    "query": "cottage cheese banana bowl"
+  },
+  "bedtime_027": {
+    "url": "https://images.pexels.com/photos/7111398/pexels-photo-7111398.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Healthy breakfast bowl with figs, nuts, and turmeric on a blue table with ginger and honey.",
+    "query": "skyr honey almonds bowl"
+  },
+  "bedtime_028": {
+    "url": "https://images.pexels.com/photos/11953273/pexels-photo-11953273.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Creamy cottage cheese with raisins in a white bowl, perfect for a healthy snack.",
+    "query": "cottage cheese dates bowl"
+  },
+  "bedtime_029": {
+    "url": "https://images.pexels.com/photos/37325357/pexels-photo-37325357.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Creative Halloween dessert cups with cookie tombstones labeled 'RIP'. Perfect for themed parties.",
+    "query": "chocolate protein pudding cup"
+  },
+  "bedtime_030": {
+    "url": "https://images.pexels.com/photos/37331093/pexels-photo-37331093.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious whole grain pita filled with brie cheese, apple slices, walnuts, and cinnamon.",
+    "query": "cottage cheese apple cinnamon"
+  },
+  "bedtime_031": {
+    "url": "https://images.pexels.com/photos/7247445/pexels-photo-7247445.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a breakfast bowl with yogurt, fresh fruits, and granola on a wooden board.",
+    "query": "skyr dried fruits bowl"
+  },
+  "bedtime_032": {
+    "url": "https://images.pexels.com/photos/19318453/pexels-photo-19318453.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Healthy and colorful breakfast bowl with fresh fruits and granola on a wooden table.",
+    "query": "greek yogurt granola bowl"
+  },
+  "bedtime_033": {
+    "url": "https://images.pexels.com/photos/33489598/pexels-photo-33489598.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Overhead view of a breakfast bowl with peanut butter, apple, and banana, on a white background.",
+    "query": "yogurt peanut butter banana bowl"
+  },
+  "bedtime_034": {
+    "url": "https://images.pexels.com/photos/5191827/pexels-photo-5191827.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A mouth-watering tzatziki dip garnished with olives, mint, and walnuts on a wooden table.",
+    "query": "greek yogurt honey walnuts"
+  },
+  "bedtime_035": {
+    "url": "https://images.pexels.com/photos/6708439/pexels-photo-6708439.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant smoothie bowls adorned with fresh fruits, seeds, and nuts. Perfect for a healthy food concept.",
+    "query": "chocolate greek yogurt bowl"
+  },
+  "bedtime_036": {
+    "url": "https://images.pexels.com/photos/8600573/pexels-photo-8600573.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of an artistic avocado breakfast on a checkered picnic blanket.",
+    "query": "greek yogurt coconut bowl"
+  },
+  "bedtime_037": {
+    "url": "https://images.pexels.com/photos/7485600/pexels-photo-7485600.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious raspberry and granola yogurt bowl for a healthy breakfast.",
+    "query": "yogurt raspberry bowl"
+  },
+  "bedtime_038": {
+    "url": "https://images.pexels.com/photos/23428033/pexels-photo-23428033.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious coconut filled with yogurt, chia seeds, and cashews on a wooden board. Perfect healthy snack.",
+    "query": "greek yogurt cashews honey"
+  },
+  "bedtime_039": {
+    "url": "https://images.pexels.com/photos/17159195/pexels-photo-17159195.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A top-down view of a turmeric latte surrounded by diverse spices for an aromatic experience.",
+    "query": "golden milk turmeric latte"
+  },
+  "bedtime_040": {
+    "url": "https://images.pexels.com/photos/1839882/pexels-photo-1839882.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious hot chocolate in a black mug with mini marshmallows and biscuit rolls on the side.",
+    "query": "hot chocolate mug"
+  },
+  "bedtime_041": {
+    "url": "https://images.pexels.com/photos/6682947/pexels-photo-6682947.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A cozy still life with a rustic tea mug and honey dip, bathed in warm sunlight.",
+    "query": "warm milk honey mug"
+  },
+  "bedtime_042": {
+    "url": "https://images.pexels.com/photos/11588452/pexels-photo-11588452.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A warm, creamy drink topped with cinnamon served in a glass cup on a wooden coaster indoors.",
+    "query": "warm milk latte mug"
+  },
+  "bedtime_043": {
+    "url": "https://images.pexels.com/photos/9431725/pexels-photo-9431725.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a frothy cappuccino in a clear mug sprinkled with cinnamon on a stone table.",
+    "query": "cinnamon milk mug"
+  },
+  "bedtime_044": {
+    "url": "https://images.pexels.com/photos/5946641/pexels-photo-5946641.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "From above of tasty sweet cocktail with milk and spice served on table",
+    "query": "moon milk cinnamon drink"
+  },
+  "bedtime_045": {
+    "url": "https://images.pexels.com/photos/5803171/pexels-photo-5803171.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of chia seed and berry pudding in jars with lavender sprigs on a wooden surface.",
+    "query": "chia seed pudding jar"
+  },
+  "bedtime_046": {
+    "url": "https://images.pexels.com/photos/32963319/pexels-photo-32963319.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Person adding toppings to bowls of oatmeal on a sunlit table, featuring nuts and raisins.",
+    "query": "cold oatmeal bowl"
+  },
+  "bedtime_047": {
+    "url": "https://images.pexels.com/photos/7752365/pexels-photo-7752365.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant and healthy breakfast jar filled with oats and fresh berries, showcasing delicious and nutritious ingredients.",
+    "query": "overnight oats blueberries jar"
+  },
+  "bedtime_048": {
+    "url": "https://images.pexels.com/photos/30749029/pexels-photo-30749029.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant salad with avocado, watermelon, cucumber, and cheese.",
+    "query": "cottage cheese avocado bowl"
+  },
+  "bedtime_049": {
+    "url": "https://images.pexels.com/photos/19658858/pexels-photo-19658858.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious breakfast bowl topped with fresh berries, granola, and a drizzle of honey.",
+    "query": "greek yogurt granola honey bowl"
+  },
+  "bedtime_050": {
+    "url": "https://images.pexels.com/photos/15794017/pexels-photo-15794017.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious traditional Turkish sütlaç topped with nuts, perfect for dessert lovers.",
+    "query": "rice pudding cinnamon bowl"
+  },
+  "bedtime_051": {
+    "url": "https://images.pexels.com/photos/5250390/pexels-photo-5250390.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a cheese platter with grapes, chocolate, and nuts on a sunny white table setting.",
+    "query": "nuts dark chocolate cottage cheese"
+  },
+  "bedtime_052": {
+    "url": "https://images.pexels.com/photos/4006362/pexels-photo-4006362.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Indulge in creamy yogurt topped with fresh raspberries and sweet honey in a glass bowl.",
+    "query": "greek yogurt tahini honey bowl"
+  },
+  "bedtime_053": {
+    "url": "https://images.pexels.com/photos/11197228/pexels-photo-11197228.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a rustic outdoor meal setup with fruit and nut bowls, tea, and backpack in a forest setting.",
+    "query": "trail mix yogurt bowl"
+  },
+  "bedtime_054": {
+    "url": "https://images.pexels.com/photos/29481840/pexels-photo-29481840.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A delicious and nutritious breakfast bowl with kiwi, banana, almonds, and chia seeds.",
+    "query": "almond butter dates yogurt bowl"
+  },
+  "bedtime_055": {
+    "url": "https://images.pexels.com/photos/6823323/pexels-photo-6823323.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a nutritious breakfast bowl with yogurt, fresh fruits, and seeds on a pink background.",
+    "query": "soy yogurt chia seeds bowl"
+  },
+  "bedtime_056": {
+    "url": "https://images.pexels.com/photos/13793073/pexels-photo-13793073.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A nutritious breakfast with mixed cereals and a hot beverage on a leafy table.",
+    "query": "vegan hot chocolate mug"
+  },
+  "bedtime_057": {
+    "url": "https://images.pexels.com/photos/1640768/pexels-photo-1640768.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of healthy food jars containing granola, fruits, and yogurt.",
+    "query": "coconut chia pudding jar"
+  },
+  "bedtime_058": {
+    "url": "https://images.pexels.com/photos/34305255/pexels-photo-34305255.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A nutritious breakfast bowl featuring grapes, strawberries, granola, and coconut flakes.",
+    "query": "coconut yogurt granola bowl"
+  },
+  "bedtime_059": {
+    "url": "https://images.pexels.com/photos/34644328/pexels-photo-34644328.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Indulgent chocolate mousse topped with chocolate chips in a cup, perfect dessert treat.",
+    "query": "chocolate tofu mousse cup"
+  },
+  "bedtime_060": {
+    "url": "https://images.pexels.com/photos/4753650/pexels-photo-4753650.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Refreshing strawberry smoothie topped with coconut flakes in natural light on a wooden table.",
+    "query": "vegan protein smoothie glass"
+  },
+  "pancakes-proteines-myrtilles": {
+    "url": "https://images.pexels.com/photos/6947056/pexels-photo-6947056.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Aerial view of pancakes topped with berries and nuts, perfect for breakfast inspiration.",
+    "query": "blueberry protein pancakes stack"
+  },
+  "smoothie-bowl-baies-coco": {
+    "url": "https://images.pexels.com/photos/12955709/pexels-photo-12955709.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Colorful smoothie bowl with berries, coconut, chia seeds, and granola for a nutritious breakfast.",
+    "query": "berry smoothie bowl coconut"
+  },
+  "overnight-oats-myrtille-chia-citron": {
+    "url": "https://images.pexels.com/photos/8108200/pexels-photo-8108200.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A minimalistic breakfast setup featuring blueberries, milk, and oats on a bright kitchen counter.",
+    "query": "blueberry overnight oats jar"
+  },
+  "porridge-avoine-cannelle-cacahuete": {
+    "url": "https://images.pexels.com/photos/7167847/pexels-photo-7167847.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A nutritious bowl of oatmeal topped with bananas, blueberries, pecans, and chia seeds. Perfect healthy breakfast option.",
+    "query": "oatmeal porridge banana peanut butter"
+  },
+  "avocado-toast-saumon-oeuf": {
+    "url": "https://images.pexels.com/photos/5245779/pexels-photo-5245779.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious poached eggs with smoked salmon and herbs on toast. Perfect breakfast option.",
+    "query": "avocado toast smoked salmon egg"
+  },
+  "shakshuka-oeufs-feta": {
+    "url": "https://images.pexels.com/photos/8366623/pexels-photo-8366623.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of shakshouka in a frying pan with bread on a wooden chopping board.",
+    "query": "shakshuka eggs feta pan"
+  },
+  "bowl-cottage-cheese-fruits-noix": {
+    "url": "https://images.pexels.com/photos/32065589/pexels-photo-32065589.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A bowl of cottage cheese with strawberries, enhanced by dramatic sunlight.",
+    "query": "cottage cheese fruit nuts bowl"
+  },
+  "bowl-cake-proteine-cacao-banane": {
+    "url": "https://images.pexels.com/photos/47812/bananas-dessert-ice-cream-fruit-47812.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Indulgent dessert featuring chocolate, bananas, and whipped cream on a pastry.",
+    "query": "chocolate banana protein mug cake"
+  },
+  "oeufs-brouilles-avocat-pain": {
+    "url": "https://images.pexels.com/photos/29893443/pexels-photo-29893443.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty scrambled eggs on toast with sliced tomatoes, perfect for breakfast or brunch.",
+    "query": "scrambled eggs avocado toast"
+  },
+  "gaufres-proteinees-vanille-fruits-rouges": {
+    "url": "https://images.pexels.com/photos/34964952/pexels-photo-34964952.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a waffle ice cream sandwich with berry topping, held on a white plate with a gloved hand.",
+    "query": "protein waffles berries plate"
+  },
+  "chia-pudding-fraise-framboise-skyr": {
+    "url": "https://images.pexels.com/photos/8252828/pexels-photo-8252828.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of delicious chia seed pudding topped with fresh berries, served in elegant glasses.",
+    "query": "strawberry chia pudding glass"
+  },
+  "granola-maison-proteine-clusters": {
+    "url": "https://images.pexels.com/photos/7791099/pexels-photo-7791099.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A healthy breakfast bowl with granola, yogurt, blackberries, and blueberries.",
+    "query": "homemade granola clusters bowl"
+  },
+  "french-toast-proteine-cannelle": {
+    "url": "https://images.pexels.com/photos/36904810/pexels-photo-36904810.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Tasty French toast topped with fresh berries and served with a side of berry syrup on a wooden table.",
+    "query": "cinnamon french toast berries"
+  },
+  "smoothie-proteine-vert-post-reveil": {
+    "url": "https://images.pexels.com/photos/7111539/pexels-photo-7111539.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious green smoothie bowl topped with kiwi, pomegranate, and mango on a vibrant background.",
+    "query": "green spinach mango smoothie glass"
+  },
+  "energy-balls-dattes-amandes-coco": {
+    "url": "https://images.pexels.com/photos/3525752/pexels-photo-3525752.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious homemade chocolate truffles coated with coconut flakes, beautifully arranged on decorative paper.",
+    "query": "date coconut energy balls"
+  },
+  "skyr-fruits-rouges-granola": {
+    "url": "https://images.pexels.com/photos/4946624/pexels-photo-4946624.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Portions of appetizing sweet dessert with oatmeal and berries in glasses on shabby wooden table",
+    "query": "yogurt berries granola parfait"
+  },
+  "shake-proteine-banane-cacao-express": {
+    "url": "https://images.pexels.com/photos/36203728/pexels-photo-36203728.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of banana slices with rich chocolate spread on a white plate, highlighting textures and contrast.",
+    "query": "chocolate banana protein shake"
+  },
+  "oeufs-durs-crudites-houmous": {
+    "url": "https://images.pexels.com/photos/6544260/pexels-photo-6544260.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious protein-packed bowl featuring tuna, boiled eggs, green beans, and hummus.",
+    "query": "boiled eggs vegetable sticks hummus"
+  },
+  "toast-complet-fromage-frais-dinde": {
+    "url": "https://images.pexels.com/photos/4963498/pexels-photo-4963498.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a bread slice with cream cheese and cucumber on a marble surface.",
+    "query": "turkey cream cheese toast"
+  },
+  "pomme-beurre-amande": {
+    "url": "https://images.pexels.com/photos/32066570/pexels-photo-32066570.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a tasty apple nut cake with fresh green apples and walnuts.",
+    "query": "apple slices almond butter"
+  },
+  "cottage-cheese-ananas-graines-courge": {
+    "url": "https://images.pexels.com/photos/396132/pexels-photo-396132.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Fresh spinach salad with feta, olives, and sprouts, served in a sunlit bowl.",
+    "query": "cottage cheese pineapple seeds bowl"
+  },
+  "mini-wrap-dinde-avocat": {
+    "url": "https://images.pexels.com/photos/1143754/pexels-photo-1143754.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant salad with avocado, tomato, and corn on flatbread, topped with herbs, perfect for a healthy meal.",
+    "query": "turkey avocado tortilla pinwheels"
+  },
+  "barre-cereales-proteinee-maison": {
+    "url": "https://images.pexels.com/photos/13111782/pexels-photo-13111782.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a broken chocolate and nut energy bar on a gray surface.",
+    "query": "homemade oat protein bars"
+  },
+  "yaourt-grec-miel-noix": {
+    "url": "https://images.pexels.com/photos/375465/pexels-photo-375465.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of creamy vanilla ice cream topped with walnuts and honey in a bowl on a dark surface.",
+    "query": "greek yogurt honey walnuts bowl"
+  },
+  "poke-bowl-saumon-cru-hawaien": {
+    "url": "https://images.pexels.com/photos/7660475/pexels-photo-7660475.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of hands holding a salmon poke bowl with cherry tomatoes, edamame, and rice.",
+    "query": "salmon poke bowl rice"
+  },
+  "buddha-bowl-quinoa-pois-chiches-rotis": {
+    "url": "https://images.pexels.com/photos/5639367/pexels-photo-5639367.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant vegetable salad with creamy dressing served in a stylish dish.",
+    "query": "quinoa chickpea buddha bowl"
+  },
+  "poulet-teriyaki-riz-japonais": {
+    "url": "https://images.pexels.com/photos/5836771/pexels-photo-5836771.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A tasty chicken, broccoli, and rice bowl garnished with sesame seeds, paired with crispy fries.",
+    "query": "chicken teriyaki rice broccoli"
+  },
+  "salade-quinoa-grenade-feta-menthe": {
+    "url": "https://images.pexels.com/photos/5175508/pexels-photo-5175508.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a fresh quinoa salad with avocado, tomato, and creamy dressing on a plate.",
+    "query": "quinoa pomegranate feta salad"
+  },
+  "wrap-proteine-poulet-avocat": {
+    "url": "https://images.pexels.com/photos/5112582/pexels-photo-5112582.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A close-up of homemade nutritious wraps with fresh ingredients on a wooden board.",
+    "query": "chicken avocado wrap"
+  },
+  "lunch-box-poulet-quinoa-legumes-vapeur": {
+    "url": "https://images.pexels.com/photos/2741448/pexels-photo-2741448.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant bowl of grilled chicken salad with quinoa, fresh vegetables, and seeds.",
+    "query": "chicken quinoa vegetable lunch box"
+  },
+  "bowl-tofu-saute-gingembre-sesame": {
+    "url": "https://images.pexels.com/photos/9218768/pexels-photo-9218768.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious vegan tofu stir fry with mixed vegetables served on a white ceramic plate.",
+    "query": "tofu stir fry rice bowl"
+  },
+  "salade-saumon-fume-avocat-mangue": {
+    "url": "https://images.pexels.com/photos/5638514/pexels-photo-5638514.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant layered salad with avocado, salmon, mango, and grapefruit slices on a white plate.",
+    "query": "smoked salmon avocado mango salad"
+  },
+  "bowl-cottage-cheese-tex-mex": {
+    "url": "https://images.pexels.com/photos/14678843/pexels-photo-14678843.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A mouth-watering waffle bowl salad filled with fresh vegetables and toppings on a wooden board.",
+    "query": "cottage cheese black bean corn bowl"
+  },
+  "wok-crevettes-legumes-soba": {
+    "url": "https://images.pexels.com/photos/6718709/pexels-photo-6718709.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious Asian shrimp stir-fry with rice noodles, fresh vegetables and garnish, perfect for a gourmet meal.",
+    "query": "shrimp soba noodle stir fry"
+  },
+  "salade-lentilles-betterave-chevre": {
+    "url": "https://images.pexels.com/photos/10165790/pexels-photo-10165790.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A vibrant beetroot and goat cheese salad with walnuts and microgreens, beautifully presented.",
+    "query": "lentil beetroot goat cheese salad"
+  },
+  "bibimbap-allege-boeuf-maigre-legumes": {
+    "url": "https://images.pexels.com/photos/5774004/pexels-photo-5774004.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Deliciously vibrant Korean bibimbap topped with marinated bulgogi beef and fresh vegetables.",
+    "query": "korean beef bibimbap bowl"
+  },
+  "curry-pois-chiches-epinards-coco": {
+    "url": "https://images.pexels.com/photos/7111537/pexels-photo-7111537.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious chicken curry with creamy sauce and spinach-infused rice.",
+    "query": "chickpea spinach coconut curry rice"
+  },
+  "salade-cesar-revisitee-poulet": {
+    "url": "https://images.pexels.com/photos/29935339/pexels-photo-29935339.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Appetizing Caesar salad with grilled chicken, croutons, and Parmesan cheese, perfect for a gourmet meal.",
+    "query": "grilled chicken caesar salad"
+  },
+  "cookies-proteines-pepites-chocolat": {
+    "url": "https://images.pexels.com/photos/8081574/pexels-photo-8081574.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of freshly baked chocolate chip cookies on a plate, perfect for dessert.",
+    "query": "chocolate chip protein cookies"
+  },
+  "muffins-proteines-banane-chocolat": {
+    "url": "https://images.pexels.com/photos/37049121/pexels-photo-37049121.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of freshly baked chocolate chip muffins in paper liners, top view.",
+    "query": "banana chocolate chip muffins"
+  },
+  "banana-bread-proteine": {
+    "url": "https://images.pexels.com/photos/1277202/pexels-photo-1277202.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious homemade banana bread sliced on a white surface with a rustic texture.",
+    "query": "banana bread sliced loaf"
+  },
+  "bouchees-proteinees-chocolat-pb-no-bake": {
+    "url": "https://images.pexels.com/photos/5847238/pexels-photo-5847238.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A detailed shot of peanuts in a blender jar, ready for processing.",
+    "query": "chocolate peanut butter protein balls"
+  },
+  "gaufres-proteinees-tartiner": {
+    "url": "https://images.pexels.com/photos/5652274/pexels-photo-5652274.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a homemade waffle sandwich with creamy peanut butter on a wooden board.",
+    "query": "mini waffles peanut butter"
+  },
+  "mug-cake-proteine-chocolat": {
+    "url": "https://images.pexels.com/photos/33813614/pexels-photo-33813614.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Indulge in a rich chocolate lava cake with molten center, served on a stylish plate.",
+    "query": "chocolate mug cake molten"
+  },
+  "smoothie-epais-milkshake-fraise": {
+    "url": "https://images.pexels.com/photos/11410545/pexels-photo-11410545.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious strawberry smoothie with fresh strawberries and floral decor. Perfect for a refreshing treat.",
+    "query": "strawberry milkshake glass"
+  },
+  "riz-au-lait-proteine-vanille": {
+    "url": "https://images.pexels.com/photos/36909858/pexels-photo-36909858.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A tasty vanilla pudding topped with chocolate sprinkles and nuts, placed on a decorative mat.",
+    "query": "vanilla rice pudding bowl"
+  },
+  "toast-banane-cannelle-fromage-blanc": {
+    "url": "https://images.pexels.com/photos/6659689/pexels-photo-6659689.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of peanut butter toast with banana and jam toppings on a plate.",
+    "query": "banana toast cottage cheese cinnamon"
+  },
+  "pop-corn-maison-chocolat-noir": {
+    "url": "https://images.pexels.com/photos/30910227/pexels-photo-30910227.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious caramel popcorn drizzled with chocolate in a white bowl on a rustic wooden table.",
+    "query": "popcorn dark chocolate bowl"
+  },
+  "saumon-teriyaki-four-asperges": {
+    "url": "https://images.pexels.com/photos/5152283/pexels-photo-5152283.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious grilled salmon with fresh asparagus and rice, perfect for a healthy meal.",
+    "query": "teriyaki salmon asparagus plate"
+  },
+  "dahl-lentilles-corail-coco-epinards": {
+    "url": "https://images.pexels.com/photos/6544374/pexels-photo-6544374.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious vegan bowl featuring avocado, rice, and fresh greens perfect for a healthy meal.",
+    "query": "red lentil dahl coconut spinach"
+  },
+  "cabillaud-roti-ratatouille-quinoa": {
+    "url": "https://images.pexels.com/photos/18354018/pexels-photo-18354018.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of a gourmet grilled fish fillet with quinoa on a white plate.",
+    "query": "roasted cod ratatouille quinoa"
+  },
+  "poulet-roti-citron-herbes-legumes-four": {
+    "url": "https://images.pexels.com/photos/6210947/pexels-photo-6210947.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of appetizing baked chicken with onion and lemon slices near fresh pomegranate pieces and whole carrots in baking dish",
+    "query": "roast chicken lemon herbs vegetables"
+  },
+  "omelette-legumes-fromage-frais": {
+    "url": "https://images.pexels.com/photos/5840304/pexels-photo-5840304.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savory omelette with vegetables, cheese, and toasted bread on a plate.",
+    "query": "vegetable omelette spinach mushroom"
+  },
+  "burger-dinde-maison-pain-complet": {
+    "url": "https://images.pexels.com/photos/9121487/pexels-photo-9121487.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up of hands holding a delicious burger with pesto, lettuce, and sesame seeds. Perfect for gourmet food lovers.",
+    "query": "turkey burger whole wheat bun"
+  },
+  "curry-thai-poulet-legumes": {
+    "url": "https://images.pexels.com/photos/31653129/pexels-photo-31653129.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor the flavors of Asian curry with chicken and eggplant in a Tokyo restaurant bowl.",
+    "query": "thai green chicken curry rice"
+  },
+  "papillote-poisson-blanc-citron-legumes": {
+    "url": "https://images.pexels.com/photos/4050985/pexels-photo-4050985.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious grilled asparagus with roasted cherry tomatoes and lemon, perfect for a healthy meal.",
+    "query": "white fish parchment lemon vegetables"
+  },
+  "chili-sin-carne-haricots-rouges-quinoa": {
+    "url": "https://images.pexels.com/photos/32667184/pexels-photo-32667184.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A bowl of hearty Mexican chili topped with avocado, served with tortilla on a wooden table.",
+    "query": "vegetarian chili kidney beans bowl"
+  },
+  "soupe-repas-poulet-nouilles-gingembre": {
+    "url": "https://images.pexels.com/photos/10183544/pexels-photo-10183544.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Appetizing chicken noodle soup served with sliced egg in a white bowl.",
+    "query": "chicken noodle soup ginger egg"
+  },
+  "steak-hache-puree-patate-douce-carotte": {
+    "url": "https://images.pexels.com/photos/31064139/pexels-photo-31064139.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Exquisite beef tenderloin topped with onion rings, mushrooms, and rosemary on a black plate.",
+    "query": "beef patty sweet potato mash"
+  },
+  "tofu-marine-laque-wok-legumes-verts": {
+    "url": "https://images.pexels.com/photos/5848482/pexels-photo-5848482.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of colorful Asian stir fry with tofu and vegetables on a ceramic plate.",
+    "query": "glazed tofu green vegetable stir fry"
+  },
+  "galettes-sarrasin-oeuf-jambon-fromage": {
+    "url": "https://images.pexels.com/photos/9615726/pexels-photo-9615726.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Man standing in kitchen, eating omelette with toast. Morning meal indoors.",
+    "query": "buckwheat galette egg ham cheese"
+  },
+  "crevettes-ail-citron-courgettes-spaghetti": {
+    "url": "https://images.pexels.com/photos/10802305/pexels-photo-10802305.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Flavorful pasta with creamy zucchini and grilled shrimp on a rustic wooden board.",
+    "query": "garlic shrimp zucchini noodles"
+  },
+  "fromage-blanc-amandes-cannelle": {
+    "url": "https://images.pexels.com/photos/5900053/pexels-photo-5900053.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Colorful baking setup with almonds, tangerines, flour, and cinnamon on a kitchen table.",
+    "query": "fromage blanc almonds cinnamon bowl"
+  },
+  "skyr-graines-chia": {
+    "url": "https://images.pexels.com/photos/33755314/pexels-photo-33755314.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Vibrant smoothie bowl topped with fresh fruits and seeds, perfect for a healthy breakfast.",
+    "query": "skyr chia berries bowl"
+  },
+  "cottage-cheese-concombre-herbes": {
+    "url": "https://images.pexels.com/photos/27612521/pexels-photo-27612521.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious fresh vegetable salad topped with parsley, served in a ceramic bowl.",
+    "query": "cottage cheese cucumber herbs bowl"
+  },
+  "pudding-caseine-vanille-mousseux": {
+    "url": "https://images.pexels.com/photos/5645175/pexels-photo-5645175.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious chia pudding topped with raspberries on a rustic wooden table.",
+    "query": "vanilla protein pudding bowl"
+  },
+  "fromage-blanc-battu-fruits-rouges": {
+    "url": "https://images.pexels.com/photos/29253253/pexels-photo-29253253.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "A luscious creamy dessert garnished with fresh red currants and mint leaves in a glass bowl.",
+    "query": "whipped fromage blanc berries glass"
+  },
+  "oeufs-durs-avocat": {
+    "url": "https://images.pexels.com/photos/566566/pexels-photo-566566.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious avocado toast topped with soft-boiled eggs and pine nuts on a white plate.",
+    "query": "boiled eggs avocado slices plate"
+  },
+  "yaourt-grec-noix-filet-miel": {
+    "url": "https://images.pexels.com/photos/4491390/pexels-photo-4491390.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Top view of a nutritious bowl with yoghurt, blueberries, chia seeds, and walnuts.",
+    "query": "greek yogurt walnuts honey bowl"
+  },
+  "smoothie-caseine-cacao-nuit": {
+    "url": "https://images.pexels.com/photos/20066464/pexels-photo-20066464.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Close-up view of a delicious chocolate milkshake with a straw on a wooden table.",
+    "query": "chocolate protein shake glass"
+  },
+  "toast-complet-fromage-blanc-dinde-soir": {
+    "url": "https://images.pexels.com/photos/5588983/pexels-photo-5588983.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Savor this healthy avocado and spinach toast served on a marble table, perfect for breakfast.",
+    "query": "turkey cottage cheese toast"
+  },
+  "faisselle-graines-lin-fruits": {
+    "url": "https://images.pexels.com/photos/27850092/pexels-photo-27850092.jpeg?auto=compress&cs=tinysrgb&h=650&w=940",
+    "alt": "Delicious and healthy oatmeal topped with fresh berries, perfect for a nutritious breakfast.",
+    "query": "cottage cheese flaxseed berries bowl"
+  }
+}
