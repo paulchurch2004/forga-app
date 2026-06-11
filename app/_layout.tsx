@@ -60,6 +60,7 @@ import { initRevenueCat } from '../src/services/revenueCat';
 import { initAnalytics, identifyUser, resetUser, events } from '../src/services/analytics';
 import { setUser as setSentryUser } from '../src/services/sentry';
 import { wipeUserStores } from '../src/services/sessionReset';
+import { UpdateGate } from '../src/components/UpdateGate';
 import { loadAllUserData, bumpLastActiveAt } from '../src/services/userSync';
 import { calculateForgaScore } from '../src/engine/scoreEngine';
 import { useWaterStore } from '../src/store/waterStore';
@@ -456,6 +457,7 @@ function RootLayoutInner() {
       </BiometricLockGate>
       <ToastHost />
       <HealthDisclaimerGate />
+      <UpdateGate />
     </QueryClientProvider>
   );
 }
