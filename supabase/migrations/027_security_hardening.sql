@@ -17,7 +17,7 @@
 -- L'onboarding crée la row public.users côté client AVEC is_premium=true et
 -- premium_until=now()+7j (trial auto). On ne peut donc pas interdire
 -- is_premium=true à l'INSERT. Mais on BORNE : premium_until ne peut pas
--- dépasser ~8 jours, et stripe_* doit être NULL à la création. Un attaquant
+-- dépasser ~8 jours. Un attaquant
 -- ne peut donc plus s'auto-octroyer un premium_until lointain (2099) via
 -- DELETE + INSERT. Les abonnements payants longue durée sont écrits
 -- uniquement par service_role (verify-session/webhook), qui bypass la RLS.
@@ -31,9 +31,6 @@ CREATE POLICY "users_insert_own"
     AND (premium_until IS NULL OR premium_until <= (now() + INTERVAL '8 days'))
     -- si is_premium=true à la création, il DOIT être borné dans le temps
     AND (is_premium IS NOT TRUE OR (premium_until IS NOT NULL AND premium_until <= (now() + INTERVAL '8 days')))
-    -- l'abonnement Stripe ne se crée jamais côté client
-    AND stripe_customer_id IS NULL
-    AND stripe_subscription_id IS NULL
     -- trial : seulement les états de départ légitimes
     AND (trial_state IS NULL OR trial_state IN ('never_started', 'active'))
   );
@@ -121,8 +118,7 @@ BEGIN
   UPDATE public.users
   SET is_premium = FALSE, trial_state = 'expired', premium_until = NULL
   WHERE id = p_user_id
-    AND trial_state = 'active'
-    AND stripe_subscription_id IS NULL;
+    AND trial_state = 'active';
 
   RETURN jsonb_build_object('success', true, 'state', 'expired');
 END;
