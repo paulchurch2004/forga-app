@@ -2,3 +2,5 @@
 .claude/
 dist/
 .git/
+.env
+.env*.local

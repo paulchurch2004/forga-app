@@ -11,6 +11,9 @@
     "test:watch": "jest --config jest.config.js --watch",
     "build:web": "expo export --platform web && node scripts/inject-pwa.js"
   },
+  "overrides": {
+    "ws": "^8.20.1"
+  },
   "dependencies": {
     "@expo-google-fonts/dm-sans": "^0.4.2",
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",

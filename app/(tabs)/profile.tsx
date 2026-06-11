@@ -320,6 +320,21 @@ export default function ProfileScreen() {
 
   const performDeleteAccount = async () => {
     try {
+      // RGPD art.17 : la cascade DB n'efface PAS le Storage. On supprime
+      // explicitement l'avatar (donnée perso) AVANT le RPC, tant que le
+      // JWT est encore valide. (audit sécurité)
+      try {
+        const uid = useAuthStore.getState().session?.user?.id;
+        if (uid) {
+          await supabase.storage.from('avatars').remove([
+            `${uid}/avatar.jpg`, `${uid}/avatar.jpeg`, `${uid}/avatar.png`,
+            `${uid}/avatar.webp`, `${uid}/avatar.heic`,
+          ]);
+        }
+      } catch (err) {
+        if (__DEV__) console.warn('[DeleteAccount] avatar remove failed:', err);
+      }
+
       // Appelle la fonction RPC server-side `delete_my_account` (cf
       // migration 016). Elle supprime UN SEUL row dans auth.users, et
       // le ON DELETE CASCADE propage à TOUTES les sous-tables —

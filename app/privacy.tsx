@@ -101,9 +101,11 @@ export default function PrivacyScreen() {
           - Apple (Sign in with Apple, In-App Purchases, Apple Health){'\n'}
           - Google (Sign in with Google, optionnel){'\n'}
           - RevenueCat (gestion des abonnements){'\n'}
-          - Sentry (detection automatique des plantages, donnees anonymisees){'\n'}
-          - PostHog (analyse anonyme d'usage, donnees pseudonymisees){'\n'}
-          - Anthropic / Google AI (coach IA, message + contexte minimal){'\n\n'}
+          - Sentry (detection automatique des plantages){'\n'}
+          - PostHog (analyse d'usage pseudonymisee, soumise a votre consentement){'\n'}
+          - Groq, OpenAI, Anthropic (coach IA : votre message et un contexte de
+            profil — prenom, donnees corporelles, objectifs){'\n'}
+          - OpenAI (analyse par IA des photos de repas que vous scannez){'\n\n'}
           Liste exhaustive avec finalites et URLs de privacy : forga.fr/privacy
         </Section>
 

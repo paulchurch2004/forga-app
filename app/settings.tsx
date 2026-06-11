@@ -669,6 +669,10 @@ function VersionFooter() {
     '—';
 
   const handleLongPress = () => {
+    // Menu dev (toggle premium / debug) — JAMAIS exposé en production : sans
+    // ce garde, n'importe quel utilisateur pouvait débloquer le contenu
+    // premium par un appui long sur la version. (audit sécurité)
+    if (!__DEV__) return;
     const isPremiumNow = !!profile?.isPremium;
     const togglePremium = () => {
       updateProfile({

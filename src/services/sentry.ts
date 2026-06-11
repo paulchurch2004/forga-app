@@ -24,6 +24,30 @@ export async function initSentry() {
       attachStacktrace: true,
       environment: __DEV__ ? 'development' : 'production',
       enabled: !__DEV__, // Only report in production
+      // Minimisation PII (app santé — RGPD art. 9). On ne laisse jamais
+      // partir l'email, l'IP, ni les corps de requête/breadcrumbs qui
+      // pourraient contenir poids/mensurations/photos. (audit sécurité)
+      sendDefaultPii: false,
+      maxBreadcrumbs: 30,
+      beforeSend: (event: any) => {
+        if (event.user) {
+          delete event.user.email;
+          delete event.user.ip_address;
+          delete event.user.username;
+        }
+        if (event.request) {
+          delete event.request.data;
+          delete event.request.cookies;
+          delete event.request.headers;
+        }
+        return event;
+      },
+      beforeBreadcrumb: (breadcrumb: any) => {
+        if (breadcrumb?.category === 'http' && breadcrumb.data) {
+          delete breadcrumb.data.body;
+        }
+        return breadcrumb;
+      },
     });
     isInitialized = true;
   } catch {

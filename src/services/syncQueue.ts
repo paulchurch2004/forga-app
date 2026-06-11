@@ -149,9 +149,12 @@ export async function processQueue(): Promise<void> {
         const attempts = (action.attempts ?? 0) + 1;
         if (attempts >= MAX_ATTEMPTS) {
           // Drop after too many failures and surface to Sentry for triage.
+          // ⚠️ Ne JAMAIS joindre `action` (action.data = données santé/perso :
+          // poids, mensurations, profil). On n'envoie que des métadonnées
+          // non-PII à Sentry. (audit sécurité — RGPD art. 9)
           captureException(new Error(`SyncQueue: action dropped after ${attempts} attempts`), {
             tags: { table: action.table, action_id: action.id },
-            extra: { lastError: error.message, action },
+            extra: { lastError: error.message, operation: action.operation, attempts },
           });
           continue;
         }
@@ -167,7 +170,7 @@ export async function processQueue(): Promise<void> {
       if (attempts >= MAX_ATTEMPTS) {
         captureException(e instanceof Error ? e : new Error(String(e)), {
           tags: { table: action.table, action_id: action.id },
-          extra: { reason: 'max-attempts', action },
+          extra: { reason: 'max-attempts', operation: action.operation, attempts },
         });
         continue;
       }

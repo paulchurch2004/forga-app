@@ -59,6 +59,7 @@ import { processQueue } from '../src/services/syncQueue';
 import { initRevenueCat } from '../src/services/revenueCat';
 import { initAnalytics, identifyUser, resetUser, events } from '../src/services/analytics';
 import { setUser as setSentryUser } from '../src/services/sentry';
+import { wipeUserStores } from '../src/services/sessionReset';
 import { loadAllUserData, bumpLastActiveAt } from '../src/services/userSync';
 import { calculateForgaScore } from '../src/engine/scoreEngine';
 import { useWaterStore } from '../src/store/waterStore';
@@ -270,6 +271,10 @@ function RootLayoutInner() {
       } else if (event === 'SIGNED_OUT') {
         resetUser();
         setSentryUser(null);
+        // Efface TOUS les stores user-scoped, même si la déconnexion est
+        // involontaire (refresh token révoqué, session expirée) → évite la
+        // contamination cross-user sur appareil partagé. (audit sécurité)
+        void wipeUserStores();
         // Drop the user back to the entry point so the auth-aware index.tsx
         // can route them to welcome/login. Without this, the profile tab stays
         // mounted with no session and renders blank.
