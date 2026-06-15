@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Pressable, Platform, StyleSheet, Image } from 'react-native';
+import { View, Pressable, Platform, StyleSheet, Image, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -10,7 +10,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useUserStore } from '../../store/userStore';
+import { useMealStore } from '../../store/mealStore';
 import { resolveLocalUri } from '../../utils/persistImage';
+import { todayLocalIso } from '../../utils/date';
 
 // Tabs visibles dans la barre du bas (training et coach sont accessibles
 // via les gros tiles du Home → `if (!path) return null` les skip).
@@ -41,11 +43,15 @@ function TabButton({
   focused,
   onPress,
   avatarUri,
+  badgeCount = 0,
+  badgeShowNumber = false,
 }: {
   path: string;
   focused: boolean;
   onPress: () => void;
   avatarUri?: string;
+  badgeCount?: number;
+  badgeShowNumber?: boolean;
 }) {
   // p : 0 = inactif, 1 = actif. Ressort doux pour le rebond.
   const p = useSharedValue(focused ? 1 : 0);
@@ -71,29 +77,40 @@ function TabButton({
       android_ripple={{ color: 'rgba(255,107,53,0.18)', borderless: true, radius: 30 }}
       hitSlop={6}
     >
-      {avatarUri ? (
-        // Onglet Profil : photo de profil ronde (façon Instagram),
-        // anneau orange quand l'onglet est actif.
-        <Animated.View style={[styles.avatarWrap, focused && styles.avatarWrapActive, iconStyle]}>
-          <Image source={{ uri: avatarUri }} style={styles.avatarImg} />
-        </Animated.View>
-      ) : (
-        <>
-          {/* Halo orange animé derrière l'icône active */}
-          <Animated.View style={[styles.glowPill, glowStyle]} pointerEvents="none" />
-          <Animated.View style={iconStyle}>
-            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
-              <Path
-                d={path}
-                stroke={focused ? ACTIVE_COLOR : INACTIVE_COLOR}
-                strokeWidth={2}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </Svg>
+      <View style={styles.iconBox}>
+        {avatarUri ? (
+          // Onglet Profil : photo de profil ronde (façon Instagram),
+          // anneau orange quand l'onglet est actif.
+          <Animated.View style={[styles.avatarWrap, focused && styles.avatarWrapActive, iconStyle]}>
+            <Image source={{ uri: avatarUri }} style={styles.avatarImg} />
           </Animated.View>
-        </>
-      )}
+        ) : (
+          <>
+            {/* Halo orange animé derrière l'icône active */}
+            <Animated.View style={[styles.glowPill, glowStyle]} pointerEvents="none" />
+            <Animated.View style={iconStyle}>
+              <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d={path}
+                  stroke={focused ? ACTIVE_COLOR : INACTIVE_COLOR}
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </Svg>
+            </Animated.View>
+          </>
+        )}
+
+        {/* Pastille rouge "à faire" (chiffre ou simple point) */}
+        {badgeCount > 0 && (
+          <View style={[styles.badge, !badgeShowNumber && styles.badgeDot]} pointerEvents="none">
+            {badgeShowNumber && (
+              <Text style={styles.badgeText}>{badgeCount > 9 ? '9+' : String(badgeCount)}</Text>
+            )}
+          </View>
+        )}
+      </View>
     </Pressable>
   );
 }
@@ -107,6 +124,41 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   // URI locale ou une URL Supabase → resolveLocalUri gère les deux.
   const avatarStored = useUserStore((s) => s.profile?.avatarUri);
   const avatarUri = resolveLocalUri(avatarStored);
+
+  // ── Badges "à faire" (façon Instagram), calcul léger ──
+  const mealsPerDay = useUserStore((s) => s.profile?.mealsPerDay) ?? 0;
+  const premiumUntil = useUserStore((s) => s.profile?.premiumUntil);
+  const checkIns = useUserStore((s) => s.checkIns);
+  const todayMeals = useMealStore((s) => s.todayMeals);
+  const lastMealDate = useMealStore((s) => s.lastMealDate);
+
+  // Repas : nombre de créneaux du jour pas encore loggés (0 = rien).
+  const loggedSlots =
+    lastMealDate === todayLocalIso() ? new Set(todayMeals.map((m) => m.slot)).size : 0;
+  const mealsRemaining = Math.max(0, mealsPerDay - loggedSlots);
+
+  // Accueil : check-in hebdo pas encore fait cette semaine (semaine = dimanche→samedi).
+  const checkinDue = (() => {
+    const now = new Date();
+    const weekStart = new Date(now);
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+    return !checkIns.some((c) => new Date(c.createdAt) >= weekStart);
+  })();
+
+  // Profil : essai / premium qui expire dans ≤ 2 jours.
+  const trialEndingSoon = (() => {
+    if (!premiumUntil) return false;
+    const days = (new Date(premiumUntil).getTime() - Date.now()) / 86400000;
+    return days > 0 && days <= 2;
+  })();
+
+  const badgeFor = (name: string): { count: number; showNumber: boolean } => {
+    if (name === 'meals') return { count: mealsRemaining, showNumber: true };
+    if (name === 'home') return { count: checkinDue ? 1 : 0, showNumber: false };
+    if (name === 'profile') return { count: trialEndingSoon ? 1 : 0, showNumber: false };
+    return { count: 0, showNumber: false };
+  };
 
   // training/coach sont des routes valides hors tab bar → fallback Home
   // pour qu'un onglet reste visuellement actif.
@@ -140,6 +192,7 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
             }
           };
 
+          const badge = badgeFor(route.name);
           return (
             <TabButton
               key={route.key}
@@ -147,6 +200,8 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
               focused={focused}
               onPress={onPress}
               avatarUri={route.name === 'profile' ? avatarUri : undefined}
+              badgeCount={badge.count}
+              badgeShowNumber={badge.showNumber}
             />
           );
         })}
@@ -185,6 +240,41 @@ const styles = StyleSheet.create({
     height: '100%',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  iconBox: {
+    width: 46,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    right: 2,
+    minWidth: 17,
+    height: 17,
+    borderRadius: 9,
+    paddingHorizontal: 4,
+    backgroundColor: '#FF3B30',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#0E0E14',
+  },
+  badgeDot: {
+    minWidth: 0,
+    width: 11,
+    height: 11,
+    borderRadius: 6,
+    paddingHorizontal: 0,
+    top: 2,
+    right: 7,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
+    lineHeight: 13,
   },
   glowPill: {
     position: 'absolute',
