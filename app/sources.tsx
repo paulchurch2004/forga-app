@@ -61,7 +61,7 @@ const REFERENCES: Reference[] = [
     categoryEn: 'Nutritional reference values (France)',
     citation:
       'ANSES — Agence nationale de sécurité sanitaire de l’alimentation, de l’environnement et du travail. « Les références nutritionnelles. »',
-    url: 'https://www.anses.fr/fr/content/les-r%C3%A9f%C3%A9rences-nutritionnelles',
+    url: 'https://www.anses.fr/fr/content/les-r%C3%A9f%C3%A9rences-nutritionnelles-en-vitamines-et-min%C3%A9raux',
   },
   {
     categoryFr: 'Alimentation saine (recommandations générales)',
