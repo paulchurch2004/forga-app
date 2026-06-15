@@ -39,6 +39,8 @@ import { useWaterStore } from '../../src/store/waterStore';
 import { useSettingsStore, type ThemeMode, type Locale } from '../../src/store/settingsStore';
 import { useStreak } from '../../src/hooks/useStreak';
 import { usePremium } from '../../src/hooks/usePremium';
+import { useActionBadges } from '../../src/hooks/useActionBadges';
+import { NotifDot } from '../../src/components/ui/NotifDot';
 import { supabase } from '../../src/services/supabase';
 import { processQueue, clearQueue } from '../../src/services/syncQueue';
 import { captureException } from '../../src/services/sentry';
@@ -78,6 +80,7 @@ export default function ProfileScreen() {
   const score = useScoreStore((s) => s.currentScore);
   const { currentStreak, bestStreak, streakFreezeUsedThisWeek } = useStreak();
   const { isPremium, isTrialActive, isTrialExpired, daysLeft } = usePremium();
+  const { checkinDue } = useActionBadges();
   const checkIns = useUserStore((s) => s.checkIns);
   const weightLog = useUserStore((s) => s.weightLog);
   const { isEnabled: notifEnabled, toggle: toggleNotif } = useNotifications();
@@ -705,7 +708,10 @@ export default function ProfileScreen() {
               <Text style={styles.progressionSubtitle}>{t('checkInSubtitle')}</Text>
             </View>
           </View>
-          <Text style={styles.progressionArrow}>{'\u203A'}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {checkinDue && <NotifDot />}
+            <Text style={styles.progressionArrow}>{'\u203A'}</Text>
+          </View>
         </Pressable>
         <Pressable
           style={styles.progressionButton}

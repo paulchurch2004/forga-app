@@ -10,9 +10,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useUserStore } from '../../store/userStore';
-import { useMealStore } from '../../store/mealStore';
 import { resolveLocalUri } from '../../utils/persistImage';
-import { todayLocalIso } from '../../utils/date';
+import { useActionBadges } from '../../hooks/useActionBadges';
 
 // Tabs visibles dans la barre du bas (training et coach sont accessibles
 // via les gros tiles du Home → `if (!path) return null` les skip).
@@ -125,38 +124,18 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const avatarStored = useUserStore((s) => s.profile?.avatarUri);
   const avatarUri = resolveLocalUri(avatarStored);
 
-  // ── Badges "à faire" (façon Instagram), calcul léger ──
-  const mealsPerDay = useUserStore((s) => s.profile?.mealsPerDay) ?? 0;
-  const premiumUntil = useUserStore((s) => s.profile?.premiumUntil);
-  const checkIns = useUserStore((s) => s.checkIns);
-  const todayMeals = useMealStore((s) => s.todayMeals);
-  const lastMealDate = useMealStore((s) => s.lastMealDate);
+  // ── Badges "à faire" — source de vérité partagée avec les écrans (fil
+  // d'Ariane) : le point se répète sur l'élément exact de l'écran cible.
+  const { mealsRemaining, checkinDue, trialEndingSoon } = useActionBadges();
 
-  // Repas : nombre de créneaux du jour pas encore loggés (0 = rien).
-  const loggedSlots =
-    lastMealDate === todayLocalIso() ? new Set(todayMeals.map((m) => m.slot)).size : 0;
-  const mealsRemaining = Math.max(0, mealsPerDay - loggedSlots);
-
-  // Accueil : check-in hebdo pas encore fait cette semaine (semaine = dimanche→samedi).
-  const checkinDue = (() => {
-    const now = new Date();
-    const weekStart = new Date(now);
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-    weekStart.setHours(0, 0, 0, 0);
-    return !checkIns.some((c) => new Date(c.createdAt) >= weekStart);
-  })();
-
-  // Profil : essai / premium qui expire dans ≤ 2 jours.
-  const trialEndingSoon = (() => {
-    if (!premiumUntil) return false;
-    const days = (new Date(premiumUntil).getTime() - Date.now()) / 86400000;
-    return days > 0 && days <= 2;
-  })();
-
+  // Le check-in se lance depuis le Profil (et la bannière Nutrition), PAS
+  // depuis l'accueil → on place son point sur l'onglet Profil pour qu'il
+  // guide réellement jusqu'à l'action.
   const badgeFor = (name: string): { count: number; showNumber: boolean } => {
     if (name === 'meals') return { count: mealsRemaining, showNumber: true };
-    if (name === 'home') return { count: checkinDue ? 1 : 0, showNumber: false };
-    if (name === 'profile') return { count: trialEndingSoon ? 1 : 0, showNumber: false };
+    if (name === 'profile') {
+      return { count: checkinDue || trialEndingSoon ? 1 : 0, showNumber: false };
+    }
     return { count: 0, showNumber: false };
   };
 
