@@ -97,8 +97,8 @@ export default function ContactScreen() {
         <Text style={styles.legalTitle}>{isFr ? 'Mentions légales' : 'Legal'}</Text>
         <Text style={styles.legalBody}>
           {isFr
-            ? "Édité par FORGA SAS\nSiège social : France\nResponsable de la publication : direction de FORGA SAS\nContact : support.forga@gmail.com\n\nPour toute demande relative à tes données personnelles : support.forga@gmail.com (CNIL : cnil.fr)."
-            : 'Published by FORGA SAS\nRegistered office: France\nPublication manager: FORGA SAS direction\nContact: support.forga@gmail.com'}
+            ? "Édité par Paul Church, entrepreneur individuel\n2 allée Armand Praviel, 33000 Bordeaux, France\nResponsable de la publication : Paul Church\nContact : support.forga@gmail.com\n\nPour toute demande relative à tes données personnelles : support.forga@gmail.com (CNIL : cnil.fr)."
+            : 'Published by Paul Church, sole proprietor\n2 allee Armand Praviel, 33000 Bordeaux, France\nPublication manager: Paul Church\nContact: support.forga@gmail.com'}
         </Text>
       </View>
 

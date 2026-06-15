@@ -554,6 +554,7 @@ export const en: Record<TranslationKey, string> = {
   restrictions: 'Restrictions',
   scoreIntroDesc: 'Your FORGA Score starts at 0. Every day you validate, it goes up. Every day you miss, it goes down. Your move.',
   onboardingDisclaimer: 'FORGA is a nutrition assistance tool. It does not replace professional health advice. Calculations are based on recognized scientific formulas (Mifflin-St Jeor, ISSN) but remain estimates. Consult a doctor or dietitian for specific needs.',
+  sourcesLink: 'Scientific sources',
   notifPromptTitle: 'Stay on track, effortlessly',
   notifPromptBody: 'A discreet reminder at meal times, a weekly check-in, and an alert if your streak is at risk. You can turn this off anytime in settings.',
   enable: 'Enable',

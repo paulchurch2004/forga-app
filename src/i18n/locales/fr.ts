@@ -554,6 +554,7 @@ export const fr = {
   restrictions: 'Restrictions',
   scoreIntroDesc: 'Ton Score FORGA demarre a 0. Chaque jour que tu valides, il monte. Chaque jour que tu rates, il descend. A toi de jouer.',
   onboardingDisclaimer: "FORGA est un outil d'aide a la nutrition. Il ne remplace pas l'avis d'un professionnel de sante. Les calculs sont bases sur des formules scientifiques reconnues (Mifflin-St Jeor, ISSN) mais restent des estimations. Consulte un medecin ou un dieteticien si tu as des besoins specifiques.",
+  sourcesLink: 'Sources scientifiques',
   notifPromptTitle: 'Garde le cap, sans y penser',
   notifPromptBody: "Un rappel discret a l'heure des repas, un check-in chaque dimanche, et une alerte si ta serie est en danger. Tu peux desactiver a tout moment dans les reglages.",
   enable: 'Activer',

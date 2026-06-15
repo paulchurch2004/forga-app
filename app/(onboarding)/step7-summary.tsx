@@ -507,6 +507,11 @@ export default function Step7Summary() {
         <Text style={styles.disclaimer}>
           {t("onboardingDisclaimer")}
         </Text>
+
+        {/* Lien sources scientifiques (citations — Apple 1.4.1) */}
+        <Pressable onPress={() => router.push('/sources')} hitSlop={8}>
+          <Text style={styles.sourcesLink}>{t('sourcesLink' as any) as string}</Text>
+        </Pressable>
       </ScrollView>
 
       {/* Bottom button */}
@@ -784,6 +789,14 @@ const useStyles = makeStyles((colors) => ({
     textAlign: 'center',
     marginTop: spacing.sm,
     paddingHorizontal: spacing.md,
+  },
+  sourcesLink: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.primary,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+    marginTop: spacing.md,
   },
   bottomBar: {
     paddingTop: spacing.lg,

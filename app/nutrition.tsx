@@ -626,6 +626,11 @@ export default function NutritionScreen() {
           </View>
         </Animated.View>
 
+        {/* Lien sources scientifiques (citations — Apple 1.4.1) */}
+        <Pressable onPress={() => router.push('/sources')} hitSlop={8} style={styles.sourcesLinkRow}>
+          <Text style={styles.sourcesLink}>{t('sourcesLink' as any) as string}</Text>
+        </Pressable>
+
         <View style={styles.bottomSpacer} />
       </ScrollView>
       {undoSlot && (
@@ -816,6 +821,16 @@ const useStyles = makeStyles((colors) => ({
   },
   bottomSpacer: {
     height: spacing['3xl'],
+  },
+  sourcesLinkRow: {
+    alignItems: 'center',
+    paddingVertical: spacing.md,
+  },
+  sourcesLink: {
+    fontFamily: fonts.body,
+    fontSize: fontSizes.sm,
+    color: colors.primary,
+    textDecorationLine: 'underline',
   },
 
   // Scan actions with images

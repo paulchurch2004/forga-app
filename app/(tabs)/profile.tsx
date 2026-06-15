@@ -961,6 +961,11 @@ export default function ProfileScreen() {
             {locale === 'en' ? 'Terms of Service' : "Conditions d'utilisation"}
           </Text>
         </Pressable>
+        <Pressable onPress={() => router.push('/sources')}>
+          <Text style={[styles.legalText, { color: colors.primary, marginTop: spacing.xs }]}>
+            {locale === 'en' ? 'Scientific sources' : 'Sources scientifiques'}
+          </Text>
+        </Pressable>
         <Text style={[styles.legalText, { marginTop: spacing.lg }]}>
           FORGA v{APP_VERSION}
         </Text>
