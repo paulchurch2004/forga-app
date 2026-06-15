@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { View, Pressable, Platform, StyleSheet } from 'react-native';
+import { View, Pressable, Platform, StyleSheet, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,6 +9,8 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import { useUserStore } from '../../store/userStore';
+import { resolveLocalUri } from '../../utils/persistImage';
 
 // Tabs visibles dans la barre du bas (training et coach sont accessibles
 // via les gros tiles du Home → `if (!path) return null` les skip).
@@ -38,10 +40,12 @@ function TabButton({
   path,
   focused,
   onPress,
+  avatarUri,
 }: {
   path: string;
   focused: boolean;
   onPress: () => void;
+  avatarUri?: string;
 }) {
   // p : 0 = inactif, 1 = actif. Ressort doux pour le rebond.
   const p = useSharedValue(focused ? 1 : 0);
@@ -67,19 +71,29 @@ function TabButton({
       android_ripple={{ color: 'rgba(255,107,53,0.18)', borderless: true, radius: 30 }}
       hitSlop={6}
     >
-      {/* Halo orange animé derrière l'icône active */}
-      <Animated.View style={[styles.glowPill, glowStyle]} pointerEvents="none" />
-      <Animated.View style={iconStyle}>
-        <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
-          <Path
-            d={path}
-            stroke={focused ? ACTIVE_COLOR : INACTIVE_COLOR}
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </Svg>
-      </Animated.View>
+      {avatarUri ? (
+        // Onglet Profil : photo de profil ronde (façon Instagram),
+        // anneau orange quand l'onglet est actif.
+        <Animated.View style={[styles.avatarWrap, focused && styles.avatarWrapActive, iconStyle]}>
+          <Image source={{ uri: avatarUri }} style={styles.avatarImg} />
+        </Animated.View>
+      ) : (
+        <>
+          {/* Halo orange animé derrière l'icône active */}
+          <Animated.View style={[styles.glowPill, glowStyle]} pointerEvents="none" />
+          <Animated.View style={iconStyle}>
+            <Svg width={23} height={23} viewBox="0 0 24 24" fill="none">
+              <Path
+                d={path}
+                stroke={focused ? ACTIVE_COLOR : INACTIVE_COLOR}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </Animated.View>
+        </>
+      )}
     </Pressable>
   );
 }
@@ -88,6 +102,11 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   // Marge sous la barre pour qu'elle "lévite" au-dessus du bord / indicateur home.
   const bottomMargin = Math.max(insets.bottom, 14);
+
+  // Photo de profil (façon Instagram) pour l'onglet Profil. Peut être une
+  // URI locale ou une URL Supabase → resolveLocalUri gère les deux.
+  const avatarStored = useUserStore((s) => s.profile?.avatarUri);
+  const avatarUri = resolveLocalUri(avatarStored);
 
   // training/coach sont des routes valides hors tab bar → fallback Home
   // pour qu'un onglet reste visuellement actif.
@@ -122,7 +141,13 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
           };
 
           return (
-            <TabButton key={route.key} path={path} focused={focused} onPress={onPress} />
+            <TabButton
+              key={route.key}
+              path={path}
+              focused={focused}
+              onPress={onPress}
+              avatarUri={route.name === 'profile' ? avatarUri : undefined}
+            />
           );
         })}
       </View>
@@ -174,5 +199,27 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.7,
     shadowRadius: 14,
     elevation: 8,
+  },
+  avatarWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.22)',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  avatarWrapActive: {
+    borderColor: ACTIVE_COLOR,
+    borderWidth: 2,
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.7,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  avatarImg: {
+    width: '100%',
+    height: '100%',
   },
 });
