@@ -42,7 +42,8 @@ describe('Adaptive Engine', () => {
     });
 
     expect(result.calorieAdjustment).toBe(0);
-    expect(result.reason).toContain('bien calibré');
+    // Les locales du projet sont volontairement sans accent ('calibre').
+    expect(result.reason).toContain('bien calibre');
   });
 
   it('increases calories when energy and performance are low', () => {
