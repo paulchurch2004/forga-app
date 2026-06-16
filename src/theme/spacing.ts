@@ -34,6 +34,52 @@ export const shadows = {
     shadowRadius: 4,
     elevation: 3,
   },
+  // ── Profondeur (ombre noire), 4 niveaux croissants ──
+  // depth1 = effleurement · depth2 = carte · depth3 = élément soulevé /
+  // modal · depth4 = action flottante. Donne une hiérarchie perceptible.
+  depth1: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  depth2: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.28,
+    shadowRadius: 14,
+    elevation: 6,
+  },
+  depth3: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.38,
+    shadowRadius: 24,
+    elevation: 14,
+  },
+  depth4: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.5,
+    shadowRadius: 36,
+    elevation: 24,
+  },
+  // ── Halo de marque (ombre ORANGE) — pour faire "rayonner" un élément ──
+  glow: {
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  glowStrong: {
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.7,
+    shadowRadius: 28,
+    elevation: 14,
+  },
 } as const;
 
 /** Max content width for mobile layout */

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fonts } from '../../theme/fonts';
+import { gradients, shadows } from '../../theme';
 
 interface PrimaryGradientButtonProps {
   label: string;
@@ -33,7 +34,7 @@ export function PrimaryGradientButton({
       ]}
     >
       <LinearGradient
-        colors={['#FF8C40', '#FF5A1C']}
+        colors={gradients.forgeGlow}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={[styles.button, size === 'lg' ? styles.buttonLg : styles.buttonMd]}
@@ -56,11 +57,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#FF6B35',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.35,
-    shadowRadius: 20,
-    elevation: 10,
+    ...shadows.glow,
   },
   buttonMd: {
     paddingVertical: 14,
