@@ -9,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { fonts } from '../../theme/fonts';
 import { useT } from '../../i18n';
+import { ScoreRing } from '../ui/ScoreRing';
 
 const LOGO = require('../../../assets/logo/logo_sans_fond.png');
 
@@ -31,34 +32,34 @@ export function WeeklyFormCard({ score, delta = 0, breakdown }: WeeklyFormCardPr
     { label: t('weeklyFormBreakdownConstance'), value: 92, color: '#5B8BFF' },
     { label: t('weeklyFormBreakdownDiscipline'), value: 72, color: '#00D4AA' },
   ];
+  const deltaColor = delta > 0 ? '#00D4AA' : '#FF6B6B';
   return (
     <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <Image source={LOGO} style={styles.logo} resizeMode="contain" />
-        <View style={styles.headerText}>
-          <Text style={styles.eyebrow}>{t('weeklyFormEyebrow')}</Text>
-          <View style={styles.scoreRow}>
-            <Text style={styles.scoreValue}>
-              {score}
-              <Text style={styles.scoreMax}>/100</Text>
-            </Text>
+      <View style={styles.row}>
+        {/* Anneau de score animé + halo (pièce maîtresse) */}
+        <ScoreRing score={score} size={124} />
+
+        <View style={styles.right}>
+          <View style={styles.eyebrowRow}>
+            <Image source={LOGO} style={styles.logoSm} resizeMode="contain" />
+            <Text style={styles.eyebrow}>{t('weeklyFormEyebrow')}</Text>
             {delta !== 0 && (
               <View style={styles.deltaWrap}>
-                <Text style={styles.deltaIcon}>{delta > 0 ? '↗' : '↘'}</Text>
-                <Text style={styles.deltaText}>
+                <Text style={[styles.deltaIcon, { color: deltaColor }]}>{delta > 0 ? '↗' : '↘'}</Text>
+                <Text style={[styles.deltaText, { color: deltaColor }]}>
                   {delta > 0 ? '+' : ''}
                   {delta}
                 </Text>
               </View>
             )}
           </View>
-        </View>
-      </View>
 
-      <View style={styles.breakdownRow}>
-        {items.map((item, i) => (
-          <BreakdownBar key={item.label} item={item} delay={i * 120} />
-        ))}
+          <View style={styles.breakdownStack}>
+            {items.map((item, i) => (
+              <BreakdownBar key={item.label} item={item} delay={i * 120} />
+            ))}
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -105,20 +106,27 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 18,
   },
-  headerRow: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
   },
-  logo: {
-    width: 48,
-    height: 48,
+  right: {
+    flex: 1,
+    gap: 14,
+  },
+  eyebrowRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  logoSm: {
+    width: 20,
+    height: 20,
     tintColor: '#FF6B35',
   },
-  headerText: {
-    flex: 1,
-  },
   eyebrow: {
+    flex: 1,
     fontFamily: fonts.body,
     fontSize: 10,
     color: '#FF6B35',
@@ -126,47 +134,24 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     textTransform: 'uppercase',
   },
-  scoreRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 10,
-    marginTop: 2,
-  },
-  scoreValue: {
-    fontFamily: fonts.data,
-    fontSize: 56,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: -2,
-    lineHeight: 60,
-  },
-  scoreMax: {
-    fontSize: 22,
-    color: 'rgba(255,255,255,0.38)',
-    fontWeight: '500',
-  },
   deltaWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
   },
   deltaIcon: {
-    color: '#00D4AA',
     fontSize: 14,
   },
   deltaText: {
     fontFamily: fonts.data,
-    color: '#00D4AA',
     fontSize: 13,
     fontWeight: '600',
   },
-  breakdownRow: {
-    flexDirection: 'row',
+  breakdownStack: {
     gap: 10,
-    marginTop: 20,
   },
   breakdownCol: {
-    flex: 1,
+    width: '100%',
   },
   breakdownLabelRow: {
     flexDirection: 'row',
