@@ -424,7 +424,7 @@ export default function NutritionScreen() {
         style={styles.container}
         contentContainerStyle={[
           styles.content,
-          { paddingTop: insets.top + spacing.md, maxWidth: contentMaxWidth },
+          { paddingTop: 0, maxWidth: contentMaxWidth },
         ]}
         showsVerticalScrollIndicator={false}
         refreshControl={
@@ -440,7 +440,7 @@ export default function NutritionScreen() {
         {/* Hero Header with image */}
         <ImageBackground
           source={{ uri: NUTRITION_HERO_IMAGE }}
-          style={styles.headerBg}
+          style={[styles.headerBg, { height: 160 + insets.top, paddingTop: insets.top }]}
           imageStyle={styles.headerBgImage}
         >
           <LinearGradient
@@ -733,18 +733,22 @@ const useStyles = makeStyles((colors) => ({
 
   // Hero header
   headerBg: {
-    width: '100%',
+    // Full-bleed : pas de width fixe (stretch) + marges négatives qui
+    // annulent le padding horizontal du contenu → l'image touche les bords
+    // de l'écran (comme le hero de Training/Profil). Hauteur + paddingTop
+    // gérés inline (insets.top) pour couvrir la barre de statut.
     height: 160,
+    marginHorizontal: -spacing.lg,
     marginBottom: spacing.md,
   },
   headerBgImage: {
-    borderRadius: borderRadius.xl,
+    // Image edge-to-edge — plus de coins arrondis (le bas se fond via le
+    // dégradé vers colors.background).
   },
   headerOverlay: {
     flex: 1,
     justifyContent: 'flex-end',
     padding: spacing.xl,
-    borderRadius: borderRadius.xl,
   },
   headerRow: {
     flexDirection: 'row',
