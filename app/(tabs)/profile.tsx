@@ -41,6 +41,7 @@ import { useStreak } from '../../src/hooks/useStreak';
 import { usePremium } from '../../src/hooks/usePremium';
 import { useActionBadges } from '../../src/hooks/useActionBadges';
 import { NotifDot } from '../../src/components/ui/NotifDot';
+import { PendingActionRow } from '../../src/components/ui/PendingActionRow';
 import { supabase } from '../../src/services/supabase';
 import { processQueue, clearQueue } from '../../src/services/syncQueue';
 import { captureException } from '../../src/services/sentry';
@@ -571,37 +572,20 @@ export default function ProfileScreen() {
           rouge de l'onglet "atterrit" (fil d'Ariane), visible immédiatement
           sans scroller, et qui mène droit à l'action. */}
       {(checkinDue || trialEndingSoon) && (
-        <View style={[styles.section, { marginTop: 20 }]}>
+        <View style={[styles.section, { marginTop: 20, gap: spacing.sm }]}>
           {checkinDue && (
-            <Pressable
-              style={[styles.progressionButton, { marginBottom: spacing.sm }]}
+            <PendingActionRow
+              title={t('weeklyCheckIn')}
+              subtitle={t('checkInSubtitle')}
               onPress={() => router.push('/checkin')}
-            >
-              <View style={styles.progressionLeft}>
-                <NotifDot style={{ marginLeft: 4, marginRight: 12 }} />
-                <View>
-                  <Text style={styles.progressionTitle}>{t('weeklyCheckIn')}</Text>
-                  <Text style={styles.progressionSubtitle}>{t('checkInSubtitle')}</Text>
-                </View>
-              </View>
-              <Text style={styles.progressionArrow}>{'›'}</Text>
-            </Pressable>
+            />
           )}
           {trialEndingSoon && (
-            <Pressable style={styles.progressionButton} onPress={handleManageSubscription}>
-              <View style={styles.progressionLeft}>
-                <NotifDot style={{ marginLeft: 4, marginRight: 12 }} />
-                <View>
-                  <Text style={styles.progressionTitle}>
-                    {locale === 'en' ? 'Your trial ends soon' : 'Ton essai expire bientôt'}
-                  </Text>
-                  <Text style={styles.progressionSubtitle}>
-                    {locale === 'en' ? 'Manage your subscription' : 'Gère ton abonnement'}
-                  </Text>
-                </View>
-              </View>
-              <Text style={styles.progressionArrow}>{'›'}</Text>
-            </Pressable>
+            <PendingActionRow
+              title={locale === 'en' ? 'Your trial ends soon' : 'Ton essai expire bientôt'}
+              subtitle={locale === 'en' ? 'Manage your subscription' : 'Gère ton abonnement'}
+              onPress={handleManageSubscription}
+            />
           )}
         </View>
       )}
