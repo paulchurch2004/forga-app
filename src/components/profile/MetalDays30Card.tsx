@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { fonts } from '../../theme/fonts';
 import { useT } from '../../i18n';
 import type { TranslationKey } from '../../i18n/locales/fr';
@@ -13,6 +14,16 @@ const METAL_COLOR: Record<MetalKey, string> = {
   acier: '#E8E8EE',
   or: '#FFB347',
   repos: '#3A3A48',
+};
+
+// Dégradés [reflet → ombre] pour donner un relief de "lingot" à chaque case.
+const METAL_GRADIENT: Record<MetalKey, [string, string]> = {
+  plomb: ['#9099A8', '#5E6573'],
+  bronze: ['#E0975A', '#A85F22'],
+  fer: ['#C8C8C8', '#888890'],
+  acier: ['#F6F6FB', '#B6B6C2'],
+  or: ['#FFE08A', '#E8941F'],
+  repos: ['#3A3A48', '#2A2A36'],
 };
 
 interface MetalDays30CardProps {
@@ -34,15 +45,12 @@ export function MetalDays30Card({ days }: MetalDays30CardProps) {
     <View style={styles.card}>
       <View style={styles.grid}>
         {padded.map((m, i) => (
-          <View
+          <LinearGradient
             key={i}
-            style={[
-              styles.cell,
-              {
-                backgroundColor: METAL_COLOR[m],
-                opacity: m === 'repos' ? 0.5 : 1,
-              },
-            ]}
+            colors={METAL_GRADIENT[m]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={[styles.cell, m === 'repos' && styles.cellRepos]}
           />
         ))}
       </View>
@@ -79,6 +87,13 @@ const styles = StyleSheet.create({
     width: '6.0%',
     aspectRatio: 1,
     borderRadius: 4,
+    // Bord biseauté clair en haut → effet lingot/relief.
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255,255,255,0.22)',
+  },
+  cellRepos: {
+    opacity: 0.4,
+    borderColor: 'rgba(255,255,255,0.06)',
   },
   footer: {
     flexDirection: 'row',

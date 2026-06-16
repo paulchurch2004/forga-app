@@ -1,15 +1,18 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import Animated, { ZoomIn } from 'react-native-reanimated';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../theme';
 import { useTheme } from '../../context/ThemeContext';
+import { Glow } from '../ui/Glow';
 import { BADGE_INFO, type BadgeType } from '../../types/user';
 
 const BADGE_ICONS: Record<BadgeType, string> = {
-  first_meal: '\uD83C\uDF7D',
-  first_week: '\uD83D\uDD25',
-  first_kilo: '\u2696',
-  forgeron: '\uD83D\uDD28',
-  month_of_forge: '\uD83C\uDFC6',
+  first_meal: '🍽',
+  first_week: '🔥',
+  first_kilo: '⚖',
+  forgeron: '🔨',
+  month_of_forge: '🏆',
 };
 
 interface BadgeCardProps {
@@ -37,9 +40,31 @@ export function BadgeCard({ type, unlocked, unlockedAt, progress }: BadgeCardPro
 
   return (
     <View style={[styles.card, !unlocked && styles.cardLocked]}>
-      <View style={[styles.iconCircle, { borderColor: color, backgroundColor: unlocked ? `${color}20` : colors.surface }]}>
-        <Text style={[styles.icon, !unlocked && styles.iconLocked]}>{icon}</Text>
-      </View>
+      {/* Médaille 3D : halo + sphère biseautée (reflet haut / ombre bas) */}
+      <Animated.View
+        entering={unlocked ? ZoomIn.springify().damping(13) : undefined}
+        style={styles.medalWrap}
+      >
+        {unlocked && <Glow color={color} size={66} intensity={0.5} style={styles.medalGlow} />}
+        <View
+          style={[
+            styles.iconCircle,
+            { borderColor: color, backgroundColor: unlocked ? `${color}22` : colors.surface },
+          ]}
+        >
+          {unlocked && (
+            <LinearGradient
+              colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0)', 'rgba(0,0,0,0.30)']}
+              start={{ x: 0.3, y: 0 }}
+              end={{ x: 0.7, y: 1 }}
+              style={styles.medalSheen}
+              pointerEvents="none"
+            />
+          )}
+          <Text style={[styles.icon, !unlocked && styles.iconLocked]}>{icon}</Text>
+        </View>
+      </Animated.View>
+
       <Text style={[styles.name, { color: unlocked ? colors.text : colors.textMuted }]} numberOfLines={2}>
         {info.name}
       </Text>
@@ -50,7 +75,7 @@ export function BadgeCard({ type, unlocked, unlockedAt, progress }: BadgeCardPro
       ) : progress ? (
         <Text style={styles.progress}>{progress}</Text>
       ) : (
-        <Text style={styles.locked}>{'\uD83D\uDD12'}</Text>
+        <Text style={styles.locked}>{'🔒'}</Text>
       )}
     </View>
   );
@@ -71,13 +96,27 @@ const useStyles = makeStyles((colors) => ({
   cardLocked: {
     opacity: 0.5,
   },
+  medalWrap: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  medalGlow: {
+    position: 'absolute',
+  },
   iconCircle: {
     width: 48,
     height: 48,
     borderRadius: 24,
     borderWidth: 2,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  medalSheen: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: 24,
   },
   icon: {
     fontSize: 24,
