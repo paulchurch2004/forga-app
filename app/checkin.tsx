@@ -53,12 +53,28 @@ export default function CheckInScreen() {
 
     setLoading(true);
 
-    // Calculate weight trend (simplified)
+    // Tendance de poids HEBDOMADAIRE réelle.
+    // On cherche l'entrée de poids la plus proche de 7 jours en arrière
+    // (et ≥ 5 jours pour être significative), puis on normalise le delta
+    // en kg/semaine : (poids actuel - poids passé) / âge en jours * 7.
+    // Si aucun historique assez ancien → null : le moteur ignore alors la
+    // tendance et se base uniquement sur le ressenti (plus de biais
+    // "0 kg = tout va bien" au 1er check-in).
     const weightLog = useUserStore.getState().weightLog;
-    let weightTrend = 0;
-    if (weightLog.length > 0) {
-      const lastWeight = weightLog[weightLog.length - 1].weight;
-      weightTrend = weightNum - lastWeight; // Simplified weekly trend
+    const MS_PER_DAY = 86400000;
+    const nowMs = Date.now();
+    let weightTrend: number | null = null;
+    let bestAgeDiff = Infinity;
+    for (const entry of weightLog) {
+      const entryMs = new Date(entry.date).getTime();
+      if (isNaN(entryMs)) continue;
+      const ageDays = (nowMs - entryMs) / MS_PER_DAY;
+      if (ageDays < 5) continue; // trop récent pour une tendance hebdo fiable
+      const diff = Math.abs(ageDays - 7);
+      if (diff < bestAgeDiff) {
+        bestAgeDiff = diff;
+        weightTrend = ((weightNum - entry.weight) / ageDays) * 7;
+      }
     }
 
     // Adaptive adjustment

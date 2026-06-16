@@ -58,9 +58,14 @@ export function calculateAdaptiveAdjustment(input: AdaptiveInput): AdaptiveResul
 
 function getWeightTrendAdjustment(
   objective: string,
-  trend: number,
+  trend: number | null,
   reasons: string[],
 ): number {
+  // Pas d'historique de poids assez ancien → on n'ajuste PAS sur la
+  // tendance (on évite le biais d'un faux "0 kg/semaine"). L'ajustement
+  // se fera alors uniquement sur le ressenti (énergie/faim/perf/sommeil).
+  if (trend == null) return 0;
+
   let adj = 0;
 
   if (objective === 'bulk') {

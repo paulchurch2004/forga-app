@@ -74,7 +74,8 @@ export interface PortionInput {
 export interface AdaptiveInput {
   currentCalories: number;
   objective: Objective;
-  weightTrendPerWeek: number;
+  /** kg/semaine. `null` = pas assez d'historique → le moteur ignore la tendance. */
+  weightTrendPerWeek: number | null;
   energy: 1 | 2 | 3 | 4 | 5;
   hunger: 1 | 2 | 3 | 4 | 5;
   performance: 1 | 2 | 3 | 4;
