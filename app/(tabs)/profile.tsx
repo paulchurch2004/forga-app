@@ -80,7 +80,7 @@ export default function ProfileScreen() {
   const score = useScoreStore((s) => s.currentScore);
   const { currentStreak, bestStreak, streakFreezeUsedThisWeek } = useStreak();
   const { isPremium, isTrialActive, isTrialExpired, daysLeft } = usePremium();
-  const { checkinDue } = useActionBadges();
+  const { checkinDue, trialEndingSoon } = useActionBadges();
   const checkIns = useUserStore((s) => s.checkIns);
   const weightLog = useUserStore((s) => s.weightLog);
   const { isEnabled: notifEnabled, toggle: toggleNotif } = useNotifications();
@@ -566,6 +566,45 @@ export default function ProfileScreen() {
           onAvatarPress={handleChangeAvatar}
         />
       </View>
+
+      {/* À COMPLÉTER — encart en haut du profil : c'est ici que le point
+          rouge de l'onglet "atterrit" (fil d'Ariane), visible immédiatement
+          sans scroller, et qui mène droit à l'action. */}
+      {(checkinDue || trialEndingSoon) && (
+        <View style={[styles.section, { marginTop: 20 }]}>
+          {checkinDue && (
+            <Pressable
+              style={[styles.progressionButton, { marginBottom: spacing.sm }]}
+              onPress={() => router.push('/checkin')}
+            >
+              <View style={styles.progressionLeft}>
+                <NotifDot style={{ marginLeft: 4, marginRight: 12 }} />
+                <View>
+                  <Text style={styles.progressionTitle}>{t('weeklyCheckIn')}</Text>
+                  <Text style={styles.progressionSubtitle}>{t('checkInSubtitle')}</Text>
+                </View>
+              </View>
+              <Text style={styles.progressionArrow}>{'›'}</Text>
+            </Pressable>
+          )}
+          {trialEndingSoon && (
+            <Pressable style={styles.progressionButton} onPress={handleManageSubscription}>
+              <View style={styles.progressionLeft}>
+                <NotifDot style={{ marginLeft: 4, marginRight: 12 }} />
+                <View>
+                  <Text style={styles.progressionTitle}>
+                    {locale === 'en' ? 'Your trial ends soon' : 'Ton essai expire bientôt'}
+                  </Text>
+                  <Text style={styles.progressionSubtitle}>
+                    {locale === 'en' ? 'Manage your subscription' : 'Gère ton abonnement'}
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.progressionArrow}>{'›'}</Text>
+            </Pressable>
+          )}
+        </View>
+      )}
 
       {/* 30 derniers jours — vraies check-ins métaux du Morning Ritual */}
       <View style={{ marginTop: 24 }}>
