@@ -26,6 +26,7 @@ import { BigTileCard } from '../../src/components/home/BigTileCard';
 import { ReferralPromptModal } from '../../src/components/social/ReferralPromptModal';
 import { useReferralPrompt } from '../../src/hooks/useReferralPrompt';
 import { WeeklyFormCard } from '../../src/components/home/WeeklyFormCard';
+import { ForgeEmbersBackground } from '../../src/components/ui/ForgeEmbersBackground';
 import { PremiumUpgradeCard } from '../../src/components/home/PremiumUpgradeCard';
 import { usePremium } from '../../src/hooks/usePremium';
 import { CoachingTooltip } from '../../src/components/coach/CoachingTooltip';
@@ -172,10 +173,12 @@ export default function HomeScreen() {
   const firstName = profile.name?.split(' ')[0] || 'Champion';
 
   return (
-    <View style={[styles.wrapper, { paddingTop: insets.top + spacing.xl }]}>
+    <View style={styles.wrapper}>
+      {/* Fond animé "braises de forge" (Skia GPU), plein écran derrière le contenu */}
+      <ForgeEmbersBackground />
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: spacing['4xl'] }}
+        contentContainerStyle={{ paddingTop: insets.top + spacing.xl, paddingBottom: spacing['4xl'] }}
       >
         {/* Header */}
         <View style={[styles.header, { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%', paddingHorizontal: spacing.lg }]}>
