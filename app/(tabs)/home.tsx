@@ -27,6 +27,7 @@ import { ReferralPromptModal } from '../../src/components/social/ReferralPromptM
 import { useReferralPrompt } from '../../src/hooks/useReferralPrompt';
 import { WeeklyFormCard } from '../../src/components/home/WeeklyFormCard';
 import { ForgeEmbersBackground } from '../../src/components/ui/ForgeEmbersBackground';
+import { FLOATING_TABBAR_HEIGHT } from '../../src/components/layout/CustomTabBar';
 import { PremiumUpgradeCard } from '../../src/components/home/PremiumUpgradeCard';
 import { usePremium } from '../../src/hooks/usePremium';
 import { CoachingTooltip } from '../../src/components/coach/CoachingTooltip';
@@ -178,7 +179,7 @@ export default function HomeScreen() {
       <ForgeEmbersBackground />
       <Animated.ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: insets.top + spacing.xl, paddingBottom: spacing['4xl'] }}
+        contentContainerStyle={{ paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + FLOATING_TABBAR_HEIGHT + spacing.lg }}
       >
         {/* Header */}
         <View style={[styles.header, { maxWidth: contentMaxWidth, alignSelf: 'center', width: '100%', paddingHorizontal: spacing.lg }]}>

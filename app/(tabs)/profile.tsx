@@ -18,6 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
+import { FLOATING_TABBAR_HEIGHT } from '../../src/components/layout/CustomTabBar';
 import { resolveLocalUri } from '../../src/utils/persistImage';
 import { getScoreColor, getScoreLabel } from '../../src/theme/colors';
 import { useTheme } from '../../src/context/ThemeContext';
@@ -517,7 +518,7 @@ export default function ProfileScreen() {
   // s'arrête sous la caméra → bande noire visible en haut = aspect
   // "site web" au lieu de "app native".
   return (
-    <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + FLOATING_TABBAR_HEIGHT + spacing.lg }]}>
       {/* Hero Header — full-bleed, passe SOUS la Dynamic Island */}
       <ImageBackground
         source={{ uri: PROFILE_HEADER_IMAGE }}

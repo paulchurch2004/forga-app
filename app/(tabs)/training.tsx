@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { makeStyles, fonts, fontSizes, spacing, borderRadius } from '../../src/theme';
+import { FLOATING_TABBAR_HEIGHT } from '../../src/components/layout/CustomTabBar';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useTraining } from '../../src/hooks/useTraining';
 import { useStreak } from '../../src/hooks/useStreak';
@@ -562,7 +563,7 @@ export default function TrainingScreen() {
       style={styles.container}
       contentContainerStyle={[
         styles.content,
-        { maxWidth: contentMaxWidth },
+        { maxWidth: contentMaxWidth, paddingBottom: insets.bottom + FLOATING_TABBAR_HEIGHT + spacing.lg },
       ]}
       showsVerticalScrollIndicator={false}
     >

@@ -28,6 +28,12 @@ const TAB_ICON_PATHS: Record<string, string> = {
 const ACTIVE_COLOR = '#FF6B35';
 const INACTIVE_COLOR = 'rgba(255,255,255,0.42)';
 
+// Hauteur occupée par la barre flottante (hors safe-area). Les écrans
+// scrollables ajoutent `insets.bottom + FLOATING_TABBAR_HEIGHT (+ marge)` en
+// padding bas pour que leur dernier contenu passe SOUS la barre sans être
+// masqué (la barre est en position absolue → elle ne réserve plus d'espace).
+export const FLOATING_TABBAR_HEIGHT = 68;
+
 // Vibration légère au toucher (natif uniquement). Import dynamique pour
 // ne rien charger sur web.
 function haptic() {
@@ -191,6 +197,14 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
 
 const styles = StyleSheet.create({
   wrap: {
+    // Barre FLOTTANTE : position absolue → ne réserve plus de bande en bas
+    // (plus de "rectangle noir"). Le contenu des écrans descend jusqu'en bas
+    // et la barre flotte par-dessus. pointerEvents="box-none" laisse passer
+    // les touches du contenu autour de l'îlot.
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     paddingHorizontal: 20,
     paddingTop: 6,
     backgroundColor: 'transparent',

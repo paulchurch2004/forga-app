@@ -20,6 +20,7 @@ import { useEngine } from '../../src/hooks/useEngine';
 import { useMealStore } from '../../src/store/mealStore';
 import { MealPhotoCard } from '../../src/components/meals/MealPhotoCard';
 import { fonts, spacing, makeStyles } from '../../src/theme';
+import { FLOATING_TABBAR_HEIGHT } from '../../src/components/layout/CustomTabBar';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useT } from '../../src/i18n';
@@ -327,7 +328,12 @@ export default function MealsScreen() {
         columnWrapperStyle={numColumns > 1 ? styles.gridRow : undefined}
         contentContainerStyle={[
           styles.gridContent,
-          { maxWidth: contentMaxWidth, alignSelf: 'center' as const, width: '100%' as const },
+          {
+            maxWidth: contentMaxWidth,
+            alignSelf: 'center' as const,
+            width: '100%' as const,
+            paddingBottom: insets.bottom + FLOATING_TABBAR_HEIGHT + spacing.lg,
+          },
         ]}
         showsVerticalScrollIndicator={false}
         initialNumToRender={8}

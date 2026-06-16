@@ -48,6 +48,7 @@ import { useQuota } from '../../src/hooks/useQuota';
 import { usePremium } from '../../src/hooks/usePremium';
 import { useTypewriter } from '../../src/hooks/useTypewriter';
 import { fonts, fontSizes, spacing, borderRadius, makeStyles } from '../../src/theme';
+import { FLOATING_TABBAR_HEIGHT } from '../../src/components/layout/CustomTabBar';
 import { useTheme } from '../../src/context/ThemeContext';
 import { useResponsive } from '../../src/hooks/useResponsive';
 import { useT } from '../../src/i18n';
@@ -1214,7 +1215,7 @@ export default function CoachScreen() {
 
       {/* Quick Replies + Input — visible only in conversation mode */}
       {coachMode === 'conversation' && (
-      <View style={[styles.repliesContainer, { paddingBottom: insets.bottom + spacing.sm }]}>
+      <View style={[styles.repliesContainer, { paddingBottom: insets.bottom + FLOATING_TABBAR_HEIGHT + spacing.sm }]}>
         {quickReplies.length > 0 && (
           <ScrollView
             horizontal
