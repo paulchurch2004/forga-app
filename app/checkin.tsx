@@ -16,6 +16,7 @@ import { calculateAdaptiveAdjustment } from '../src/engine/adaptiveEngine';
 import { calculateMacros } from '../src/engine/macros';
 import { supabase } from '../src/services/supabase';
 import { syncProfile, syncWeeklyCheckIn } from '../src/services/userSync';
+import * as Crypto from 'expo-crypto';
 import { events } from '../src/services/analytics';
 import type { AdaptiveInput } from '../src/types/engine';
 import { ScreenTopBar } from '../src/components/ui/ScreenTopBar';
@@ -80,7 +81,7 @@ export default function CheckInScreen() {
     const today = todayLocalIso();
 
     const checkIn = {
-      id: crypto.randomUUID?.() ?? `${Date.now()}`,
+      id: Crypto.randomUUID(),
       userId: profile.id,
       weekStart: weekStartStr,
       weight: weightNum,
@@ -101,31 +102,31 @@ export default function CheckInScreen() {
     // perdrait sa mémoire à chaque réinstall.
     syncWeeklyCheckIn(checkIn);
     addWeightEntry({
-      id: crypto.randomUUID?.() ?? `${Date.now()}-w`,
+      id: Crypto.randomUUID(),
       userId: profile.id,
       date: today,
       weight: weightNum,
       createdAt: new Date().toISOString(),
     });
 
-    // Update profile with new calories if adjusted
+    // Recalcule les macros si ajustement, en conservant la correction
+    // protéines péri/ménopause (menopauseStatus). On construit UN SEUL
+    // patch réutilisé en local ET pour Supabase → zéro divergence
+    // local/cloud (avant : seules les calories partaient au cloud).
+    const profilePatch: Record<string, any> = { currentWeight: weightNum };
     if (adaptive.calorieAdjustment !== 0) {
       const newMacros = calculateMacros({
         tdee: profile.tdee + adaptive.calorieAdjustment,
         weightKg: weightNum,
         objective: profile.objective,
+        menopauseStatus: profile.menopauseStatus,
       });
-
-      updateProfile({
-        currentWeight: weightNum,
-        dailyCalories: newMacros.calories,
-        dailyProtein: newMacros.protein,
-        dailyCarbs: newMacros.carbs,
-        dailyFat: newMacros.fat,
-      });
-    } else {
-      updateProfile({ currentWeight: weightNum });
+      profilePatch.dailyCalories = newMacros.calories;
+      profilePatch.dailyProtein = newMacros.protein;
+      profilePatch.dailyCarbs = newMacros.carbs;
+      profilePatch.dailyFat = newMacros.fat;
     }
+    updateProfile(profilePatch);
 
     // Save to Supabase
     try {
@@ -145,12 +146,9 @@ export default function CheckInScreen() {
         date: today,
         weight: weightNum,
       });
-      // Sync profile updates to Supabase
-      const profileUpdates: Record<string, any> = { currentWeight: weightNum };
-      if (adaptive.calorieAdjustment !== 0) {
-        profileUpdates.dailyCalories = (profile.dailyCalories || 0) + adaptive.calorieAdjustment;
-      }
-      syncProfile(profileUpdates, profile.id);
+      // Sync profil vers Supabase — MÊME patch que le local (toutes les
+      // macros recalculées, pas seulement les calories).
+      syncProfile(profilePatch, profile.id);
     } catch (e) {
       if (__DEV__) console.warn('[CheckIn] Supabase sync failed:', e);
     }

@@ -90,7 +90,7 @@ export function syncWeight(entry: WeightEntry, _userId: string) {
 export function syncWeeklyCheckIn(checkIn: WeeklyCheckIn) {
   if (isDemoMode) return;
   enqueue({
-    table: 'weekly_check_ins',
+    table: 'weekly_checkins',
     operation: 'upsert',
     data: {
       id: checkIn.id,
