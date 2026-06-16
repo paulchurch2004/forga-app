@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { fonts } from '../../theme/fonts';
+import { Glow } from '../ui/Glow';
 import type { Archetype } from '../../types/user';
 import { useT } from '../../i18n';
 import type { TranslationKey } from '../../i18n/locales/fr';
@@ -66,7 +67,14 @@ export function ProfileHeroCard({
 
   return (
     <View style={styles.card}>
-      <View style={styles.glow} pointerEvents="none" />
+      <Glow color="#FF6B35" size={240} intensity={0.5} style={styles.glow} />
+      <LinearGradient
+        colors={['rgba(255,255,255,0.10)', 'rgba(255,255,255,0)']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0, y: 1 }}
+        style={styles.glassHighlight}
+        pointerEvents="none"
+      />
       <View style={styles.headerRow}>
         {onAvatarPress ? (
           <Pressable
@@ -123,16 +131,24 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 22,
     overflow: 'hidden',
+    // Profondeur "lift" chaud (bronze) — la carte se soulève.
+    shadowColor: '#FF6B35',
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.25,
+    shadowRadius: 28,
+    elevation: 10,
   },
   glow: {
     position: 'absolute',
-    top: -40,
-    right: -40,
-    width: 200,
-    height: 200,
-    borderRadius: 100,
-    backgroundColor: 'rgba(255,107,53,0.40)',
-    opacity: 0.3,
+    top: -80,
+    right: -80,
+  },
+  glassHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 70,
   },
   headerRow: {
     flexDirection: 'row',
