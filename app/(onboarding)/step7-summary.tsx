@@ -158,12 +158,14 @@ export default function Step7Summary() {
       // Resolve a non-empty name across all sign-up paths.
       // Apple often returns no name on subsequent sign-ins; the DB has a NOT NULL
       // constraint on `name`, so we fall back through every available source.
-      const emailPrefix = user.email ? user.email.split('@')[0] : '';
+      // On n'utilise PLUS le préfixe de l'email comme nom (affichait
+      // "pauldark2004.2" dans le profil). On privilégie le prénom saisi à
+      // l'onboarding, puis le nom du compte Google/Apple, sinon un défaut
+      // neutre (modifiable ensuite dans Réglages).
       const resolvedName =
         onboardingData.name?.trim() ||
         (user.user_metadata?.full_name as string | undefined)?.trim() ||
         (user.user_metadata?.name as string | undefined)?.trim() ||
-        emailPrefix ||
         'Utilisateur';
 
       const profileData = {

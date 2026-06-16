@@ -38,10 +38,11 @@ export default function Step1Identity() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const styles = useStyles();
-  const { t } = useT();
+  const { t, locale } = useT();
   const onboardingData = useUserStore((s) => s.onboardingData);
   const setOnboardingData = useUserStore((s) => s.setOnboardingData);
 
+  const [name, setName] = useState<string>(onboardingData.name ?? '');
   const [sex, setSex] = useState<Sex | undefined>(onboardingData.sex);
   const [age, setAge] = useState<string>(
     onboardingData.age ? String(onboardingData.age) : ''
@@ -70,6 +71,7 @@ export default function Step1Identity() {
     if (!canContinue) return;
     triggerHaptic('light');
     setOnboardingData({
+      name: name.trim() || undefined,
       sex,
       age: parsedAge,
       // On stocke menopauseStatus uniquement si la question a été posée.
@@ -109,6 +111,20 @@ export default function Step1Identity() {
           {/* Title */}
           <Text style={styles.title}>{t('onboardingStep1Title')}</Text>
           <Text style={styles.subtitle}>{t('onboardingStep1Subtitle')}</Text>
+
+          {/* Prénom (optionnel mais évite le fallback email plus tard) */}
+          <Text style={styles.sectionLabel}>{locale === 'en' ? 'First name' : 'Prénom'}</Text>
+          <TextInput
+            style={styles.nameInput}
+            value={name}
+            onChangeText={setName}
+            placeholder={locale === 'en' ? 'Your first name' : 'Ton prénom'}
+            placeholderTextColor={colors.textMuted}
+            autoCapitalize="words"
+            returnKeyType="done"
+            maxLength={30}
+            accessibilityLabel={locale === 'en' ? 'First name' : 'Prénom'}
+          />
 
           {/* Sex selection */}
           <Text style={styles.sectionLabel}>{t('yourSex')}</Text>
@@ -324,6 +340,18 @@ const useStyles = makeStyles((colors) => ({
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: spacing.lg,
+  },
+  nameInput: {
+    backgroundColor: colors.surface,
+    borderRadius: borderRadius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    paddingHorizontal: spacing.xl,
+    height: 56,
+    fontFamily: fonts.body,
+    fontSize: fontSizes.lg,
+    color: colors.text,
+    marginBottom: spacing['3xl'],
   },
   sexRow: {
     flexDirection: 'row',

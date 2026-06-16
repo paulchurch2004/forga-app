@@ -41,7 +41,7 @@ export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const styles = useStyles();
-  const { t } = useT();
+  const { t, locale } = useT();
   const profile = useUserStore((s) => s.profile);
   const setProfile = useUserStore((s) => s.setProfile);
   const user = useAuthStore((s) => s.user);
@@ -76,6 +76,7 @@ export default function SettingsScreen() {
     { value: 'pork_free', label: t('restrictionPorkFree') },
   ];
 
+  const [name, setName] = useState(profile?.name ?? '');
   const [sex, setSex] = useState<Sex>(profile?.sex ?? 'male');
   const [age, setAge] = useState(String(profile?.age ?? 25));
   const [heightCm, setHeightCm] = useState(String(profile?.heightCm ?? 175));
@@ -174,6 +175,7 @@ export default function SettingsScreen() {
         const { error } = await supabase
           .from('users')
           .update({
+            name: name.trim() || profile?.name || 'Utilisateur',
             sex,
             age: ageNum,
             height_cm: heightNum,
@@ -198,6 +200,7 @@ export default function SettingsScreen() {
       if (profile) {
         setProfile({
           ...profile,
+          name: name.trim() || profile.name || 'Utilisateur',
           sex,
           age: ageNum,
           heightCm: heightNum,
@@ -247,6 +250,17 @@ export default function SettingsScreen() {
         </Pressable>
         {openSections.has('body') && (
           <>
+            <Text style={styles.sectionTitle}>{locale === 'en' ? 'First name' : 'Prénom'}</Text>
+            <TextInput
+              style={styles.input}
+              value={name}
+              onChangeText={setName}
+              placeholder={locale === 'en' ? 'Your first name' : 'Ton prénom'}
+              placeholderTextColor={colors.textMuted}
+              autoCapitalize="words"
+              returnKeyType="done"
+            />
+
             <Text style={styles.sectionTitle}>{t('sex')}</Text>
             <View style={styles.chipRow}>
               {(['male', 'female'] as Sex[]).map((s) => (
